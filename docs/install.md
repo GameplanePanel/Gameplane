@@ -18,7 +18,7 @@ For an offline Helm renderer, see the [Argo CD delivery guide](argocd.md).
 
 The chart and its images are published to the GitHub Container Registry (GHCR)
 as OCI artifacts — no `helm repo add` needed. Install a tagged release straight
-from the registry (replace `<version>` with a release, e.g. `0.4.0`):
+from the registry (replace `<version>` with a release, e.g. `0.4.3`):
 
 ```sh
 helm upgrade --install gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
@@ -37,6 +37,26 @@ and `capture-sidecar` — are only pulled when the optional component they
 belong to is enabled (and, for `sentinel` and `capture-sidecar`, only for
 GameServers that opt in). See each component's values block for its enable
 flag.
+
+The chart's default install renders the following objects, and each optional
+branch depends on the values shown:
+
+```mermaid
+flowchart TD
+  release["helm install or upgrade gameplane"] --> opq{"operator.enabled"}
+  release --> apiq{"api.enabled"}
+  release --> monq{"serviceMonitors, prometheusRules or grafanaDashboards"}
+  opq -- "true (default)" --> crds["gameplane-crds subchart (Helm crds/ phase)"]
+  opq -- "true (default)" --> op["Operator Deployment, RBAC and NetworkPolicies"]
+  opq -- "true (default)" --> vap["Admission policies and default ModuleSource"]
+  apiq -- "true (default)" --> api["API Deployment, Service and data PVC"]
+  apiq -- "web.enabled (default)" --> web["Web dashboard"]
+  apiq -- "ingress.enabled" --> ing["Ingress"]
+  release -- "not api.standalone and crds.autoApply.enabled" --> hook["CRD apply hook Job"]
+  apiq -- "api.telemetry.receiver.enabled and empty endpoint" --> tr["Telemetry receiver"]
+  apiq -- "syslogBridge.enabled and empty webhook URL" --> asb["Audit syslog bridge"]
+  monq -- "opt-in" --> mon["ServiceMonitor, PodMonitor, PrometheusRule and dashboard ConfigMap"]
+```
 
 ### Edge channel (latest edge build)
 
@@ -81,8 +101,8 @@ helm upgrade --install gameplane ./charts/gameplane \
 ```
 
 > **Note:** GHCR packages are private on first publish. The maintainer makes the
-> `gameplane/operator`, `gameplane/api`, `gameplane/agent`, and `charts/gameplane`
-> packages public once (GHCR → package → *Package settings* → *Change visibility*)
+> `gameplane/operator`, `gameplane/api`, `gameplane/agent`, `charts/gameplane` and
+> `charts/gameplane-crds` packages public once (GHCR → package → *Package settings* → *Change visibility*)
 > so anonymous `helm install` / `docker pull` works. For a private install,
 > create a `kubernetes.io/dockerconfigjson` pull secret and set
 > `image.pullSecrets`.
@@ -335,7 +355,7 @@ Top-level knobs (see `values.yaml` for the full list):
     - `backupEgress.ports` — TCP ports for repository connections (default 443, 22); unlike `gameEgress` there is no private-range exclusion, since the destination is an admin-configured repository Secret rather than an attacker-influenced URL, and is often itself private
 - `clusterOps.enabled` — credential-minting cluster operations (Add node, Download kubeconfig) in the dashboard's Cluster page (default off; grants powerful kube-system + CSR-approval RBAC)
   - `clusterOps.externalAddress` — external (node-routable) API server address, e.g. `1.2.3.4:6443` or `https://k8s.example.com:6443`, used in the join command and downloaded kubeconfig instead of the in-cluster ClusterIP; leave empty only when the in-cluster address is itself reachable from outside the cluster
-- `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](../mcp-server/README.md)
+- `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](https://github.com/GameplanePanel/mcp/blob/main/README.md)
   - `mcpServer.replicas` — MCP server replicas (default 1)
 - `updates.channel` — informational release-channel label (e.g., `stable`, `edge`) shown read-only in the dashboard's Admin Settings → Updates section; purely informational (Gameplane upgrades via Helm, not auto-update)
 - `podSecurity.enforceRestricted` — defaults to true on new installs. Enables the Restricted game/config-init profile and namespace admission. Templates require positive `security.runAsUser` and `security.fsGroup`; verify image compatibility and migrate existing file ownership before upgrading. Enabling it rolls existing Pods once.
@@ -349,7 +369,7 @@ Top-level knobs (see `values.yaml` for the full list):
   - `defaultModuleSource.type` — source type: `oci` (default, pulls pre-built bundles from a registry) or `git` (index the public `GameplanePanel/module` repo)
   - `defaultModuleSource.git.*` — git configuration (when `type: git`)
     - `git.url` — repository URL (default `https://github.com/GameplanePanel/module.git`)
-    - `git.ref` — git branch/tag (default `main`)
+    - `git.ref` — git branch/tag (defaults to a pinned module-repo release tag, see `defaultModuleSource.git.ref` in `values.yaml`; set `main` to track the bleeding edge, but then a module bump on `main` can stop serving the version installed Modules pin, which leaves them `Failed`/`VersionUnavailable`)
     - `git.subPath` — module subdirectory within the repository (default `""`, empty means root)
   - `defaultModuleSource.oci.*` — OCI registry configuration (when `type: oci`)
     - `oci.url` — OCI registry URL (e.g., `ghcr.io/gameplanepanel/gameplane-modules`)
@@ -389,6 +409,12 @@ Top-level knobs (see `values.yaml` for the full list):
 
   Any other value fails the operator at startup. The operator never writes the
   deprecated `service.spec.loadBalancerIP`.
+- `operator.portPools` — port pools: ranges of ports on one shared public
+  endpoint, each with the templates whose servers draw from it
+  (`[{name: edge, ports: "2456-2499", templates: [valheim, factorio]}]`).
+  Each server gets a contiguous block, kept for its life. Use it when servers
+  are reached through a relay or an edge that forwards ports, as games whose
+  clients send no hostname must be. See [Networking](networking.md#port-pools).
 - `capture.enabled` — the optional network packet capture sidecar [optional] for GameServers
   (default `false`). When enabled cluster-wide, admins can opt individual GameServers
   into live AF_PACKET capture with BPF filtering and download PCAPNG files. Captures
@@ -527,7 +553,7 @@ a slow or down sink never blocks or fails a request.
 - `api.audit.webhook.authSecretRef` — optional `Authorization` header for the
   webhook, sourced from a Secret (never a flag — see [security](security.md)).
 - `api.audit.webhook.syslogBridge.enabled` — deploy the bundled
-  [audit-syslog-bridge [optional]](../audit-syslog-bridge/README.md) and point the webhook
+  [audit-syslog-bridge [optional]](https://github.com/GameplanePanel/audit-syslog-bridge/blob/main/README.md) and point the webhook
   at it automatically, so events are forwarded to a **syslog** collector. Set
   `syslogBridge.syslog.addr` to your collector `host:port` (required when
   enabled), and optionally `network` (`tcp`/`udp`), `tls`, `facility`, and
@@ -969,6 +995,17 @@ not run. A fresh install therefore never depends on pulling the hook's
 `crds.autoApply.image` if you reinstall on an air-gapped cluster. CRDs are
 never owned or deleted by Helm here, so `helm uninstall` leaves your
 GameServers intact.
+
+With Helm 3, the hook's events on `helm install` depend on the live CRD stamp:
+
+```mermaid
+flowchart TD
+  start["helm install or helm upgrade"] --> up{"Release.IsUpgrade?"}
+  up -- yes --> pre["pre-upgrade hook: kubectl apply --server-side"]
+  up -- no --> live{"gameservers CRD present with a different stamp?"}
+  live -- "no: fresh cluster, stamps match" --> none["No hook Job; crds/ created the CRDs"]
+  live -- "yes: leftover CRDs" --> pi["pre-install and pre-upgrade hook applies crd-manifests/"]
+```
 
 **Helm 4** installs `crds/` with a server-side apply under the field manager
 `helm` instead of skipping existing CRDs, so a `helm install` over leftover

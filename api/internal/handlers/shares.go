@@ -291,10 +291,12 @@ func revokeShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 }
 
 type sharePublicResp struct {
-	ServerName    string     `json:"serverName"`
-	Status        string     `json:"status"`
-	Address       *shareAddr `json:"address,omitempty"`
-	PlayersOnline *int32     `json:"playersOnline,omitempty"`
+	ServerName      string     `json:"serverName"`
+	Status          string     `json:"status"`
+	ManuallyStopped bool       `json:"manuallyStopped"`
+	CanStart        bool       `json:"canStart"`
+	Address         *shareAddr `json:"address,omitempty"`
+	PlayersOnline   *int32     `json:"playersOnline,omitempty"`
 }
 
 type shareAddr struct {
@@ -358,12 +360,15 @@ func resolveShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 		status := getPhase(obj)
 		address := getPublicAddress(obj)
 		players := getPlayersOnline(obj)
+		stopped, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend")
 
 		resp := sharePublicResp{
-			ServerName:    link.ServerName,
-			Status:        status,
-			Address:       address,
-			PlayersOnline: players,
+			ServerName:      link.ServerName,
+			Status:          status,
+			Address:         address,
+			PlayersOnline:   players,
+			ManuallyStopped: stopped,
+			CanStart:        link.CanStart && !stopped,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -427,6 +432,15 @@ func startShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "not found"})
+			return
+		}
+
+		// Share links only request an idle wake. A manual stop is the owner's
+		// power policy and must not be accepted as a start that cannot succeed.
+		if stopped, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend"); stopped {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "server stopped"})
 			return
 		}
 
@@ -522,45 +536,39 @@ func getPublicAddress(obj *unstructured.Unstructured) *shareAddr {
 		return nil
 	}
 
-	// First pass: prefer tunnel endpoints that are not private.
+	expose, _, _ := unstructured.NestedString(obj.Object, "spec", "networking", "expose")
+	var fallback *shareAddr
 	for _, ep := range endpoints {
 		epMap, ok := ep.(map[string]interface{})
 		if !ok {
+			continue
+		}
+		private, _, _ := unstructured.NestedBool(epMap, "private")
+		if private {
+			continue
+		}
+		host, _, _ := unstructured.NestedString(epMap, "host")
+		port := nestedPort(epMap)
+		if host == "" || port == 0 {
 			continue
 		}
 		provider, _, _ := unstructured.NestedString(epMap, "tunnelProvider")
-		if provider == "" {
-			continue
-		}
-		private, _, _ := unstructured.NestedBool(epMap, "private")
-		if private {
-			continue
-		}
-		host, _, _ := unstructured.NestedString(epMap, "host")
-		port := nestedPort(epMap)
-		if host != "" && port > 0 {
+		if provider != "" {
 			return &shareAddr{Host: host, Port: port}
 		}
-	}
-
-	// Second pass: fall back to any non-private endpoint (tunnel or service).
-	for _, ep := range endpoints {
-		epMap, ok := ep.(map[string]interface{})
-		if !ok {
-			continue
+		// Older operators published the Service ClusterIP as the NodePort
+		// host. A refreshed endpoint records the ClusterIP separately.
+		if expose == "NodePort" {
+			serviceAddress, _, _ := unstructured.NestedString(epMap, "serviceAddress")
+			if serviceAddress == "" || serviceAddress == host {
+				continue
+			}
 		}
-		private, _, _ := unstructured.NestedBool(epMap, "private")
-		if private {
-			continue
-		}
-		host, _, _ := unstructured.NestedString(epMap, "host")
-		port := nestedPort(epMap)
-		if host != "" && port > 0 {
-			return &shareAddr{Host: host, Port: port}
+		if fallback == nil {
+			fallback = &shareAddr{Host: host, Port: port}
 		}
 	}
-
-	return nil
+	return fallback
 }
 
 // nestedPort extracts the "port" field from an endpoint map as an int32.

@@ -184,6 +184,43 @@ test.describe("Slice 5: Share links — public page (mock mode)", () => {
     await expectNoPrivacyLeak(page);
   });
 
+  test("Manually stopped: owner must start even while observed phase is Running", async ({ page }) => {
+    await mockShareResolve(page, {
+      "tok-stopped": { status: 200, body: { serverName: "mc-survival", status: "Running", manuallyStopped: true, canStart: false } },
+    });
+    await page.goto("/share/tok-stopped");
+    await expect(page.getByText("Stopped", { exact: true })).toBeVisible();
+    await expect(page.getByText(/This server was stopped by its owner/)).toBeVisible();
+    await expect(page.getByText("Online", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /start server/i })).toHaveCount(0);
+    await expectNoPrivacyLeak(page);
+  });
+
+  test("View-only asleep: asks the owner instead of offering Start", async ({ page }) => {
+    await mockShareResolve(page, {
+      "tok-viewonly": { status: 200, body: { serverName: "mc-survival", status: "Suspended", manuallyStopped: false, canStart: false } },
+    });
+    await page.goto("/share/tok-viewonly");
+    await expect(page.getByText("Asleep", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Check back later, or ask the server owner/)).toBeVisible();
+    await expect(page.getByRole("button", { name: /start server/i })).toHaveCount(0);
+    await expectNoPrivacyLeak(page);
+  });
+
+  test("Start conflict: owner stop wins over the wake action", async ({ page }) => {
+    await mockShareResolve(page, {
+      "tok-conflict": { status: 200, body: { serverName: "mc-survival", status: "Suspended", canStart: true } },
+      "tok-conflict:start": { status: 409, body: { error: "server stopped" } },
+    });
+    await page.goto("/share/tok-conflict");
+    await page.getByRole("button", { name: /start server/i }).click();
+    await expect(page.getByText("Stopped", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Ask the server owner to start it/)).toBeVisible();
+    await expect(page.getByRole("button", { name: /start server/i })).toHaveCount(0);
+    await expect(page.getByText(/Link not available|server stopped/)).toHaveCount(0);
+    await expectNoPrivacyLeak(page);
+  });
+
   test("Starting: clicking Start transitions to Starting, then polls through to Up", async ({
     page,
   }) => {
@@ -237,11 +274,11 @@ test.describe("Slice 5: Share links — public page (mock mode)", () => {
     await expectNoPrivacyLeak(page);
   });
 
-  test("Asleep after Start: offers retry and sends a second Start request without reloading", async ({
+  test("Accepted wake: polls through stale sleep without offering another Start", async ({
     page,
   }) => {
     // An accepted wake can still be asleep before reconciliation runs.
-    // That phase cannot establish whether the link has Start permission.
+    // Keep observing that same wake instead of sending a duplicate request.
     await mockShareResolve(page, {
       "tok-retry": [
         { status: 200, body: { serverName: "mc-survival", status: "Suspended" } },
@@ -260,19 +297,10 @@ test.describe("Slice 5: Share links — public page (mock mode)", () => {
     await expect(page.getByText(/starting up/i)).toBeVisible();
     await expectNoPrivacyLeak(page);
 
-    await expect(page.getByText("Asleep", { exact: true })).toBeVisible({ timeout: 15_000 });
-    await expect(startButton).toBeVisible();
-    await expect(startButton).toBeEnabled();
-    await expect(page.getByText(/check back later/i)).toHaveCount(0);
-    await expectNoPrivacyLeak(page);
-    await startButton.click();
-    await expect(page.locator("html")).toHaveAttribute("data-share-start-count", "2");
-    await expect(page.locator("html")).toHaveAttribute("data-share-start-method", "POST");
-    await expect(page.getByText(/starting up/i)).toBeVisible();
-    await expectNoPrivacyLeak(page);
     await expect(page.getByText("Online", { exact: true })).toBeVisible({ timeout: 15_000 });
+    await expect(startButton).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "mc-survival" })).toBeVisible();
-    await expect(page.locator("html")).toHaveAttribute("data-share-start-count", "2");
+    await expect(page.locator("html")).toHaveAttribute("data-share-start-count", "1");
     await expect(page.getByRole("heading", { name: /link not available/i })).toHaveCount(0);
     await expectNoPrivacyLeak(page);
   });

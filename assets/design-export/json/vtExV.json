@@ -1,0 +1,2039 @@
+{
+  "file": "vtExV",
+  "id": "1:2749",
+  "name": "Screen/Backups — Schedules (Empty)",
+  "type": "FRAME",
+  "x": 1640,
+  "y": 61082,
+  "width": 1440,
+  "height": 1150,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "id": "1:2750",
+      "name": "App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 1150,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "id": "1:2751",
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 1150,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "id": "1:2752",
+          "name": "Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Backups", "Search servers…", "AD"]
+        },
+        {
+          "id": "1:2753",
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 1086,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 20,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "children": [
+            {
+              "id": "1:2754",
+              "name": "Page Header",
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "children": [
+                {
+                  "name": "Title Col",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 432,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "phTitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 101,
+                      "height": 31,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Backups",
+                      "font": ["Geist", 600, 24],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "phSubtitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 35,
+                      "width": 432,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Snapshots, schedules, and restores across your authorized clusters.",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:2755",
+                  "name": "phActions",
+                  "type": "FRAME",
+                  "x": 991,
+                  "y": 8.5,
+                  "width": 141,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "id": "1:2756",
+                      "name": "Back Up Now Button",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 141,
+                      "height": 36,
+                      "component": "Gameplane/Button/Default",
+                      "componentId": "1:306",
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "texts": ["Back up now"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1:2757",
+              "name": "tabsBar",
+              "type": "FRAME",
+              "x": 24,
+              "y": 97,
+              "width": 290,
+              "height": 40,
+              "fills": [{"type": "SOLID", "color": "#232128"}],
+              "cornerRadius": 20,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [4, 4, 4, 4],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"fills/0/color": "default/default"},
+              "children": [
+                {
+                  "id": "1:2758",
+                  "name": "tabBackups",
+                  "type": "INSTANCE",
+                  "x": 4,
+                  "y": 4,
+                  "width": 90,
+                  "height": 32,
+                  "component": "Tab/Active",
+                  "componentId": "1:965",
+                  "fills": [{"type": "SOLID", "color": "#1D1B22"}],
+                  "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                  "texts": ["Backups"]
+                },
+                {
+                  "id": "1:2759",
+                  "name": "tabSchedules",
+                  "type": "INSTANCE",
+                  "x": 94,
+                  "y": 4,
+                  "width": 101,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Schedules"]
+                },
+                {
+                  "id": "1:2760",
+                  "name": "tabRestores",
+                  "type": "INSTANCE",
+                  "x": 195,
+                  "y": 4,
+                  "width": 91,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Restores"]
+                }
+              ]
+            },
+            {
+              "id": "1:2761",
+              "name": "Schedules search and filters",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 157,
+              "width": 1132,
+              "height": 36,
+              "component": "Gameplane/Backups Filter Row",
+              "componentId": "1:2591",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "texts": ["Search by name or server…", "0 of 0 schedules", "Filter"]
+            },
+            {
+              "id": "1:2762",
+              "name": "Schedules Panel",
+              "type": "FRAME",
+              "x": 24,
+              "y": 213,
+              "width": 1132,
+              "height": 755,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 16,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:2763",
+                  "name": "Card New Schedule",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 1132,
+                  "height": 90,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 10,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 6,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "id": "1:2764",
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 16,
+                      "y": 16,
+                      "width": 99,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "New schedule for",
+                      "font": ["Geist", 500, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "id": "1:2765",
+                      "name": "selServer",
+                      "type": "INSTANCE",
+                      "x": 16,
+                      "y": 38,
+                      "width": 1100,
+                      "height": 36,
+                      "component": "Gameplane/Select",
+                      "componentId": "1:311",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "SPACE_BETWEEN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      },
+                      "texts": ["mc-survival"]
+                    }
+                  ]
+                },
+                {
+                  "id": "1:2766",
+                  "name": "Card Schedule Form",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 106,
+                  "width": 1132,
+                  "height": 512,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 10,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 12,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "id": "1:2767",
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 16,
+                      "y": 16,
+                      "width": 145,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "New backup schedule",
+                      "font": ["Geist", 500, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "id": "1:2768",
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 16,
+                      "y": 46,
+                      "width": 1100,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Cron-based recurring snapshot, stored in a configured restic repository.",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    },
+                    {
+                      "id": "1:2769",
+                      "name": "fBackupType",
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 74,
+                      "width": 1100,
+                      "height": 58,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 6,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "id": "1:2770",
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 72,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "Backup type",
+                          "font": ["Geist", 500, 12],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "id": "1:2771",
+                          "name": "selBackupType",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 22,
+                          "width": 1100,
+                          "height": 36,
+                          "component": "Gameplane/Select",
+                          "componentId": "1:311",
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                          "cornerRadius": 12,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [8, 12, 8, 12],
+                            "primary": "SPACE_BETWEEN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {
+                            "cornerRadius": "radius/xl",
+                            "fills/0/color": "field/background",
+                            "strokes/0/color": "field/border"
+                          },
+                          "texts": ["Restic snapshot (to a repository)"]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:2772",
+                      "name": "formBlock",
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 144,
+                      "width": 1100,
+                      "height": 304,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 16,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "id": "1:2773",
+                          "name": "rowCronDest",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 1100,
+                          "height": 58,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "id": "1:2774",
+                              "name": "fCron",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 0,
+                              "width": 544,
+                              "height": 58,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 6,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "children": [
+                                {
+                                  "id": "1:2775",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 88,
+                                  "height": 16,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "Schedule (cron)",
+                                  "font": ["Geist", 500, 12],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                                },
+                                {
+                                  "id": "1:2776",
+                                  "name": "inputCron",
+                                  "type": "INSTANCE",
+                                  "x": 0,
+                                  "y": 22,
+                                  "width": 544,
+                                  "height": 36,
+                                  "component": "Gameplane/Input",
+                                  "componentId": "1:706",
+                                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
+                                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                  "cornerRadius": 12,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [8, 12, 8, 12],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "FIXED"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "variables": {
+                                    "cornerRadius": "radius/xl",
+                                    "fills/0/color": "field/background",
+                                    "strokes/0/color": "field/border"
+                                  },
+                                  "texts": ["0 */6 * * *"]
+                                }
+                              ]
+                            },
+                            {
+                              "id": "1:2777",
+                              "name": "fDest",
+                              "type": "FRAME",
+                              "x": 556,
+                              "y": 0,
+                              "width": 544,
+                              "height": 58,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 6,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "children": [
+                                {
+                                  "id": "1:2778",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 65,
+                                  "height": 16,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "Destination",
+                                  "font": ["Geist", 500, 12],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                                },
+                                {
+                                  "id": "1:2779",
+                                  "name": "selDestination",
+                                  "type": "INSTANCE",
+                                  "x": 0,
+                                  "y": 22,
+                                  "width": 544,
+                                  "height": 36,
+                                  "component": "Gameplane/Select",
+                                  "componentId": "1:311",
+                                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
+                                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                  "cornerRadius": 12,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [8, 12, 8, 12],
+                                    "primary": "SPACE_BETWEEN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "FIXED"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "variables": {
+                                    "cornerRadius": "radius/xl",
+                                    "fills/0/color": "field/background",
+                                    "strokes/0/color": "field/border"
+                                  },
+                                  "texts": ["default"]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:2780",
+                          "name": "fRepoKey",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 74,
+                          "width": 1100,
+                          "height": 58,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 6,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "id": "1:2781",
+                              "name": "text",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 96,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Repo secret · key",
+                              "font": ["Geist", 500, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "id": "1:2782",
+                              "name": "inputRepoKey",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 22,
+                              "width": 1100,
+                              "height": 36,
+                              "component": "Gameplane/Input",
+                              "componentId": "1:706",
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                              "cornerRadius": 12,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [8, 12, 8, 12],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {
+                                "cornerRadius": "radius/xl",
+                                "fills/0/color": "field/background",
+                                "strokes/0/color": "field/border"
+                              },
+                              "texts": ["repo"]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:2783",
+                          "name": "retentionBlock",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 148,
+                          "width": 1100,
+                          "height": 156,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "id": "1:2784",
+                              "name": "text",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 91,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Retention policy",
+                              "font": ["Geist", 500, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "id": "1:2785",
+                              "name": "retRow1",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 28,
+                              "width": 1100,
+                              "height": 58,
+                              "opacity": 0.5,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 12,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "children": [
+                                {
+                                  "id": "1:2786",
+                                  "name": "frame",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 358.67,
+                                  "height": 58,
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 6,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "children": [
+                                    {
+                                      "id": "1:2787",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 53,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "Keep last",
+                                      "font": ["Geist", 500, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                                    },
+                                    {
+                                      "id": "1:2788",
+                                      "name": "inputKeepLast",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 22,
+                                      "width": 358.67,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutAlignSelf": "STRETCH",
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["7"]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "1:2789",
+                                  "name": "frame",
+                                  "type": "FRAME",
+                                  "x": 370.67,
+                                  "y": 0,
+                                  "width": 358.67,
+                                  "height": 58,
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 6,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "children": [
+                                    {
+                                      "id": "1:2790",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 37,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "Hourly",
+                                      "font": ["Geist", 500, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                                    },
+                                    {
+                                      "id": "1:2791",
+                                      "name": "inputHourly",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 22,
+                                      "width": 358.67,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutAlignSelf": "STRETCH",
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["0"]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "1:2792",
+                                  "name": "frame",
+                                  "type": "FRAME",
+                                  "x": 741.33,
+                                  "y": 0,
+                                  "width": 358.67,
+                                  "height": 58,
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 6,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "children": [
+                                    {
+                                      "id": "1:2793",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 28,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "Daily",
+                                      "font": ["Geist", 500, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                                    },
+                                    {
+                                      "id": "1:2794",
+                                      "name": "inputDaily",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 22,
+                                      "width": 358.67,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutAlignSelf": "STRETCH",
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["0"]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "id": "1:2795",
+                              "name": "retRow2",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 98,
+                              "width": 1100,
+                              "height": 58,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 12,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "children": [
+                                {
+                                  "id": "1:2796",
+                                  "name": "frame",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 358.67,
+                                  "height": 58,
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 6,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "children": [
+                                    {
+                                      "id": "1:2797",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 42,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "Weekly",
+                                      "font": ["Geist", 500, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                                    },
+                                    {
+                                      "id": "1:2798",
+                                      "name": "inputWeekly",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 22,
+                                      "width": 358.67,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutAlignSelf": "STRETCH",
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["0"]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "1:2799",
+                                  "name": "frame",
+                                  "type": "FRAME",
+                                  "x": 370.67,
+                                  "y": 0,
+                                  "width": 358.67,
+                                  "height": 58,
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 6,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "children": [
+                                    {
+                                      "id": "1:2800",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 46,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "Monthly",
+                                      "font": ["Geist", 500, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                                    },
+                                    {
+                                      "id": "1:2801",
+                                      "name": "inputMonthly",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 22,
+                                      "width": 358.67,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutAlignSelf": "STRETCH",
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["0"]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "1:2802",
+                                  "name": "frame",
+                                  "type": "FRAME",
+                                  "x": 741.33,
+                                  "y": 0,
+                                  "width": 358.67,
+                                  "height": 58,
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 6,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "children": [
+                                    {
+                                      "id": "1:2803",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 35,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "Yearly",
+                                      "font": ["Geist", 500, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                                    },
+                                    {
+                                      "id": "1:2804",
+                                      "name": "inputYearly",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 22,
+                                      "width": 358.67,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutAlignSelf": "STRETCH",
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["0"]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:2805",
+                      "name": "formFooter",
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 460,
+                      "width": 1100,
+                      "height": 36,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MAX",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "id": "1:2806",
+                          "name": "btnCancel",
+                          "type": "INSTANCE",
+                          "x": 859,
+                          "y": 0,
+                          "width": 86,
+                          "height": 36,
+                          "component": "Gameplane/Button/Ghost",
+                          "componentId": "1:1516",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "texts": ["Cancel"]
+                        },
+                        {
+                          "id": "1:2807",
+                          "name": "btnCreateSchedule",
+                          "type": "INSTANCE",
+                          "x": 953,
+                          "y": 0,
+                          "width": 147,
+                          "height": 36,
+                          "component": "Gameplane/Button/Default",
+                          "componentId": "1:306",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "texts": ["Create schedule"]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "1:2808",
+                  "name": "Schedules Table",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 634,
+                  "width": 1132,
+                  "height": 121,
+                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                  "cornerRadius": 20,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 4, 4, 4],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "clips": true,
+                  "variables": {"fills/0/color": "surface/secondary"},
+                  "children": [
+                    {
+                      "id": "1:2809",
+                      "name": "Head Row",
+                      "type": "FRAME",
+                      "x": 4,
+                      "y": 0,
+                      "width": 1124,
+                      "height": 35,
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#232227"}],
+                      "strokeWeight": 1,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "separator/separator"},
+                      "children": [
+                        {
+                          "id": "1:2810",
+                          "name": "HC NAME",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 264,
+                          "height": 34,
+                          "component": "Table Column",
+                          "componentId": "1:1264",
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [10, 16, 10, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutGrow": 1,
+                          "variables": {"fills/0/color": "surface/secondary"},
+                          "texts": ["NAME"]
+                        },
+                        {
+                          "id": "1:2811",
+                          "name": "HC SERVER",
+                          "type": "INSTANCE",
+                          "x": 264,
+                          "y": 0,
+                          "width": 180,
+                          "height": 34,
+                          "component": "Table Column",
+                          "componentId": "1:1264",
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [10, 16, 10, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "variables": {"fills/0/color": "surface/secondary"},
+                          "texts": ["SERVER"]
+                        },
+                        {
+                          "id": "1:2812",
+                          "name": "HC CRON",
+                          "type": "INSTANCE",
+                          "x": 444,
+                          "y": 0,
+                          "width": 160,
+                          "height": 34,
+                          "component": "Table Column",
+                          "componentId": "1:1264",
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [10, 16, 10, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "variables": {"fills/0/color": "surface/secondary"},
+                          "texts": ["CRON"]
+                        },
+                        {
+                          "id": "1:2813",
+                          "name": "HC LAST RUN",
+                          "type": "INSTANCE",
+                          "x": 604,
+                          "y": 0,
+                          "width": 150,
+                          "height": 34,
+                          "component": "Table Column",
+                          "componentId": "1:1264",
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [10, 16, 10, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "variables": {"fills/0/color": "surface/secondary"},
+                          "texts": ["LAST RUN"]
+                        },
+                        {
+                          "id": "1:2814",
+                          "name": "HC NEXT RUN",
+                          "type": "INSTANCE",
+                          "x": 754,
+                          "y": 0,
+                          "width": 150,
+                          "height": 34,
+                          "component": "Table Column",
+                          "componentId": "1:1264",
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [10, 16, 10, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "variables": {"fills/0/color": "surface/secondary"},
+                          "texts": ["NEXT RUN"]
+                        },
+                        {
+                          "id": "1:2815",
+                          "name": "HC ACTIVE",
+                          "type": "INSTANCE",
+                          "x": 904,
+                          "y": 0,
+                          "width": 90,
+                          "height": 34,
+                          "component": "Table Column",
+                          "componentId": "1:1264",
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [10, 16, 10, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "variables": {"fills/0/color": "surface/secondary"},
+                          "texts": ["ACTIVE"]
+                        },
+                        {
+                          "id": "1:2816",
+                          "name": "HC ACTIONS",
+                          "type": "INSTANCE",
+                          "x": 994,
+                          "y": 0,
+                          "width": 130,
+                          "height": 35,
+                          "component": "Table Column",
+                          "componentId": "1:1264",
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [10, 16, 10, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "variables": {"fills/0/color": "surface/secondary"}
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:2817",
+                      "name": "Body",
+                      "type": "FRAME",
+                      "x": 4,
+                      "y": 35,
+                      "width": 1124,
+                      "height": 82,
+                      "cornerRadius": 16,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "clips": true,
+                      "variables": {"cornerRadius": "radius/2xl"},
+                      "children": [
+                        {
+                          "id": "1:2818",
+                          "name": "Empty Row",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 1124,
+                          "height": 82,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "id": "1:2819",
+                              "name": "Empty Cell",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
+                              "width": 1124,
+                              "height": 82,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [32, 24, 32, 24],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutGrow": 1,
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["No schedules configured yet."]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:2820",
+                          "name": "Row mc-survival",
+                          "type": "FRAME",
+                          "x": 1646,
+                          "y": 457,
+                          "width": 100,
+                          "height": 64,
+                          "visible": false,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "id": "1:2821",
+                              "name": "c1",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
+                              "width": 32,
+                              "height": 64,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["mc-survival-nightly"]
+                            },
+                            {
+                              "id": "1:2822",
+                              "name": "c2",
+                              "type": "INSTANCE",
+                              "x": 32,
+                              "y": 0,
+                              "width": 180,
+                              "height": 64,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["mc-survival"]
+                            },
+                            {
+                              "id": "1:2823",
+                              "name": "c3",
+                              "type": "INSTANCE",
+                              "x": 212,
+                              "y": 0,
+                              "width": 160,
+                              "height": 64,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["0 */6 * * *"]
+                            },
+                            {
+                              "id": "1:2824",
+                              "name": "c4",
+                              "type": "INSTANCE",
+                              "x": 372,
+                              "y": 0,
+                              "width": 150,
+                              "height": 64,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["2h ago"]
+                            },
+                            {
+                              "id": "1:2825",
+                              "name": "c5",
+                              "type": "INSTANCE",
+                              "x": 522,
+                              "y": 0,
+                              "width": 150,
+                              "height": 64,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["in 4h"]
+                            },
+                            {
+                              "id": "1:2826",
+                              "name": "c6",
+                              "type": "FRAME",
+                              "x": 672,
+                              "y": 0,
+                              "width": 90,
+                              "height": 64,
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "children": [
+                                {
+                                  "id": "1:2827",
+                                  "name": "switch",
+                                  "type": "INSTANCE",
+                                  "x": 16,
+                                  "y": 22,
+                                  "width": 36,
+                                  "height": 20,
+                                  "component": "Gameplane/Switch/On",
+                                  "componentId": "1:1532",
+                                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                  "cornerRadius": 24,
+                                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"}
+                                }
+                              ]
+                            },
+                            {
+                              "id": "1:2828",
+                              "name": "c7",
+                              "type": "FRAME",
+                              "x": 762,
+                              "y": 0,
+                              "width": 130,
+                              "height": 64,
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MAX",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "children": [
+                                {
+                                  "id": "1:2829",
+                                  "name": "btnDelete",
+                                  "type": "INSTANCE",
+                                  "x": 35,
+                                  "y": 16,
+                                  "width": 79,
+                                  "height": 32,
+                                  "component": "Gameplane/Button/Small/Ghost",
+                                  "componentId": "1:1124",
+                                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "CENTER",
+                                    "counter": "CENTER",
+                                    "sizing": ["HUG", "HUG"]
+                                  },
+                                  "texts": ["Delete"]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:2830",
+                          "name": "Row valheim-prod",
+                          "type": "FRAME",
+                          "x": 1646,
+                          "y": 457,
+                          "width": 100,
+                          "height": 64,
+                          "visible": false,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "id": "1:2831",
+                              "name": "c1",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
+                              "width": 32,
+                              "height": 64,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["valheim-daily"]
+                            },
+                            {
+                              "id": "1:2832",
+                              "name": "c2",
+                              "type": "INSTANCE",
+                              "x": 32,
+                              "y": 0,
+                              "width": 180,
+                              "height": 64,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["valheim-prod"]
+                            },
+                            {
+                              "id": "1:2833",
+                              "name": "c3",
+                              "type": "INSTANCE",
+                              "x": 212,
+                              "y": 0,
+                              "width": 160,
+                              "height": 64,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["0 3 * * *"]
+                            },
+                            {
+                              "id": "1:2834",
+                              "name": "c4",
+                              "type": "INSTANCE",
+                              "x": 372,
+                              "y": 0,
+                              "width": 150,
+                              "height": 64,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["9h ago"]
+                            },
+                            {
+                              "id": "1:2835",
+                              "name": "c5",
+                              "type": "INSTANCE",
+                              "x": 522,
+                              "y": 0,
+                              "width": 150,
+                              "height": 64,
+                              "component": "Table Cell",
+                              "componentId": "1:824",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "texts": ["—"]
+                            },
+                            {
+                              "id": "1:2836",
+                              "name": "c6",
+                              "type": "FRAME",
+                              "x": 672,
+                              "y": 0,
+                              "width": 90,
+                              "height": 64,
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "children": [
+                                {
+                                  "id": "1:2837",
+                                  "name": "switch",
+                                  "type": "INSTANCE",
+                                  "x": 16,
+                                  "y": 22,
+                                  "width": 36,
+                                  "height": 20,
+                                  "component": "Gameplane/Switch/Off",
+                                  "componentId": "1:1470",
+                                  "fills": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "cornerRadius": 24,
+                                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "border/border"}
+                                }
+                              ]
+                            },
+                            {
+                              "id": "1:2838",
+                              "name": "c7",
+                              "type": "FRAME",
+                              "x": 762,
+                              "y": 0,
+                              "width": 130,
+                              "height": 64,
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#232227"}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MAX",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                              "children": [
+                                {
+                                  "id": "1:2839",
+                                  "name": "btnDelete",
+                                  "type": "INSTANCE",
+                                  "x": 35,
+                                  "y": 16,
+                                  "width": 79,
+                                  "height": 32,
+                                  "component": "Gameplane/Button/Small/Ghost",
+                                  "componentId": "1:1124",
+                                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "CENTER",
+                                    "counter": "CENTER",
+                                    "sizing": ["HUG", "HUG"]
+                                  },
+                                  "texts": ["Delete"]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

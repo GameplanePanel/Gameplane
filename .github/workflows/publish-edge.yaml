@@ -30,13 +30,16 @@ on:
       - "gameproto/**"
       - "telemetryschema/**"
       - "i18n/**"
-      - "svcutil/**"
       - "gp-module/**"
+      - "audit-syslog-bridge"
       - "audit-syslog-bridge/**"
       - "telemetry-receiver/**"
       - "sentinel/**"
+      - "capture-sidecar"
       - "capture-sidecar/**"
+      - "mcp-server"
       - "mcp-server/**"
+      - "tunnel"
       - "tunnel/**"
       - "go.work"
       - "go.work.sum"
@@ -72,6 +75,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+      - name: init component submodules
+        # select_images reads the component Dockerfiles' COPY inputs.
+        run: ./hack/submodules.sh init
       - name: include changes since the last successful publish
         id: scope
         env:
@@ -99,6 +105,8 @@ jobs:
       matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: init component submodules
+        run: ./hack/submodules.sh init
       # Signing is mandatory for the official edge channel: fail before anything
       # is pushed if the key is absent, rather than shipping unsigned images.
       # The key has been provisioned since module signing went live, so this

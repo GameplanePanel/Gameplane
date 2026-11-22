@@ -137,12 +137,11 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
     await clickSection(page, "Authentication");
     // Helm OIDC Provider Card (read-only, groups claim + default role).
     await expect(page.getByText("Helm-seeded OIDC provider")).toBeVisible({ timeout: 10_000 });
-    // Role Mapping Overrides Card — admin row is dashboard-overridden.
-    // Scoped to the "Admin role mapping" group (RoleMappingOverridesCard,
-    // AdminSettings.tsx) since the Helm-seeded card above renders the same
-    // group name as a plain read-only chip.
-    await expect(page.getByText("Role mapping overrides")).toBeVisible();
-    await expect(page.getByLabel("Admin role mapping").getByText("gameplane-admins")).toBeVisible();
+    // Role rule override card — the override is active, so rule 1 is an
+    // editable textbox; the Helm-seeded card above shows the same group
+    // read-only.
+    await expect(page.getByText("Role rule override")).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Rule 1 group" })).toHaveValue("gameplane-admins");
     await page.waitForTimeout(200);
     await capture(page, "uMiwd");
   });
@@ -165,84 +164,13 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
   test("Rwnu3: Provenance Badge — From Helm", async ({ page, context }) => {
     // Design PNG is light theme — see the header comment.
     await setTheme(page, "light");
-    await setAdminConfigVariant(context, "oidc");
+    await setAdminConfigVariant(context, "oidc-empty-mappings");
     await page.goto("/admin");
     await clickSection(page, "Authentication");
     await expect(page.getByText("From Helm values").first()).toBeVisible({ timeout: 10_000 });
     await page.waitForTimeout(200);
     // Design PNG is a 308x44 crop of a single ProvenanceBadge — see R65Xyx's note.
     await captureLocator(page, "Rwnu3", page.locator('[data-type="fromHelm"]').first());
-  });
-
-  test("XL5ZU: Removable Group Chip — Orange (admin)", async ({ page, context }) => {
-    // Design PNG is light theme — see the header comment.
-    await setTheme(page, "light");
-    await setAdminConfigVariant(context, "oidc");
-    await page.goto("/admin");
-    await clickSection(page, "Authentication");
-    // Scoped to the "Admin role mapping" group — see uMiwd's note.
-    await expect(
-      page.getByLabel("Admin role mapping", { exact: true }).getByText("ops-leads"),
-    ).toBeVisible({
-      timeout: 10_000,
-    });
-    await page.waitForTimeout(200);
-    // Design PNG is a 252x64 crop of a single RemovableGroupChip (orange
-    // variant) — scope via its data-variant hook (RemovableGroupChip.tsx:
-    // `data-variant={variant}`), within the admin group so it doesn't match
-    // an unrelated orange chip elsewhere on the page. .first() (as with the
-    // ProvenanceBadge locators above) is fine here: every chip the admin
-    // group renders is an identical orange RemovableGroupChip instance, so
-    // which one resolves doesn't change the capture.
-    await captureLocator(
-      page,
-      "XL5ZU",
-      page.getByLabel("Admin role mapping", { exact: true }).locator('[data-variant="orange"]').first(),
-    );
-  });
-
-  test("vStkb: Removable Group Chip — Violet (operator)", async ({ page, context }) => {
-    // Design PNG is light theme — see the header comment.
-    await setTheme(page, "light");
-    await setAdminConfigVariant(context, "oidc");
-    await page.goto("/admin");
-    await clickSection(page, "Authentication");
-    // Scoped to the "Operator role mapping" group — see uMiwd's note.
-    await expect(
-      page.getByLabel("Operator role mapping", { exact: true }).getByText("ops-team"),
-    ).toBeVisible({
-      timeout: 10_000,
-    });
-    await page.waitForTimeout(200);
-    // Design PNG is a 252x64 crop of a single RemovableGroupChip (violet
-    // variant) — see XL5ZU's note (.first() is fine — identical chips).
-    await captureLocator(
-      page,
-      "vStkb",
-      page.getByLabel("Operator role mapping", { exact: true }).locator('[data-variant="violet"]').first(),
-    );
-  });
-
-  test("uw0dB: Removable Group Chip — Secondary (viewer)", async ({ page, context }) => {
-    // Design PNG is light theme — see the header comment.
-    await setTheme(page, "light");
-    await setAdminConfigVariant(context, "oidc");
-    await page.goto("/admin");
-    await clickSection(page, "Authentication");
-    // Scoped to the "Viewer role mapping" group — see uMiwd's note.
-    await expect(
-      page.getByLabel("Viewer role mapping", { exact: true }).getByText("everyone"),
-    ).toBeVisible({
-      timeout: 10_000,
-    });
-    await page.waitForTimeout(200);
-    // Design PNG is a 252x64 crop of a single RemovableGroupChip (secondary
-    // variant) — see XL5ZU's note (.first() is fine — identical chips).
-    await captureLocator(
-      page,
-      "uw0dB",
-      page.getByLabel("Viewer role mapping", { exact: true }).locator('[data-variant="secondary"]').first(),
-    );
   });
 
   test("nNGDX: Admin Settings — Authentication (No OIDC mappings)", async ({ page, context }) => {
@@ -253,23 +181,11 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
     await setAdminConfigVariant(context, "oidc-empty-mappings");
     await page.goto("/admin");
     await clickSection(page, "Authentication");
-    await expect(page.getByText("No OIDC role mappings yet")).toBeVisible({ timeout: 10_000 });
+    await expect(
+      page.getByText("No rules. SSO users get viewer and their role is never changed at sign-in.").first(),
+    ).toBeVisible({ timeout: 10_000 });
     await page.waitForTimeout(200);
     await capture(page, "nNGDX");
-  });
-
-  test("BV5ei: Provenance Badge — Not configured", async ({ page, context }) => {
-    // Same empty-state config as nNGDX — the resulting provenance badges
-    // read "Not configured" since there's no Helm mapping and no override.
-    // Design PNG is light theme — see the header comment.
-    await setTheme(page, "light");
-    await setAdminConfigVariant(context, "oidc-empty-mappings");
-    await page.goto("/admin");
-    await clickSection(page, "Authentication");
-    await expect(page.getByText("Not configured").first()).toBeVisible({ timeout: 10_000 });
-    await page.waitForTimeout(200);
-    // Design PNG is a 278x44 crop of a single ProvenanceBadge — see R65Xyx's note.
-    await captureLocator(page, "BV5ei", page.locator('[data-type="notConfigured"]').first());
   });
 
   test("QgW58: Admin Settings — Authentication (Save rejected)", async ({ page, context }) => {
@@ -283,10 +199,11 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
     await context.addCookies([
       { name: "e2e_admin_config_put_variant", value: "reject", domain: "localhost", path: "/" },
     ]);
+    await setAdminConfigVariant(context, "oidc");
     await page.goto("/admin");
     await clickSection(page, "Authentication");
-    await expect(page.getByText("Role mapping overrides")).toBeVisible({ timeout: 10_000 });
-    await page.getByRole("button", { name: /save role mappings/i }).click();
+    await expect(page.getByText("Role rule override")).toBeVisible({ timeout: 10_000 });
+    await page.getByRole("button", { name: "Save role rules" }).click();
     await expect(page.getByText(/must not contain blank group names/i)).toBeVisible({
       timeout: 10_000,
     });
@@ -308,8 +225,11 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
     await clickSection(page, "Authentication");
     await page.getByRole("button", { name: /^add provider$/i }).click();
     await expect(page.getByText("Add identity provider")).toBeVisible({ timeout: 10_000 });
-    await page.getByLabel("Admin groups").fill("ops-leads");
-    await expect(page.getByLabel("Admin groups")).toHaveValue("ops-leads");
+    await page.getByRole("button", { name: "Add rule" }).click();
+    await page.getByRole("textbox", { name: "Rule 1 group" }).fill("ops-leads");
+    await page.getByRole("button", { name: /Rule 1 role/ }).click();
+    await page.getByRole("option", { name: "admin" }).click();
+    await expect(page.getByRole("textbox", { name: "Rule 1 group" })).toHaveValue("ops-leads");
     await page.waitForTimeout(200);
     await capture(page, "zqzr4");
   });
@@ -329,7 +249,10 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
     await page.getByLabel("Issuer URL").fill("https://idp.example.com");
     await page.getByLabel("Client ID").fill("abc123");
     await page.getByLabel("Client secret").fill("supersecret");
-    await page.getByLabel("Admin groups").fill("ops-leads");
+    await page.getByRole("button", { name: "Add rule" }).click();
+    await page.getByRole("textbox", { name: "Rule 1 group" }).fill("ops-leads");
+    await page.getByRole("button", { name: /Rule 1 role/ }).click();
+    await page.getByRole("option", { name: "admin" }).click();
     await page.getByRole("button", { name: /^add provider$/i }).click();
     await expect(page.getByText("Confirm admin role mapping?")).toBeVisible({ timeout: 10_000 });
     // ConfirmAdminMappingDialog wraps ConfirmDialog, which renders HeroUI's

@@ -128,25 +128,25 @@ describe("AdminSettings sections", () => {
     });
   });
 
-  it("renders the role-mapping fields and locks Default role until a mapping exists", async () => {
+  it("renders the role rule editor and locks the fallback until a rule exists", async () => {
     const user = userEvent.setup();
     renderWithQuery(<AdminSettingsPage />);
     await gotoSection(/Authentication/i);
     await user.click(await screen.findByRole("button", { name: /Add provider/i }));
     expect(screen.getByLabelText(/Scopes/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Groups claim/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Admin groups/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Operator groups/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Viewer groups/i)).toBeInTheDocument();
-    // The API rejects defaultRole without roleMappings, so the select stays
-    // locked until at least one group is entered.
-    const defaultRole = screen.getByRole("button", { name: /Default role/i });
-    expect(defaultRole).toBeDisabled();
-    await user.type(screen.getByLabelText(/Admin groups/i), "gp-admins");
-    expect(defaultRole).toBeEnabled();
+    expect(screen.getByText("Role rules")).toBeInTheDocument();
+    expect(screen.getByText("No rules. SSO users get viewer and their role is never changed at sign-in.")).toBeInTheDocument();
+    // The API rejects defaultRole without rules, so the select stays
+    // locked until at least one rule is added.
+    const fallback = screen.getByRole("button", { name: /Fallback role/i });
+    expect(fallback).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Add rule" }));
+    await user.type(screen.getByRole("textbox", { name: "Rule 1 group" }), "gp-admins");
+    expect(screen.getByRole("button", { name: /Fallback role/i })).toBeEnabled();
   });
 
-  it("serializes scopes, groups claim, role mappings, and deny into the saved provider", async () => {
+  it("serializes scopes, groups claim, role rules, and Refuse sign-in into the saved provider", async () => {
     const user = userEvent.setup();
     let saved: { providers: Array<Record<string, unknown>> } | undefined;
     server.use(
@@ -169,10 +169,16 @@ describe("AdminSettings sections", () => {
     // comma-separated with whitespace trimmed around each name.
     await user.type(screen.getByLabelText(/Scopes/i), "groups, offline_access");
     await user.type(screen.getByLabelText(/Groups claim/i), "memberOf");
-    await user.type(screen.getByLabelText(/Admin groups/i), "GP Admins , platform-admins");
-    await user.type(screen.getByLabelText(/Viewer groups/i), "gp-view");
-    await user.click(screen.getByRole("button", { name: /Default role/i }));
-    await user.click(await screen.findByRole("option", { name: /deny/i }));
+    for (let i = 0; i < 3; i++) await user.click(screen.getByRole("button", { name: "Add rule" }));
+    await user.type(screen.getByRole("textbox", { name: "Rule 1 group" }), " GP Admins ");
+    await user.type(screen.getByRole("textbox", { name: "Rule 2 group" }), "platform-admins");
+    await user.type(screen.getByRole("textbox", { name: "Rule 3 group" }), "gp-view");
+    for (const n of [1, 2]) {
+      await user.click(screen.getByRole("button", { name: new RegExp(`Rule ${n} role`) }));
+      await user.click(await screen.findByRole("option", { name: "admin" }));
+    }
+    await user.click(screen.getByRole("button", { name: /Fallback role/i }));
+    await user.click(await screen.findByRole("option", { name: "Refuse sign-in" }));
     await user.click(screen.getByRole("button", { name: /^Add provider$/i }));
     // FR-015: a non-empty admin-group mapping gates the add behind an
     // explicit confirmation dialog before the provider is actually saved.
@@ -192,12 +198,16 @@ describe("AdminSettings sections", () => {
       configRef: "gameplane-auth-corp",
       scopes: ["groups", "offline_access"],
       groupsClaim: "memberOf",
-      roleMappings: { admin: ["GP Admins", "platform-admins"], viewer: ["gp-view"] },
+      roleRules: [
+        { group: "GP Admins", role: "admin" },
+        { group: "platform-admins", role: "admin" },
+        { group: "gp-view", role: "viewer" },
+      ],
       defaultRole: "deny",
     });
   }, 15000);
 
-  it("round-trips a stored provider's mapping fields through an unrelated save", async () => {
+  it("rewrites a stored old-form provider as roleRules on an unrelated save, keeping its other fields", async () => {
     const corp: AuthProvider = {
       name: "corp-sso",
       kind: "oidc",
@@ -233,7 +243,13 @@ describe("AdminSettings sections", () => {
     await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
     await waitFor(() => expect(saved).toBeDefined());
     // The toggle flipped enabled; every mapping field survived untouched.
-    expect(saved?.providers).toContainEqual({ ...corp, enabled: false });
+    const { roleMappings, ...rest } = corp;
+    expect(roleMappings).toEqual({ admin: ["gp-admins"] });
+    expect(saved?.providers).toContainEqual({
+      ...rest,
+      enabled: false,
+      roleRules: [{ group: "gp-admins", role: "admin" }],
+    });
   });
 
   it("prefills the issuer for the Google preset", async () => {

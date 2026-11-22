@@ -39,6 +39,21 @@ first: a Pending record can already
 have an active sidecar if its status update failed. Failed phase, missing
 CompletionTime, a 404, and gateway errors do not establish file absence.
 
+The delete handler applies these rules in order. Remote cleanup happens before the
+CR is deleted with its UID precondition.
+
+```mermaid
+flowchart TD
+    start["DELETE capture on a remote cluster"] --> phase{"Phase Completed, Failed or Expired?"}
+    phase -- "No: empty, Pending or Running" --> stop["409: stop the capture first"]
+    phase -- "Yes" --> never{"Completed, never_started, no pod UID annotation?"}
+    never -- "Yes" --> delete["Delete CR with UID precondition"]
+    never -- "No" --> cleanup["Gateway DELETE of capture file"]
+    cleanup -- "204 or 410" --> delete
+    cleanup -- "Other status, transport error or unavailable sidecar" --> retain["503: CR retained for retry"]
+    delete --> done["Success"]
+```
+
 See [capture cleanup recovery](gateway-install.md#capture-cleanup-recovery) for
 unreachable sites and historical captures without identity metadata.
 
@@ -54,7 +69,7 @@ The access/capability state board (`w1QYmf`), disabled capture screen (`Bbnga`),
 Start Capture modal (`O08uaD`) and mobile Capture screen (`SUtGZ`) use the
 selected site's capabilities and limits. Retained-download availability remains
 distinct from permission to start new captures. The
-[design manifest](../assets/design-export/MANIFEST.md) records the Pencil export scope.
+[design manifest](../assets/design-export/MANIFEST.md) records the design export scope.
 
 Users, provider credentials, the module catalog, installation administration and
 node enrollment remain centrally managed. Clusters retain independent game

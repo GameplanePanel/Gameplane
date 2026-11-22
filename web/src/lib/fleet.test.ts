@@ -26,6 +26,50 @@ describe("fleet identities and resource totals", () => {
     expect(sumNodeUsage([{ name: "zero", status: "Ready", cpu: { used: 0, capacity: 0 } }], "cpu").known).toBe(false);
   });
 
+  it("treats a missing capacity source as legacy system storage", () => {
+    const totals = inventoryTotals([
+      { cluster: "legacy", name: "Legacy", view: makeClusterView(), stats: makeClusterStats() },
+    ]);
+    expect(totals).toMatchObject({ storageCapacitySource: "node-ephemeral" });
+  });
+
+  it("preserves the pool source and provisioned numerator when all capacity comes from pools", () => {
+    const poolStats = {
+      ...makeClusterStats({ usedStorageBytes: 20 * 1024 ** 3, totalStorageBytes: 320 * 1024 ** 3 }),
+      storageCapacitySource: "openebs-lvm" as const,
+    };
+    const totals = inventoryTotals([
+      { cluster: "chicago", name: "Chicago", view: makeClusterView(), stats: poolStats },
+    ]);
+    expect(totals).toMatchObject({
+      storageCapacitySource: "openebs-lvm",
+      usedStorageBytes: 20 * 1024 ** 3,
+      totalStorageBytes: 320 * 1024 ** 3,
+    });
+  });
+
+  it("marks mixed system and pool capacity without treating it all as game-data capacity", () => {
+    const poolStats = { ...makeClusterStats(), storageCapacitySource: "openebs-lvm" as const };
+    const totals = inventoryTotals([
+      { cluster: "legacy", name: "Legacy", view: makeClusterView(), stats: makeClusterStats() },
+      { cluster: "pool", name: "Pool", view: makeClusterView(), stats: poolStats },
+    ]);
+    expect(totals).toMatchObject({ storageCapacitySource: "mixed" });
+  });
+
+  it("keeps incomplete capacity unknown instead of substituting zero or another source", () => {
+    const poolStats = {
+      ...makeClusterStats({ totalStorageBytes: undefined }),
+      storageCapacitySource: "openebs-lvm" as const,
+    };
+    const totals = inventoryTotals([
+      { cluster: "pool", name: "Pool", view: makeClusterView(), stats: poolStats },
+      { cluster: "legacy", name: "Legacy", view: makeClusterView(), stats: makeClusterStats() },
+    ]);
+    expect(totals.usedStorageBytes).toBeUndefined();
+    expect(totals.totalStorageBytes).toBeUndefined();
+  });
+
   it("keeps measured zero and storage overcommit meaningful", () => {
     expect(sumNodeUsage([{ name: "idle", status: "Ready", cpu: { used: 0, capacity: 4 } }], "cpu")).toMatchObject({ known: true, pct: 0 });
     const totals = inventoryTotals([

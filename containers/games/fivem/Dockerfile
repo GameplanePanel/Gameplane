@@ -14,9 +14,9 @@ RUN apk add --no-cache \
     libstdc++~=15.2.0 \
     libgcc~=15.2.0 \
     icu-libs~=78.1 \
-    mariadb~=11.8.9 \
-    mariadb-client~=11.8.9 \
-    mariadb-server-utils~=11.8.9 \
+    mariadb~=11.8.10 \
+    mariadb-client~=11.8.10 \
+    mariadb-server-utils~=11.8.10 \
     sqlite~=3.53.4 \
     tzdata~=2026f
 

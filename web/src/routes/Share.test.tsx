@@ -159,7 +159,11 @@ describe("SharePage", () => {
       });
     });
 
-    it("T182: copy address button copies address to clipboard", async () => {
+    it.each([
+      ["example.com", "example.com:8080"],
+      ["[2001:db8::8]", "[2001:db8::8]:8080"],
+      ["2001:db8::8", "[2001:db8::8]:8080"],
+    ])("T182: shows and copies the connection address for %s", async (host, expected) => {
       const mockClipboard = vi.fn().mockResolvedValue(undefined);
       Object.defineProperty(navigator, "clipboard", {
         value: { writeText: mockClipboard },
@@ -169,19 +173,19 @@ describe("SharePage", () => {
       vi.mocked(Shares.resolve).mockResolvedValue({
         serverName: "test-server",
         status: "Running",
-        address: { host: "example.com", port: 8080 },
+        address: { host, port: 8080 },
       });
 
       renderWithRouter("test-token");
 
       await waitFor(() => {
-        expect(screen.getByText("example.com:8080")).toBeInTheDocument();
+        expect(screen.getByText(expected)).toBeInTheDocument();
       });
 
       const copyBtn = screen.getByRole("button", { name: /copy/i });
       fireEvent.click(copyBtn);
 
-      expect(mockClipboard).toHaveBeenCalledWith("example.com:8080");
+      expect(mockClipboard).toHaveBeenCalledWith(expected);
     });
   });
 
@@ -205,7 +209,7 @@ describe("SharePage", () => {
       expect(screen.getByRole("button", { name: /start server/i })).toBeInTheDocument();
     });
 
-    it("keeps Start available when an accepted wake is still asleep on the next poll", async () => {
+    it("keeps polling an accepted wake through stale sleep phases until Running", async () => {
       vi.useFakeTimers();
 
       vi.mocked(Shares.resolve)
@@ -216,7 +220,9 @@ describe("SharePage", () => {
         .mockResolvedValueOnce({
           serverName: "mc-survival",
           status: "Suspended",
-        });
+        })
+        .mockResolvedValueOnce({ serverName: "mc-survival", status: "Stopped", canStart: true })
+        .mockResolvedValue({ serverName: "mc-survival", status: "Running" });
 
       vi.mocked(Shares.start).mockResolvedValue();
 
@@ -243,14 +249,17 @@ describe("SharePage", () => {
         await vi.advanceTimersByTimeAsync(1);
       });
 
-      // A phase cannot establish whether a link has permission to start.
-      expect(screen.getByRole("button", { name: /start server/i })).toBeEnabled();
-      expect(screen.queryByText(/ask the server owner/)).not.toBeInTheDocument();
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(60000);
-      });
-      expect(Shares.resolve).toHaveBeenCalledTimes(2);
+      expect(screen.getByText(/The server is starting up/)).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /start server/i })).not.toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+      expect(screen.getByText(/The server is starting up/)).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /start server/i })).not.toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+      expect(screen.getByText("Online")).toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(300000); });
+      expect(Shares.resolve).toHaveBeenCalledTimes(4);
+      expect(Shares.start).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("Online")).toBeInTheDocument();
     });
 
     it("handles Stopped status the same as Suspended", async () => {
@@ -293,6 +302,128 @@ describe("SharePage", () => {
       await waitFor(() => {
         expect(screen.getByText(/The server is starting up/)).toBeInTheDocument();
       });
+    });
+  });
+
+  describe("Public power policy", () => {
+    it.each(["Stopped", "Suspended", "Running", "Starting"])("prioritizes a manual stop over stale %s without offering a wake", async (status) => {
+      vi.mocked(Shares.resolve).mockResolvedValue({
+        serverName: "survival", status, manuallyStopped: true, canStart: true,
+        address: { host: "play.example", port: 25565 },
+      });
+      renderWithRouter("test-token");
+      expect(await screen.findByText("Stopped")).toBeInTheDocument();
+      expect(screen.getByText(/This server was stopped by its owner/)).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /start server/i })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Online|Asleep|play.example/)).not.toBeInTheDocument();
+      expect(Shares.start).not.toHaveBeenCalled();
+    });
+
+    it.each(["Suspended", "Stopped"])("shows a view-only %s server without offering a wake", async (status) => {
+      vi.mocked(Shares.resolve).mockResolvedValue({ serverName: "survival", status, canStart: false });
+      renderWithRouter("test-token");
+      expect(await screen.findByText("Asleep")).toBeInTheDocument();
+      expect(screen.getByText(/Check back later, or ask the server owner to start it/)).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /start server/i })).not.toBeInTheDocument();
+      expect(Shares.start).not.toHaveBeenCalled();
+    });
+
+    it("shows the owner-must-start state if a manual stop races the wake request", async () => {
+      vi.useFakeTimers();
+      vi.mocked(Shares.resolve).mockResolvedValue({ serverName: "survival", status: "Suspended", canStart: true });
+      vi.mocked(Shares.start).mockRejectedValue(new APIError(409, "private power details"));
+      renderWithRouter("test-token");
+      await act(async () => {});
+      await act(async () => { fireEvent.click(screen.getByRole("button", { name: /start server/i })); });
+      expect(screen.getByText("Stopped")).toBeInTheDocument();
+      expect(screen.getByText(/This server was stopped by its owner/)).toBeInTheDocument();
+      expect(screen.queryByText(/private power details|Link not available/)).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /start server/i })).not.toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(300000); });
+      expect(Shares.resolve).toHaveBeenCalledTimes(1);
+    });
+
+    it("stops polling an accepted wake when the owner manually stops a still-Running server", async () => {
+      vi.useFakeTimers();
+      vi.mocked(Shares.resolve)
+        .mockResolvedValueOnce({ serverName: "survival", status: "Suspended", canStart: true })
+        .mockResolvedValue({ serverName: "survival", status: "Running", manuallyStopped: true });
+      vi.mocked(Shares.start).mockResolvedValue();
+      renderWithRouter("test-token");
+      await act(async () => {});
+      await act(async () => { fireEvent.click(screen.getByRole("button", { name: /start server/i })); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+      expect(screen.getByText("Stopped")).toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(300000); });
+      expect(Shares.resolve).toHaveBeenCalledTimes(2);
+      expect(screen.getByText("Stopped")).toBeInTheDocument();
+    });
+
+    it("can return an externally observed start to the view-only asleep state", async () => {
+      vi.useFakeTimers();
+      vi.mocked(Shares.resolve)
+        .mockResolvedValueOnce({ serverName: "survival", status: "Starting", canStart: false })
+        .mockResolvedValue({ serverName: "survival", status: "Suspended", canStart: false });
+      renderWithRouter("test-token");
+      await act(async () => {});
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+      expect(screen.getByText("Asleep")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /start server/i })).not.toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(300000); });
+      expect(Shares.resolve).toHaveBeenCalledTimes(2);
+    });
+
+    it("ends an accepted wake after five minutes even if successful polls still report sleep", async () => {
+      vi.useFakeTimers();
+      vi.mocked(Shares.resolve).mockResolvedValue({ serverName: "survival", status: "Suspended", canStart: true });
+      vi.mocked(Shares.start).mockResolvedValue();
+      renderWithRouter("test-token");
+      await act(async () => {});
+      await act(async () => { fireEvent.click(screen.getByRole("button", { name: /start server/i })); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(299999); });
+      expect(screen.getByText(/The server is starting up/)).toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+      expect(screen.getByText("Still unavailable")).toBeInTheDocument();
+      expect(screen.getByText(/taking longer than expected/)).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /start server/i })).not.toBeInTheDocument();
+      const calls = vi.mocked(Shares.resolve).mock.calls.length;
+      await act(async () => { await vi.advanceTimersByTimeAsync(300000); });
+      expect(Shares.resolve).toHaveBeenCalledTimes(calls);
+    });
+
+    it("aborts a hung startup poll at the deadline and ignores its late response", async () => {
+      vi.useFakeTimers();
+      let finishPoll!: (value: Awaited<ReturnType<typeof Shares.resolve>>) => void;
+      vi.mocked(Shares.resolve)
+        .mockResolvedValueOnce({ serverName: "survival", status: "Starting" })
+        .mockImplementationOnce(() => new Promise((resolve) => { finishPoll = resolve; }));
+      renderWithRouter("test-token");
+      await act(async () => {});
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+      const signal = vi.mocked(Shares.resolve).mock.calls[1][1];
+      await act(async () => { await vi.advanceTimersByTimeAsync(295000); });
+      expect(signal?.aborted).toBe(true);
+      expect(screen.getByText("Still unavailable")).toBeInTheDocument();
+      await act(async () => finishPoll({ serverName: "survival", status: "Running" }));
+      expect(screen.queryByText("Online")).not.toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(300000); });
+      expect(Shares.resolve).toHaveBeenCalledTimes(2);
+    });
+
+    it("ends startup at the deadline even when Retry-After exceeds five minutes", async () => {
+      vi.useFakeTimers();
+      vi.mocked(Shares.resolve)
+        .mockResolvedValueOnce({ serverName: "survival", status: "Pending" })
+        .mockRejectedValue(new APIError(429, "private limit", undefined, undefined, "3600"));
+      renderWithRouter("test-token");
+      await act(async () => {});
+      await act(async () => { await vi.advanceTimersByTimeAsync(299999); });
+      expect(screen.getByText(/The server is starting up/)).toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+      expect(screen.getByText("Still unavailable")).toBeInTheDocument();
+      expect(screen.queryByText(/private limit|Link not available/)).not.toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(3600000); });
+      expect(Shares.resolve).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -850,7 +981,8 @@ describe("SharePage", () => {
       expect(Shares.start).toHaveBeenCalledTimes(2);
       await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
       expect(Shares.resolve).toHaveBeenCalledTimes(2);
-      expect(screen.getByRole("button", { name: /start server/i })).toBeEnabled();
+      expect(screen.getByText(/The server is starting up/)).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /start server/i })).not.toBeInTheDocument();
     });
 
     it("cancels a start cooldown when navigating to a different token", async () => {

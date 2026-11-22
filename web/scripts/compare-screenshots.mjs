@@ -4,7 +4,7 @@
  * Visual regression comparison script for Gameplane dashboard.
  *
  * Compares Playwright browser captures (web/e2e/screenshots/*.png) against
- * reference baseline screenshots exported from Pencil (assets/design-export/screenshots/*.png).
+ * reference baseline screenshots rendered from design.fig (assets/design-export/screenshots/*.png, written by hack/design/fig-export.ts).
  *
  * Key features:
  * - Scale normalization: when a capture's width differs from its reference's width
@@ -154,11 +154,11 @@ const SCALE_ALLOWLIST = {
 // or its shadow/size changes.
 const REFERENCE_CROP_ALLOWLIST = {
   // Create ZIP dialog: the 448x196 panel excludes its outer shadow.
-  o1uEP: { left: 96, top: 72, width: 896, height: 392 },
-  // Backup Detail Drawer: 440x760 panel at 2x. The refreshed Pencil export's
-  // shadow leaves 60 CSS px bleed left, 36 right, and 48 top and bottom;
-  // its alpha >= 250 panel bounds are (120,96)-(1000,1616) => 880x1520.
-  zhLZN: { left: 120, top: 96, width: 880, height: 1520 },
+  o1uEP: { left: 64, top: 40, width: 896, height: 392 },
+  // Backup Detail Drawer: 440x760 panel at 2x. The design.fig export
+  // (1008x1648) leaves 44 CSS px shadow bleed left, 20 right, and 32 top and
+  // bottom; its alpha >= 250 panel bounds are (88,64)-(968,1584) => 880x1520.
+  zhLZN: { left: 88, top: 64, width: 880, height: 1520 },
   // Add module source dialog: 480x882 panel at 2x, bounding box re-verified
   // via PIL alpha>=250 scan of assets/design-export/screenshots/DMnEi.png (now
   // 1088x1898, bbox (64,40)-(1024,1810) => 960x1770).

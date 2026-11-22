@@ -1,21 +1,16 @@
-go 1.27.3
+go 1.27.4
 
 use (
 	./agent
 	./api
-	./audit-syslog-bridge
-	./capture-sidecar
 	./gameaction
 	./gameproto
 	./gp-module
 	./i18n
-	./mcp-server
 	./netguard
 	./operator
 	./sentinel
-	./svcutil
 	./telemetryschema
 	./telemetry-receiver
 	./test/e2e
-	./tunnel
 )

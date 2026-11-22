@@ -1,388 +1,687 @@
 {
-  "type": "frame",
-  "id": "WrmU5",
+  "file": "WrmU5",
+  "id": "1:9252",
+  "name": "Screen/Standalone — Clusters (Registered)",
+  "type": "FRAME",
   "x": 3280,
   "y": 63932,
-  "name": "Screen/Standalone — Clusters (Registered)",
-  "context": "PR #630 standalone deployment; matches current dashboard behavior.",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "Q8Gy6o",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:9253",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "BuhAS": {
-          "content": "Gameplane"
-        },
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "lZ6pP": {
-          "fill": "$accent/soft"
-        },
-        "lZ6pP/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "lZ6pP/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "Gameplane",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "cZ1pA",
+      "id": "1:9254",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "Dd917",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:9255",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "Clusters"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Clusters", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "quYQ7",
+          "id": "1:9256",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "mnPfw",
-              "type": "ref",
-              "ref": "xCDF7",
+              "id": "1:9257",
               "name": "Clusters header",
-              "width": "fill_container",
-              "descendants": {
-                "spCmk": {
-                  "content": "Clusters"
-                },
-                "VbHwU": {
-                  "content": "Registered clusters, connectivity and node inventory."
-                },
-                "TgdLz": {
-                  "type": "frame",
-                  "id": "irpdH",
-                  "name": "Page actions",
-                  "height": 36,
-                  "gap": 8,
-                  "alignItems": "center",
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "children": [
+                {
+                  "name": "Title Col",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 336,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
                   "children": [
                     {
-                      "id": "I414g1",
-                      "type": "ref",
-                      "ref": "cb4rt",
+                      "name": "phTitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 97,
+                      "height": 31,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Clusters",
+                      "font": ["Geist", 600, 24],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "phSubtitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 35,
+                      "width": 336,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Registered clusters, connectivity and node inventory.",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:9258",
+                  "name": "Page actions",
+                  "type": "FRAME",
+                  "x": 995,
+                  "y": 8.5,
+                  "width": 137,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "id": "1:9259",
                       "name": "Register cluster",
-                      "opacity": 1,
-                      "descendants": {
-                        "Xpn7K": {
-                          "enabled": false
-                        },
-                        "U6q13B": {
-                          "content": "Register cluster"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 137,
+                      "height": 36,
+                      "component": "Button/Primary/MD",
+                      "componentId": "1:1094",
+                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "fills/0/color": "accent/accent"
+                      },
+                      "texts": ["Register cluster"]
                     }
                   ]
                 }
-              }
+              ]
             },
             {
-              "type": "text",
-              "id": "a7s07j",
+              "id": "1:9260",
               "name": "API status scope",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "2 clusters available · Status reports Kubernetes API connectivity, not game or gateway health.",
-              "lineHeight": 1.5,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 14,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 21,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "2 clusters available · Status reports Kubernetes API connectivity, not game or gateway health.",
+              "font": ["Geist", 400, 14],
+              "lineHeight": {"value": 150, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "type": "frame",
-              "id": "jiXKV",
+              "id": "1:9261",
               "name": "Registered remote clusters",
-              "width": "fill_container",
-              "gap": 16,
+              "type": "FRAME",
+              "x": 24,
+              "y": 146,
+              "width": 1132,
+              "height": 196,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 16,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "K1kXX",
+                  "id": "1:9262",
                   "name": "east cluster",
-                  "width": "fill_container",
-                  "fill": "$surface/surface",
-                  "cornerRadius": "$radius/3xl",
-                  "layout": "vertical",
-                  "gap": 8,
-                  "padding": 24,
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 558,
+                  "height": 196,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [24, 24, 24, 24],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "ApcQf",
+                      "id": "1:9263",
                       "name": "Cluster identity",
-                      "width": "fill_container",
-                      "gap": 12,
+                      "type": "FRAME",
+                      "x": 24,
+                      "y": 24,
+                      "width": 510,
+                      "height": 49,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 12,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "FQWWf",
+                          "id": "1:9264",
                           "name": "Name and registration",
-                          "width": "fill_container",
-                          "layout": "vertical",
-                          "gap": 4,
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 449,
+                          "height": 49,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutGrow": 1,
                           "children": [
                             {
-                              "type": "text",
-                              "id": "owEMr",
+                              "id": "1:9265",
                               "name": "Cluster display name",
-                              "fill": "$foreground/foreground",
-                              "textGrowth": "fixed-width",
-                              "width": "fill_container",
-                              "content": "East production",
-                              "lineHeight": 1.5,
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 18,
-                              "fontWeight": "600"
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 449,
+                              "height": 27,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "layoutAlignSelf": "STRETCH",
+                              "text": "East production",
+                              "font": ["Geist", 600, 18],
+                              "lineHeight": {"value": 150, "unit": "PERCENT"},
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "type": "text",
-                              "id": "jyqB7",
+                              "id": "1:9266",
                               "name": "Registration name",
-                              "fill": "$muted",
-                              "textGrowth": "fixed-width",
-                              "width": "fill_container",
-                              "content": "east",
-                              "lineHeight": 1.5,
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 31,
+                              "width": 449,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "layoutAlignSelf": "STRETCH",
+                              "text": "east",
+                              "font": ["JetBrains Mono", 400, 12],
+                              "lineHeight": {"value": 150, "unit": "PERCENT"},
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                             }
                           ]
                         },
                         {
-                          "type": "text",
-                          "id": "D5B31",
+                          "id": "1:9267",
                           "name": "Selected cluster",
-                          "fill": "$accent/accent",
-                          "content": "Selected",
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 461,
+                          "y": 0,
+                          "width": 49,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                          "text": "Selected",
+                          "font": ["Geist", 400, 12],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                         }
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "zlSQA",
+                      "id": "1:9268",
                       "name": "API connectivity",
-                      "fill": "$success/success",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "API: Healthy",
-                      "lineHeight": 1.5,
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 24,
+                      "y": 81,
+                      "width": 510,
+                      "height": 21,
+                      "fills": [{"type": "SOLID", "color": "#21C45D"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "API: Healthy",
+                      "font": ["Geist", 400, 14],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "success/success"}
                     },
                     {
-                      "type": "text",
-                      "id": "IcfRP",
+                      "id": "1:9269",
                       "name": "Last checked",
-                      "fill": "$muted",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Last checked just now",
-                      "lineHeight": 1.5,
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 24,
+                      "y": 110,
+                      "width": 510,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Last checked just now",
+                      "font": ["Geist", 400, 12],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "type": "frame",
-                      "id": "LGzV8",
+                      "id": "1:9270",
                       "name": "Cluster actions",
-                      "gap": 8,
+                      "type": "FRAME",
+                      "x": 24,
+                      "y": 136,
+                      "width": 233,
+                      "height": 36,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "id": "i0uSmF",
-                          "type": "ref",
-                          "ref": "cb4rt",
+                          "id": "1:9271",
                           "name": "Open cluster",
-                          "opacity": 1,
-                          "descendants": {
-                            "Xpn7K": {
-                              "enabled": false
-                            },
-                            "U6q13B": {
-                              "content": "Open cluster"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 117,
+                          "height": 36,
+                          "component": "Button/Primary/MD",
+                          "componentId": "1:1094",
+                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                          "cornerRadius": 24,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [8, 16, 8, 16],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {
+                            "itemSpacing": "spacing/2",
+                            "cornerRadius": "radius/3xl",
+                            "paddingRight": "spacing/4",
+                            "paddingLeft": "spacing/4",
+                            "fills/0/color": "accent/accent"
+                          },
+                          "texts": ["Open cluster"]
                         },
                         {
-                          "id": "vuyS6",
-                          "type": "ref",
-                          "ref": "i6gfu",
+                          "id": "1:9272",
                           "name": "View nodes",
-                          "opacity": 1,
-                          "descendants": {
-                            "FCYQ9": {
-                              "enabled": false
-                            },
-                            "GqVun": {
-                              "content": "View nodes"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 125,
+                          "y": 0,
+                          "width": 108,
+                          "height": 36,
+                          "component": "Button/Outline/MD",
+                          "componentId": "1:1794",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 24,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [8, 16, 8, 16],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {
+                            "itemSpacing": "spacing/2",
+                            "cornerRadius": "radius/3xl",
+                            "paddingRight": "spacing/4",
+                            "paddingLeft": "spacing/4",
+                            "strokes/0/color": "border-2"
+                          },
+                          "texts": ["View nodes"]
                         }
                       ]
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "q8PXwO",
+                  "id": "1:9273",
                   "name": "west cluster",
-                  "width": "fill_container",
-                  "fill": "$surface/surface",
-                  "cornerRadius": "$radius/3xl",
-                  "layout": "vertical",
-                  "gap": 8,
-                  "padding": 24,
+                  "type": "FRAME",
+                  "x": 574,
+                  "y": 0,
+                  "width": 558,
+                  "height": 196,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [24, 24, 24, 24],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "kbDHQ",
+                      "id": "1:9274",
                       "name": "Cluster identity",
-                      "width": "fill_container",
-                      "gap": 12,
+                      "type": "FRAME",
+                      "x": 24,
+                      "y": 24,
+                      "width": 510,
+                      "height": 49,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 12,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "AvgGx",
+                          "id": "1:9275",
                           "name": "Name and registration",
-                          "width": "fill_container",
-                          "layout": "vertical",
-                          "gap": 4,
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 510,
+                          "height": 49,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutGrow": 1,
                           "children": [
                             {
-                              "type": "text",
-                              "id": "dr8J4",
+                              "id": "1:9276",
                               "name": "Cluster display name",
-                              "fill": "$foreground/foreground",
-                              "textGrowth": "fixed-width",
-                              "width": "fill_container",
-                              "content": "West backup",
-                              "lineHeight": 1.5,
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 18,
-                              "fontWeight": "600"
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 510,
+                              "height": 27,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "layoutAlignSelf": "STRETCH",
+                              "text": "West backup",
+                              "font": ["Geist", 600, 18],
+                              "lineHeight": {"value": 150, "unit": "PERCENT"},
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "type": "text",
-                              "id": "cBPBX",
+                              "id": "1:9277",
                               "name": "Registration name",
-                              "fill": "$muted",
-                              "textGrowth": "fixed-width",
-                              "width": "fill_container",
-                              "content": "west",
-                              "lineHeight": 1.5,
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 31,
+                              "width": 510,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "layoutAlignSelf": "STRETCH",
+                              "text": "west",
+                              "font": ["JetBrains Mono", 400, 12],
+                              "lineHeight": {"value": 150, "unit": "PERCENT"},
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                             }
                           ]
                         }
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "j82uX",
+                      "id": "1:9278",
                       "name": "API connectivity",
-                      "fill": "$danger/danger",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "API: Unhealthy",
-                      "lineHeight": 1.5,
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 24,
+                      "y": 81,
+                      "width": 510,
+                      "height": 21,
+                      "fills": [{"type": "SOLID", "color": "#E0304F"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "API: Unhealthy",
+                      "font": ["Geist", 400, 14],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/danger"}
                     },
                     {
-                      "type": "text",
-                      "id": "bmjhu",
+                      "id": "1:9279",
                       "name": "Last checked",
-                      "fill": "$muted",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Last checked just now",
-                      "lineHeight": 1.5,
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 24,
+                      "y": 110,
+                      "width": 510,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Last checked just now",
+                      "font": ["Geist", 400, 12],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "type": "frame",
-                      "id": "QcHLE",
+                      "id": "1:9280",
                       "name": "Cluster actions",
-                      "gap": 8,
+                      "type": "FRAME",
+                      "x": 24,
+                      "y": 136,
+                      "width": 233,
+                      "height": 36,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "id": "U7jY7p",
-                          "type": "ref",
-                          "ref": "cb4rt",
+                          "id": "1:9281",
                           "name": "Open cluster",
-                          "opacity": 1,
-                          "descendants": {
-                            "Xpn7K": {
-                              "enabled": false
-                            },
-                            "U6q13B": {
-                              "content": "Open cluster"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 117,
+                          "height": 36,
+                          "component": "Button/Primary/MD",
+                          "componentId": "1:1094",
+                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                          "cornerRadius": 24,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [8, 16, 8, 16],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {
+                            "itemSpacing": "spacing/2",
+                            "cornerRadius": "radius/3xl",
+                            "paddingRight": "spacing/4",
+                            "paddingLeft": "spacing/4",
+                            "fills/0/color": "accent/accent"
+                          },
+                          "texts": ["Open cluster"]
                         },
                         {
-                          "id": "IoRuy",
-                          "type": "ref",
-                          "ref": "i6gfu",
+                          "id": "1:9282",
                           "name": "View nodes",
-                          "opacity": 1,
-                          "descendants": {
-                            "FCYQ9": {
-                              "enabled": false
-                            },
-                            "GqVun": {
-                              "content": "View nodes"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 125,
+                          "y": 0,
+                          "width": 108,
+                          "height": 36,
+                          "component": "Button/Outline/MD",
+                          "componentId": "1:1794",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 24,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [8, 16, 8, 16],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {
+                            "itemSpacing": "spacing/2",
+                            "cornerRadius": "radius/3xl",
+                            "paddingRight": "spacing/4",
+                            "paddingLeft": "spacing/4",
+                            "strokes/0/color": "border-2"
+                          },
+                          "texts": ["View nodes"]
                         }
                       ]
                     }

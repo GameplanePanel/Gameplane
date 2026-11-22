@@ -4,6 +4,25 @@ Gameplane exports the existing agent CPU, process memory, disk and player gauges
 optional game performance measurements, and relay health. Prometheus and Grafana
 are optional. A monitor resource alone does not prove discovery or network access.
 
+The chart's optional monitoring objects form this pipeline. Agent and tunnel
+metrics are scraped by PodMonitors in the games namespace; the operator, API and
+telemetry receiver are scraped by ServiceMonitors.
+
+```mermaid
+flowchart LR
+  agent["Agent sidecar :9090 metrics"] --> pma["PodMonitor gameplane-agent"]
+  tunnel["Tunnel relay :8091 health and metrics"] --> pmt["PodMonitor gameplane-tunnel"]
+  op["Operator :8080 metrics"] --> smo["ServiceMonitor gameplane-operator"]
+  api["API metrics listener"] --> sma["ServiceMonitor gameplane-api"]
+  pma --> prom["Prometheus"]
+  pmt --> prom
+  smo --> prom
+  sma --> prom
+  prom --> rules["PrometheusRule alerts (operator, scrape, relay, workload)"]
+  cm["Dashboard ConfigMap (label grafana_dashboard=1)"] --> graf["Grafana sidecar"]
+  graf -- "queries" --> prom
+```
+
 ## Complete setup
 
 Install the Prometheus Operator and its CRDs first. Apply

@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -137,6 +138,15 @@ type GameServerReconciler struct {
 	// is treated exactly as "none": mutate nothing and report the
 	// unhonored request, never silently fall back to the default pool.
 	AddressManager string
+
+	// PortPools gives the servers of each pooled template Service ports of
+	// their own on a shared endpoint (--port-pool, --port-pool-template); see
+	// gameserver_portpool.go. portPoolMu serializes allocations.
+	// poolRolloutWaits holds, by server UID, why this pass's template
+	// rollout waits for pool ports, for the pass's status.
+	PortPools        PortPools
+	portPoolMu       sync.Mutex
+	poolRolloutWaits sync.Map
 
 	// MetalLBNamespace is the namespace MetalLB's IPAddressPool custom
 	// resources (metallb.io/v1beta1, namespaced) live in. Used only when
@@ -319,6 +329,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	// Snapshot resolution precedes config, images, init containers, storage,
 	// services and every other template-derived resource.
+	// A rollout wait is only for this pass's status, so it is dropped when
+	// the pass ends, however it ends.
+	defer r.poolRolloutWaits.Delete(gs.UID)
 	effective, changed, err := r.reconcileTemplateRevision(ctx, &gs)
 	if err != nil {
 		var rejected workloadPolicyRejection
@@ -467,6 +480,28 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
+	// Pool ports come before the tunnel and the Service, which both use the
+	// server's Service ports.
+	portAlloc, err := r.reconcilePoolPorts(ctx, &gs, &tmpl)
+	if err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile pool ports")
+		return ctrl.Result{}, err
+	}
+	// A pooled server with no effective record publishes nothing, rather
+	// than its template's ports, which another server in the pool may hold.
+	// Its Service is removed before the tunnel steps, so a tunnel error
+	// can't leave it published.
+	unpublished := portAlloc.pooled && !portAlloc.published
+	if unpublished {
+		if err := r.deleteUnpublishedService(ctx, &gs); err != nil {
+			logger.Error(err, "remove unpublished Service")
+			return ctrl.Result{}, err
+		}
+	}
+
 	// planTunnel decides whether the tunnel pod should exist and what endpoints
 	// it will advertise. Like planSentinel, this is computed once per pass so
 	// there is a single source of truth (see planTunnel's doc comment).
@@ -479,9 +514,21 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile tunnel")
 		return ctrl.Result{}, err
 	}
-	if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); err != nil {
-		logger.Error(err, "reconcile Service")
-		return ctrl.Result{}, err
+	// A pooled server with a record, even while a change waits, keeps its
+	// Service current: selectors (sleep and wake), ports and metadata.
+	//
+	// A Service being replaced for a loadBalancerClass change is a pending
+	// networking change, not a failure: lifecycle and status keep reconciling
+	// (so Stop works while the old load balancer cleans up), and the pass
+	// requeues until the new Service exists.
+	serviceReplacing := false
+	if !unpublished {
+		if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); errors.Is(err, errServiceReplaced) {
+			serviceReplacing = true
+		} else if err != nil {
+			logger.Error(err, "reconcile Service")
+			return ctrl.Result{}, err
+		}
 	}
 
 	var replicas int32
@@ -559,7 +606,8 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
-	requeue, err := r.reconcileStatus(ctx, &gs, idle, idleStatus, idleScheduleErr, tunnelPlan, &tmpl, svcEvents, conflictingServer, plan.hostportCondition)
+	requeue, err := r.reconcileStatus(ctx, &gs, idle, idleStatus, idleScheduleErr, tunnelPlan, &tmpl, svcEvents, conflictingServer,
+		statusExtras{hostport: plan.hostportCondition, portAllocation: portAlloc})
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -572,6 +620,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if _, held, _ := lifecycleOwner(&gs); held {
 		hints = append(hints, 5*time.Second)
 	}
+	if serviceReplacing {
+		hints = append(hints, serviceReplaceRetry)
+	}
 	if sentinelBackstopPending(plan) {
 		// Bounded backstop for planSentinel's wait on the sentinel or the
 		// game pod. Both are owned (Owns(&appsv1.Deployment{}),
@@ -581,6 +632,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		// NOT a substitute for the early-return-and-skip-everything this
 		// replaced — every step above still ran this pass regardless.
 		hints = append(hints, sentinelBackstopRequeue)
+	}
+	if portAlloc.retry() {
+		hints = append(hints, portPoolRetry)
 	}
 	for _, hint := range hints {
 		if hint > 0 && (requeue == 0 || hint < requeue) {
@@ -718,16 +772,30 @@ func (r *GameServerReconciler) reconcileService(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 	routeToSentinel bool,
 ) error {
+	if err := r.replaceServiceForClassChange(ctx, gs); err != nil {
+		return err
+	}
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: gs.Name, Namespace: gs.Namespace},
 	}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, svc, func() error {
+		wasLoadBalancer := svc.ResourceVersion != "" && svc.Spec.Type == corev1.ServiceTypeLoadBalancer
 		svc.Spec.Type = corev1.ServiceTypeClusterIP
 		switch gs.Spec.Networking.Expose {
 		case "NodePort":
 			svc.Spec.Type = corev1.ServiceTypeNodePort
 		case "LoadBalancer":
 			svc.Spec.Type = corev1.ServiceTypeLoadBalancer
+		}
+		// The class can only be set as the Service becomes a LoadBalancer
+		// (Kubernetes clears it when it stops being one, and rejects any
+		// change after that), so it is set only on that transition. An
+		// existing LoadBalancer with another class, or none, is replaced
+		// above.
+		if svc.Spec.Type == corev1.ServiceTypeLoadBalancer && !wasLoadBalancer &&
+			gs.Spec.Networking.LoadBalancerClass != nil {
+			class := *gs.Spec.Networking.LoadBalancerClass
+			svc.Spec.LoadBalancerClass = &class
 		}
 		// loadBalancerSourceRanges is only valid on LoadBalancer Services;
 		// clear it otherwise so a later Expose change doesn't leave a stale
@@ -765,10 +833,68 @@ func (r *GameServerReconciler) reconcileService(
 		// After applyManagedServiceAnnotations: the managed-label bookkeeping
 		// lives in an annotation, and applying it second keeps that annotation
 		// from being pruned as an unmanaged leftover.
-		applyManagedServiceLabels(svc, plan.serviceLabels())
+		labels := plan.serviceLabels()
+		// A pooled server's Service is labeled with its pool, so the ports
+		// it publishes stay reserved until it moves off them.
+		if rec, ok := parsePoolRecord(gs); ok {
+			if labels == nil {
+				labels = map[string]string{}
+			}
+			labels[PortPoolServiceLabel] = rec.pool
+		}
+		applyManagedServiceLabels(svc, labels)
 		return controllerutil.SetControllerReference(gs, svc, r.Scheme)
 	})
 	return err
+}
+
+// errServiceReplaced asks for a requeue while a Service is replaced for a
+// loadBalancerClass change: the old one may linger while its load balancer
+// cleans up, and a new one can only be created once it is gone.
+var errServiceReplaced = errors.New("replacing the Service for a loadBalancerClass change")
+
+// serviceReplaceRetry bounds how long a pass waits to see the old Service
+// gone. Owns(&corev1.Service{}) normally retriggers the reconcile when it is.
+const serviceReplaceRetry = 5 * time.Second
+
+// replaceServiceForClassChange deletes the game Service when the GameServer
+// asks for a different loadBalancerClass than the Service has, including a
+// LoadBalancer Service with no class, since Kubernetes doesn't allow
+// changing or adding a LoadBalancer Service's class. The next reconcile
+// creates the Service again, with the new class. An unset class never
+// replaces a Service, so a class set by something else (an admission
+// policy, an older operator) is kept.
+func (r *GameServerReconciler) replaceServiceForClassChange(
+	ctx context.Context, gs *gameplanev1alpha1.GameServer,
+) error {
+	want := gs.Spec.Networking.LoadBalancerClass
+	if want == nil || gs.Spec.Networking.Expose != "LoadBalancer" {
+		return nil
+	}
+	var svc corev1.Service
+	if err := r.Get(ctx, types.NamespacedName{Namespace: gs.Namespace, Name: gs.Name}, &svc); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("get Service: %w", err)
+	}
+	if !svc.DeletionTimestamp.IsZero() {
+		return errServiceReplaced
+	}
+	if svc.Spec.Type != corev1.ServiceTypeLoadBalancer ||
+		(svc.Spec.LoadBalancerClass != nil && *svc.Spec.LoadBalancerClass == *want) {
+		return nil
+	}
+	if !metav1.IsControlledBy(&svc, gs) {
+		return nil
+	}
+	// The UID precondition keeps the delete to the Service checked above, not
+	// a same-name one that replaced it in the meantime.
+	uid := svc.UID
+	if err := r.Delete(ctx, &svc, client.Preconditions{UID: &uid}); err != nil && !apierrors.IsNotFound(err) {
+		return fmt.Errorf("delete Service for a loadBalancerClass change: %w", err)
+	}
+	return errServiceReplaced
 }
 
 // managedServiceAnnotationsKey records which annotation keys the operator
@@ -1290,6 +1416,12 @@ func svcPortsFromTemplate(
 				port = o.ServicePort
 			}
 			nodePort = o.NodePort
+		}
+		// A pooled server's active record (gameserver_portpool.go) already
+		// includes its overrides, and wins: while an override waits for a
+		// port another server holds, the Service keeps the reserved ports.
+		if pooled := poolServicePort(gs, p.Name); pooled != 0 {
+			port = pooled
 		}
 		sp := corev1.ServicePort{
 			Name:       p.Name,
@@ -3045,7 +3177,10 @@ func (r *GameServerReconciler) findAddressConflict(
 
 // candidateHoldsAddress reports whether gs is a genuine LoadBalancer holder
 // of addr — its expose mode is LoadBalancer and one of its status.endpoints
-// carries addr as Host with no TunnelProvider. See the discriminator notes
+// carries addr as its Service address with no TunnelProvider. The Service
+// address is ServiceAddress, not Host, since Host may be an advertised
+// hostname; Host is the fallback for status written before ServiceAddress
+// existed, when the two were always the same. See the discriminator notes
 // on findAddressConflict for what this deliberately excludes (tunnel-sourced
 // endpoints, and the residual ClusterIP-fallback edge case).
 func candidateHoldsAddress(gs *gameplanev1alpha1.GameServer, addr string) bool {
@@ -3053,7 +3188,14 @@ func candidateHoldsAddress(gs *gameplanev1alpha1.GameServer, addr string) bool {
 		return false
 	}
 	for _, endpoint := range gs.Status.Endpoints {
-		if endpoint.TunnelProvider == "" && endpoint.Host == addr {
+		if endpoint.TunnelProvider != "" {
+			continue
+		}
+		held := endpoint.ServiceAddress
+		if held == "" {
+			held = endpoint.Host
+		}
+		if held == addr {
 			return true
 		}
 	}

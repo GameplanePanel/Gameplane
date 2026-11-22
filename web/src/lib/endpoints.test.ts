@@ -40,6 +40,17 @@ function called(): { url: string; init: FetchInit } {
 }
 
 describe("endpoints", () => {
+  it("operator lists retain the captured remote server scope", async () => {
+    const operators = [{ name: "Alex", uuid: "player-id" }];
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(operators), { headers: { "Content-Type": "application/json" } }));
+    const controller = new AbortController();
+    const client = createResourceClient({ cluster: "remote", namespace: "team-c" }).withSignal(controller.signal);
+    await expect(client.Players.operators("mc-survival")).resolves.toEqual(operators);
+    expect(called().url).toBe("/servers/mc-survival/players/operators?namespace=team-c&cluster=remote");
+    expect(called().init.method).toBe("GET");
+    expect(fetchMock.mock.calls.at(-1)?.[1]?.signal).toBe(controller.signal);
+  });
+
   it("Servers.list hits /servers GET", async () => {
     await Servers.list();
     expect(called().url).toBe("/servers");

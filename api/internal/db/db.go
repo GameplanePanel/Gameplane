@@ -56,6 +56,14 @@ func Open(ctx context.Context, driver, dsn string) (*Store, error) {
 		// Add a busy timeout to the DSN if not already present, so concurrent
 		// processes (e.g., API and bootstrap-admin) waiting for locks don't fail immediately.
 		dsn = withSQLiteBusyTimeout(dsn)
+		// Take the write lock when a read-write transaction begins. A deferred
+		// transaction that reads first and writes later cannot wait in WAL mode:
+		// if another process wrote in between, SQLite returns SQLITE_BUSY at once
+		// and skips busy_timeout (seen with bootstrap-admin next to a live API).
+		// Read-only transactions stay deferred. withSQLiteBusyTimeout always
+		// leaves a query string, and the driver reads the first _txlock value,
+		// so a _txlock already in the configured DSN still wins.
+		dsn += "&_txlock=immediate"
 
 		db, err := sql.Open("sqlite", dsn)
 		if err != nil {

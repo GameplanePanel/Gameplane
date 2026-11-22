@@ -1,6 +1,6 @@
 # telemetry-receiver — Specification
 
-**Status:** pre-v1 (v0.4.0)  
+**Status:** pre-v1 (v0.4.3)  
 **Module / package:** github.com/GameplanePanel/gameplane/telemetry-receiver  
 **Go version:** 1.27
 
@@ -51,7 +51,7 @@ telemetry-receiver/
 ├── go.mod / go.sum     # Dependencies: prometheus/client_golang, modernc.org/sqlite, telemetryschema (+ transitives)
 ├── .testcoverage.yml   # Coverage gate: 70% total
 ├── Dockerfile          # Multi-stage: build→distroless:nonroot, CGO_ENABLED=0
-├── telemetry-dashboard.pen, design-export/  # dashboard designs and their export
+├── telemetry-dashboard.fig, design-export/  # dashboard designs and their export
 ├── README.md           # User-facing: behavior, configuration, run examples
 └── .gitignore          # Standard Go ignores
 ```

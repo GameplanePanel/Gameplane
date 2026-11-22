@@ -165,7 +165,7 @@ function BackupsTabPanel({ location, onLocationChange, locations }: LocationFilt
 
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         <Table.Root>
-          <Table.ScrollContainer>
+          <Table.ScrollContainer className="@container">
             <Table.Content aria-label={intl.formatMessage({ id: "web.routes.backups.backups", defaultMessage: "Backups", description: "Backups: page title at the top of the backups screen, also the name of the backups tab and its table; keep it short" })} keyboardNavigationBehavior="arrow">
               <Table.Header>
                 <Table.Column key="name" isRowHeader>{intl.formatMessage({ id: "web.routes.backups.name", defaultMessage: "Name", description: "Backups: column heading for the name of each backup, schedule or restore; keep it short" })}</Table.Column>
@@ -177,13 +177,13 @@ function BackupsTabPanel({ location, onLocationChange, locations }: LocationFilt
               </Table.Header>
               <Table.Body
                 renderEmptyState={() => (
-                  <>
+                  <p className="sticky start-0 w-[100cqw] max-w-full px-6 py-8 text-center text-sm text-muted whitespace-normal">
                     {items.length === 0
                       ? (backupsFleet?.partial || fleetError
                         ? intl.formatMessage({ id: "web.routes.backups.no_backup_data_available", defaultMessage: "No backup data available.", description: "Backups: empty state when the backup list could not be loaded" })
                         : intl.formatMessage({ id: "web.routes.backups.no_backups_yet", defaultMessage: "No backups yet. Use \"Back up now\" to create the first one.", description: "Backups: empty state when no backups exist; quoted text is the Back up now button label" }))
                       : intl.formatMessage({ id: "web.routes.backups.no_backups_match_the_current_filters", defaultMessage: "No backups match the current filters.", description: "Backups: empty state when filters hide every backup" })}
-                  </>
+                  </p>
                 )}
               >
                 {filtered.map((b) => (
@@ -445,7 +445,7 @@ function SchedulesTabPanel({ location, onLocationChange, locations }: LocationFi
 
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         <Table.Root>
-          <Table.ScrollContainer>
+          <Table.ScrollContainer className="@container">
             <Table.Content aria-label={intl.formatMessage({ id: "web.routes.backups.schedules", defaultMessage: "Schedules", description: "Backups: name of the schedules tab, also its table label and the title of its panel; keep it short" })} keyboardNavigationBehavior="arrow">
               <Table.Header>
                 <Table.Column key="name" isRowHeader>{intl.formatMessage({ id: "web.routes.backups.name", defaultMessage: "Name", description: "Backups: column heading for the name of each backup, schedule or restore; keep it short" })}</Table.Column>
@@ -456,11 +456,11 @@ function SchedulesTabPanel({ location, onLocationChange, locations }: LocationFi
                 <Table.Column key="active">{intl.formatMessage({ id: "web.routes.backups.active", defaultMessage: "Active", description: "Backups: column heading for the switch that turns a schedule on or off; keep it short" })}</Table.Column>
                 <Table.Column key="actions" className="text-end" />
               </Table.Header>
-              <Table.Body renderEmptyState={() => <>{items.length > 0
+              <Table.Body renderEmptyState={() => <p className="sticky start-0 w-[100cqw] max-w-full px-6 py-8 text-center text-sm text-muted whitespace-normal">{items.length > 0
                 ? intl.formatMessage({ id: "web.routes.backups.no_schedules_match_the_current_filters", defaultMessage: "No schedules match the current filters.", description: "Backups: schedules empty state when filters hide every schedule" })
                 : schedulesFleet?.partial || fleetError
                   ? intl.formatMessage({ id: "web.routes.backups.no_schedule_data_available", defaultMessage: "No schedule data available.", description: "Backups: schedules empty state when the list could not be loaded" })
-                  : intl.formatMessage({ id: "web.routes.backups.no_schedules_configured_yet", defaultMessage: "No schedules configured yet.", description: "Backups: schedules empty state when none exist" })}</>}>
+                  : intl.formatMessage({ id: "web.routes.backups.no_schedules_configured_yet", defaultMessage: "No schedules configured yet.", description: "Backups: schedules empty state when none exist" })}</p>}>
                 {filtered.map((s) => (
                   <Table.Row key={targetKey(s.fleetTarget)}>
                     <Table.Cell>
@@ -582,7 +582,7 @@ function RestoresTabPanel({ location, onLocationChange, locations }: LocationFil
       />
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         <Table.Root>
-          <Table.ScrollContainer>
+          <Table.ScrollContainer className="@container">
             <Table.Content aria-label={intl.formatMessage({ id: "web.routes.backups.restores", defaultMessage: "Restores", description: "Backups: name of the restores tab, also its table label; keep it short" })} keyboardNavigationBehavior="arrow">
               <Table.Header>
                 <Table.Column key="name" isRowHeader>{intl.formatMessage({ id: "web.routes.backups.name", defaultMessage: "Name", description: "Backups: column heading for the name of each backup, schedule or restore; keep it short" })}</Table.Column>
@@ -594,13 +594,13 @@ function RestoresTabPanel({ location, onLocationChange, locations }: LocationFil
               </Table.Header>
               <Table.Body
                 renderEmptyState={() => (
-                  <>
+                  <p className="sticky start-0 w-[100cqw] max-w-full px-6 py-8 text-center text-sm text-muted whitespace-normal">
                     {items.length === 0
                       ? (restoresFleet?.partial || fleetError
                         ? intl.formatMessage({ id: "web.routes.backups.no_restore_data_available", defaultMessage: "No restore data available.", description: "Backups: restores empty state when the list could not be loaded" })
                         : intl.formatMessage({ id: "web.routes.backups.no_restores_have_been_run", defaultMessage: "No restores have been run.", description: "Backups: restores empty state when no restore has run" }))
                       : intl.formatMessage({ id: "web.routes.backups.no_restores_match_the_current_filters", defaultMessage: "No restores match the current filters.", description: "Backups: restores empty state when filters hide every restore" })}
-                  </>
+                  </p>
                 )}
               >
                 {filtered.map((r) => (

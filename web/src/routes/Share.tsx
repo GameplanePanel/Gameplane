@@ -7,6 +7,7 @@ import {
 } from "@heroui/react";
 import { ShieldCheck, Copy, Check } from "lucide-react";
 import { APIError, Shares } from "@/lib/api";
+import { connectionAddress } from "@/lib/connectionAddress";
 import { enforceUnauthenticatedTheme } from "@/lib/enforceUnauthenticatedTheme";
 import type { ShareLinkPublic } from "@/types";
 import type { AppearanceMode } from "@/components/ui/AppearanceToggle";
@@ -43,12 +44,27 @@ function applyTheme(mode: AppearanceMode) {
   }
 }
 
-type State = "loading" | "up" | "asleep-start" | "asleep-viewonly" | "starting" | "invalid";
+type State = "loading" | "up" | "asleep-start" | "asleep-viewonly" | "starting" | "stopped" | "timed-out" | "invalid";
 
 // Public endpoints share a 20/minute per-IP budget. Five seconds between
 // completed requests leaves room for the initial resolve and Start action.
 const POLL_INTERVAL_MS = 5000;
 const MAX_BACKOFF_MS = 60000;
+const START_TIMEOUT_MS = 5 * 60 * 1000;
+
+function resolvedState(result: ShareLinkPublic, awaitingWake = false): State {
+  if (!result.serverName) return "invalid";
+  // Desired power state wins over an observed phase that has not reconciled yet.
+  if (result.manuallyStopped) return "stopped";
+  if (result.status === "Running") return "up";
+  if (result.status === "Starting" || result.status === "Pending") return "starting";
+  if (result.status === "Suspended" || result.status === "Stopped") {
+    if (awaitingWake) return "starting";
+    // Older APIs omitted canStart; retain the legacy wake action in that case.
+    return result.canStart === false ? "asleep-viewonly" : "asleep-start";
+  }
+  return "invalid";
+}
 
 function isTransient(err: unknown): boolean {
   return !(err instanceof APIError) || err.status === 429 || (err.status >= 500 && err.status < 600);
@@ -91,6 +107,7 @@ function ShareView({ token }: { token: string }) {
   const [startRetryDelay, setStartRetryDelay] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const startRequestRef = useRef<AbortController | null>(null);
+  const acceptedWakeRef = useRef(false);
 
   useEffect(() => () => startRequestRef.current?.abort(), []);
 
@@ -124,27 +141,8 @@ function ShareView({ token }: { token: string }) {
         const result = await Shares.resolve(token, controller.signal);
         if (!active) return;
 
-        // Check for neutral/error response (serverName is empty, indicating resolve returned an error)
-        if (!result.serverName) {
-          setState("invalid");
-          return;
-        }
-
         setData(result);
-
-        // Determine state from result
-        if (result.status === "Running") {
-          setState("up");
-        } else if (result.status === "Suspended" || result.status === "Stopped") {
-          // For Asleep states, always show Start button by default
-          // If user clicks and gets error, we'll transition to invalid
-          setState("asleep-start");
-        } else if (result.status === "Starting" || result.status === "Pending") {
-          setState("starting");
-        } else {
-          // Any other state treats as invalid
-          setState("invalid");
-        }
+        setState(resolvedState(result));
       } catch (err) {
         if (!active) return;
         if (!isTransient(err)) {
@@ -184,31 +182,12 @@ function ShareView({ token }: { token: string }) {
         const result = await Shares.resolve(token, controller.signal);
         if (!active) return;
 
-        // Check for neutral/error response
-        if (!result.serverName) {
-          setState("invalid");
-          return;
-        }
-
-        if (result.status === "Running") {
-          setData(result);
-          setState("up");
-          return;
-        } else if (
-          result.status === "Suspended" ||
-          result.status === "Stopped"
-        ) {
-          // The wake may not have reached reconciliation yet. Server phase
-          // does not tell us whether this link has permission to start.
-          setState("asleep-start");
-          setData(result);
-          return;
-        }
-        if (result.status !== "Starting" && result.status !== "Pending") {
-          setState("invalid");
-          return;
-        }
         setData(result);
+        const nextState = resolvedState(result, acceptedWakeRef.current);
+        if (nextState !== "starting") {
+          setState(nextState);
+          return;
+        }
         failures = 0;
         schedule(POLL_INTERVAL_MS);
       } catch (err) {
@@ -224,11 +203,20 @@ function ShareView({ token }: { token: string }) {
       }
     };
 
+    // Independent of request completion and Retry-After: even a hung request
+    // or a long server backoff must not leave the visitor waiting forever.
+    const deadline = setTimeout(() => {
+      active = false;
+      clearTimeout(timeout);
+      controller.abort();
+      setState("timed-out");
+    }, START_TIMEOUT_MS);
     schedule(POLL_INTERVAL_MS);
 
     return () => {
       active = false;
       clearTimeout(timeout);
+      clearTimeout(deadline);
       controller.abort();
     };
   }, [state, token]);
@@ -241,11 +229,14 @@ function ShareView({ token }: { token: string }) {
     try {
       await Shares.start(token, controller.signal);
       if (controller.signal.aborted) return;
-      // Transition to Starting state and start polling
+      acceptedWakeRef.current = true;
       setState("starting");
     } catch (err) {
       if (controller.signal.aborted) return;
-      if (isTransient(err)) {
+      if (err instanceof APIError && err.status === 409) {
+        // The owner may have stopped the server after the initial resolve.
+        setState("stopped");
+      } else if (isTransient(err)) {
         // A rejected wake has not started the server. Keep the last validated
         // public view and let the visitor retry after the shared budget recovers.
         setState("asleep-start");
@@ -258,14 +249,15 @@ function ShareView({ token }: { token: string }) {
     }
   };
 
-  const handleCopyAddress = () => {
-    if (data?.address) {
-      const addr = `${data.address.host}:${data.address.port}`;
-      navigator.clipboard.writeText(addr).catch(() => {
-        // Silently fail if copy doesn't work
-      });
+  const address = connectionAddress(data?.address);
+  const handleCopyAddress = async () => {
+    if (!address || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(address);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // The address stays selectable when clipboard access is denied.
     }
   };
 
@@ -304,15 +296,15 @@ function ShareView({ token }: { token: string }) {
           <div className="space-y-4">
             <div>
               <div className="text-xs text-muted mb-1">{intl.formatMessage({ id: "web.routes.share.connect_at", defaultMessage: "CONNECT AT", description: "Share: small label above the server address on the share page; keep it short" })}</div>
-              {data.address ? (
+              {address ? (
                 <div className="flex items-center gap-2 rounded-lg bg-surface p-3">
                   <code className="flex-1 text-sm font-mono">
-                    {intl.formatMessage({ id: "web.routes.share.host_port", defaultMessage: "{host}:{port}", description: "Share: connect address shown as host:port; {host} is the server host name and {port} is its port number" }, { host: data.address.host, port: String(data.address.port) })}
+                    {address}
                   </code>
                   <button
                     type="button"
                     className="p-1 text-muted hover:text-fg transition-colors"
-                    onClick={handleCopyAddress}
+                    onClick={() => void handleCopyAddress()}
                     title={intl.formatMessage({ id: "web.routes.share.copy_address", defaultMessage: "Copy address", description: "Share: tooltip of the icon button that copies the server address to the clipboard; keep it short" })}
                   >
                     {copied ? (
@@ -372,7 +364,7 @@ function ShareView({ token }: { token: string }) {
         </Card>
       )}
 
-      {state === "asleep-viewonly" && data && (
+      {(state === "asleep-viewonly" || state === "stopped" || state === "timed-out") && data && (
         <Card className="relative max-w-md p-8">
           <LanguageCorner />
           <div className="mb-6">
@@ -388,11 +380,19 @@ function ShareView({ token }: { token: string }) {
             <h1 className="font-mono text-2xl font-semibold">{data.serverName}</h1>
             <div className="mt-3 flex justify-center">
               <span className="status-focus inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium">
-                <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />{intl.formatMessage({ id: "web.routes.share.asleep", defaultMessage: "Asleep", description: "Share: status badge under the server name when the server is asleep; keep it short" })}</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />{state === "stopped"
+                  ? intl.formatMessage({ id: "web.routes.share.stopped", defaultMessage: "Stopped", description: "Share: status badge when the owner has manually stopped the server" })
+                  : state === "timed-out"
+                    ? intl.formatMessage({ id: "web.routes.share.start_timeout", defaultMessage: "Still unavailable", description: "Share: status badge after waiting five minutes for a server to start" })
+                    : intl.formatMessage({ id: "web.routes.share.asleep", defaultMessage: "Asleep", description: "Share: status badge under the server name when the server is asleep; keep it short" })}</span>
             </div>
           </div>
 
-          <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.this_server_is_asleep_right_now_check", defaultMessage: "This server is asleep right now. Check back later, or ask the server owner to start it.", description: "Share: explanation under the asleep badge telling the visitor to check back later or ask the server owner to start the server" })}</p>
+          <p className="text-sm text-muted">{state === "stopped"
+            ? intl.formatMessage({ id: "web.routes.share.owner_must_start", defaultMessage: "This server was stopped by its owner. Ask the server owner to start it.", description: "Share: a manually stopped server cannot be started through a public wake-only link" })
+            : state === "timed-out"
+              ? intl.formatMessage({ id: "web.routes.share.start_timed_out", defaultMessage: "The server is taking longer than expected to start. Check back later, or ask the server owner for help.", description: "Share: startup polling stopped after five minutes; the visitor can check later or ask the owner" })
+              : intl.formatMessage({ id: "web.routes.share.this_server_is_asleep_right_now_check", defaultMessage: "This server is asleep right now. Check back later, or ask the server owner to start it.", description: "Share: explanation under the asleep badge telling the visitor to check back later or ask the server owner to start the server" })}</p>
         </Card>
       )}
 

@@ -1,320 +1,825 @@
 {
-  "type": "frame",
-  "id": "dPP50",
+  "file": "dPP50",
+  "id": "1:1196",
+  "name": "Screen/Server Detail — Players",
+  "type": "FRAME",
   "x": 0,
   "y": 34270,
-  "name": "Screen/Server Detail — Players",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "T2T2A",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:1197",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "ah4GK",
+      "id": "1:1198",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "fQPMO",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:1199",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "mc-survival"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "zzSKa",
-          "type": "ref",
-          "ref": "S4k0x",
+          "id": "1:1200",
           "name": "Detail Header",
-          "width": "fill_container"
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 86,
+          "component": "Gameplane/Server Detail Header",
+          "componentId": "1:447",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [16, 24, 16, 24],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "texts": [
+            "MI",
+            "mc-survival",
+            "Running",
+            "site: remote-lab · minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+            "Restart",
+            "Stop",
+            "Open console"
+          ]
         },
         {
-          "id": "wSNCb",
-          "type": "ref",
-          "ref": "I9kvlZ",
+          "id": "1:1201",
           "name": "Tabs Bar",
-          "width": "fill_container",
-          "padding": [
-            0,
-            24
-          ],
-          "descendants": {
-            "Wp6q1": {
-              "fill": "#00000000"
-            },
-            "Wp6q1/YUR8N": {
-              "fill": "$muted"
-            },
-            "hNitQ": {
-              "fill": "$segment"
-            },
-            "hNitQ/VcxMI": {
-              "fill": "$foreground/segment"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 150,
+          "width": 1180,
+          "height": 40,
+          "component": "Gameplane/Server Detail Tabs",
+          "componentId": "1:466",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 24, 0, 24],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": [
+            "Overview",
+            "Events",
+            "Console",
+            "Logs",
+            "Files",
+            "Mods",
+            "Modpacks",
+            "Players",
+            "Backups",
+            "Capture",
+            "Settings"
+          ]
         },
         {
-          "type": "frame",
-          "id": "nSyNC",
+          "id": "1:1202",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 190,
+          "width": 1180,
+          "height": 710,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "type": "frame",
-              "id": "ehgxS",
+              "id": "1:1203",
               "name": "Stat Cards Row",
-              "width": "fill_container",
-              "gap": 12,
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 87,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "jcKN6",
-                  "type": "ref",
-                  "ref": "ZWcwn",
+                  "id": "1:1204",
                   "name": "Stat Online",
-                  "width": "fill_container",
-                  "descendants": {
-                    "Nd4Wf": {
-                      "content": "ONLINE"
-                    },
-                    "QdcEm": {
-                      "icon": "users",
-                      "fill": "$success/success",
-                      "library": "lucide",
-                      "enabled": false
-                    },
-                    "vj2Ru": {
-                      "content": "0 / 20"
-                    },
-                    "h0n7zo": {
-                      "enabled": false
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 274,
+                  "height": 87,
+                  "component": "Gameplane/Stat Card",
+                  "componentId": "1:1205",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": ["ONLINE", "0 / 20"]
                 },
                 {
-                  "id": "wZipq",
-                  "type": "ref",
-                  "ref": "ZWcwn",
+                  "id": "1:1206",
                   "name": "Stat Whitelisted",
-                  "width": "fill_container",
-                  "descendants": {
-                    "Nd4Wf": {
-                      "content": "WHITELISTED"
-                    },
-                    "QdcEm": {
-                      "icon": "list-checks",
-                      "fill": "$accent/accent",
-                      "library": "lucide",
-                      "enabled": false
-                    },
-                    "vj2Ru": {
-                      "content": "1"
-                    },
-                    "h0n7zo": {
-                      "enabled": false
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 286,
+                  "y": 0,
+                  "width": 274,
+                  "height": 87,
+                  "component": "Gameplane/Stat Card",
+                  "componentId": "1:1205",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": ["WHITELISTED", "1"]
                 },
                 {
-                  "id": "c2DaeO",
-                  "type": "ref",
-                  "ref": "ZWcwn",
+                  "id": "1:1207",
                   "name": "Stat Banned",
-                  "width": "fill_container",
-                  "descendants": {
-                    "Nd4Wf": {
-                      "content": "BANNED"
-                    },
-                    "QdcEm": {
-                      "icon": "ban",
-                      "fill": "#DC2626",
-                      "library": "lucide",
-                      "enabled": false
-                    },
-                    "vj2Ru": {
-                      "content": "0"
-                    },
-                    "h0n7zo": {
-                      "enabled": false
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "KvUnd",
-              "name": "Online Header",
-              "width": "fill_container",
-              "justifyContent": "space_between",
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "tXP2g",
-                  "name": "onlineCount",
-                  "fill": "$muted",
-                  "content": "0 / 20 online",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "INSTANCE",
+                  "x": 572,
+                  "y": 0,
+                  "width": 274,
+                  "height": 87,
+                  "component": "Gameplane/Stat Card",
+                  "componentId": "1:1205",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": ["BANNED", "0"]
                 },
                 {
-                  "id": "lwOja",
-                  "type": "ref",
-                  "ref": "J09iP",
-                  "name": "Btn Refresh",
-                  "descendants": {
-                    "eWkIT/WtPjS": {
-                      "icon": "refresh-cw"
-                    },
-                    "eWkIT/r4VbAi": {
-                      "content": "Refresh"
-                    }
-                  }
+                  "id": "1:1208",
+                  "name": "Stat Operators",
+                  "type": "INSTANCE",
+                  "x": 858,
+                  "y": 0,
+                  "width": 274,
+                  "height": 87,
+                  "component": "Gameplane/Stat Card",
+                  "componentId": "1:1205",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": ["OPERATORS", "2"]
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "NstNY",
-              "name": "nobodyOnline",
-              "fill": "$muted",
-              "content": "Nobody online.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 14,
-              "fontWeight": "normal"
-            },
-            {
-              "type": "frame",
-              "id": "RCX3w",
-              "name": "Whitelist Section",
-              "width": "fill_container",
-              "layout": "vertical",
+              "id": "1:1209",
+              "name": "Online Header",
+              "type": "FRAME",
+              "x": 24,
+              "y": 135,
+              "width": 1132,
+              "height": 32,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "E67Hkt",
-                  "name": "Whitelist Header",
-                  "width": "fill_container",
-                  "stroke": "$border/border",
-                  "strokeAlignment": "inner",
-                  "gap": 4,
-                  "alignItems": "center",
+                  "id": "1:1210",
+                  "name": "onlineCount",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 7,
+                  "width": 84,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "0 / 20 online",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "id": "1:1211",
+                  "name": "Btn Refresh",
+                  "type": "INSTANCE",
+                  "x": 1045,
+                  "y": 0,
+                  "width": 87,
+                  "height": 32,
+                  "component": "Gameplane/Button/Small/Ghost",
+                  "componentId": "1:1124",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Refresh"]
+                }
+              ]
+            },
+            {
+              "id": "1:1212",
+              "name": "nobodyOnline",
+              "type": "TEXT",
+              "x": 24,
+              "y": 191,
+              "width": 95,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Nobody online.",
+              "font": ["Geist", 400, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+            },
+            {
+              "id": "1:1213",
+              "name": "Operators Section",
+              "type": "FRAME",
+              "x": 24,
+              "y": 233,
+              "width": 1132,
+              "height": 80,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:1214",
+                  "name": "Operators Header",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 1132,
+                  "height": 18,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "icon",
-                      "id": "Z8Olk",
-                      "name": "Whitelist Chevron",
+                      "id": "1:1215",
+                      "name": "Operators Chevron",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 3,
                       "width": 12,
                       "height": 12,
-                      "icon": "chevron-right",
-                      "library": "lucide",
-                      "fill": "$muted"
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 3,
+                          "y": 4.5,
+                          "width": 6,
+                          "height": 3,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1
+                        }
+                      ]
                     },
                     {
-                      "type": "icon",
-                      "id": "f2idlM",
-                      "name": "Whitelist Icon",
+                      "id": "1:1216",
+                      "name": "Operators Icon",
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 3,
                       "width": 12,
                       "height": 12,
-                      "icon": "list-checks",
-                      "library": "lucide",
-                      "fill": "$muted"
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2,
+                          "y": 1,
+                          "width": 8,
+                          "height": 10,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1
+                        },
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 4.5,
+                          "y": 5,
+                          "width": 3,
+                          "height": 2,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1
+                        }
+                      ]
                     },
                     {
-                      "type": "text",
-                      "id": "tg0rR",
-                      "name": "Whitelist Label",
-                      "fill": "$muted",
-                      "content": "Whitelist (1)",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
+                      "id": "1:1217",
+                      "name": "Operators Label",
+                      "type": "TEXT",
+                      "x": 32,
+                      "y": 0,
+                      "width": 83,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Operators (2)",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:1218",
+                  "name": "Operators List",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 26,
+                  "width": 1132,
+                  "height": 54,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "children": [
+                    {
+                      "id": "1:1219",
+                      "name": "Operator — Pilot_Vance",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 372,
+                      "height": 54,
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 4,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+                      "children": [
+                        {
+                          "id": "1:1220",
+                          "name": "Operator name",
+                          "type": "TEXT",
+                          "x": 12,
+                          "y": 8,
+                          "width": 93,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "Pilot_Vance",
+                          "font": ["JetBrains Mono", 400, 14],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "id": "1:1221",
+                          "name": "Operator UUID",
+                          "type": "TEXT",
+                          "x": 12,
+                          "y": 30,
+                          "width": 348,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "3f2a9c1e-7b4d-4e8a-9c2f-1d6b8e0a5c47",
+                          "font": ["JetBrains Mono", 400, 12],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:1222",
+                      "name": "Operator — Corvus",
+                      "type": "FRAME",
+                      "x": 380,
+                      "y": 0,
+                      "width": 372,
+                      "height": 54,
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 4,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+                      "children": [
+                        {
+                          "id": "1:1223",
+                          "name": "Operator name",
+                          "type": "TEXT",
+                          "x": 12,
+                          "y": 8,
+                          "width": 51,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "Corvus",
+                          "font": ["JetBrains Mono", 400, 14],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "id": "1:1224",
+                          "name": "Operator UUID",
+                          "type": "TEXT",
+                          "x": 12,
+                          "y": 30,
+                          "width": 348,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "a81d4c6f-2e9b-4f13-8a5d-7c0e3b9f6d21",
+                          "font": ["JetBrains Mono", 400, 12],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:1225",
+                      "name": "Empty grid column",
+                      "type": "FRAME",
+                      "x": 760,
+                      "y": 0,
+                      "width": 372,
+                      "height": 1,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutGrow": 1
                     }
                   ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "mrnpc",
-              "name": "Banned Section",
-              "width": "fill_container",
-              "layout": "vertical",
+              "id": "1:1226",
+              "name": "Whitelist Section",
+              "type": "FRAME",
+              "x": 24,
+              "y": 337,
+              "width": 1132,
+              "height": 18,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "D1PsO",
-                  "name": "Banned Header",
-                  "width": "fill_container",
-                  "stroke": "$border/border",
-                  "strokeAlignment": "inner",
-                  "gap": 4,
-                  "alignItems": "center",
+                  "id": "1:1227",
+                  "name": "Whitelist Header",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 1132,
+                  "height": 18,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "icon",
-                      "id": "G7ioh",
-                      "name": "Banned Chevron",
+                      "id": "1:1228",
+                      "name": "Whitelist Chevron",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 3,
                       "width": 12,
                       "height": 12,
-                      "icon": "chevron-right",
-                      "library": "lucide",
-                      "fill": "$muted"
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 4.5,
+                          "y": 3,
+                          "width": 3,
+                          "height": 6,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1
+                        }
+                      ]
                     },
                     {
-                      "type": "text",
-                      "id": "aSCjF",
+                      "id": "1:1229",
+                      "name": "Whitelist Icon",
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 3,
+                      "width": 12,
+                      "height": 12,
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 1.5,
+                          "y": 2.5,
+                          "width": 9,
+                          "height": 7,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:1230",
+                      "name": "Whitelist Label",
+                      "type": "TEXT",
+                      "x": 32,
+                      "y": 0,
+                      "width": 73,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Whitelist (1)",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1:1231",
+              "name": "Banned Section",
+              "type": "FRAME",
+              "x": 24,
+              "y": 379,
+              "width": 1132,
+              "height": 18,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:1232",
+                  "name": "Banned Header",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 1132,
+                  "height": 18,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "children": [
+                    {
+                      "id": "1:1233",
+                      "name": "Banned Chevron",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 3,
+                      "width": 12,
+                      "height": 12,
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 4.5,
+                          "y": 3,
+                          "width": 3,
+                          "height": 6,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:1234",
                       "name": "Banned Label",
-                      "fill": "$muted",
-                      "content": "Banned (0)",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 16,
+                      "y": 0,
+                      "width": 70,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Banned (0)",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     }
                   ]
                 }

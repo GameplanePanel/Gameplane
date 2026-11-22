@@ -86,7 +86,7 @@ func TestValidateAuth(t *testing.T) {
 		{"empty scope token", false, `{"providers":[{"name":"corp","kind":"oidc","enabled":true,"issuer":"https://idp.example","clientID":"g","scopes":["groups","  "]}]}`, false, "scopes[1]"},
 		{"scope with inner whitespace", false, `{"providers":[{"name":"corp","kind":"oidc","enabled":true,"issuer":"https://idp.example","clientID":"g","scopes":["two scopes"]}]}`, false, "without whitespace"},
 		{"blank groupsClaim", false, `{"providers":[{"name":"corp","kind":"oidc","enabled":true,"issuer":"https://idp.example","clientID":"g","groupsClaim":"   "}]}`, false, "groupsClaim"},
-		{"bad defaultRole", false, `{"providers":[{"name":"corp","kind":"oidc","enabled":true,"issuer":"https://idp.example","clientID":"g","roleMappings":{"admin":["x"]},"defaultRole":"root"}]}`, false, "defaultRole must be one of"},
+		{"bad defaultRole", false, `{"providers":[{"name":"corp","kind":"oidc","enabled":true,"issuer":"https://idp.example","clientID":"g","roleMappings":{"admin":["x"]},"defaultRole":"   "}]}`, false, "defaultRole must not be blank"},
 		{"defaultRole without mappings", false, `{"providers":[{"name":"corp","kind":"oidc","enabled":true,"issuer":"https://idp.example","clientID":"g","defaultRole":"deny"}]}`, false, "requires roleMappings"},
 		{"empty mapping group", false, `{"providers":[{"name":"corp","kind":"oidc","enabled":true,"issuer":"https://idp.example","clientID":"g","roleMappings":{"operator":[""]}}]}`, false, "roleMappings.operator[0]"},
 	}

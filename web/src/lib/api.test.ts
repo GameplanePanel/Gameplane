@@ -847,12 +847,11 @@ describe("Shares.start()", () => {
     expect(init.method).toBe("POST");
   });
 
-  it("maps 404 (invalid/expired/no-permission) to void per FR-005", async () => {
+  it.each([404, 409])("does not treat a rejected start (%s) as accepted", async (status) => {
     fetchMock.mockImplementation(
-      async () => new Response(JSON.stringify({ error: "not found" }), { status: 404 })
+      async () => new Response(JSON.stringify({ error: status === 404 ? "not found" : "server stopped" }), { status })
     );
-    const result = await Shares.start("tok_invalid");
-    expect(result).toBeUndefined();
+    await expect(Shares.start("tok_invalid")).rejects.toMatchObject({ status });
   });
 
   it("propagates start rate limits and Retry-After without treating them as accepted", async () => {

@@ -870,6 +870,34 @@ spec:
                         required:
                         - command
                         type: object
+                      query:
+                        description: |-
+                          Query reads the online player count from a server query protocol
+                          instead of the console, for games with no console that lists players
+                          (Valheim has no RCON at all). When set, the heartbeat's player count,
+                          which idle sleep relies on, comes from this query. The Players tab's
+                          list and moderation still use the console.
+                        properties:
+                          port:
+                            description: |-
+                              Port is the UDP port, inside the pod, that answers the query: for
+                              Valheim, 2457 (the game port plus one).
+                            format: int32
+                            maximum: 65535
+                            minimum: 1
+                            type: integer
+                          protocol:
+                            description: |-
+                              Protocol is the query protocol. "a2s" is Valve's Steam server query
+                              (A2S_INFO over UDP), which most Steam dedicated servers answer on
+                              their query port.
+                            enum:
+                            - a2s
+                            type: string
+                        required:
+                        - port
+                        - protocol
+                        type: object
                       unban:
                         description: Unban lifts a ban, e.g. "pardon {{.Player}}".
                         type: string

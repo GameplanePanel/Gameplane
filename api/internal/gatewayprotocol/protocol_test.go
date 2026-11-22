@@ -35,6 +35,9 @@ func TestOperationAllowlist(t *testing.T) {
 		allowed      bool
 	}{
 		{http.MethodGet, "/console", 0, true},
+		{http.MethodGet, "/players/operators", 0, true},
+		{http.MethodPost, "/players/operators", 0, false},
+		{http.MethodGet, "/players/operators/../files/read", 0, false},
 		{http.MethodPost, "/files/write", 64 << 20, true},
 		{http.MethodPost, "/files/create", 64 << 20, true},
 		{http.MethodGet, "/files/create", 0, false},

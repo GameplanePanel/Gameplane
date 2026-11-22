@@ -1,184 +1,284 @@
 {
-  "type": "frame",
-  "id": "Z0oyh",
+  "file": "Z0oyh",
+  "id": "1:9296",
+  "name": "Screen/Standalone — Modules (No selection)",
+  "type": "FRAME",
   "x": 1640,
   "y": 55950,
-  "name": "Screen/Standalone — Modules (No selection)",
-  "context": "PR #630. Selection is explicit and only registered remotes are listed. No implicit local target; no workload requests until installation and selected target are known.",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "BQhzL",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:9297",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "BuhAS": {
-          "content": "Gameplane"
-        },
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "sTSGR": {
-          "fill": "$accent/soft"
-        },
-        "sTSGR/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "sTSGR/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "Gameplane",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "ZCtkb",
+      "id": "1:9298",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "DRroL",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:9299",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "Modules"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Modules", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "pFGvI",
+          "id": "1:9300",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "s0m1C",
+              "id": "1:9301",
               "name": "Workload cluster selector",
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 203,
               "height": 36,
-              "fill": "$surface/surface",
-              "cornerRadius": "$radius/3xl",
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "gap": 6,
-              "padding": [
-                6,
-                12
-              ],
-              "alignItems": "center",
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 6,
+                "padding": [6, 12, 6, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
               "children": [
                 {
-                  "type": "ellipse",
-                  "id": "abqFF",
+                  "id": "1:9302",
                   "name": "API status",
-                  "fill": "$muted",
+                  "type": "ELLIPSE",
+                  "x": 12,
+                  "y": 14,
                   "width": 8,
-                  "height": 8
+                  "height": 8,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "variables": {"fills/0/color": "muted"}
                 },
                 {
-                  "type": "text",
-                  "id": "h8qD6u",
+                  "id": "1:9303",
                   "name": "Selector label",
-                  "fill": "$muted",
-                  "content": "Cluster:",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 26,
+                  "y": 9,
+                  "width": 50,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Cluster:",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "type": "text",
-                  "id": "Udlbe",
+                  "id": "1:9304",
                   "name": "Selected workload cluster",
-                  "fill": "$foreground/foreground",
-                  "content": "Select cluster",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 82,
+                  "y": 9,
+                  "width": 89,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Select cluster",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "icon",
-                  "id": "EdLxM",
+                  "id": "1:9305",
                   "name": "Open cluster choices",
+                  "type": "FRAME",
+                  "x": 177,
+                  "y": 11,
                   "width": 14,
                   "height": 14,
-                  "icon": "chevron-down",
-                  "library": "lucide",
-                  "fill": "$muted"
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 3.5,
+                      "y": 5.25,
+                      "width": 7,
+                      "height": 3.5,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "B0Utzk",
+              "id": "1:9306",
               "name": "Select cluster guidance",
-              "width": "fill_container",
-              "fill": "$surface/surface",
-              "cornerRadius": "$radius/3xl",
-              "layout": "vertical",
-              "gap": 8,
-              "padding": 24,
+              "type": "FRAME",
+              "x": 24,
+              "y": 84,
+              "width": 1132,
+              "height": 130,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [24, 24, 24, 24],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "k8WlA",
+                  "id": "1:9307",
                   "name": "Selection title",
-                  "fill": "$foreground/foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Select a workload cluster",
-                  "lineHeight": 1.5,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 16,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 24,
+                  "width": 1084,
+                  "height": 24,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Select a workload cluster",
+                  "font": ["Geist", 400, 16],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "W8Meb",
+                  "id": "1:9308",
                   "name": "Selection description",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Modules and their sources are managed by the operator on a registered workload cluster.",
-                  "lineHeight": 1.5,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 56,
+                  "width": 1084,
+                  "height": 21,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Modules and their sources are managed by the operator on a registered workload cluster.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "type": "text",
-                  "id": "AIuUK",
+                  "id": "1:9309",
                   "name": "Manage clusters link",
-                  "fill": "$accent/accent",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Manage clusters",
-                  "lineHeight": 1.5,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 85,
+                  "width": 1084,
+                  "height": 21,
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Manage clusters",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                 }
               ]
             }
@@ -188,4 +288,3 @@
     }
   ]
 }
-

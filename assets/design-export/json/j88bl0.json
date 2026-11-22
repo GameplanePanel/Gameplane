@@ -1,216 +1,340 @@
 {
-  "type": "frame",
-  "id": "j88bl0",
+  "file": "j88bl0",
+  "id": "1:7374",
+  "name": "Screen/Server Detail — Console (not running – Pod failure)",
+  "type": "FRAME",
   "x": 3280,
   "y": 27770,
-  "name": "Screen/Server Detail — Console (not running – Pod failure)",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "sgTXK",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:7375",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "hhKTJ",
+      "id": "1:7376",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "M0h7P",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:7377",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "mc-survival"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "GJyCe",
-          "type": "ref",
-          "ref": "S4k0x",
+          "id": "1:7378",
           "name": "Detail Header",
-          "width": "fill_container",
-          "descendants": {
-            "N3nc2n": {
-              "id": "BTH9Y",
-              "type": "ref",
-              "ref": "Yeemi",
-              "name": "statusBadge",
-              "descendants": {
-                "fRdhX": {
-                  "content": "Failed"
-                }
-              }
-            },
-            "UpnRk": {
-              "content": "minecraft-java · 1.21.4-fabric · ns: gameplane-games"
-            },
-            "fXzP0": {
-              "enabled": false
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 86,
+          "component": "Gameplane/Server Detail Header",
+          "componentId": "1:447",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [16, 24, 16, 24],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "texts": [
+            "MI",
+            "mc-survival",
+            "Failed",
+            "minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+            "Restart",
+            "Open console"
+          ]
         },
         {
-          "id": "FsFJw",
-          "type": "ref",
-          "ref": "I9kvlZ",
+          "id": "1:7379",
           "name": "Tabs Bar",
-          "width": "fill_container",
-          "padding": [
-            0,
-            24
-          ],
-          "descendants": {
-            "Wp6q1": {
-              "fill": "#00000000"
-            },
-            "Wp6q1/YUR8N": {
-              "fill": "$muted"
-            },
-            "jcWsD": {
-              "fill": "$segment"
-            },
-            "jcWsD/VcxMI": {
-              "fill": "$foreground/segment"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 150,
+          "width": 1180,
+          "height": 40,
+          "component": "Gameplane/Server Detail Tabs",
+          "componentId": "1:466",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 24, 0, 24],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": [
+            "Overview",
+            "Events",
+            "Console",
+            "Logs",
+            "Files",
+            "Mods",
+            "Modpacks",
+            "Players",
+            "Backups",
+            "Capture",
+            "Settings"
+          ]
         },
         {
-          "type": "frame",
-          "id": "x9l9P",
+          "id": "1:7380",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
+          "type": "FRAME",
+          "x": 0,
+          "y": 190,
+          "width": 1180,
+          "height": 710,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "yoY9K",
-              "type": "ref",
-              "ref": "qYOZe",
+              "id": "1:7381",
               "name": "Console Toolbar",
-              "width": "fill_container",
-              "descendants": {
-                "ztP8w": {
-                  "fill": "$danger/danger"
-                },
-                "IJEZB": {
-                  "fill": "$danger/danger",
-                  "content": "FAILED"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 0,
+              "width": 1180,
+              "height": 48,
+              "component": "Gameplane/Console Toolbar",
+              "componentId": "1:690",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 16, 8, 16],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "texts": ["FAILED", "Clear", "Download", "Fullscreen"]
             },
             {
-              "type": "frame",
-              "id": "JyAuH",
+              "id": "1:7382",
               "name": "Terminal Wrap",
-              "width": "fill_container",
-              "height": "fill_container",
-              "layout": "vertical",
-              "padding": 16,
-              "justifyContent": "center",
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 0,
+              "y": 48,
+              "width": 1180,
+              "height": 662,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 0,
+                "padding": [16, 16, 16, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "UZWqt",
+                  "id": "1:7383",
                   "name": "Failure Card",
+                  "type": "FRAME",
+                  "x": 350,
+                  "y": 234.5,
                   "width": 480,
-                  "fill": "$surface/surface",
+                  "height": 193,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#E0304F"}],
+                  "strokeWeight": 1,
                   "cornerRadius": 10,
-                  "stroke": "$danger/danger",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "layout": "vertical",
-                  "gap": 16,
-                  "padding": 32,
-                  "alignItems": "center",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 16,
+                    "padding": [32, 32, 32, 32],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "danger/danger"},
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "vuf6N",
+                      "id": "1:7384",
                       "name": "Icon Wrap",
+                      "type": "FRAME",
+                      "x": 212,
+                      "y": 32,
                       "width": 56,
                       "height": 56,
-                      "fill": "$danger/soft",
+                      "fills": [{"type": "SOLID", "color": "#2E1317"}],
                       "cornerRadius": 999,
-                      "justifyContent": "center",
-                      "alignItems": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"fills/0/color": "danger/soft"},
                       "children": [
                         {
-                          "type": "icon",
-                          "id": "fsaNc",
+                          "id": "1:7385",
                           "name": "Alert Icon",
+                          "type": "FRAME",
+                          "x": 14,
+                          "y": 14,
                           "width": 28,
                           "height": 28,
-                          "icon": "triangle-alert",
-                          "library": "lucide",
-                          "fill": "$danger/danger"
+                          "variables": {"fills/0/color": "danger/danger"},
+                          "children": [
+                            {
+                              "name": "path",
+                              "type": "VECTOR",
+                              "x": 2.31,
+                              "y": 3.49,
+                              "width": 23.36,
+                              "height": 21.01,
+                              "strokes": [{"type": "SOLID", "color": "#E0304F"}],
+                              "strokeWeight": 2.33
+                            }
+                          ]
                         }
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "H2Tst",
+                      "id": "1:7386",
                       "name": "Status",
-                      "fill": "$foreground/foreground",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Server failed to start: ImagePullBackOff",
-                      "textAlign": "center",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 16,
-                      "fontWeight": "500"
+                      "type": "TEXT",
+                      "x": 32,
+                      "y": 104,
+                      "width": 416,
+                      "height": 21,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Server failed to start: ImagePullBackOff",
+                      "font": ["Geist", 500, 16],
+                      "align": "CENTER",
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "type": "text",
-                      "id": "GOpvw",
+                      "id": "1:7387",
                       "name": "Info",
-                      "fill": "$muted",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Check the Events tab for details.",
-                      "lineHeight": 1.5,
-                      "textAlign": "center",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 32,
+                      "y": 141,
+                      "width": 416,
+                      "height": 20,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Check the Events tab for details.",
+                      "font": ["Geist", 400, 13],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "align": "CENTER",
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     }
                   ]
                 }

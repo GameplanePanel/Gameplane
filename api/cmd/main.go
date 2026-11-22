@@ -3,6 +3,7 @@ package main
 import (
 	"cmp"
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -116,18 +117,9 @@ func main() {
 	}
 
 	// Validate OIDC configuration flags.
-	if cfg.oidcDefaultRole != "" {
-		validRoles := map[string]bool{
-			"viewer":   true,
-			"operator": true,
-			"admin":    true,
-			"deny":     true,
-		}
-		if !validRoles[cfg.oidcDefaultRole] {
-			msg := fmt.Sprintf("invalid --oidc-default-role %q (accepted: '', 'viewer', 'operator', 'admin', 'deny')", cfg.oidcDefaultRole)
-			logger.Error(msg)
-			os.Exit(1)
-		}
+	if err := validateOIDCDefaultRole(cfg.oidcDefaultRole); err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
 	}
 
 	// Validate and parse OIDC role mapping lists.
@@ -148,6 +140,16 @@ func main() {
 	if err != nil {
 		msg := fmt.Sprintf("invalid --oidc-role-mapping-viewer: %v", err)
 		logger.Error(msg)
+		os.Exit(1)
+	}
+	// Parse --oidc-role-rules and refuse it next to the old per-role flags (OD-1).
+	cfg.oidcRoleRulesParsed, err = parseOIDCRoleRules(cfg.oidcRoleRules)
+	if err != nil {
+		logger.Error(fmt.Sprintf("invalid --oidc-role-rules: %v", err))
+		os.Exit(1)
+	}
+	if cfg.oidcRoleRules != "" && (cfg.oidcRoleMappingAdmin != "" || cfg.oidcRoleMappingOperator != "" || cfg.oidcRoleMappingViewer != "") {
+		logger.Error("--oidc-role-rules cannot be combined with --oidc-role-mapping-admin, --oidc-role-mapping-operator or --oidc-role-mapping-viewer")
 		os.Exit(1)
 	}
 
@@ -222,6 +224,7 @@ func main() {
 			GroupsClaim:  cfg.oidcGroupsClaim,
 			DefaultRole:  cfg.oidcDefaultRole,
 			RoleMappings: roleMappings,
+			Rules:        cfg.oidcRoleRulesParsed,
 		}
 	}
 	oidcAuth, err := auth.NewOIDCWithPolicy(ctx, cfg.oidcIssuer, cfg.oidcClientID, cfg.oidcClientSecret, cfg.oidcRedirectURL, helmPolicy)
@@ -401,7 +404,7 @@ func main() {
 		handlers.MountShareLinks(p, reg, store)
 		handlers.MountOwnership(p, reg, store)
 		handlers.MountUsers(p, store, sessions, reg)
-		handlers.MountRoles(p, store)
+		handlers.MountRolesWithHelm(p, store, helmPolicy)
 		handlers.MountAudit(p, auditor)
 		telemetrySettings := handlers.TelemetrySettings{Dest: telemetryDest, Interval: cfg.telemetryInterval, Deps: telemetryDeps}
 		handlers.MountConfigWithTelemetry(p, store, auditor, oidcAuth != nil, cfg.gameDataStorageClass, helmPolicy, telemetrySettings)
@@ -415,7 +418,7 @@ func main() {
 		} else {
 			handlers.MountClusters(p, reg, nil, credentialsNS)
 		}
-		handlers.MountInstallation(p, cfg.standalone, Version)
+		handlers.MountInstallation(p, store, cfg.standalone, Version)
 		handlers.MountEvents(p, reg)
 		handlers.MountDestinations(p, reg)
 		handlers.MountTunnelCredentials(p, reg)
@@ -578,6 +581,8 @@ type config struct {
 	oidcRoleMappingAdminParsed    []string
 	oidcRoleMappingOperatorParsed []string
 	oidcRoleMappingViewerParsed   []string
+	oidcRoleRules                 string
+	oidcRoleRulesParsed           []auth.RoleRule
 
 	telemetryEndpoint      string
 	telemetryAuth          string
@@ -656,13 +661,15 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.oidcGroupsClaim, "oidc-groups-claim", envOr("GAMEPLANE_OIDC_GROUPS_CLAIM", ""),
 		"OIDC claim name containing group memberships; empty defaults to \"groups\"")
 	fs.StringVar(&c.oidcDefaultRole, "oidc-default-role", envOr("GAMEPLANE_OIDC_DEFAULT_ROLE", ""),
-		"Default role for new OIDC users when no group matches: \"viewer\" (default), \"operator\", \"admin\", or \"deny\". Helm-only — not DB-overridable.")
+		"Fallback role for OIDC users when no group matches: \"\" (viewer), \"deny\", or the name of any role. Helm-only — not DB-overridable.")
 	fs.StringVar(&c.oidcRoleMappingAdmin, "oidc-role-mapping-admin", envOr("GAMEPLANE_OIDC_ROLE_MAPPING_ADMIN", ""),
 		"Comma-separated IdP group(s) seeding the admin role")
 	fs.StringVar(&c.oidcRoleMappingOperator, "oidc-role-mapping-operator", envOr("GAMEPLANE_OIDC_ROLE_MAPPING_OPERATOR", ""),
 		"Comma-separated IdP group(s) seeding the operator role")
 	fs.StringVar(&c.oidcRoleMappingViewer, "oidc-role-mapping-viewer", envOr("GAMEPLANE_OIDC_ROLE_MAPPING_VIEWER", ""),
 		"Comma-separated IdP group(s) seeding the viewer role")
+	fs.StringVar(&c.oidcRoleRules, "oidc-role-rules", envOr("GAMEPLANE_OIDC_ROLE_RULES", ""),
+		"JSON array of {\"group\",\"role\"} rules seeding the Helm OIDC provider; first matching group wins. Replaces the --oidc-role-mapping-* flags (setting both is an error)")
 	fs.StringVar(&c.telemetryEndpoint, "telemetry-endpoint", envOr("GAMEPLANE_TELEMETRY_ENDPOINT", ""), "URL to POST anonymous usage metrics to (empty = the project default)")
 	fs.BoolVar(&c.telemetryDisabled, "telemetry-disabled", envOr("GAMEPLANE_TELEMETRY_DISABLED", "") == "true",
 		"hard-disable telemetry: nothing is ever sent, whatever the admin toggles say")
@@ -822,6 +829,48 @@ func parseRoleMapping(csv string) ([]string, error) {
 		out = append(out, g)
 	}
 	return out, nil
+}
+
+// validateOIDCDefaultRole accepts "" (viewer), "deny", or any non-blank role
+// name. Whether the role exists is checked at sign-in, not here (OD-2).
+func validateOIDCDefaultRole(role string) error {
+	if role != "" && strings.TrimSpace(role) == "" {
+		return errors.New("invalid --oidc-default-role: must not be blank (accepted: '', 'deny', or a role name)")
+	}
+	return nil
+}
+
+// parseOIDCRoleRules parses the --oidc-role-rules JSON array of {group, role}
+// objects. An empty string or an empty array gives nil (mapping off). Unknown
+// fields, a blank group or role, and trailing data are errors. Group and role
+// are trimmed.
+func parseOIDCRoleRules(raw string) ([]auth.RoleRule, error) {
+	if strings.TrimSpace(raw) == "" {
+		return nil, nil
+	}
+	dec := json.NewDecoder(strings.NewReader(raw))
+	dec.DisallowUnknownFields()
+	var rules []auth.RoleRule
+	if err := dec.Decode(&rules); err != nil {
+		return nil, fmt.Errorf("decode JSON array of {group, role}: %w", err)
+	}
+	if dec.More() {
+		return nil, errors.New("unexpected data after the JSON array")
+	}
+	for i := range rules {
+		rules[i].Group = strings.TrimSpace(rules[i].Group)
+		rules[i].Role = strings.TrimSpace(rules[i].Role)
+		if rules[i].Group == "" {
+			return nil, fmt.Errorf("rule %d: group must not be blank", i)
+		}
+		if rules[i].Role == "" {
+			return nil, fmt.Errorf("rule %d: role must not be blank", i)
+		}
+	}
+	if len(rules) == 0 {
+		return nil, nil
+	}
+	return rules, nil
 }
 
 // bodyLimit wraps every request body in MaxBytesReader so a decoder

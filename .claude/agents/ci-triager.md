@@ -37,13 +37,14 @@ gh pr view <pr-number>
 - `capture-sidecar-setcap-proof` → verifies file capabilities survived the multi-stage Dockerfile (Go modules only, uses sudo/tar/getcap)
 
 **Unit + lint stage**:
-- `lint` (matrix: netguard, gameaction, gameproto, operator, api, agent, sentinel, audit-syslog-bridge, telemetry-receiver, mcp-server, capture-sidecar, svcutil, tunnel, test/e2e)
+- `lint` (matrix: netguard, gameaction, gameproto, operator, api, agent, sentinel, telemetry-receiver, test/e2e)
   - Runs golangci-lint (with `envtest` tag for operator/api, `e2e` tag for test/e2e), checks specs compliance (once per run on netguard matrix entry)
   - Coverage thresholds per module (from CLAUDE.md rule 11):
-    - netguard: 91%, gameaction: 91%, gameproto: 90%, operator: 72%, api: 80%, agent: 90%, audit-syslog-bridge: 70%, telemetry-receiver: 70%, sentinel: 70%, capture-sidecar: 70%, mcp-server: 70%, svcutil: 90%, tunnel: 70%
-- `go` (matrix: 13 modules × 2 archs [amd64, arm64])
+    - netguard: 91%, gameaction: 91%, gameproto: 90%, operator: 72%, api: 80%, agent: 90%, telemetry-receiver: 70%, sentinel: 70%
+- `go` (matrix: 11 modules × 2 archs [amd64, arm64])
   - Unit tests + envtest (operator/api only) + coverage profile merge + threshold gate
   - Arm64 runs on `ubuntu-24.04-arm`; amd64 on `ubuntu-latest`
+- Split components (mcp-server, audit-syslog-bridge, tunnel, capture-sidecar) are linted/tested in their own repos via `.github/workflows/go-component.yaml`; here `submodule freshness` also runs `hack/submodules.sh check`.
 - `web` → eslint, build, vitest + coverage (lines 92%, functions 76%, branches 82%, statements 92%), reports to commit status
 - `web-e2e-mock` → Playwright mock tests (msw-mocked API)
 

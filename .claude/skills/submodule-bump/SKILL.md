@@ -1,9 +1,9 @@
 ---
 name: submodule-bump
-description: "Use after a modules or website submodule PR has merged to its main branch, to bump the submodule pointer in the main Gameplane repo. Takes one argument: modules or website."
+description: "Use after a modules, website or component submodule PR has merged to its main branch, to bump the submodule pointer in the main Gameplane repo. Takes one argument: modules, website, mcp-server, audit-syslog-bridge, tunnel or capture-sidecar."
 ---
 
-Argument: `modules` or `website`. From `.gitmodules`: `modules` is GameplanePanel/module (branch `main`), `website` is GameplanePanel/website (branch `main`, has its own CLAUDE.md and AGENTS.md).
+Argument: `modules`, `website`, or a component submodule from `.gitmodules` (`mcp-server`, `audit-syslog-bridge`, `tunnel`, `capture-sidecar`). From `.gitmodules`: `modules` is GameplanePanel/module (branch `main`), `website` is GameplanePanel/website (branch `main`, has its own CLAUDE.md and AGENTS.md). Repo mapping: `mcp-server` -> GameplanePanel/mcp; every other component -> GameplanePanel/<same name> (branch `main`).
 
 ## Preconditions
 
@@ -11,7 +11,7 @@ Argument: `modules` or `website`. From `.gitmodules`: `modules` is GameplanePane
    ```sh
    gh pr view <pr-number> --repo GameplanePanel/module --json state,mergeCommit
    ```
-   For website, use `--repo GameplanePanel/website`. Stop unless `state` is `MERGED`.
+   For website, use `--repo GameplanePanel/website`; for mcp-server use `--repo GameplanePanel/mcp`; for other components use `--repo GameplanePanel/<sub>`. Stop unless `state` is `MERGED`.
 2. Check for a pending bump owned by another thread:
    ```sh
    gh pr list --repo GameplanePanel/Gameplane --state open --search "bump <sub> submodule"
@@ -39,6 +39,7 @@ Argument: `modules` or `website`. From `.gitmodules`: `modules` is GameplanePane
    ```sh
    git add <sub>
    ```
+   If the included submodule PRs bring a change users, operators or module authors will notice, also add `changelog/unreleased/<PR number>-<slug>.md` to the bump PR once it is open (CLAUDE.md rule 19).
 
 ## Commit, push, open the PR
 
@@ -59,6 +60,7 @@ Argument: `modules` or `website`. From `.gitmodules`: `modules` is GameplanePane
 9. Open the PR with a short Summary (the submodule PRs included) and a Test plan. Labels:
    - `modules`: `type: chore` + `area: modules`
    - `website`: `type: docs` + `area: shared`
+   - `mcp-server`, `audit-syslog-bridge`, `tunnel`, `capture-sidecar`: `type: chore` + `area: optional-components`
 
    Add them via REST, as in `ship-branch` step 7:
    ```sh
