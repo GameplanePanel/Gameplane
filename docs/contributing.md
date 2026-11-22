@@ -22,11 +22,12 @@ change, the one compile check to run, and how long CI takes.
 | Docs only | `docs/`, `README.md`, any `*.md` | none | 1.8 min (run 2507) |
 | Spec only | `specs/NNN-<slug>/` | none | 5.3 min (run 2525) |
 | Web only | `web/` | `cd web && npx tsc --noEmit` | 18.3 min (run 2524) |
-| One small Go service | `<module>/` (e.g. `sentinel/`, `tunnel/`) | `go build ./...` in that module | same as any Go change: 29–75 min, median 37.5 min |
+| One small Go service | `<module>/` (e.g. `sentinel/`, `telemetry-receiver/`) | `go build ./...` in that module | same as any Go change: 29–75 min, median 37.5 min |
 | Operator / CRD | `operator/` (types in `operator/api/v1alpha1/`) | `make generate && make manifests`, then `go build ./...` in `operator/` | same as any Go change |
 | API route | `api/` (handlers in `api/internal/handlers/`) | `go build ./...` in `api/` | same as any Go change |
 | Game module | `modules/<game>/`: PR in `GameplanePanel/module`, then a pointer bump here | `make module-validate MODULE=<game>` | 2.7 min in `GameplanePanel/module` (run 79, 2026-10-20); the bump PR here runs the docs gates |
 | Website | `website/`: PR in `GameplanePanel/website`, then a pointer bump here | `npm run build` in `website/` | 0.6 min in `GameplanePanel/website` (PR 25, 2026-10-22); the bump PR here runs the docs gates |
+| Split component | `mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`: PR in its own repo (`GameplanePanel/mcp`, `GameplanePanel/audit-syslog-bridge`, `GameplanePanel/tunnel`, `GameplanePanel/capture-sidecar`), then a pointer bump here | follow that repo's docs | the bump PR here runs the build and optional-components e2e |
 
 Times are GitHub Actions wall clock for one PR run, measured 2026-10-20: runs
 2507, 2525 and 2524, and 11 Go PR runs for the median. Change-based test
@@ -38,10 +39,11 @@ Gates a first PR trips on:
 - Unsigned commits: every commit needs `git commit -s`.
 - Missing labels: one `type:` and one `area:` label on every PR.
 - Local test or lint runs: only compile checks locally; CI is the verifier.
-- UI without design: dashboard changes start in `design.pen` (Pencil), see
+- UI without design: dashboard changes start in `design.fig`, see
   [Design first for UI changes](#design-first-for-ui-changes). Never hand-edit
-  `.pen` files.
-- Submodule work in the wrong repo: `modules/` and `website/` changes go to
+  `.fig` files.
+- Submodule work in the wrong repo: `modules/`, `website/` and the component submodules
+  (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) changes go to
   their own repos first, then a pointer bump PR here.
 
 ## Dev loop
@@ -58,14 +60,14 @@ The repo ships one dev container per area, so you only install what your change 
 | Profile | Size | Scope | What it installs | Setup time in CI (amd64 / arm64) | Use it for |
 | --- | --- | --- | --- | --- | --- |
 | `web` | component | `web/` | Node, `npm ci` in `web/` | 3.1 / 2.7 min | Dashboard code with mocked data |
-| `api` | component | `api/`, `svcutil/` and their Go libraries | Go, golangci-lint, envtest | 5.1 / 4.7 min | API handlers, auth, DB |
+| `api` | component | `api/` and its Go libraries | Go, golangci-lint, envtest | 5.1 / 4.7 min | API handlers, auth, DB |
 | `operator` | component | `operator/` and its Go libraries | Go, golangci-lint, envtest | 6.9 / 4.4 min | Reconcilers and CRD types |
 | `agent` | component | `agent/` and its Go libraries | Go, golangci-lint | 5.4 / 3.8 min | The in-pod sidecar |
-| `go-services` | component | sentinel, tunnel, gp-module, mcp-server, telemetry-receiver, audit-syslog-bridge, capture-sidecar, gameproto and their Go libraries | Go, golangci-lint | 7.3 / 5.0 min | The smaller Go services |
+| `go-services` | component | sentinel, tunnel (submodule), gp-module, mcp-server (submodule), telemetry-receiver, audit-syslog-bridge (submodule), capture-sidecar (submodule), gameproto and their Go libraries | Go, golangci-lint | 7.3 / 5.0 min | The smaller Go services |
 | `website` | component | `website/` submodule | Node, `npm ci` in `website/` | 2.4 / 2.3 min | Docs and marketing site |
 | `modules` | component | `modules/` submodule | Go, Python with PyYAML, oras | 3.0 / 2.7 min | Game module templates |
-| `dashboard-api` | part | web + api + operator + agent, kind, chart, `modules` submodule | Docker, kind, kubectl, Helm, Go, Node, Python with PyYAML, oras | 9.1 / 7.4 min | Dashboard work against a live local cluster |
-| `control-plane` | part | operator + api + agent, kind, chart, e2e, `modules` submodule | Docker, kind, kubectl, Helm, Go, Python with PyYAML, oras | 7.1 / 5.9 min | Backend work with a live cluster, e2e code |
+| `dashboard-api` | part | web + api + operator + agent, kind, chart, `modules` and component submodules | Docker, kind, kubectl, Helm, Go, Node, Python with PyYAML, oras | 9.1 / 7.4 min | Dashboard work against a live local cluster |
+| `control-plane` | part | operator + api + agent, kind, chart, e2e, `modules` and component submodules | Docker, kind, kubectl, Helm, Go, Python with PyYAML, oras | 7.1 / 5.9 min | Backend work with a live cluster, e2e code |
 | `modules-gp` | part | modules + `gp-module/` | Go, Python with PyYAML, oras | 5.0 / 4.2 min | Module work with the `gp-module` CLI |
 | `full` | full | everything | everything above | 11.1 / 8.4 min | Cross-cutting changes; the default. Leaves out the website's Astro port 4321 and extension (open `website` for those) |
 
@@ -97,12 +99,14 @@ Reopen the container with one of the named profiles (or `full`) and run the targ
 ## Design first for UI changes
 
 **Any change to the web dashboard's visual surface starts in
-`design.pen` (Pencil), not in code.** Open `design.pen`, update the
-relevant screen, review with the maintainers, *then* translate to
-React. This keeps the 84 designed screens (`assets/design-export/MANIFEST.md`, re-measured 2026-09-12) the source of truth and
+`design.fig`, not in code.** Open `design.fig` in
+[OpenPencil](https://github.com/ValgulNecron/open-pencil) or Figma, update the
+relevant screen, regenerate the export with `hack/design/fig-export.ts` (see
+`assets/design-export/MANIFEST.md`), review with the maintainers, *then*
+translate to React. This keeps the 84 designed screens (`assets/design-export/MANIFEST.md`, re-measured 2026-09-12) the source of truth and
 prevents the dashboard from drifting into code-led redesigns.
 
-Backend/operator/API changes do not need a Pencil pass.
+Backend/operator/API changes do not need a design pass.
 
 ## UI components
 
@@ -146,7 +150,7 @@ Every job in every workflow must have:
 - An explicit `permissions` block granting only what that job needs (top-level default is `contents: read`; anything more is granted only to the specific job that needs it)
 - An explicit `timeout-minutes` (default budget is ≤30 minutes; anything above it requires an inline justification comment)
 
-Documented exceptions with longer timeouts are the e2e jobs that set 45 to 75 minutes (the multicluster, upgrade, web live and game bot jobs at 60 minutes each, the PostgreSQL job at 75, the capture overhead job at 45, and the matrix-driven `e2e-go` jobs) and the image build in `publish-edge.yaml` (35 minutes).
+Documented exceptions with longer timeouts are the e2e jobs that set 45 to 105 minutes (the multicluster, web live and game bot jobs at 60 minutes each, the upgrade amd64 job at 85 and arm64 at 60, the PostgreSQL job at 105, the capture overhead job at 45, and the matrix-driven `e2e-go` jobs) and the image build in `publish-edge.yaml` (35 minutes).
 
 ### Security and drift gates
 
@@ -157,7 +161,7 @@ These jobs block merging. Each gate with a fixture has a `hack/*_test.sh` self-t
 - **`workflow lint`** also runs hadolint over every tracked Dockerfile, failing on any warning (`.hadolint.yaml`). Fix the Dockerfile: pin `apk`/`apt` package versions, and set a `SHELL` with `-o pipefail` before any piped `RUN` step.
 - **`dependency review`** runs on pull requests only. It fails when the PR adds a dependency with a HIGH or CRITICAL advisory. Pick a version without the advisory, or drop the dependency.
 - **`codegen drift`** runs `make generate manifests` and `make tidy`, then fails if `git diff` is not empty. Run the same commands locally and commit what they change (CLAUDE.md rule 7).
-- **`submodule freshness`** runs `hack/check-submodule-freshness.sh`. It fails when the `modules` or `website` pointer names a commit that is not on that repo's `main`, when a gitlink is missing, or when the script cannot fetch that repo's `main`. For a pointer that is not on `main`, merge the submodule PR first, then bump the pointer to the merged commit. Otherwise restore the gitlink, or fix the fetch error, and re-run.
+- **`submodule freshness`** runs `hack/check-submodule-freshness.sh`. It fails when any submodule pointer (`modules`, `website` or a component submodule listed in `.gitmodules`) names a commit that is not on that repo's `main`, when a gitlink is missing, or when the script cannot fetch that repo's `main`. For a pointer that is not on `main`, merge the submodule PR first, then bump the pointer to the merged commit. Otherwise restore the gitlink, or fix the fetch error, and re-run. It also runs `hack/submodules.sh check`, which fails when a component submodule is missing from a workflow path filter it must be in.
 
 ### How CI picks tests
 
@@ -220,19 +224,16 @@ Per-component:
 cd netguard && go test ./...
 cd gameaction && go test ./...
 cd gameproto && go test ./...
-cd svcutil  && go test ./...
 cd operator && go test ./...
 cd api      && go test ./...
 cd agent    && go test ./...
-cd audit-syslog-bridge && go test ./...
 cd telemetry-receiver && go test ./...
 cd sentinel && go test ./...
-cd capture-sidecar && go test ./...
-cd tunnel   && go test ./...
 cd gp-module && go test ./...
-cd mcp-server && go test ./...
 cd web      && npm test
 ```
+
+The component submodules (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) run their tests and lint in their own repos' CI (shared `.github/workflows/go-component.yaml`). To compile one here use `cd <path> && GOWORK=off go build ./...`.
 
 ## E2E testing
 
@@ -240,8 +241,8 @@ The e2e suite runs against a real kind cluster. CI splits it into parallel
 buckets defined in `test/e2e/buckets.sh` — the `e2e bucket coverage` job fails on
 any test that isn't in one, so add new tests to a bucket.
 
-The two game-bot tests (`TestGameServer_MinecraftBotConnects`,
-`TestGameServer_TerrariaBotConnects`) boot a real game server and run a
+The two game-bot tests (`TestGameServer_MinecraftJavaBot_Joined`,
+`TestGameServer_TerrariaBot_Joined`) boot a real game server and run a
 headless protocol bot as a **Job inside the cluster**, dialing the game
 Service's DNS name — the same network path a real in-cluster client uses —
 rather than tunnelling through `kubectl port-forward`.
@@ -255,8 +256,8 @@ port-forward` bypasses NetworkPolicy entirely (it tunnels kubelet→pod), so
 "it works via port-forward" is not evidence that in-cluster pod→game traffic
 works.
 
-The bot is `test/e2e/cmd/gameprobe`, built into `gameplane-test/gameprobe:e2e`
-by the `e2e-gameprobe` bake target. That target sits outside the `e2e` bake
+The bot is built from `test/e2e/Dockerfile` into `gameplane-test/gameprobe:e2e`
+by the `e2e-gameprobe` bake target (`containers/docker-bake.hcl`). That target sits outside the `e2e` bake
 group so only the game-bot job pays to build it, and `deploy/kind/e2e.sh`
 side-loads it into the cluster when present. The `e2e game bot (kind)` CI job
 is now blocking rather than advisory.
@@ -315,18 +316,35 @@ and test gates below.
 
 1. Fork + feature branch
 2. **Do not run `make test` or `make lint` locally.** A quick compile check (`go build ./...` or `tsc --noEmit`) is fine to avoid pushing obviously-broken code, but the full test and lint suites run only on CI (GitHub Actions) — that is where they are gated and where failures surface. The exception is workflow changes: if you modify `.github/workflows/` or `.github/actions/`, run `actionlint` and `zizmor` locally before pushing (see CI and workflows section above).
-3. For UI work, include the Pencil node id(s) touched in the PR description
+3. For UI work, include the `design.fig` screen id(s) touched in the PR description
 4. Sign commits (`git commit -s`)
 5. **PR labels**: every PR must carry at least one `type:` and one `area:` label. CodeRabbit (see Code review below) applies them automatically, and the `auto-label` workflow (`hack/auto_label.py`, every 15 minutes) fills in a missing `type:` from the conventional-commit title prefix and a missing `area:` from the changed paths; `type: security` is never derived. You are responsible for verifying they are correct. The `type:` taxonomy is `feature` / `fix` / `refactor` / `test` / `ci` / `chore` / `docs` / `security`. The `area:` taxonomy is `operator` / `api` / `agent` / `web` / `modules` / `chart` / `e2e` / `specs` / `shared` / `optional-components`. A breaking CRD, API, or chart-value change also takes `breaking`. The `status:` labels (`blocked`, `needs-maintainer`, `in-progress`) are optional. A PR spanning several components takes several `area:` labels rather than being left unlabelled.
 6. **Changelog entry**: if the change matters to people who run Gameplane, add
    a file to `changelog/unreleased/` in the same PR (see
    [Changelog entries](#changelog-entries)).
 
+Each PR moves through these stages, from push to merge:
+
+```mermaid
+flowchart TD
+    A["Push branch and open PR"] --> B["auto-label: adds missing type: and area: labels (every 15 min)"]
+    A --> C["ci workflow: detect changes job (hack/ci_scope.py)"]
+    C --> D{"Selection error, unmapped path or ci: full-run label?"}
+    D -- yes --> E["Every CI job runs"]
+    D -- no --> F["Only the jobs the change affects run"]
+    E --> G["ci report job (needs the CI jobs)"]
+    F --> G
+    G --> H["CodeRabbit advisory review"]
+    H --> I["Human approval (master ruleset)"]
+    I --> J["Merge; a push to master runs the full suite"]
+```
+
 Game-module changes (`modules/`) belong in the separate **`GameplanePanel/module`**
 repo, which this repo vendors as a submodule. Open the module PR there; once it
 merges, bump the submodule pointer here (`git add modules`) in a follow-up PR.
+Component submodule changes (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) belong in their own repos the same way (`git add <path>`).
 
-`.gitmodules` points both submodules (`modules/`, `website/`) at the upstream
+`.gitmodules` points all submodules (`modules/`, `website/` and the component submodules) at the upstream
 GitHub URLs, so a fork of this repo clones them without forking them too. To
 work on your own fork of a submodule, repoint it locally:
 `git submodule set-url modules https://github.com/<you>/module.git`
@@ -373,10 +391,24 @@ PRs receive an automated advisory review from the CodeRabbit GitHub App, configu
 ## Release process
 
 Tags matching `v*` trigger the `release.yaml` workflow, which builds the
-component images, pushes the Helm chart to the `gameplane` OCI registry, and
+component images, pushes the `gameplane` and `gameplane-crds` Helm charts to
+the OCI registry, and
 keyed-cosign-signs all images (component and chart) and official `modules/*`
 bundles by digest, recording all signatures in the public Sigstore Rekor
-transparency log.
+transparency log. The jobs run in this order:
+
+```mermaid
+flowchart TD
+    T["Tag v* pushed"] --> IM["images: one leg per component (12)"]
+    T --> MO["modules: push and sign official bundles"]
+    IM --> P["Push image by digest"]
+    P --> S["Trivy scan, then cosign sign (keyed)"]
+    S --> V["Verify signature; check signing/cosign.pub matches the key"]
+    V --> TG["oras tag: attach release tags"]
+    TG --> CH["chart: helm push, cosign sign, verify"]
+    CH --> Q["consumer: qualify-release.yaml as anonymous pull"]
+    Q --> GR["github-release: CHANGELOG section as notes"]
+```
 
 Before tagging, fold the files in `changelog/unreleased/` into a
 `## [x.y.z]` section of `CHANGELOG.md` and delete them (keep the folder's
@@ -402,6 +434,14 @@ matrix does not cancel sibling legs when one fails. A leg that fails before tag
 attachment leaves at most an untagged digest behind. A leg whose `oras tag`
 succeeded but whose later `oras resolve` check failed may leave published tags,
 so inspect the image's tags before re-running the failed jobs.
+
+GHCR creates a new package as private, and the release's consumer
+qualification pulls anonymously. Before the first release that publishes a new
+package (most recently `charts/gameplane-crds`), or right after it if the
+qualification stops there, make the package public under GHCR → package →
+*Package settings* → *Change visibility*, then re-run the failed jobs. The
+`github-release` job handles re-runs, so the tag doesn't need to be moved. The
+full list of packages is in [`install.md`](install.md).
 
 ## Community Visibility & Outreach
 

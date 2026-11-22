@@ -1,768 +1,1297 @@
 {
-  "type": "frame",
-  "id": "KhYNc",
+  "file": "KhYNc",
+  "id": "1:4074",
+  "name": "Screen/Server Detail — Mods (by ID)",
+  "type": "FRAME",
   "x": 1640,
   "y": 31670,
-  "name": "Screen/Server Detail — Mods (by ID)",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "V9lbQg",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:4075",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "E4OOK5",
+      "id": "1:4076",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "CdZhX",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:4077",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "ark-island"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "ark-island", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "EvlK9",
+          "id": "1:4078",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "eyUd0",
-              "type": "ref",
-              "ref": "S4k0x",
+              "id": "1:4079",
               "name": "Detail Header",
-              "width": "fill_container",
-              "descendants": {
-                "wMMwe": {
-                  "fill": "#8B5CF633"
-                },
-                "Bwqml": {
-                  "content": "AI",
-                  "fill": "#8B5CF6"
-                },
-                "tiIi2": {
-                  "content": "ark-island"
-                },
-                "UpnRk": {
-                  "content": "ark-survival-ascended · ns: gameplane-games · up 3d 4h"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 86,
+              "component": "Gameplane/Server Detail Header",
+              "componentId": "1:447",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 24, 16, 24],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "AI",
+                "ark-island",
+                "Running",
+                "ark-survival-ascended · ns: gameplane-games · up 3d 4h",
+                "Restart",
+                "Stop",
+                "Open console"
+              ]
             },
             {
-              "id": "YkPMQ",
-              "type": "ref",
-              "ref": "I9kvlZ",
+              "id": "1:4080",
               "name": "Tabs Bar",
-              "width": "fill_container",
-              "padding": [
-                0,
-                0,
-                0,
-                24
-              ],
-              "descendants": {
-                "Wp6q1": {
-                  "fill": "#00000000"
-                },
-                "Wp6q1/YUR8N": {
-                  "fill": "$muted"
-                },
-                "RfiZy": {
-                  "fill": "$segment"
-                },
-                "RfiZy/VcxMI": {
-                  "fill": "$foreground/segment"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 134,
+              "width": 1132,
+              "height": 40,
+              "component": "Gameplane/Server Detail Tabs",
+              "componentId": "1:466",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+              "texts": [
+                "Overview",
+                "Events",
+                "Console",
+                "Logs",
+                "Files",
+                "Mods",
+                "Modpacks",
+                "Players",
+                "Backups",
+                "Capture",
+                "Settings"
+              ]
             },
             {
-              "type": "frame",
-              "id": "HpK27",
+              "id": "1:4081",
               "name": "Mods Header",
-              "width": "fill_container",
-              "justifyContent": "space_between",
+              "type": "FRAME",
+              "x": 24,
+              "y": 198,
+              "width": 1132,
+              "height": 36,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "MWEXK",
+                  "id": "1:4082",
                   "name": "Mods Header Left",
-                  "layout": "vertical",
-                  "gap": 2,
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 230,
+                  "height": 34,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 2,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
                   "children": [
                     {
-                      "type": "text",
-                      "id": "cWAHS",
+                      "id": "1:4083",
                       "name": "modsCount",
-                      "fill": "$foreground/foreground",
-                      "content": "3 selected",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 67,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "3 selected",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "type": "text",
-                      "id": "bSuY4",
+                      "id": "1:4084",
                       "name": "modsMeta",
-                      "fill": "$muted",
-                      "content": "ARK: Survival Ascended · CurseForge mod IDs",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 11,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 20,
+                      "width": 230,
+                      "height": 14,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "ARK: Survival Ascended · CurseForge mod IDs",
+                      "font": ["Geist", 400, 11],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "n6x5QL",
+                  "id": "1:4085",
                   "name": "Mods Header Right",
-                  "gap": 8,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 1096,
+                  "y": 0,
+                  "width": 36,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
                   "children": [
                     {
-                      "id": "uPPIj",
-                      "type": "ref",
-                      "ref": "owgrI",
+                      "id": "1:4086",
                       "name": "Btn Refresh",
-                      "descendants": {
-                        "FOBKk": {
-                          "icon": "refresh-cw"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 36,
+                      "height": 36,
+                      "component": "Button/Ghost/Icon/MD",
+                      "componentId": "1:942",
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"cornerRadius": "radius/3xl"}
                     }
                   ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "GIIIg",
+              "id": "1:4087",
               "name": "Mods By ID Explainer",
-              "width": "fill_container",
-              "fill": "$default/default",
+              "type": "FRAME",
+              "x": 24,
+              "y": 258,
+              "width": 1132,
+              "height": 41,
+              "fills": [{"type": "SOLID", "color": "#232128"}],
               "cornerRadius": 8,
-              "gap": 8,
-              "padding": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [12, 12, 12, 12],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "default/default"},
               "children": [
                 {
-                  "type": "icon",
-                  "id": "wyB8I",
+                  "id": "1:4088",
                   "name": "Info Icon",
+                  "type": "FRAME",
+                  "x": 12,
+                  "y": 12,
                   "width": 16,
                   "height": 16,
-                  "icon": "info",
-                  "library": "lucide",
-                  "fill": "$foreground/foreground"
+                  "variables": {"fills/0/color": "foreground/foreground"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 1.33,
+                      "y": 1.33,
+                      "width": 13.33,
+                      "height": 13.33,
+                      "strokes": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "strokeWeight": 1.33
+                    },
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 8,
+                      "y": 5.33,
+                      "width": 0.01,
+                      "height": 5.33,
+                      "strokes": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "strokeWeight": 1.33
+                    }
+                  ]
                 },
                 {
-                  "type": "text",
-                  "id": "hccrh",
+                  "id": "1:4089",
                   "name": "Explainer Text",
-                  "fill": "$foreground/foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "This game's server downloads its own mods. Select them here — Gameplane passes the list to the server at launch.",
-                  "lineHeight": 1.4,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 36,
+                  "y": 12,
+                  "width": 1084,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "layoutGrow": 1,
+                  "text": "This game's server downloads its own mods. Select them here — Gameplane passes the list to the server at launch.",
+                  "font": ["Geist", 400, 12],
+                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "jpvwV",
+              "id": "1:4090",
               "name": "Add Mods Toolbar",
-              "width": "fill_container",
-              "gap": 16,
-              "alignItems": "center",
-              "children": [
-                {
-                  "id": "v1QSl",
-                  "type": "ref",
-                  "ref": "cb4rt",
-                  "name": "Btn Browse CurseForge",
-                  "descendants": {
-                    "Xpn7K": {
-                      "icon": "compass"
-                    },
-                    "U6q13B": {
-                      "content": "Browse CurseForge"
-                    }
-                  }
-                },
-                {
-                  "type": "rectangle",
-                  "id": "ueJAY",
-                  "name": "Divider",
-                  "fill": "$border/border",
-                  "width": 1,
-                  "height": 24
-                },
-                {
-                  "type": "frame",
-                  "id": "sPcR2",
-                  "name": "Add By Id Group",
-                  "gap": 8,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "id": "Q2e6x5",
-                      "type": "ref",
-                      "ref": "aRqX6",
-                      "name": "Input Mod Id",
-                      "width": 220,
-                      "descendants": {
-                        "ANxU1": {
-                          "enabled": false
-                        },
-                        "hokJ3": {
-                          "content": "Paste a CurseForge mod ID…"
-                        },
-                        "OiyAM": {
-                          "enabled": false
-                        }
-                      }
-                    },
-                    {
-                      "id": "jJ4lm",
-                      "type": "ref",
-                      "ref": "i6gfu",
-                      "name": "Btn Add",
-                      "descendants": {
-                        "GqVun": {
-                          "content": "Add"
-                        }
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "m3Qn01",
-              "name": "Selected Mods Section",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 8,
-              "children": [
-                {
-                  "type": "text",
-                  "id": "CRJvn",
-                  "name": "Selected Mods Title",
-                  "fill": "$foreground/foreground",
-                  "content": "Selected mods",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "600"
-                },
-                {
-                  "type": "frame",
-                  "id": "iGvkU",
-                  "name": "Row — Structures Plus (S+)",
-                  "width": "fill_container",
-                  "fill": "$surface/surface",
-                  "cornerRadius": 6,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "gap": 12,
-                  "padding": 14,
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "k7z00",
-                      "name": "Left",
-                      "gap": 12,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "r6f97F",
-                          "name": "Mod Icon",
-                          "width": 36,
-                          "height": 36,
-                          "fill": "$default/default",
-                          "cornerRadius": 6,
-                          "justifyContent": "center",
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "icon",
-                              "id": "P4K2Eo",
-                              "name": "Icon",
-                              "width": 18,
-                              "height": 18,
-                              "icon": "extension",
-                              "library": "Material Symbols Sharp",
-                              "fill": "$muted"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "nO4CJ",
-                          "name": "Mod Info",
-                          "layout": "vertical",
-                          "gap": 2,
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "D5Uln",
-                              "name": "Name",
-                              "fill": "$foreground/foreground",
-                              "content": "Structures Plus (S+)",
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 14,
-                              "fontWeight": "600"
-                            },
-                            {
-                              "type": "text",
-                              "id": "CNl4G",
-                              "name": "Id",
-                              "fill": "$muted",
-                              "content": "ID 889745",
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "O3S75",
-                      "name": "Right",
-                      "gap": 8,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "id": "m6I8Ns",
-                          "type": "ref",
-                          "ref": "rkF0p",
-                          "name": "Btn Remove",
-                          "descendants": {
-                            "WtPjS": {
-                              "icon": "x"
-                            },
-                            "r4VbAi": {
-                              "content": "Remove"
-                            }
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "wHPgl",
-                  "name": "Row — Awesome Spyglass",
-                  "width": "fill_container",
-                  "fill": "$surface/surface",
-                  "cornerRadius": 6,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "gap": 12,
-                  "padding": 14,
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "pmxvo",
-                      "name": "Left",
-                      "gap": 12,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "lMdQ8",
-                          "name": "Mod Icon",
-                          "width": 36,
-                          "height": 36,
-                          "fill": "$default/default",
-                          "cornerRadius": 6,
-                          "justifyContent": "center",
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "icon",
-                              "id": "hhw2z",
-                              "name": "Icon",
-                              "width": 18,
-                              "height": 18,
-                              "icon": "extension",
-                              "library": "Material Symbols Sharp",
-                              "fill": "$muted"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "yAAJq",
-                          "name": "Mod Info",
-                          "layout": "vertical",
-                          "gap": 2,
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "Ogf5J",
-                              "name": "Name",
-                              "fill": "$foreground/foreground",
-                              "content": "Awesome Spyglass",
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 14,
-                              "fontWeight": "600"
-                            },
-                            {
-                              "type": "text",
-                              "id": "Si6SV",
-                              "name": "Id",
-                              "fill": "$muted",
-                              "content": "ID 895711",
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "T4nTNO",
-                      "name": "Right",
-                      "gap": 8,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "r5Btct",
-                          "name": "Chip",
-                          "fill": "$success/soft",
-                          "cornerRadius": 9999,
-                          "stroke": "#00000000",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "gap": 8,
-                          "padding": [
-                            6,
-                            14
-                          ],
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "ellipse",
-                              "id": "Jviaw",
-                              "name": "dot",
-                              "fill": "$success/soft-foreground",
-                              "width": 6,
-                              "height": 6
-                            },
-                            {
-                              "type": "text",
-                              "id": "NyZ87",
-                              "name": "label",
-                              "fill": "$success/soft-foreground",
-                              "content": "Added",
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        },
-                        {
-                          "id": "NmDS6",
-                          "type": "ref",
-                          "ref": "rkF0p",
-                          "name": "Btn Remove",
-                          "descendants": {
-                            "WtPjS": {
-                              "icon": "x"
-                            },
-                            "r4VbAi": {
-                              "content": "Remove"
-                            }
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "RJws4",
-                  "name": "Row — Death Recovery Mod",
-                  "opacity": 0.6,
-                  "width": "fill_container",
-                  "fill": "$surface/surface",
-                  "cornerRadius": 6,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "gap": 12,
-                  "padding": 14,
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "XbkGE",
-                      "name": "Left",
-                      "gap": 12,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "H4YqV",
-                          "name": "Mod Icon",
-                          "width": 36,
-                          "height": 36,
-                          "fill": "$default/default",
-                          "cornerRadius": 6,
-                          "justifyContent": "center",
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "icon",
-                              "id": "E2ddG",
-                              "name": "Icon",
-                              "width": 18,
-                              "height": 18,
-                              "icon": "extension",
-                              "library": "Material Symbols Sharp",
-                              "fill": "$muted"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "czNk3",
-                          "name": "Mod Info",
-                          "layout": "vertical",
-                          "gap": 2,
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "vH4vs",
-                              "name": "Name",
-                              "fill": "$foreground/foreground",
-                              "content": "Death Recovery Mod",
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 14,
-                              "fontWeight": "600"
-                            },
-                            {
-                              "type": "text",
-                              "id": "mlWn7",
-                              "name": "Id",
-                              "fill": "$muted",
-                              "content": "ID 823603",
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "I3BoAi",
-                      "name": "Right",
-                      "gap": 8,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "GBEnf",
-                          "name": "Chip",
-                          "fill": "$warning/soft",
-                          "cornerRadius": 9999,
-                          "stroke": "#00000000",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "gap": 8,
-                          "padding": [
-                            6,
-                            14
-                          ],
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "ellipse",
-                              "id": "CrZyC",
-                              "name": "dot",
-                              "fill": "$warning/soft-foreground",
-                              "width": 6,
-                              "height": 6
-                            },
-                            {
-                              "type": "text",
-                              "id": "eqO3C",
-                              "name": "label",
-                              "fill": "$warning/soft-foreground",
-                              "content": "Marked for removal",
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        },
-                        {
-                          "id": "P8gSyX",
-                          "type": "ref",
-                          "ref": "rkF0p",
-                          "name": "Btn Remove",
-                          "descendants": {
-                            "WtPjS": {
-                              "icon": "x"
-                            },
-                            "r4VbAi": {
-                              "content": "Remove"
-                            }
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "f0U9P6",
-              "name": "Save Footer",
-              "width": "fill_container",
-              "stroke": "$border/border",
-              "strokeWidth": {
-                "top": 1
+              "type": "FRAME",
+              "x": 24,
+              "y": 323,
+              "width": 1132,
+              "height": 40,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 16,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
               },
-              "strokeAlignment": "inner",
-              "strokeLinejoin": "round",
-              "gap": 12,
-              "padding": [
-                16,
-                0,
-                0,
-                0
-              ],
-              "justifyContent": "space_between",
-              "alignItems": "center",
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "QUuW3",
-                  "name": "Warning Group",
-                  "gap": 8,
-                  "alignItems": "center",
+                  "id": "1:4091",
+                  "name": "Btn Browse CurseForge",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 2,
+                  "width": 185,
+                  "height": 36,
+                  "component": "Button/Primary/MD",
+                  "componentId": "1:1094",
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 16, 8, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "itemSpacing": "spacing/2",
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/4",
+                    "paddingLeft": "spacing/4",
+                    "fills/0/color": "accent/accent"
+                  },
+                  "texts": ["Browse CurseForge"]
+                },
+                {
+                  "id": "1:4092",
+                  "name": "Divider",
+                  "type": "RECTANGLE",
+                  "x": 201,
+                  "y": 8,
+                  "width": 1,
+                  "height": 24,
+                  "fills": [{"type": "SOLID", "color": "#2C2932"}],
+                  "variables": {"fills/0/color": "border/border"}
+                },
+                {
+                  "id": "1:4093",
+                  "name": "Add By Id Group",
+                  "type": "FRAME",
+                  "x": 218,
+                  "y": 0,
+                  "width": 311,
+                  "height": 40,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
                   "children": [
                     {
-                      "type": "icon",
-                      "id": "RnB0y",
+                      "id": "1:4094",
+                      "name": "Input Mod Id",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 220,
+                      "height": 40,
+                      "component": "Input/Primary",
+                      "componentId": "1:1082",
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "texts": ["Paste a CurseForge mod ID…"]
+                    },
+                    {
+                      "id": "1:4095",
+                      "name": "Btn Add",
+                      "type": "INSTANCE",
+                      "x": 228,
+                      "y": 2,
+                      "width": 83,
+                      "height": 36,
+                      "component": "Button/Outline/MD",
+                      "componentId": "1:1794",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "strokes/0/color": "border-2"
+                      },
+                      "texts": ["Add"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1:4096",
+              "name": "Selected Mods Section",
+              "type": "FRAME",
+              "x": 24,
+              "y": 387,
+              "width": 1132,
+              "height": 234,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:4097",
+                  "name": "Selected Mods Title",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 101,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Selected mods",
+                  "font": ["Geist", 600, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "id": "1:4098",
+                  "name": "Row — Structures Plus (S+)",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 26,
+                  "width": 1132,
+                  "height": 64,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 6,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [14, 14, 14, 14],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "id": "1:4099",
+                      "name": "Left",
+                      "type": "FRAME",
+                      "x": 14,
+                      "y": 14,
+                      "width": 216,
+                      "height": 36,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 12,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "children": [
+                        {
+                          "id": "1:4100",
+                          "name": "Mod Icon",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 36,
+                          "height": 36,
+                          "fills": [{"type": "SOLID", "color": "#232128"}],
+                          "cornerRadius": 6,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "variables": {"fills/0/color": "default/default"},
+                          "children": [
+                            {
+                              "id": "1:4101",
+                              "name": "Icon",
+                              "type": "FRAME",
+                              "x": 9,
+                              "y": 9,
+                              "width": 18,
+                              "height": 18,
+                              "variables": {"fills/0/color": "muted"},
+                              "children": [
+                                {
+                                  "name": "path",
+                                  "type": "VECTOR",
+                                  "x": 3,
+                                  "y": 1.59,
+                                  "width": 12.75,
+                                  "height": 13.5,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:4102",
+                          "name": "Mod Info",
+                          "type": "FRAME",
+                          "x": 48,
+                          "y": 0,
+                          "width": 168,
+                          "height": 36,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 2,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "children": [
+                            {
+                              "id": "1:4103",
+                              "name": "Name",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 168,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Structures Plus (S+)",
+                              "font": ["JetBrains Mono", 600, 14],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "id": "1:4104",
+                              "name": "Id",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 20,
+                              "width": 65,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "ID 889745",
+                              "font": ["JetBrains Mono", 400, 12],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:4105",
+                      "name": "Right",
+                      "type": "FRAME",
+                      "x": 1029,
+                      "y": 16,
+                      "width": 89,
+                      "height": 32,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "children": [
+                        {
+                          "id": "1:4106",
+                          "name": "Btn Remove",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 89,
+                          "height": 32,
+                          "component": "Button/Ghost/SM",
+                          "componentId": "1:1092",
+                          "cornerRadius": 24,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 5,
+                            "padding": [8, 10, 8, 10],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {"cornerRadius": "radius/3xl"},
+                          "texts": ["Remove"]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "1:4107",
+                  "name": "Row — Awesome Spyglass",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 98,
+                  "width": 1132,
+                  "height": 64,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 6,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [14, 14, 14, 14],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "id": "1:4108",
+                      "name": "Left",
+                      "type": "FRAME",
+                      "x": 14,
+                      "y": 14,
+                      "width": 183,
+                      "height": 36,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 12,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "children": [
+                        {
+                          "id": "1:4109",
+                          "name": "Mod Icon",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 36,
+                          "height": 36,
+                          "fills": [{"type": "SOLID", "color": "#232128"}],
+                          "cornerRadius": 6,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "variables": {"fills/0/color": "default/default"},
+                          "children": [
+                            {
+                              "id": "1:4110",
+                              "name": "Icon",
+                              "type": "FRAME",
+                              "x": 9,
+                              "y": 9,
+                              "width": 18,
+                              "height": 18,
+                              "variables": {"fills/0/color": "muted"},
+                              "children": [
+                                {
+                                  "name": "path",
+                                  "type": "VECTOR",
+                                  "x": 3,
+                                  "y": 1.59,
+                                  "width": 12.75,
+                                  "height": 13.5,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:4111",
+                          "name": "Mod Info",
+                          "type": "FRAME",
+                          "x": 48,
+                          "y": 0,
+                          "width": 135,
+                          "height": 36,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 2,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "children": [
+                            {
+                              "id": "1:4112",
+                              "name": "Name",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 135,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Awesome Spyglass",
+                              "font": ["JetBrains Mono", 600, 14],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "id": "1:4113",
+                              "name": "Id",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 20,
+                              "width": 65,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "ID 895711",
+                              "font": ["JetBrains Mono", 400, 12],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:4114",
+                      "name": "Right",
+                      "type": "FRAME",
+                      "x": 942,
+                      "y": 16,
+                      "width": 176,
+                      "height": 32,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "children": [
+                        {
+                          "id": "1:4115",
+                          "name": "Chip",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 2,
+                          "width": 79,
+                          "height": 28,
+                          "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
+                          "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 9999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [6, 14, 6, 14],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"fills/0/color": "success/soft"},
+                          "children": [
+                            {
+                              "id": "1:4116",
+                              "name": "dot",
+                              "type": "ELLIPSE",
+                              "x": 14,
+                              "y": 11,
+                              "width": 6,
+                              "height": 6,
+                              "fills": [{"type": "SOLID", "color": "#17C964"}],
+                              "variables": {"fills/0/color": "success/soft-foreground"}
+                            },
+                            {
+                              "id": "1:4117",
+                              "name": "label",
+                              "type": "TEXT",
+                              "x": 28,
+                              "y": 6,
+                              "width": 37,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#17C964"}],
+                              "text": "Added",
+                              "font": ["JetBrains Mono", 400, 12],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "success/soft-foreground"}
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:4118",
+                          "name": "Btn Remove",
+                          "type": "INSTANCE",
+                          "x": 87,
+                          "y": 0,
+                          "width": 89,
+                          "height": 32,
+                          "component": "Button/Ghost/SM",
+                          "componentId": "1:1092",
+                          "cornerRadius": 24,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 5,
+                            "padding": [8, 10, 8, 10],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {"cornerRadius": "radius/3xl"},
+                          "texts": ["Remove"]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "1:4119",
+                  "name": "Row — Death Recovery Mod",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 170,
+                  "width": 1132,
+                  "height": 64,
+                  "opacity": 0.6,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 6,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [14, 14, 14, 14],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "id": "1:4120",
+                      "name": "Left",
+                      "type": "FRAME",
+                      "x": 14,
+                      "y": 14,
+                      "width": 200,
+                      "height": 36,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 12,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "children": [
+                        {
+                          "id": "1:4121",
+                          "name": "Mod Icon",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 36,
+                          "height": 36,
+                          "fills": [{"type": "SOLID", "color": "#232128"}],
+                          "cornerRadius": 6,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "variables": {"fills/0/color": "default/default"},
+                          "children": [
+                            {
+                              "id": "1:4122",
+                              "name": "Icon",
+                              "type": "FRAME",
+                              "x": 9,
+                              "y": 9,
+                              "width": 18,
+                              "height": 18,
+                              "variables": {"fills/0/color": "muted"},
+                              "children": [
+                                {
+                                  "name": "path",
+                                  "type": "VECTOR",
+                                  "x": 3,
+                                  "y": 1.59,
+                                  "width": 12.75,
+                                  "height": 13.5,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:4123",
+                          "name": "Mod Info",
+                          "type": "FRAME",
+                          "x": 48,
+                          "y": 0,
+                          "width": 152,
+                          "height": 36,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 2,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "children": [
+                            {
+                              "id": "1:4124",
+                              "name": "Name",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 152,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Death Recovery Mod",
+                              "font": ["JetBrains Mono", 600, 14],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "id": "1:4125",
+                              "name": "Id",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 20,
+                              "width": 65,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "ID 823603",
+                              "font": ["JetBrains Mono", 400, 12],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:4126",
+                      "name": "Right",
+                      "type": "FRAME",
+                      "x": 849,
+                      "y": 16,
+                      "width": 269,
+                      "height": 32,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "children": [
+                        {
+                          "id": "1:4127",
+                          "name": "Chip",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 2,
+                          "width": 172,
+                          "height": 28,
+                          "fills": [{"type": "SOLID", "color": "#F7B75026", "opacity": 0.15}],
+                          "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 9999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [6, 14, 6, 14],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"fills/0/color": "warning/soft"},
+                          "children": [
+                            {
+                              "id": "1:4128",
+                              "name": "dot",
+                              "type": "ELLIPSE",
+                              "x": 14,
+                              "y": 11,
+                              "width": 6,
+                              "height": 6,
+                              "fills": [{"type": "SOLID", "color": "#F7B750"}],
+                              "variables": {"fills/0/color": "warning/soft-foreground"}
+                            },
+                            {
+                              "id": "1:4129",
+                              "name": "label",
+                              "type": "TEXT",
+                              "x": 28,
+                              "y": 6,
+                              "width": 130,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#F7B750"}],
+                              "text": "Marked for removal",
+                              "font": ["JetBrains Mono", 400, 12],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "warning/soft-foreground"}
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:4130",
+                          "name": "Btn Remove",
+                          "type": "INSTANCE",
+                          "x": 180,
+                          "y": 0,
+                          "width": 89,
+                          "height": 32,
+                          "component": "Button/Ghost/SM",
+                          "componentId": "1:1092",
+                          "cornerRadius": 24,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 5,
+                            "padding": [8, 10, 8, 10],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {"cornerRadius": "radius/3xl"},
+                          "texts": ["Remove"]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1:4131",
+              "name": "Save Footer",
+              "type": "FRAME",
+              "x": 24,
+              "y": 645,
+              "width": 1132,
+              "height": 52,
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [16, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "children": [
+                {
+                  "id": "1:4132",
+                  "name": "Warning Group",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 26,
+                  "width": 310,
+                  "height": 16,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "id": "1:4133",
                       "name": "Warning Icon",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
                       "width": 16,
                       "height": 16,
-                      "icon": "triangle-alert",
-                      "library": "lucide",
-                      "fill": "$warning/soft-foreground"
+                      "variables": {"fills/0/color": "warning/soft-foreground"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 1.32,
+                          "y": 1.99,
+                          "width": 13.35,
+                          "height": 12.01,
+                          "strokes": [{"type": "SOLID", "color": "#F7B750"}],
+                          "strokeWeight": 1.33
+                        }
+                      ]
                     },
                     {
-                      "type": "text",
-                      "id": "Z0KgN",
+                      "id": "1:4134",
                       "name": "Warning Text",
-                      "fill": "$warning/soft-foreground",
-                      "content": "Saving restarts the server to apply the new mod list.",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 24,
+                      "y": 0,
+                      "width": 286,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#F7B750"}],
+                      "text": "Saving restarts the server to apply the new mod list.",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "CBJkH",
+                  "id": "1:4135",
                   "name": "Footer Actions",
-                  "gap": 12,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 910,
+                  "y": 16,
+                  "width": 222,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
                   "children": [
                     {
-                      "id": "cpgWm",
-                      "type": "ref",
-                      "ref": "rkF0p",
+                      "id": "1:4136",
                       "name": "Btn Discard",
-                      "descendants": {
-                        "WtPjS": {
-                          "icon": "x"
-                        },
-                        "r4VbAi": {
-                          "content": "Discard"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 2,
+                      "width": 86,
+                      "height": 32,
+                      "component": "Button/Ghost/SM",
+                      "componentId": "1:1092",
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 5,
+                        "padding": [8, 10, 8, 10],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {"cornerRadius": "radius/3xl"},
+                      "texts": ["Discard"]
                     },
                     {
-                      "id": "U2C0uj",
-                      "type": "ref",
-                      "ref": "cb4rt",
+                      "id": "1:4137",
                       "name": "Btn Save Changes",
-                      "descendants": {
-                        "Xpn7K": {
-                          "enabled": false
-                        },
-                        "U6q13B": {
-                          "content": "Save changes"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 98,
+                      "y": 0,
+                      "width": 124,
+                      "height": 36,
+                      "component": "Button/Primary/MD",
+                      "componentId": "1:1094",
+                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "fills/0/color": "accent/accent"
+                      },
+                      "texts": ["Save changes"]
                     }
                   ]
                 }

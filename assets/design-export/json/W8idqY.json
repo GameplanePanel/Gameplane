@@ -1,1088 +1,1716 @@
 {
-  "type": "frame",
-  "id": "W8idqY",
+  "file": "W8idqY",
+  "id": "1:1882",
+  "name": "Screen/Create Server — Step 1 Template",
+  "type": "FRAME",
   "x": 0,
   "y": 16012,
-  "name": "Screen/Create Server — Step 1 Template",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 980,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "U8jYs",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:1883",
       "name": "Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 980,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "UrlZT",
+      "id": "1:1884",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 980,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "C8fsxp",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:1885",
           "name": "TopBar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "New"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "New", "Search servers…", "AD"]
         }
       ]
     },
     {
-      "type": "frame",
-      "id": "z3Dyn",
-      "layoutPosition": "absolute",
+      "id": "1:1886",
+      "name": "ModalContainer",
+      "type": "FRAME",
       "x": 0,
       "y": 0,
-      "name": "ModalContainer",
       "width": 1440,
       "height": 980,
-      "fill": "#000000B3",
-      "layout": "vertical",
-      "justifyContent": "center",
-      "alignItems": "center",
+      "fills": [{"type": "SOLID", "color": "#000000B3", "opacity": 0.7}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "absolute": true,
       "children": [
         {
-          "type": "frame",
-          "id": "O7jNg",
+          "id": "1:1887",
           "name": "Modal",
-          "clip": true,
+          "type": "FRAME",
+          "x": 240,
+          "y": 75,
           "width": 960,
           "height": 830,
-          "fill": "$surface/surface",
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "effects": [{"type": "DROP_SHADOW", "radius": 60, "visible": true}],
           "cornerRadius": 12,
-          "stroke": "$border/border",
-          "strokeWidth": 1,
-          "strokeAlignment": "inner",
-          "effect": {
-            "type": "shadow",
-            "shadowType": "outer",
-            "color": "#00000080",
-            "offset": {
-              "x": 0,
-              "y": 24
-            },
-            "blur": 60
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
           },
-          "layout": "vertical",
+          "clips": true,
+          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "uyK3P",
-              "type": "ref",
-              "ref": "opmcF",
+              "id": "1:1888",
               "name": "Header",
-              "width": "fill_container",
-              "descendants": {
-                "gcM6g": {
-                  "content": "Step 1 of 4 · Template"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 0,
+              "width": 960,
+              "height": 83,
+              "component": "Gameplane/Wizard Modal Header",
+              "componentId": "1:1889",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [20, 28, 20, 28],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "texts": ["New game server", "Step 1 of 4 · Template"]
             },
             {
-              "type": "frame",
-              "id": "oUK4W",
+              "id": "1:1894",
               "name": "Location placement",
-              "context": "Only authorized template/location combinations; changing location starts a fresh draft. Freeze chosen target during submission.",
-              "width": "fill_container",
-              "stroke": "$border/border",
-              "strokeWidth": {
-                "bottom": 1
+              "type": "FRAME",
+              "x": 0,
+              "y": 83,
+              "width": 960,
+              "height": 102,
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 5,
+                "padding": [12, 24, 12, 24],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
               },
-              "layout": "vertical",
-              "gap": 5,
-              "padding": [
-                12,
-                24
-              ],
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "U9yGXG",
+                  "id": "1:1895",
                   "name": "Location label",
-                  "fill": "$foreground/foreground",
-                  "content": "Cluster",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 12,
+                  "width": 40,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Cluster",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "lIkzR",
-                  "type": "ref",
-                  "ref": "AT7ya",
+                  "id": "1:1896",
                   "name": "Creation location",
-                  "width": "fill_container",
-                  "descendants": {
-                    "cFsFk": {
-                      "content": "remote-lab / gameplane-games",
-                      "fill": "$foreground/foreground"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 24,
+                  "y": 33,
+                  "width": 912,
+                  "height": 36,
+                  "component": "Gameplane/Select",
+                  "componentId": "1:311",
+                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "field/background",
+                    "strokes/0/color": "field/border"
+                  },
+                  "texts": ["remote-lab / gameplane-games"]
                 },
                 {
-                  "type": "text",
-                  "id": "A4JKx",
+                  "id": "1:1897",
                   "name": "Changing location help",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Changing cluster starts a fresh draft. The chosen cluster handles all creation steps.",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 74,
+                  "width": 912,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Changing cluster starts a fresh draft. The chosen cluster handles all creation steps.",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "id": "T0u9fl",
-              "type": "ref",
-              "ref": "oROhg",
+              "id": "1:1898",
               "name": "Stepper",
-              "width": "fill_container",
-              "descendants": {
-                "qB83V": {
-                  "enabled": false
-                },
-                "gdfU0": {
-                  "enabled": false
-                },
-                "F3O7DI": {
-                  "content": "2"
-                },
-                "FqG7u": {
-                  "content": "Configure"
-                },
-                "AWo7q": {
-                  "content": "3"
-                },
-                "z2BJtl": {
-                  "content": "Network"
-                },
-                "P3Gh8g": {
-                  "content": "4"
-                },
-                "M34cA": {
-                  "content": "Review"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 185,
+              "width": 960,
+              "height": 44,
+              "component": "Gameplane/Wizard Stepper",
+              "componentId": "1:1899",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [12, 24, 12, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "texts": ["1", "Template", "·", "2", "Configure", "·", "3", "Network", "·", "4", "Review"]
             },
             {
-              "type": "frame",
-              "id": "J5kim4",
+              "id": "1:1924",
               "name": "Body",
-              "width": "fill_container",
-              "height": "fill_container",
-              "gap": 12,
-              "padding": 24,
+              "type": "FRAME",
+              "x": 0,
+              "y": 229,
+              "width": 960,
+              "height": 533,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [24, 24, 24, 24],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "YUPrt",
+                  "id": "1:1925",
                   "name": "Left",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 12,
+                  "type": "FRAME",
+                  "x": 24,
+                  "y": 24,
+                  "width": 630,
+                  "height": 505,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 12,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "Xizfu",
+                      "id": "1:1926",
                       "name": "FilterRow",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 8,
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 630,
+                      "height": 69,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "g4rYaO",
-                          "type": "ref",
-                          "ref": "Um9IB",
+                          "id": "1:1927",
                           "name": "Search",
-                          "width": "fill_container",
-                          "descendants": {
-                            "oYXAU": {
-                              "enabled": false,
-                              "opacity": 0
-                            },
-                            "lz6sn": {
-                              "content": "Search…"
-                            },
-                            "Cu8Yj": {
-                              "opacity": 0,
-                              "fill": "#00000000"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 630,
+                          "height": 36,
+                          "component": "SearchField/Primary",
+                          "componentId": "1:1928",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["Search…"]
                         },
                         {
-                          "type": "frame",
-                          "id": "LRRUp",
+                          "id": "1:1929",
                           "name": "ChipWrap",
-                          "clip": true,
-                          "width": "fill_container",
-                          "fill": "#17171766",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 44,
+                          "width": 630,
+                          "height": 25,
+                          "fills": [{"type": "SOLID", "color": "#17171766", "opacity": 0.4}],
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
                           "cornerRadius": 6,
-                          "stroke": "$border/border",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "gap": 4,
-                          "padding": 4,
-                          "alignItems": "center",
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 4,
+                            "padding": [4, 4, 4, 4],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "clips": true,
+                          "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "R5ReS",
-                              "type": "ref",
-                              "ref": "kGH2O",
+                              "id": "1:1930",
                               "name": "ChipAll",
-                              "descendants": {
-                                "O1PqF5": {
-                                  "content": "All"
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 4,
+                              "y": 4,
+                              "width": 22,
+                              "height": 17,
+                              "component": "Chip/Soft/Accent/SM",
+                              "componentId": "1:1397",
+                              "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                              "cornerRadius": 16,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 2,
+                                "padding": [2, 4, 2, 4],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "accent/soft"},
+                              "texts": ["All"]
                             },
                             {
-                              "id": "WQjer",
-                              "type": "ref",
-                              "ref": "Y43SFn",
+                              "id": "1:1931",
                               "name": "ChipSandbox",
-                              "descendants": {
-                                "r4GQ9": {
-                                  "content": "Sandbox"
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 30,
+                              "y": 4,
+                              "width": 55,
+                              "height": 17,
+                              "component": "Chip/Tertiary/Default/SM",
+                              "componentId": "1:1932",
+                              "cornerRadius": 16,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 2,
+                                "padding": [2, 4, 2, 4],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"cornerRadius": "radius/2xl"},
+                              "texts": ["Sandbox"]
                             },
                             {
-                              "id": "A2bTXH",
-                              "type": "ref",
-                              "ref": "Y43SFn",
+                              "id": "1:1934",
                               "name": "ChipShooter",
-                              "descendants": {
-                                "r4GQ9": {
-                                  "content": "Shooter"
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 89,
+                              "y": 4,
+                              "width": 50,
+                              "height": 17,
+                              "component": "Chip/Tertiary/Default/SM",
+                              "componentId": "1:1932",
+                              "cornerRadius": 16,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 2,
+                                "padding": [2, 4, 2, 4],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"cornerRadius": "radius/2xl"},
+                              "texts": ["Shooter"]
                             },
                             {
-                              "id": "HnBJQ",
-                              "type": "ref",
-                              "ref": "Y43SFn",
+                              "id": "1:1935",
                               "name": "ChipSurvival",
-                              "descendants": {
-                                "r4GQ9": {
-                                  "content": "Survival"
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 143,
+                              "y": 4,
+                              "width": 51,
+                              "height": 17,
+                              "component": "Chip/Tertiary/Default/SM",
+                              "componentId": "1:1932",
+                              "cornerRadius": 16,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 2,
+                                "padding": [2, 4, 2, 4],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"cornerRadius": "radius/2xl"},
+                              "texts": ["Survival"]
                             }
                           ]
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "csMSz",
+                      "id": "1:1936",
                       "name": "TemplateGrid",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 12,
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 81,
+                      "width": 630,
+                      "height": 424,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 12,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "Or3fy",
+                          "id": "1:1937",
                           "name": "Row1",
-                          "width": "fill_container",
-                          "gap": 12,
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 630,
+                          "height": 97,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "tPLoY",
-                              "type": "ref",
-                              "ref": "XDZ0E",
+                              "id": "1:1938",
                               "name": "Card_MI",
-                              "width": "fill_container",
-                              "height": "fit_content",
-                              "fill": "#00000000",
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 0,
+                              "width": 309,
+                              "height": 97,
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "MBjyf",
+                                  "id": "1:1939",
                                   "name": "CardHead",
-                                  "width": "fill_container",
-                                  "gap": 12,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 277,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "lhkum",
+                                      "id": "1:1940",
                                       "name": "IconTile",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
                                       "width": 36,
                                       "height": 36,
-                                      "fill": "#21C45D33",
+                                      "fills": [{"type": "SOLID", "color": "#21C45D33", "opacity": 0.2}],
                                       "cornerRadius": 6,
-                                      "justifyContent": "center",
-                                      "alignItems": "center",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "Q0HOkg",
+                                          "id": "1:1941",
                                           "name": "Glyph",
-                                          "fill": "#21C45D",
-                                          "content": "MI",
-                                          "fontFamily": "$typography/font-mono",
-                                          "fontSize": 14,
-                                          "fontWeight": "600"
+                                          "type": "TEXT",
+                                          "x": 9.5,
+                                          "y": 9,
+                                          "width": 17,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#21C45D"}],
+                                          "text": "MI",
+                                          "font": ["JetBrains Mono", 600, 14],
+                                          "variables": {"fontFamily": "typography/font-mono"}
                                         }
                                       ]
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "i4qZg2",
+                                      "id": "1:1942",
                                       "name": "TitleCol",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 48,
+                                      "y": 1,
+                                      "width": 229,
+                                      "height": 34,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "m2KnQ",
+                                          "id": "1:1943",
                                           "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "textGrowth": "fixed-width",
-                                          "width": "fill_container",
-                                          "content": "Minecraft Java Edition",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 229,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "layoutAlignSelf": "STRETCH",
+                                          "text": "Minecraft Java Edition",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "NWCYx",
+                                          "id": "1:1944",
                                           "name": "Version",
-                                          "fill": "$muted",
-                                          "content": "v1.21",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 24,
+                                          "height": 14,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "v1.21",
+                                          "font": ["Geist", 400, 11],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "x6hTN",
+                                  "id": "1:1945",
                                   "name": "Desc",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Official Minecraft Java Edition server",
-                                  "lineHeight": 1.4,
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 64,
+                                  "width": 277,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "Official Minecraft Java Edition server",
+                                  "font": ["Geist", 400, 12],
+                                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 }
                               ]
                             },
                             {
-                              "id": "Uezil",
-                              "type": "ref",
-                              "ref": "XDZ0E",
+                              "id": "1:1946",
                               "name": "Card_SA",
-                              "width": "fill_container",
-                              "height": "fit_content",
-                              "fill": "#00000000",
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
+                              "type": "FRAME",
+                              "x": 321,
+                              "y": 0,
+                              "width": 309,
+                              "height": 97,
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "PL068",
+                                  "id": "1:1947",
                                   "name": "CardHead",
-                                  "width": "fill_container",
-                                  "gap": 12,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 277,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "GmkFB",
+                                      "id": "1:1948",
                                       "name": "IconTile",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
                                       "width": 36,
                                       "height": 36,
-                                      "fill": "$accent/soft",
+                                      "fills": [{"type": "SOLID", "color": "#2C1926"}],
                                       "cornerRadius": 6,
-                                      "justifyContent": "center",
-                                      "alignItems": "center",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "variables": {"fills/0/color": "accent/soft"},
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "veJCr",
+                                          "id": "1:1949",
                                           "name": "Glyph",
-                                          "fill": "$accent/accent",
-                                          "content": "SA",
-                                          "fontFamily": "$typography/font-mono",
-                                          "fontSize": 14,
-                                          "fontWeight": "600"
+                                          "type": "TEXT",
+                                          "x": 9.5,
+                                          "y": 9,
+                                          "width": 17,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                          "text": "SA",
+                                          "font": ["JetBrains Mono", 600, 14],
+                                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "accent/accent"}
                                         }
                                       ]
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "HEBmZ",
+                                      "id": "1:1950",
                                       "name": "TitleCol",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 48,
+                                      "y": 1,
+                                      "width": 229,
+                                      "height": 34,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "H1LDcd",
+                                          "id": "1:1951",
                                           "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "textGrowth": "fixed-width",
-                                          "width": "fill_container",
-                                          "content": "Satisfactory",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 229,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "layoutAlignSelf": "STRETCH",
+                                          "text": "Satisfactory",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "YbTEn",
+                                          "id": "1:1952",
                                           "name": "Version",
-                                          "fill": "$muted",
-                                          "content": "v1.0",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 20,
+                                          "height": 14,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "v1.0",
+                                          "font": ["Geist", 400, 11],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "JfZht",
+                                  "id": "1:1953",
                                   "name": "Desc",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Satisfactory dedicated server",
-                                  "lineHeight": 1.4,
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 64,
+                                  "width": 277,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "Satisfactory dedicated server",
+                                  "font": ["Geist", 400, 12],
+                                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 }
                               ]
                             }
                           ]
                         },
                         {
-                          "type": "frame",
-                          "id": "AxRq3",
+                          "id": "1:1954",
                           "name": "Row2",
-                          "width": "fill_container",
-                          "gap": 12,
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 109,
+                          "width": 630,
+                          "height": 97,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "myDS1",
-                              "type": "ref",
-                              "ref": "XDZ0E",
+                              "id": "1:1955",
                               "name": "Card_VA",
-                              "width": "fill_container",
-                              "height": "fit_content",
-                              "fill": "#00000000",
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 0,
+                              "width": 309,
+                              "height": 97,
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "yHMUR",
+                                  "id": "1:1956",
                                   "name": "CardHead",
-                                  "width": "fill_container",
-                                  "gap": 12,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 277,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "b3BOg7",
+                                      "id": "1:1957",
                                       "name": "IconTile",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
                                       "width": 36,
                                       "height": 36,
-                                      "fill": "$accent/soft",
+                                      "fills": [{"type": "SOLID", "color": "#2C1926"}],
                                       "cornerRadius": 6,
-                                      "justifyContent": "center",
-                                      "alignItems": "center",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "variables": {"fills/0/color": "accent/soft"},
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "SrzKY",
+                                          "id": "1:1958",
                                           "name": "Glyph",
-                                          "fill": "$accent/accent",
-                                          "content": "VA",
-                                          "fontFamily": "$typography/font-mono",
-                                          "fontSize": 14,
-                                          "fontWeight": "600"
+                                          "type": "TEXT",
+                                          "x": 9.5,
+                                          "y": 9,
+                                          "width": 17,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                          "text": "VA",
+                                          "font": ["JetBrains Mono", 600, 14],
+                                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "accent/accent"}
                                         }
                                       ]
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "Z1kpz",
+                                      "id": "1:1959",
                                       "name": "TitleCol",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 48,
+                                      "y": 1,
+                                      "width": 229,
+                                      "height": 34,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "hZWwB",
+                                          "id": "1:1960",
                                           "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "textGrowth": "fixed-width",
-                                          "width": "fill_container",
-                                          "content": "Valheim",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 229,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "layoutAlignSelf": "STRETCH",
+                                          "text": "Valheim",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "hxZgD",
+                                          "id": "1:1961",
                                           "name": "Version",
-                                          "fill": "$muted",
-                                          "content": "v0.218",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 33,
+                                          "height": 14,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "v0.218",
+                                          "font": ["Geist", 400, 11],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "cW7U6",
+                                  "id": "1:1962",
                                   "name": "Desc",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Norse exploration and survival game",
-                                  "lineHeight": 1.4,
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 64,
+                                  "width": 277,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "Norse exploration and survival game",
+                                  "font": ["Geist", 400, 12],
+                                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 }
                               ]
                             },
                             {
-                              "id": "BWSbl",
-                              "type": "ref",
-                              "ref": "XDZ0E",
+                              "id": "1:1963",
                               "name": "Card_TE",
-                              "width": "fill_container",
-                              "height": "fit_content",
-                              "fill": "#00000000",
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
+                              "type": "FRAME",
+                              "x": 321,
+                              "y": 0,
+                              "width": 309,
+                              "height": 97,
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "Tiqdw",
+                                  "id": "1:1964",
                                   "name": "CardHead",
-                                  "width": "fill_container",
-                                  "gap": 12,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 277,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "XvLx4",
+                                      "id": "1:1965",
                                       "name": "IconTile",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
                                       "width": 36,
                                       "height": 36,
-                                      "fill": "$accent/soft",
+                                      "fills": [{"type": "SOLID", "color": "#2C1926"}],
                                       "cornerRadius": 6,
-                                      "justifyContent": "center",
-                                      "alignItems": "center",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "variables": {"fills/0/color": "accent/soft"},
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "QBEV4",
+                                          "id": "1:1966",
                                           "name": "Glyph",
-                                          "fill": "$accent/accent",
-                                          "content": "TE",
-                                          "fontFamily": "$typography/font-mono",
-                                          "fontSize": 14,
-                                          "fontWeight": "600"
+                                          "type": "TEXT",
+                                          "x": 9.5,
+                                          "y": 9,
+                                          "width": 17,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                          "text": "TE",
+                                          "font": ["JetBrains Mono", 600, 14],
+                                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "accent/accent"}
                                         }
                                       ]
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "db5qB",
+                                      "id": "1:1967",
                                       "name": "TitleCol",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 48,
+                                      "y": 1,
+                                      "width": 229,
+                                      "height": 34,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "nRdTm",
+                                          "id": "1:1968",
                                           "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "textGrowth": "fixed-width",
-                                          "width": "fill_container",
-                                          "content": "Terraria",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 229,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "layoutAlignSelf": "STRETCH",
+                                          "text": "Terraria",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "kELfB",
+                                          "id": "1:1969",
                                           "name": "Version",
-                                          "fill": "$muted",
-                                          "content": "v1.4.4",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 29,
+                                          "height": 14,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "v1.4.4",
+                                          "font": ["Geist", 400, 11],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "naMgu",
+                                  "id": "1:1970",
                                   "name": "Desc",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "2D sandbox with mining and exploration",
-                                  "lineHeight": 1.4,
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 64,
+                                  "width": 277,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "2D sandbox with mining and exploration",
+                                  "font": ["Geist", 400, 12],
+                                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 }
                               ]
                             }
                           ]
                         },
                         {
-                          "type": "frame",
-                          "id": "IGRKt",
+                          "id": "1:1971",
                           "name": "Row3",
-                          "width": "fill_container",
-                          "gap": 12,
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 218,
+                          "width": 630,
+                          "height": 97,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "CRWSb",
-                              "type": "ref",
-                              "ref": "XDZ0E",
+                              "id": "1:1972",
                               "name": "Card_RU",
-                              "width": "fill_container",
-                              "height": "fit_content",
-                              "fill": "#00000000",
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 0,
+                              "width": 309,
+                              "height": 97,
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "BMpj7",
+                                  "id": "1:1973",
                                   "name": "CardHead",
-                                  "width": "fill_container",
-                                  "gap": 12,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 277,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "jtI99",
+                                      "id": "1:1974",
                                       "name": "IconTile",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
                                       "width": 36,
                                       "height": 36,
-                                      "fill": "$accent/soft",
+                                      "fills": [{"type": "SOLID", "color": "#2C1926"}],
                                       "cornerRadius": 6,
-                                      "justifyContent": "center",
-                                      "alignItems": "center",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "variables": {"fills/0/color": "accent/soft"},
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "wp9O4",
+                                          "id": "1:1975",
                                           "name": "Glyph",
-                                          "fill": "$accent/accent",
-                                          "content": "RU",
-                                          "fontFamily": "$typography/font-mono",
-                                          "fontSize": 14,
-                                          "fontWeight": "600"
+                                          "type": "TEXT",
+                                          "x": 9.5,
+                                          "y": 9,
+                                          "width": 17,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                          "text": "RU",
+                                          "font": ["JetBrains Mono", 600, 14],
+                                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "accent/accent"}
                                         }
                                       ]
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "YwOaP",
+                                      "id": "1:1976",
                                       "name": "TitleCol",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 48,
+                                      "y": 1,
+                                      "width": 229,
+                                      "height": 34,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "lPAd7",
+                                          "id": "1:1977",
                                           "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "textGrowth": "fixed-width",
-                                          "width": "fill_container",
-                                          "content": "Rust",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 229,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "layoutAlignSelf": "STRETCH",
+                                          "text": "Rust",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "ALB7D",
+                                          "id": "1:1978",
                                           "name": "Version",
-                                          "fill": "$muted",
-                                          "content": "v2026.01",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 47,
+                                          "height": 14,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "v2026.01",
+                                          "font": ["Geist", 400, 11],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "Yj3pQ",
+                                  "id": "1:1979",
                                   "name": "Desc",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Survival multiplayer game",
-                                  "lineHeight": 1.4,
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 64,
+                                  "width": 277,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "Survival multiplayer game",
+                                  "font": ["Geist", 400, 12],
+                                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 }
                               ]
                             },
                             {
-                              "id": "jiAGY",
-                              "type": "ref",
-                              "ref": "XDZ0E",
+                              "id": "1:1980",
                               "name": "Card_PA",
-                              "width": "fill_container",
-                              "height": "fit_content",
-                              "fill": "#00000000",
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
+                              "type": "FRAME",
+                              "x": 321,
+                              "y": 0,
+                              "width": 309,
+                              "height": 97,
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "UkUBU",
+                                  "id": "1:1981",
                                   "name": "CardHead",
-                                  "width": "fill_container",
-                                  "gap": 12,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 277,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "O8umK",
+                                      "id": "1:1982",
                                       "name": "IconTile",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
                                       "width": 36,
                                       "height": 36,
-                                      "fill": "$accent/soft",
+                                      "fills": [{"type": "SOLID", "color": "#2C1926"}],
                                       "cornerRadius": 6,
-                                      "justifyContent": "center",
-                                      "alignItems": "center",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "variables": {"fills/0/color": "accent/soft"},
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "tnkiZ",
+                                          "id": "1:1983",
                                           "name": "Glyph",
-                                          "fill": "$accent/accent",
-                                          "content": "PA",
-                                          "fontFamily": "$typography/font-mono",
-                                          "fontSize": 14,
-                                          "fontWeight": "600"
+                                          "type": "TEXT",
+                                          "x": 9.5,
+                                          "y": 9,
+                                          "width": 17,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                          "text": "PA",
+                                          "font": ["JetBrains Mono", 600, 14],
+                                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "accent/accent"}
                                         }
                                       ]
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "TrLzX",
+                                      "id": "1:1984",
                                       "name": "TitleCol",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 48,
+                                      "y": 1,
+                                      "width": 229,
+                                      "height": 34,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "QaxZq",
+                                          "id": "1:1985",
                                           "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "textGrowth": "fixed-width",
-                                          "width": "fill_container",
-                                          "content": "Palworld",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 229,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "layoutAlignSelf": "STRETCH",
+                                          "text": "Palworld",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "vNPJX",
+                                          "id": "1:1986",
                                           "name": "Version",
-                                          "fill": "$muted",
-                                          "content": "v0.3.5",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 32,
+                                          "height": 14,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "v0.3.5",
+                                          "font": ["Geist", 400, 11],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "EUGYl",
+                                  "id": "1:1987",
                                   "name": "Desc",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Pokemon-like survival crafting MMO",
-                                  "lineHeight": 1.4,
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 64,
+                                  "width": 277,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "Pokemon-like survival crafting MMO",
+                                  "font": ["Geist", 400, 12],
+                                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 }
                               ]
                             }
                           ]
                         },
                         {
-                          "type": "frame",
-                          "id": "Op1TM",
+                          "id": "1:1988",
                           "name": "Row4",
-                          "width": "fill_container",
-                          "gap": 12,
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 327,
+                          "width": 630,
+                          "height": 97,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "OFiAp",
-                              "type": "ref",
-                              "ref": "XDZ0E",
+                              "id": "1:1989",
                               "name": "Card_FA",
-                              "width": "fill_container",
-                              "height": "fit_content",
-                              "fill": "#00000000",
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 0,
+                              "width": 309,
+                              "height": 97,
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "fiGXQ",
+                                  "id": "1:1990",
                                   "name": "CardHead",
-                                  "width": "fill_container",
-                                  "gap": 12,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 277,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "Z0AK8",
+                                      "id": "1:1991",
                                       "name": "IconTile",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
                                       "width": 36,
                                       "height": 36,
-                                      "fill": "$accent/soft",
+                                      "fills": [{"type": "SOLID", "color": "#2C1926"}],
                                       "cornerRadius": 6,
-                                      "justifyContent": "center",
-                                      "alignItems": "center",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "variables": {"fills/0/color": "accent/soft"},
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "DVaNE",
+                                          "id": "1:1992",
                                           "name": "Glyph",
-                                          "fill": "$accent/accent",
-                                          "content": "FA",
-                                          "fontFamily": "$typography/font-mono",
-                                          "fontSize": 14,
-                                          "fontWeight": "600"
+                                          "type": "TEXT",
+                                          "x": 9.5,
+                                          "y": 9,
+                                          "width": 17,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                          "text": "FA",
+                                          "font": ["JetBrains Mono", 600, 14],
+                                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "accent/accent"}
                                         }
                                       ]
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "Qn4qu",
+                                      "id": "1:1993",
                                       "name": "TitleCol",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 48,
+                                      "y": 1,
+                                      "width": 229,
+                                      "height": 34,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "sknX1",
+                                          "id": "1:1994",
                                           "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "textGrowth": "fixed-width",
-                                          "width": "fill_container",
-                                          "content": "Factorio",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 229,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "layoutAlignSelf": "STRETCH",
+                                          "text": "Factorio",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "TJqPi",
+                                          "id": "1:1995",
                                           "name": "Version",
-                                          "fill": "$muted",
-                                          "content": "v1.1.105",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 36,
+                                          "height": 14,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "v1.1.105",
+                                          "font": ["Geist", 400, 11],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "vY8bD",
+                                  "id": "1:1996",
                                   "name": "Desc",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Industrial automation and logistics",
-                                  "lineHeight": 1.4,
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 64,
+                                  "width": 277,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "Industrial automation and logistics",
+                                  "font": ["Geist", 400, 12],
+                                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 }
                               ]
                             },
                             {
-                              "id": "VqKRW",
-                              "type": "ref",
-                              "ref": "XDZ0E",
+                              "id": "1:1997",
                               "name": "Card_CS",
-                              "width": "fill_container",
-                              "height": "fit_content",
-                              "fill": "#00000000",
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
+                              "type": "FRAME",
+                              "x": 321,
+                              "y": 0,
+                              "width": 309,
+                              "height": 97,
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "Kn7Vs",
+                                  "id": "1:1998",
                                   "name": "CardHead",
-                                  "width": "fill_container",
-                                  "gap": 12,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 277,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "g5DVdH",
+                                      "id": "1:1999",
                                       "name": "IconTile",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
                                       "width": 36,
                                       "height": 36,
-                                      "fill": "$accent/soft",
+                                      "fills": [{"type": "SOLID", "color": "#2C1926"}],
                                       "cornerRadius": 6,
-                                      "justifyContent": "center",
-                                      "alignItems": "center",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "variables": {"fills/0/color": "accent/soft"},
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "QMXfT",
+                                          "id": "1:2000",
                                           "name": "Glyph",
-                                          "fill": "$accent/accent",
-                                          "content": "CS",
-                                          "fontFamily": "$typography/font-mono",
-                                          "fontSize": 14,
-                                          "fontWeight": "600"
+                                          "type": "TEXT",
+                                          "x": 9.5,
+                                          "y": 9,
+                                          "width": 17,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                          "text": "CS",
+                                          "font": ["JetBrains Mono", 600, 14],
+                                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "accent/accent"}
                                         }
                                       ]
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "RCkCO",
+                                      "id": "1:2001",
                                       "name": "TitleCol",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 48,
+                                      "y": 1,
+                                      "width": 229,
+                                      "height": 34,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "iR2he",
+                                          "id": "1:2002",
                                           "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "textGrowth": "fixed-width",
-                                          "width": "fill_container",
-                                          "content": "Counter-Strike 2",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 229,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "layoutAlignSelf": "STRETCH",
+                                          "text": "Counter-Strike 2",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "a9YLbP",
+                                          "id": "1:2003",
                                           "name": "Version",
-                                          "fill": "$muted",
-                                          "content": "v2026.02",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 50,
+                                          "height": 14,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "v2026.02",
+                                          "font": ["Geist", 400, 11],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "x1iet",
+                                  "id": "1:2004",
                                   "name": "Desc",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Competitive tactical first-person shooter",
-                                  "lineHeight": 1.4,
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 64,
+                                  "width": 277,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "Competitive tactical first-person shooter",
+                                  "font": ["Geist", 400, 12],
+                                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 }
                               ]
                             }
@@ -1093,159 +1721,258 @@
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "e1vj7",
+                  "id": "1:2005",
                   "name": "Preview",
+                  "type": "FRAME",
+                  "x": 666,
+                  "y": 24,
                   "width": 270,
-                  "height": "fill_container",
-                  "fill": "$surface/surface",
+                  "height": 485,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
                   "cornerRadius": 8,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "layout": "vertical",
-                  "gap": 12,
-                  "padding": 16,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 12,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "bz9Ic",
+                      "id": "1:2006",
                       "name": "HeaderRow",
-                      "width": "fill_container",
-                      "gap": 10,
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 16,
+                      "width": 238,
+                      "height": 36,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 10,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "YFENh",
+                          "id": "1:2007",
                           "name": "IconTile",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
                           "width": 36,
                           "height": 36,
-                          "fill": "$border/border",
+                          "fills": [{"type": "SOLID", "color": "#2C2932"}],
                           "cornerRadius": 6,
-                          "justifyContent": "center",
-                          "alignItems": "center",
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "variables": {"fills/0/color": "border/border"},
                           "children": [
                             {
-                              "type": "text",
-                              "id": "C8NseR",
+                              "id": "1:2008",
                               "name": "Glyph",
-                              "fill": "$muted",
-                              "content": "??",
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 14,
-                              "fontWeight": "600"
+                              "type": "TEXT",
+                              "x": 9.5,
+                              "y": 9,
+                              "width": 17,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "??",
+                              "font": ["JetBrains Mono", 600, 14],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                             }
                           ]
                         },
                         {
-                          "type": "frame",
-                          "id": "WskES",
+                          "id": "1:2009",
                           "name": "TitleCol",
-                          "width": "fill_container",
-                          "layout": "vertical",
-                          "gap": 2,
+                          "type": "FRAME",
+                          "x": 46,
+                          "y": 0,
+                          "width": 192,
+                          "height": 36,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 2,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutGrow": 1,
                           "children": [
                             {
-                              "type": "text",
-                              "id": "BjZQX",
+                              "id": "1:2010",
                               "name": "Title",
-                              "fill": "$foreground/foreground",
-                              "content": "Pick a template",
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 15,
-                              "fontWeight": "600"
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 113,
+                              "height": 20,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Pick a template",
+                              "font": ["Geist", 600, 15],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "type": "text",
-                              "id": "O69WEv",
+                              "id": "1:2011",
                               "name": "Subtitle",
-                              "fill": "$muted",
-                              "content": "Template: —",
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 22,
+                              "width": 62,
+                              "height": 14,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "Template: —",
+                              "font": ["Geist", 400, 11],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             }
                           ]
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "V8J4t2",
+                      "id": "1:2012",
                       "name": "DividerTop",
-                      "width": "fill_container",
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 64,
+                      "width": 238,
                       "height": 1,
-                      "fill": "$border/border"
+                      "fills": [{"type": "SOLID", "color": "#2C2932"}],
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {"fills/0/color": "border/border"}
                     },
                     {
-                      "type": "text",
-                      "id": "Bu0xm",
+                      "id": "1:2013",
                       "name": "YamlPlaceholder",
-                      "fill": "$muted",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "# Pick a template to preview the YAML.",
-                      "lineHeight": 1.5,
-                      "fontFamily": "$typography/font-mono",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 16,
+                      "y": 77,
+                      "width": 238,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "# Pick a template to preview the YAML.",
+                      "font": ["JetBrains Mono", 400, 12],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                     },
                     {
-                      "type": "frame",
-                      "id": "l55TLB",
+                      "id": "1:2014",
                       "name": "MemoryTip",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 2,
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 125,
+                      "width": 238,
+                      "height": 52,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 2,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "text",
-                          "id": "CUspx",
+                          "id": "1:2015",
                           "name": "TipLabel",
-                          "fill": "$foreground/foreground",
-                          "content": "Memory tip.",
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 12,
-                          "fontWeight": "600"
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 69,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "Memory tip.",
+                          "font": ["Geist", 600, 12],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "type": "text",
-                          "id": "mdtAC",
+                          "id": "1:2016",
                           "name": "TipBody",
-                          "fill": "$muted",
-                          "textGrowth": "fixed-width",
-                          "width": "fill_container",
-                          "content": "Factor in mod/plugin overhead; Minecraft Vanilla uses ~1.5 GB at 4 players.",
-                          "lineHeight": 1.4,
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 18,
+                          "width": 238,
+                          "height": 34,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Factor in mod/plugin overhead; Minecraft Vanilla uses ~1.5 GB at 4 players.",
+                          "font": ["Geist", 400, 12],
+                          "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "a9zA7H",
+                      "id": "1:2017",
                       "name": "Spacer",
-                      "width": "fill_container",
-                      "height": "fill_container"
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 189,
+                      "width": 238,
+                      "height": 280,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "layoutAlignSelf": "STRETCH"
                     }
                   ]
                 }
               ]
             },
             {
-              "id": "XFJ9p",
-              "type": "ref",
-              "ref": "IoDHI",
+              "id": "1:2018",
               "name": "Footer",
-              "width": "fill_container",
-              "descendants": {
-                "H87Gb": {
-                  "content": "Continue to Configure"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 762,
+              "width": 960,
+              "height": 68,
+              "component": "Gameplane/Wizard Modal Footer",
+              "componentId": "1:2019",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 28, 16, 28],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "texts": ["Docs: Creating game servers", "Cancel", "Continue to Configure"]
             }
           ]
         }

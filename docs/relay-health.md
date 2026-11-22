@@ -14,7 +14,16 @@ observations expire after ten seconds, and child exit immediately clears them.
 The operator also requires the current Deployment generation, updated replicas
 and the expected readiness probe; an old Pod without the probe cannot satisfy
 the new readiness contract. Configured addresses remain visible while the
-connection is unconfirmed, but `TunnelReady` is not true.
+connection is unconfirmed, but `TunnelReady` is not true. The flow below shows how the probes depend on the provider's evidence:
+
+```mermaid
+flowchart TD
+    C["Provider check every 2 s, 2 s deadline (frp: frpc status API on 127.0.0.1:7400)"] --> O["Local observation, expires after 10 s"]
+    O --> Q{"Connection and every forward confirmed?"}
+    Q -- yes --> OK["/readyz 200: Pod Ready, TunnelReady can be True"]
+    Q -- no --> NR["/readyz 503: Pod NotReady, TunnelReady not True"]
+    O -. "Playit only" .-> PH["Pod readiness via /healthz; TunnelReady is AwaitingAddress until an address<br/>is assigned, then RelayConnectionUnknown"]
+```
 
 ## frp
 
@@ -87,6 +96,20 @@ end-to-end probe. The relevant upstream definitions are
 and [the daemon's cached lifecycle publisher](https://github.com/playit-cloud/playit-agent/blob/v1.0.10/packages/playitd/src/daemon.rs).
 
 ## Retry and resource policy
+
+The restart delay grows after each unexpected exit and resets only after a healthy minute:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Running
+    Running --> Backoff: child exits, clean or not
+    Backoff --> Running: wait 1, 2, 4, 8 s ... capped at 300 s
+    Running --> Healthy: readiness confirmed
+    Healthy --> Running: failed or stale observation
+    Healthy --> Backoff: child exits
+    Healthy --> Reset: one uninterrupted minute
+    Reset --> Running: delay reset
+```
 
 Unexpected child exits, including clean exits, wait 1, 2, 4, 8 seconds and so on,
 up to 300 seconds, before another attempt. Cancellation interrupts the wait.
@@ -180,6 +203,8 @@ upstream FRP 0.71.0 Linux/amd64 archive (SHA-256
 `84f27e39f11169f7adcef8e8b70c9329de17747b1f14dad9fb95eef5682ea716`).
 On a Linux host with Python 3.11+, `taskset` and three available CPUs:
 
+Run these from a Gameplane checkout with the tunnel submodule initialised (`hack/submodules.sh init`).
+
 ```sh
 (cd tunnel/frpc && CGO_ENABLED=0 GOWORK=off go build -trimpath -mod=readonly -tags frpc,noweb -o /tmp/frpc github.com/fatedier/frp/cmd/frpc)
 python3 tunnel/bench/frp_udp.py --relay-load /tmp/relay-load --frpc /tmp/frpc --frps /tmp/frps --clients 8 32 64 128 --seconds 10
@@ -191,8 +216,8 @@ payload byte counters. Columns give the worst measurement across four trials
 per route and rate. CPU is the largest combined frpc + frps CPU-seconds delta
 per ten-second trial, including the driver's final one-second receive window.
 
-The [first series](../tunnel/bench/results/frp-loopback-series-1.jsonl) and
-[counter-instrumented series](../tunnel/bench/results/frp-loopback-series-2.jsonl)
+The [first series](https://github.com/GameplanePanel/tunnel/blob/main/bench/results/frp-loopback-series-1.jsonl) and
+[counter-instrumented series](https://github.com/GameplanePanel/tunnel/blob/main/bench/results/frp-loopback-series-2.jsonl)
 contain all 32 direct and relayed trial records, the runner kernel and the
 SHA-256 digest of each executable.
 

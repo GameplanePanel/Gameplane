@@ -63,7 +63,11 @@ type userDTO struct {
 	Email       string `json:"email"`
 	Role        string `json:"role"`
 	Provider    string `json:"provider"`
-	CreatedAt   string `json:"createdAt"`
+	// RoleSource is where the role came from (spec 034): "sso" (sign-in
+	// applies the SSO rules), "sso_pending" (returned to SSO control, applied
+	// at the next sign-in) or "manual" (set by hand, kept by sign-in).
+	RoleSource string `json:"roleSource"`
+	CreatedAt  string `json:"createdAt"`
 	// Permissions is the caller's effective permission set, keyed by
 	// namespace ("*" = cluster-wide). Populated only on /users/me; it
 	// drives the dashboard's can()-based UI gating.
@@ -83,7 +87,7 @@ type userDTO struct {
 
 func (h *userHandler) list(w http.ResponseWriter, req *http.Request) {
 	rows, err := h.db.DB.QueryContext(req.Context(), `
-		SELECT u.id, u.username, u.display_name, u.email, u.role, u.created_at,
+		SELECT u.id, u.username, u.display_name, u.email, u.role, u.role_source, u.created_at,
 		       CASE
 		         WHEN EXISTS (SELECT 1 FROM oidc_links l WHERE l.user_id = u.id) THEN 'oidc'
 		         WHEN u.pw_hash IS NOT NULL AND u.pw_hash <> ''               THEN 'local'
@@ -99,7 +103,7 @@ func (h *userHandler) list(w http.ResponseWriter, req *http.Request) {
 	out := []userDTO{}
 	for rows.Next() {
 		var u userDTO
-		if err := rows.Scan(&u.ID, &u.Username, &u.DisplayName, &u.Email, &u.Role, &u.CreatedAt, &u.Provider); err != nil {
+		if err := rows.Scan(&u.ID, &u.Username, &u.DisplayName, &u.Email, &u.Role, &u.RoleSource, &u.CreatedAt, &u.Provider); err != nil {
 			httperr.Write(w, req, err)
 			return
 		}
@@ -194,7 +198,8 @@ func (h *userHandler) create(w http.ResponseWriter, req *http.Request) {
 	writeJSON(w, userDTO{
 		ID: id, Username: body.Username, DisplayName: body.DisplayName,
 		Email: body.Email, Role: body.Role, Provider: provider,
-		CreatedAt: db.NormalizeTimestamp(createdAt),
+		RoleSource: db.RoleSourceManual,
+		CreatedAt:  db.NormalizeTimestamp(createdAt),
 	})
 }
 
@@ -209,9 +214,18 @@ func (h *userHandler) me(w http.ResponseWriter, req *http.Request) {
 		httperr.Write(w, req, err)
 		return
 	}
+	// A caller without a users row (none in production) reads as the
+	// column default.
+	source, err := h.db.RoleSource(req.Context(), u.ID)
+	if errors.Is(err, sql.ErrNoRows) {
+		source = db.RoleSourceManual
+	} else if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
 	writeJSON(w, userDTO{
 		ID: u.ID, Username: u.Username, DisplayName: u.DisplayName,
-		Email: u.Email, Role: u.Role, Permissions: auth.PermsToJSON(u.Perms),
+		Email: u.Email, Role: u.Role, RoleSource: source, Permissions: auth.PermsToJSON(u.Perms),
 		PermissionsByCluster: auth.PermsByClusterToJSON(u.Perms),
 		Preferences:          preferencesDTO(prefs),
 	})
@@ -592,6 +606,10 @@ type updateUserReq struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	Email       *string `json:"email,omitempty"`
 	Role        *string `json:"role,omitempty"`
+	// RoleSource "sso" returns an SSO user to SSO control (spec 034, OD-6):
+	// the source becomes sso_pending and the role stays until the user's
+	// next sign-in applies the rules. It cannot be combined with Role.
+	RoleSource *string `json:"roleSource,omitempty"`
 }
 
 func (h *userHandler) update(w http.ResponseWriter, req *http.Request) {
@@ -608,6 +626,16 @@ func (h *userHandler) update(w http.ResponseWriter, req *http.Request) {
 	if body.Email != nil && *body.Email != "" {
 		if _, err := mail.ParseAddress(*body.Email); err != nil {
 			httperr.WriteMessage(w, req, messages.New("server.users.invalid_email", nil))
+			return
+		}
+	}
+	if body.RoleSource != nil {
+		if *body.RoleSource != db.RoleSourceSSO {
+			httperr.WriteMessage(w, req, messages.New("server.users.role_source_invalid", nil))
+			return
+		}
+		if body.Role != nil {
+			httperr.WriteMessage(w, req, messages.New("server.users.role_source_with_role", nil))
 			return
 		}
 	}
@@ -667,6 +695,26 @@ func (h *userHandler) update(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	}
+	if body.RoleSource != nil {
+		// Read in the user-management transaction, so the check and the
+		// write below are serialized with role changes and sign-in resyncs.
+		linked, err := hasSSOLink(req.Context(), tx, id)
+		if err != nil {
+			httperr.Write(w, req, err)
+			return
+		}
+		if !linked {
+			if ok, err := userExists(req.Context(), tx, id); err != nil {
+				httperr.Write(w, req, err)
+				return
+			} else if !ok {
+				httperr.WriteMessage(w, req, messages.New("server.common.user_not_found", nil))
+				return
+			}
+			httperr.WriteMessage(w, req, messages.New("server.users.role_source_not_sso", nil))
+			return
+		}
+	}
 
 	if body.DisplayName != nil {
 		if _, err := tx.ExecContext(req.Context(),
@@ -700,6 +748,20 @@ func (h *userHandler) update(w http.ResponseWriter, req *http.Request) {
 		// Keep the cluster-wide ("*") role binding in sync with the primary
 		// role; per-namespace bindings are left untouched.
 		if err := h.db.SetClusterRoleBinding(req.Context(), tx, id, scope.DefaultCluster, *body.Role); err != nil {
+			httperr.Write(w, req, err)
+			return
+		}
+		// A role set through this API is set by hand: sign-in keeps it
+		// (FR-010), also when the value did not change.
+		if err := h.db.SetRoleSource(req.Context(), tx, id, db.RoleSourceManual); err != nil {
+			httperr.Write(w, req, err)
+			return
+		}
+	}
+	if body.RoleSource != nil {
+		// Back to SSO control: the role stays until the next sign-in
+		// applies the rules (OD-6), so sessions are left alone.
+		if err := h.db.SetRoleSource(req.Context(), tx, id, db.RoleSourceSSOPending); err != nil {
 			httperr.Write(w, req, err)
 			return
 		}
@@ -998,6 +1060,16 @@ func userExists(ctx context.Context, q db.Reader, id int64) (bool, error) {
 	return err == nil, err
 }
 
+// hasSSOLink reports whether the user signs in through an SSO provider,
+// that is, has an oidc_links row.
+func hasSSOLink(ctx context.Context, q db.Reader, id int64) (bool, error) {
+	var n int
+	if err := q.QueryRowContext(ctx, `SELECT COUNT(*) FROM oidc_links WHERE user_id = ?`, id).Scan(&n); err != nil {
+		return false, fmt.Errorf("check sso link: %w", err)
+	}
+	return n > 0, nil
+}
+
 // invalidateSessions clears the target user's sessions so a binding change
 // takes effect immediately. Permissions are resolved per request, so this
 // is belt-and-suspenders — it forces a clean re-auth under the new grants.
@@ -1013,14 +1085,14 @@ func (h *userHandler) invalidateSessions(req *http.Request, id int64, reason str
 func (h *userHandler) fetchByID(ctx context.Context, id int64) (userDTO, error) {
 	var u userDTO
 	err := h.db.DB.QueryRowContext(ctx, `
-		SELECT u.id, u.username, u.display_name, u.email, u.role, u.created_at,
+		SELECT u.id, u.username, u.display_name, u.email, u.role, u.role_source, u.created_at,
 		       CASE
 		         WHEN EXISTS (SELECT 1 FROM oidc_links l WHERE l.user_id = u.id) THEN 'oidc'
 		         WHEN u.pw_hash IS NOT NULL AND u.pw_hash <> ''               THEN 'local'
 		         ELSE 'pending'
 		       END
 		FROM users u WHERE u.id = ?`, id,
-	).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Email, &u.Role, &u.CreatedAt, &u.Provider)
+	).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Email, &u.Role, &u.RoleSource, &u.CreatedAt, &u.Provider)
 	if err == nil {
 		u.CreatedAt = db.NormalizeTimestamp(u.CreatedAt)
 	}

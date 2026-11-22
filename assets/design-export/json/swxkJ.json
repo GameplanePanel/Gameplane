@@ -1,631 +1,1033 @@
 {
-  "type": "frame",
-  "id": "swxkJ",
+  "file": "swxkJ",
+  "id": "1:1357",
+  "name": "Screen/Server Detail — Settings · Version",
+  "type": "FRAME",
   "x": 0,
   "y": 39470,
-  "name": "Screen/Server Detail — Settings · Version",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "roJkZ",
-      "type": "ref",
-      "ref": "kKFX9",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "id": "1:1358",
+      "name": "Gameplane/App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "MlWhR",
+      "id": "1:1359",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "l4HS5G",
-          "type": "ref",
-          "ref": "gu5WY",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "mc-survival"
-            }
-          }
+          "id": "1:1360",
+          "name": "Gameplane/Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "DIbFE",
+          "id": "1:1361",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "SmCAg",
-              "type": "ref",
-              "ref": "S4k0x",
+              "id": "1:1362",
               "name": "Detail Header",
-              "width": "fill_container"
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 86,
+              "component": "Gameplane/Server Detail Header",
+              "componentId": "1:447",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 24, 16, 24],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "MI",
+                "mc-survival",
+                "Running",
+                "site: remote-lab · minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+                "Restart",
+                "Stop",
+                "Open console"
+              ]
             },
             {
-              "id": "EnDpr",
-              "type": "ref",
-              "ref": "I9kvlZ",
+              "id": "1:1363",
               "name": "Tabs Bar",
-              "width": "fill_container",
-              "padding": [
-                0,
-                0,
-                0,
-                24
-              ],
-              "descendants": {
-                "Wp6q1": {
-                  "fill": "#00000000"
-                },
-                "Wp6q1/YUR8N": {
-                  "fill": "$muted"
-                },
-                "Y4QES": {
-                  "fill": "$segment"
-                },
-                "Y4QES/VcxMI": {
-                  "fill": "$foreground/segment"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 134,
+              "width": 1132,
+              "height": 40,
+              "component": "Gameplane/Server Detail Tabs",
+              "componentId": "1:466",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+              "texts": [
+                "Overview",
+                "Events",
+                "Console",
+                "Logs",
+                "Files",
+                "Mods",
+                "Modpacks",
+                "Players",
+                "Backups",
+                "Capture",
+                "Settings"
+              ]
             },
             {
-              "type": "frame",
-              "id": "E5HDX",
+              "id": "1:1364",
               "name": "Settings Content",
-              "width": "fill_container",
-              "height": "fill_container",
+              "type": "FRAME",
+              "x": 24,
+              "y": 198,
+              "width": 1132,
+              "height": 614,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "x0sJj",
-                  "type": "ref",
-                  "ref": "EV8mp",
+                  "id": "1:1365",
                   "name": "Settings Sub Nav",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
                   "width": 224,
-                  "height": "fill_container",
-                  "descendants": {
-                    "axMXL": {
-                      "fill": "$surface/secondary"
-                    },
-                    "VQPTx": {
-                      "fill": "$foreground/foreground"
-                    },
-                    "zpxa4": {
-                      "fill": "$danger/danger"
-                    },
-                    "xlVdh": {
-                      "fill": "$danger/danger"
-                    }
-                  }
+                  "height": 614,
+                  "component": "Gameplane/Server Settings Sub Nav",
+                  "componentId": "1:1289",
+                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [8, 8, 8, 8],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+                  "texts": [
+                    "General",
+                    "Version",
+                    "Game configuration",
+                    "Resources",
+                    "Networking",
+                    "Environment",
+                    "Lifecycle",
+                    "Scheduled backups",
+                    "Network capture",
+                    "Placement",
+                    "RBAC & access",
+                    "Share links",
+                    "Danger zone"
+                  ]
                 },
                 {
-                  "type": "frame",
-                  "id": "fdCfO",
+                  "id": "1:1366",
                   "name": "Settings Panel Wrap",
-                  "width": "fill_container",
-                  "height": "fill_container",
-                  "layout": "vertical",
+                  "type": "FRAME",
+                  "x": 224,
+                  "y": 0,
+                  "width": 908,
+                  "height": 614,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "OidFQ",
+                      "id": "1:1367",
                       "name": "Settings Form",
-                      "width": "fill_container",
-                      "height": "fill_container",
-                      "layout": "vertical",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 908,
+                      "height": 614,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "yvzAN",
+                          "id": "1:1368",
                           "name": "Form Body",
-                          "width": "fill_container",
-                          "height": "fill_container",
-                          "layout": "vertical",
-                          "gap": 16,
-                          "padding": 24,
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 908,
+                          "height": 558,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 16,
+                            "padding": [24, 24, 24, 24],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "type": "frame",
-                              "id": "eqsXQ",
+                              "id": "1:1369",
                               "name": "heading",
-                              "width": "fill_container",
-                              "layout": "vertical",
-                              "gap": 4,
+                              "type": "FRAME",
+                              "x": 24,
+                              "y": 24,
+                              "width": 860,
+                              "height": 38,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 4,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "mRZu2",
+                                  "id": "1:1370",
                                   "name": "t",
-                                  "fill": "$foreground/foreground",
-                                  "content": "Game version",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 14,
-                                  "fontWeight": "500"
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 90,
+                                  "height": 18,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "Game version",
+                                  "font": ["Geist", 500, 14],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "MIrz5",
+                                  "id": "1:1371",
                                   "name": "d",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 22,
                                   "width": 620,
-                                  "content": "Pick a version + loader from the template’s catalog. Saving restarts the server on the new version.",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "height": 16,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "text": "Pick a version + loader from the template’s catalog. Saving restarts the server on the new version.",
+                                  "font": ["Geist", 400, 12],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 }
                               ]
                             },
                             {
-                              "type": "frame",
-                              "id": "J4oXeC",
+                              "id": "1:1372",
                               "name": "Version Radio List",
+                              "type": "FRAME",
+                              "x": 24,
+                              "y": 78,
                               "width": 620,
-                              "layout": "vertical",
-                              "gap": 8,
+                              "height": 440,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 8,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "v2ayWR",
+                                  "id": "1:1373",
                                   "name": "opt Latest Paper",
-                                  "width": "fill_container",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 620,
+                                  "height": 56,
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
                                   "cornerRadius": 6,
-                                  "stroke": "$border/border",
-                                  "strokeWidth": 1,
-                                  "strokeAlignment": "inner",
-                                  "gap": 12,
-                                  "padding": [
-                                    10,
-                                    14
-                                  ],
-                                  "alignItems": "center",
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [10, 14, 10, 14],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "variables": {"strokes/0/color": "border/border"},
                                   "children": [
                                     {
-                                      "id": "Ss710",
-                                      "type": "ref",
-                                      "ref": "z2mDh",
+                                      "id": "1:1374",
                                       "name": "radio",
-                                      "descendants": {
-                                        "ocqPf": {
-                                          "opacity": 0,
-                                          "enabled": false
-                                        }
+                                      "type": "INSTANCE",
+                                      "x": 14,
+                                      "y": 20,
+                                      "width": 16,
+                                      "height": 16,
+                                      "component": "Radio/Unselected",
+                                      "componentId": "1:1375",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 12,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
                                       }
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "EWpft",
+                                      "id": "1:1378",
                                       "name": "txt",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 42,
+                                      "y": 10,
+                                      "width": 91,
+                                      "height": 36,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "v2y4V",
+                                          "id": "1:1379",
                                           "name": "t",
-                                          "fill": "$foreground/foreground",
-                                          "content": "Latest · Paper",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 91,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "text": "Latest · Paper",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "WSMaa",
+                                          "id": "1:1380",
                                           "name": "s",
-                                          "fill": "$muted",
-                                          "content": "loader paper",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 12,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 70,
+                                          "height": 16,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "loader paper",
+                                          "font": ["Geist", 400, 12],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "j09xLP",
+                                  "id": "1:1381",
                                   "name": "opt Latest Fabric",
-                                  "width": "fill_container",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 64,
+                                  "width": 620,
+                                  "height": 56,
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
                                   "cornerRadius": 6,
-                                  "stroke": "$border/border",
-                                  "strokeWidth": 1,
-                                  "strokeAlignment": "inner",
-                                  "gap": 12,
-                                  "padding": [
-                                    10,
-                                    14
-                                  ],
-                                  "alignItems": "center",
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [10, 14, 10, 14],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "variables": {"strokes/0/color": "border/border"},
                                   "children": [
                                     {
-                                      "id": "HoNMP",
-                                      "type": "ref",
-                                      "ref": "z2mDh",
+                                      "id": "1:1382",
                                       "name": "radio",
-                                      "descendants": {
-                                        "ocqPf": {
-                                          "opacity": 0,
-                                          "enabled": false
-                                        }
+                                      "type": "INSTANCE",
+                                      "x": 14,
+                                      "y": 20,
+                                      "width": 16,
+                                      "height": 16,
+                                      "component": "Radio/Unselected",
+                                      "componentId": "1:1375",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 12,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
                                       }
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "rbAJ8",
+                                      "id": "1:1383",
                                       "name": "txt",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 42,
+                                      "y": 10,
+                                      "width": 93,
+                                      "height": 36,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "UnKjK",
+                                          "id": "1:1384",
                                           "name": "t",
-                                          "fill": "$foreground/foreground",
-                                          "content": "Latest · Fabric",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 93,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "text": "Latest · Fabric",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "Xn8E9",
+                                          "id": "1:1385",
                                           "name": "s",
-                                          "fill": "$muted",
-                                          "content": "loader fabric",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 12,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 70,
+                                          "height": 16,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "loader fabric",
+                                          "font": ["Geist", 400, 12],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "hLDTh",
+                                  "id": "1:1386",
                                   "name": "opt Latest Vanilla",
-                                  "width": "fill_container",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 128,
+                                  "width": 620,
+                                  "height": 56,
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
                                   "cornerRadius": 6,
-                                  "stroke": "$border/border",
-                                  "strokeWidth": 1,
-                                  "strokeAlignment": "inner",
-                                  "gap": 12,
-                                  "padding": [
-                                    10,
-                                    14
-                                  ],
-                                  "alignItems": "center",
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [10, 14, 10, 14],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "variables": {"strokes/0/color": "border/border"},
                                   "children": [
                                     {
-                                      "id": "vd3OE",
-                                      "type": "ref",
-                                      "ref": "z2mDh",
+                                      "id": "1:1387",
                                       "name": "radio",
-                                      "descendants": {
-                                        "ocqPf": {
-                                          "opacity": 0,
-                                          "enabled": false
-                                        }
+                                      "type": "INSTANCE",
+                                      "x": 14,
+                                      "y": 20,
+                                      "width": 16,
+                                      "height": 16,
+                                      "component": "Radio/Unselected",
+                                      "componentId": "1:1375",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 12,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
                                       }
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "eb1ZW",
+                                      "id": "1:1388",
                                       "name": "txt",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 42,
+                                      "y": 10,
+                                      "width": 96,
+                                      "height": 36,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "KDurk",
+                                          "id": "1:1389",
                                           "name": "t",
-                                          "fill": "$foreground/foreground",
-                                          "content": "Latest · Vanilla",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 96,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "text": "Latest · Vanilla",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "SjWoN",
+                                          "id": "1:1390",
                                           "name": "s",
-                                          "fill": "$muted",
-                                          "content": "loader vanilla",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 12,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 74,
+                                          "height": 16,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "loader vanilla",
+                                          "font": ["Geist", 400, 12],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "KQ7z1",
+                                  "id": "1:1391",
                                   "name": "opt 1.21.4 Paper",
-                                  "width": "fill_container",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 192,
+                                  "width": 620,
+                                  "height": 56,
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
                                   "cornerRadius": 6,
-                                  "stroke": "$border/border",
-                                  "strokeWidth": 1,
-                                  "strokeAlignment": "inner",
-                                  "gap": 12,
-                                  "padding": [
-                                    10,
-                                    14
-                                  ],
-                                  "alignItems": "center",
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [10, 14, 10, 14],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "variables": {"strokes/0/color": "border/border"},
                                   "children": [
                                     {
-                                      "id": "KWYkt",
-                                      "type": "ref",
-                                      "ref": "z2mDh",
+                                      "id": "1:1392",
                                       "name": "radio",
-                                      "descendants": {
-                                        "ocqPf": {
-                                          "opacity": 0,
-                                          "enabled": false
-                                        }
+                                      "type": "INSTANCE",
+                                      "x": 14,
+                                      "y": 20,
+                                      "width": 16,
+                                      "height": 16,
+                                      "component": "Radio/Unselected",
+                                      "componentId": "1:1375",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 12,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
                                       }
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "PPy3T",
+                                      "id": "1:1393",
                                       "name": "txt",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 42,
+                                      "y": 10,
+                                      "width": 141,
+                                      "height": 36,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
                                       "children": [
                                         {
-                                          "type": "frame",
-                                          "id": "PRpPh",
+                                          "id": "1:1394",
                                           "name": "row",
-                                          "gap": 8,
-                                          "alignItems": "center",
+                                          "type": "FRAME",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 138,
+                                          "height": 18,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 8,
+                                            "padding": [0, 0, 0, 0],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "HUG"]
+                                          },
                                           "children": [
                                             {
-                                              "type": "text",
-                                              "id": "sdAC8",
+                                              "id": "1:1395",
                                               "name": "t",
-                                              "fill": "$foreground/foreground",
-                                              "content": "1.21.4 · Paper",
-                                              "fontFamily": "$typography/font-sans",
-                                              "fontSize": 14,
-                                              "fontWeight": "500"
+                                              "type": "TEXT",
+                                              "x": 0,
+                                              "y": 0,
+                                              "width": 84,
+                                              "height": 18,
+                                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                              "text": "1.21.4 · Paper",
+                                              "font": ["Geist", 500, 14],
+                                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                             },
                                             {
-                                              "id": "mmtrb",
-                                              "type": "ref",
-                                              "ref": "kGH2O",
+                                              "id": "1:1396",
                                               "name": "badgeDefault",
-                                              "descendants": {
-                                                "O1PqF5": {
-                                                  "content": "Default"
-                                                }
-                                              }
+                                              "type": "INSTANCE",
+                                              "x": 92,
+                                              "y": 0.5,
+                                              "width": 46,
+                                              "height": 17,
+                                              "component": "Chip/Soft/Accent/SM",
+                                              "componentId": "1:1397",
+                                              "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                                              "cornerRadius": 16,
+                                              "layout": {
+                                                "mode": "HORIZONTAL",
+                                                "gap": 2,
+                                                "padding": [2, 4, 2, 4],
+                                                "primary": "MIN",
+                                                "counter": "CENTER",
+                                                "sizing": ["HUG", "HUG"]
+                                              },
+                                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "accent/soft"},
+                                              "texts": ["Default"]
                                             }
                                           ]
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "P4gj8",
+                                          "id": "1:1399",
                                           "name": "s",
-                                          "fill": "$muted",
-                                          "content": "loader paper · game 1.21.4",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 12,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 141,
+                                          "height": 16,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "loader paper · game 1.21.4",
+                                          "font": ["Geist", 400, 12],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "G6jIl2",
+                                  "id": "1:1400",
                                   "name": "opt 1.21.4 Purpur",
-                                  "width": "fill_container",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 256,
+                                  "width": 620,
+                                  "height": 56,
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
                                   "cornerRadius": 6,
-                                  "stroke": "$border/border",
-                                  "strokeWidth": 1,
-                                  "strokeAlignment": "inner",
-                                  "gap": 12,
-                                  "padding": [
-                                    10,
-                                    14
-                                  ],
-                                  "alignItems": "center",
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [10, 14, 10, 14],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "variables": {"strokes/0/color": "border/border"},
                                   "children": [
                                     {
-                                      "id": "oSGXh",
-                                      "type": "ref",
-                                      "ref": "z2mDh",
+                                      "id": "1:1401",
                                       "name": "radio",
-                                      "descendants": {
-                                        "ocqPf": {
-                                          "opacity": 0,
-                                          "enabled": false
-                                        }
+                                      "type": "INSTANCE",
+                                      "x": 14,
+                                      "y": 20,
+                                      "width": 16,
+                                      "height": 16,
+                                      "component": "Radio/Unselected",
+                                      "componentId": "1:1375",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 12,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
                                       }
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "UBpkm",
+                                      "id": "1:1402",
                                       "name": "txt",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 42,
+                                      "y": 10,
+                                      "width": 146,
+                                      "height": 36,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "F36CC",
+                                          "id": "1:1403",
                                           "name": "t",
-                                          "fill": "$foreground/foreground",
-                                          "content": "1.21.4 · Purpur",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 89,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "text": "1.21.4 · Purpur",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "D47Px",
+                                          "id": "1:1404",
                                           "name": "s",
-                                          "fill": "$muted",
-                                          "content": "loader purpur · game 1.21.4",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 12,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 146,
+                                          "height": 16,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "loader purpur · game 1.21.4",
+                                          "font": ["Geist", 400, 12],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "t67NA",
+                                  "id": "1:1405",
                                   "name": "opt 1.21.4 Fabric (selected)",
-                                  "width": "fill_container",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 320,
+                                  "width": 620,
+                                  "height": 56,
+                                  "strokes": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                  "strokeWeight": 1,
                                   "cornerRadius": 6,
-                                  "stroke": "$accent/accent",
-                                  "strokeWidth": 1,
-                                  "strokeAlignment": "inner",
-                                  "gap": 12,
-                                  "padding": [
-                                    10,
-                                    14
-                                  ],
-                                  "alignItems": "center",
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [10, 14, 10, 14],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "variables": {"strokes/0/color": "accent/accent"},
                                   "children": [
                                     {
-                                      "id": "bSe6n",
-                                      "type": "ref",
-                                      "ref": "T8ZnV",
+                                      "id": "1:1406",
                                       "name": "radioSel",
-                                      "descendants": {
-                                        "jAx6p": {
-                                          "opacity": 0,
-                                          "enabled": false
-                                        }
+                                      "type": "INSTANCE",
+                                      "x": 14,
+                                      "y": 20,
+                                      "width": 16,
+                                      "height": 16,
+                                      "component": "Radio/Selected",
+                                      "componentId": "1:1407",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 12,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
                                       }
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "y2tUOb",
+                                      "id": "1:1411",
                                       "name": "txt",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 42,
+                                      "y": 10,
+                                      "width": 141,
+                                      "height": 36,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "Bki8y",
+                                          "id": "1:1412",
                                           "name": "t",
-                                          "fill": "$foreground/foreground",
-                                          "content": "1.21.4 · Fabric",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 86,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "text": "1.21.4 · Fabric",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "XreWJ",
+                                          "id": "1:1413",
                                           "name": "s",
-                                          "fill": "$muted",
-                                          "content": "loader fabric · game 1.21.4",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 12,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 141,
+                                          "height": 16,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "loader fabric · game 1.21.4",
+                                          "font": ["Geist", 400, 12],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "k1XUW",
+                                  "id": "1:1414",
                                   "name": "opt 1.21.4 Quilt",
-                                  "width": "fill_container",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 384,
+                                  "width": 620,
+                                  "height": 56,
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
                                   "cornerRadius": 6,
-                                  "stroke": "$border/border",
-                                  "strokeWidth": 1,
-                                  "strokeAlignment": "inner",
-                                  "gap": 12,
-                                  "padding": [
-                                    10,
-                                    14
-                                  ],
-                                  "alignItems": "center",
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 12,
+                                    "padding": [10, 14, 10, 14],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "variables": {"strokes/0/color": "border/border"},
                                   "children": [
                                     {
-                                      "id": "Gd5Bm",
-                                      "type": "ref",
-                                      "ref": "z2mDh",
+                                      "id": "1:1415",
                                       "name": "radio",
-                                      "descendants": {
-                                        "ocqPf": {
-                                          "opacity": 0,
-                                          "enabled": false
-                                        }
+                                      "type": "INSTANCE",
+                                      "x": 14,
+                                      "y": 20,
+                                      "width": 16,
+                                      "height": 16,
+                                      "component": "Radio/Unselected",
+                                      "componentId": "1:1375",
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 12,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
                                       }
                                     },
                                     {
-                                      "type": "frame",
-                                      "id": "JHS8I",
+                                      "id": "1:1416",
                                       "name": "txt",
-                                      "layout": "vertical",
-                                      "gap": 2,
+                                      "type": "FRAME",
+                                      "x": 42,
+                                      "y": 10,
+                                      "width": 133,
+                                      "height": 36,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 2,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
                                       "children": [
                                         {
-                                          "type": "text",
-                                          "id": "bkK2G",
+                                          "id": "1:1417",
                                           "name": "t",
-                                          "fill": "$foreground/foreground",
-                                          "content": "1.21.4 · Quilt",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 76,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "text": "1.21.4 · Quilt",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "I6AOj",
+                                          "id": "1:1418",
                                           "name": "s",
-                                          "fill": "$muted",
-                                          "content": "loader quilt · game 1.21.4",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 12,
-                                          "fontWeight": "normal"
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 20,
+                                          "width": 133,
+                                          "height": 16,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "loader quilt · game 1.21.4",
+                                          "font": ["Geist", 400, 12],
+                                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         }
                                       ]
                                     }
@@ -636,48 +1038,67 @@
                           ]
                         },
                         {
-                          "type": "frame",
-                          "id": "FwMIR",
+                          "id": "1:1419",
                           "name": "Form Footer",
-                          "width": "fill_container",
-                          "stroke": "$border/border",
-                          "strokeWidth": {
-                            "top": 1
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 558,
+                          "width": 908,
+                          "height": 56,
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [12, 24, 12, 24],
+                            "primary": "MAX",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
                           },
-                          "strokeAlignment": "inner",
-                          "strokeLinejoin": "round",
-                          "gap": 12,
-                          "padding": [
-                            12,
-                            24
-                          ],
-                          "justifyContent": "end",
-                          "alignItems": "center",
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "JpwHm",
-                              "type": "ref",
-                              "ref": "J09iP",
+                              "id": "1:1420",
                               "name": "Btn Discard",
-                              "descendants": {
-                                "eWkIT/WtPjS": {
-                                  "icon": "plus"
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 681,
+                              "y": 12,
+                              "width": 86,
+                              "height": 32,
+                              "component": "Gameplane/Button/Small/Ghost",
+                              "componentId": "1:1124",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Discard"]
                             },
                             {
-                              "id": "LQmMk",
-                              "type": "ref",
-                              "ref": "z9ShNE",
+                              "id": "1:1421",
                               "name": "Btn Save Changes",
-                              "descendants": {
-                                "nWTJb": {
-                                  "enabled": false
-                                },
-                                "IVgQ8/U1xvSo": {
-                                  "content": "Save changes"
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 779,
+                              "y": 12,
+                              "width": 105,
+                              "height": 32,
+                              "component": "Gameplane/Button/Small/Default",
+                              "componentId": "1:709",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Save changes"]
                             }
                           ]
                         }

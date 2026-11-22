@@ -2,9 +2,9 @@
 # actual contents of this checkout. Enforcement lives in
 # .claude/settings.json permissions.deny; keep the two in sync.
 
-# CLAUDE.md rule 2 — .pen files are Pencil-MCP-only (multi-MB JSON)
-*.pen
-design.pen.bak
+# CLAUDE.md rule 2 — .fig design files are binary and edited through OpenPencil or
+# Figma; read assets/design-export/ instead
+*.fig
 
 # Dependencies (web/node_modules is ~644 MB)
 node_modules/

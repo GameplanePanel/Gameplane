@@ -1,12 +1,37 @@
 import { describe, it, expect, vi } from "vitest";
 import { http, HttpResponse } from "msw";
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "@/test/server";
 import { renderWithQuery } from "@/test/render";
 import { ScheduleForm } from "./ScheduleForm";
 
 describe("ScheduleForm", () => {
+  it("does not query destinations when only schedule write access is granted", async () => {
+    let requests = 0;
+    server.use(http.get("/backup-destinations", () => {
+      requests++;
+      return HttpResponse.json({ items: [] });
+    }));
+    const { client } = renderWithQuery(<ScheduleForm target={{ cluster: "west", namespace: "games", name: "alpha" }} permissions={["schedules:write"]} serverName="alpha" onClose={() => {}} />);
+    expect(screen.getByText("You do not have permission to view backup destinations in this cluster and namespace.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Create schedule/i })).toBeDisabled();
+    await act(() => client.invalidateQueries());
+    expect(requests).toBe(0);
+  });
+
+  it("uses explicitly supplied destination permissions and target outside a resource provider", async () => {
+    let destinationURL: URL | undefined;
+    server.use(http.get("/backup-destinations", ({ request }) => {
+      destinationURL = new URL(request.url);
+      return HttpResponse.json({ items: [{ name: "remote-repo", repository: "s3:example/bucket" }] });
+    }));
+    renderWithQuery(<ScheduleForm target={{ cluster: "west", namespace: "games", name: "alpha" }} permissions={["schedules:write", "destinations:read"]} serverName="alpha" onClose={() => {}} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /Create schedule/i })).toBeEnabled());
+    expect(destinationURL?.searchParams.get("cluster")).toBe("west");
+    expect(destinationURL?.searchParams.get("namespace")).toBe("games");
+  });
+
   it("renders the form with default schedule, retention, and the lone destination preselected", async () => {
     renderWithQuery(<ScheduleForm permissions={["*"]} serverName="alpha" onClose={() => {}} />);
     expect(screen.getByDisplayValue("0 */6 * * *")).toBeInTheDocument();

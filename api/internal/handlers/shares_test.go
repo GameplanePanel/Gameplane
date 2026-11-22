@@ -463,15 +463,51 @@ func TestSharePublicPayloadSafe(t *testing.T) {
 
 	// The response should only have the safe fields.
 	expectedKeys := map[string]bool{
-		"serverName":    true,
-		"status":        true,
-		"address":       true,
-		"playersOnline": true,
+		"serverName":      true,
+		"status":          true,
+		"manuallyStopped": true,
+		"canStart":        true,
+		"address":         true,
+		"playersOnline":   true,
 	}
 	for key := range m {
 		if !expectedKeys[key] {
 			t.Fatalf("unexpected key %q in response", key)
 		}
+	}
+}
+
+func TestShareNodePortPlayerAddress(t *testing.T) {
+	const clusterIP = "10.43.213.73"
+	for _, tc := range []struct {
+		name, host, serviceAddress, provider, wantHost string
+	}{
+		{"before serviceAddress existed", clusterIP, "", "", ""},
+		{"old operator reports cluster IP", clusterIP, clusterIP, "", ""},
+		{"no published address", "", clusterIP, "", ""},
+		{"published node address", "2001:db8::2", clusterIP, "", "2001:db8::2"},
+		{"tunnel on NodePort server", "relay.example.org", "", "frp", "relay.example.org"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			obj := newShareTestServer("nodeport", 1)
+			obj.Object["spec"] = map[string]any{"networking": map[string]any{"expose": "NodePort"}}
+			ep := obj.Object["status"].(map[string]any)["endpoints"].([]any)[0].(map[string]any)
+			ep["host"], ep["port"] = tc.host, int64(31234)
+			if tc.serviceAddress != "" {
+				ep["serviceAddress"] = tc.serviceAddress
+			}
+			if tc.provider != "" {
+				ep["tunnelProvider"] = tc.provider
+			}
+			got := getPublicAddress(obj)
+			if tc.wantHost == "" {
+				if got != nil {
+					t.Fatalf("unexpected share address %+v", got)
+				}
+			} else if got == nil || got.Host != tc.wantHost || got.Port != 31234 {
+				t.Fatalf("got %+v, want %s port 31234", got, tc.wantHost)
+			}
+		})
 	}
 }
 

@@ -19,9 +19,16 @@ export interface AuthRoleMappings {
   viewer?: string[];
 }
 
-// Fallback when roleMappings is set but no group matches; "deny" refuses
-// the login. Absent means viewer.
-export type AuthDefaultRole = "viewer" | "operator" | "admin" | "deny";
+// One group→role rule (mirrors auth.RoleRule server-side). A provider's rules
+// are an ordered list: the first rule whose group the user is in decides.
+export interface AuthRoleRule {
+  group: string;
+  role: string;
+}
+
+// Fallback when mapping is on but no rule matches: "" (viewer), "deny" (refuse
+// the login) or the name of any role. Absent means viewer.
+export type AuthDefaultRole = string;
 
 export interface AuthProvider {
   name: string;
@@ -36,10 +43,11 @@ export interface AuthProvider {
   configRef?: string;
   // Group→role mapping (non-local kinds only). scopes are extra OAuth
   // scopes beyond openid/profile/email; groupsClaim defaults to "groups"
-  // server-side; roleMappings absent = roles never touched after creation.
+  // server-side; roleRules/roleMappings absent = roles never touched after creation.
   scopes?: string[];
   groupsClaim?: string;
   roleMappings?: AuthRoleMappings;
+  roleRules?: AuthRoleRule[]; // replaces roleMappings; setting both is refused
   defaultRole?: AuthDefaultRole;
 }
 
@@ -49,6 +57,9 @@ export interface AuthProvider {
 // provenance is derived from key presence.
 export interface HelmRoleOverride {
   roleMappings?: AuthRoleMappings;
+  // Present = replaces the whole Helm rule list / the Helm fallback.
+  roleRules?: AuthRoleRule[];
+  defaultRole?: AuthDefaultRole;
 }
 
 export interface AuthCfg {
@@ -128,6 +139,7 @@ export interface OIDCHelmProvider {
   groupsClaim: string;
   defaultRole: AuthDefaultRole;
   roleMappings?: AuthRoleMappings;
+  roleRules?: AuthRoleRule[];
 }
 
 // Install-time configuration snapshot: gameDataStorageClass (report-only,
@@ -174,7 +186,12 @@ export function useUpdateConfigSection<K extends keyof AllConfig>(section: K) {
   return useMutation({
     mutationFn: (body: AllConfig[K]) =>
       api(`/admin/config/${section}`, { method: "PUT", body }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: KEY }),
+        ...(section === "general" ? [qc.invalidateQueries({ queryKey: ["installation"] })] : []),
+      ]);
+    },
   });
 }
 

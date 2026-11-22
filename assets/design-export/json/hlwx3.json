@@ -1,49 +1,69 @@
 {
-  "type": "frame",
-  "id": "hlwx3",
+  "file": "hlwx3",
+  "id": "1:8130",
+  "name": "State/Server Actions Menu — Owner-only disabled",
+  "type": "FRAME",
   "x": 9840,
   "y": 24345,
-  "name": "State/Server Actions Menu \u2014 Owner-only disabled",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 520,
   "height": 220,
-  "fill": "$background/background",
-  "layout": "none",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "Q23Fm",
-      "type": "ref",
-      "ref": "BPEpm",
+      "id": "1:8131",
       "name": "Menu",
+      "type": "INSTANCE",
       "x": 16,
       "y": 16,
-      "descendants": {
-        "NhChV": {
-          "opacity": 0.5
-        },
-        "V7Slhc": {
-          "opacity": 0.5
-        },
-        "kdfaC": {
-          "opacity": 0.5
-        }
-      }
+      "width": 220,
+      "height": 161,
+      "component": "Gameplane/Dropdown Menu",
+      "componentId": "1:8132",
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "effects": [{"type": "DROP_SHADOW", "radius": 12, "visible": true}],
+      "cornerRadius": 6,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [4, 4, 4, 4],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "variables": {
+        "cornerRadius": "radius/md",
+        "fills/0/color": "surface/surface",
+        "strokes/0/color": "border/border"
+      },
+      "texts": ["Clone server", "Transfer ownership", "Wipe world data", "Delete server"]
     },
     {
-      "id": "C1pSxT",
-      "type": "ref",
-      "ref": "hIoOw",
+      "id": "1:8138",
       "name": "Hint Tooltip",
+      "type": "INSTANCE",
       "x": 244,
       "y": 61,
-      "descendants": {
-        "rWONa": {
-          "content": "Requires server owner or admin"
-        }
-      }
+      "width": 191,
+      "height": 24,
+      "component": "Tooltip",
+      "componentId": "1:5495",
+      "fills": [{"type": "SOLID", "color": "#201E24"}],
+      "effects": [{"type": "DROP_SHADOW", "radius": 8, "visible": true}],
+      "cornerRadius": 12,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 8, 4, 8],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["HUG", "HUG"]
+      },
+      "variables": {"cornerRadius": "radius/xl", "fills/0/color": "overlay"},
+      "texts": ["Requires server owner or admin"]
     }
   ]
 }

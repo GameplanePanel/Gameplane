@@ -1,232 +1,442 @@
 {
-  "type": "frame",
-  "id": "dxdEi",
+  "file": "dxdEi",
+  "id": "1:5126",
+  "name": "Legacy/Cluster Settings — Default storage — Superseded",
+  "type": "FRAME",
   "x": 1640,
   "y": 65232,
-  "name": "Legacy/Cluster Settings — Default storage — Superseded",
-  "context": "Superseded by Cluster Details Configuration and Nodes screens. Preserved for historical install-time storage states.",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "ZRbcV",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:5127",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "lZ6pP": {
-          "fill": "$accent/soft"
-        },
-        "lZ6pP/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "lZ6pP/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "TKE1F",
+      "id": "1:5128",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "IXDaT",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:5129",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "Cluster"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Cluster", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "Hu16d",
+          "id": "1:5130",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "vgpnq",
-              "type": "ref",
-              "ref": "xCDF7",
+              "id": "1:5131",
               "name": "Page Header",
-              "width": "fill_container",
-              "descendants": {
-                "spCmk": {
-                  "content": "Cluster"
-                },
-                "VbHwU": {
-                  "content": "— · v1.35.5+k3s1 · 3/3 nodes healthy"
-                },
-                "TgdLz": {
-                  "type": "frame",
-                  "id": "c0laz",
-                  "name": "phActions",
-                  "layout": "vertical",
-                  "gap": 4,
-                  "alignItems": "end",
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 56,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "children": [
+                {
+                  "name": "Title Col",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 1.5,
+                  "width": 231,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "CWLAs",
+                      "name": "phTitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 85,
+                      "height": 31,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Cluster",
+                      "font": ["Geist", 600, 24],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "phSubtitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 35,
+                      "width": 231,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "— · v1.35.5+k3s1 · 3/3 nodes healthy",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:5132",
+                  "name": "phActions",
+                  "type": "FRAME",
+                  "x": 647,
+                  "y": 0,
+                  "width": 485,
+                  "height": 56,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MAX",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "id": "1:5133",
                       "name": "Actions Row",
-                      "gap": 8,
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 182,
+                      "y": 0,
+                      "width": 303,
+                      "height": 36,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "id": "kwrNY",
-                          "type": "ref",
-                          "ref": "rNhll",
+                          "id": "1:5134",
                           "name": "Download kubeconfig",
-                          "descendants": {
-                            "wDXFJ/K8d1zg": {
-                              "enabled": true,
-                              "icon": "download"
-                            },
-                            "wDXFJ/zMNkR": {
-                              "content": "Download kubeconfig"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 2,
+                          "width": 176,
+                          "height": 32,
+                          "component": "Gameplane/Button/Outline",
+                          "componentId": "1:770",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "texts": ["Download kubeconfig"]
                         },
                         {
-                          "id": "b6ekQ",
-                          "type": "ref",
-                          "ref": "tpKRk",
+                          "id": "1:5135",
                           "name": "Add node",
-                          "descendants": {
-                            "q58In/Xpn7K": {
-                              "library": "lucide",
-                              "icon": "plus"
-                            },
-                            "q58In/U6q13B": {
-                              "content": "Add node"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 184,
+                          "y": 0,
+                          "width": 119,
+                          "height": 36,
+                          "component": "Gameplane/Button/Default",
+                          "componentId": "1:306",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "texts": ["Add node"]
                         }
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "T5WX1",
+                      "id": "1:5136",
                       "name": "Ops Helper",
-                      "fill": "$muted",
-                      "content": "Enable clusterOps.enabled in the Helm values to mint node-join tokens and kubeconfigs.",
-                      "textAlign": "right",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 40,
+                      "width": 485,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Enable clusterOps.enabled in the Helm values to mint node-join tokens and kubeconfigs.",
+                      "font": ["Geist", 400, 12],
+                      "align": "RIGHT",
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     }
                   ]
                 }
-              }
+              ]
             },
             {
-              "id": "AccyL",
-              "type": "ref",
-              "ref": "XDZ0E",
+              "id": "1:5137",
               "name": "Storage Card",
-              "width": "fill_container",
+              "type": "FRAME",
+              "x": 24,
+              "y": 104,
+              "width": 1132,
+              "height": 136,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [16, 16, 16, 16],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
               "children": [
                 {
-                  "id": "F42Upg",
-                  "type": "ref",
-                  "ref": "FRpsu",
+                  "id": "1:5138",
                   "name": "Card Header",
-                  "descendants": {
-                    "fuZHB": {
-                      "content": "Storage"
-                    },
-                    "BZG9o": {
-                      "content": "Set at install time via Helm values — not editable from the dashboard."
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 16,
+                  "y": 16,
+                  "width": 1100,
+                  "height": 44,
+                  "component": "Card Header",
+                  "componentId": "1:2935",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "texts": ["Storage", "Set at install time via Helm values — not editable from the dashboard."]
                 },
                 {
-                  "id": "E3m7vc",
-                  "type": "ref",
-                  "ref": "I9ZPb",
+                  "id": "1:5139",
                   "name": "Card Content",
+                  "type": "FRAME",
+                  "x": 16,
+                  "y": 72,
+                  "width": 1100,
+                  "height": 48,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "xPHyQ",
+                      "id": "1:5140",
                       "name": "rowStorageClass",
-                      "width": "fill_container",
-                      "gap": 24,
-                      "justifyContent": "space_between",
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 1100,
+                      "height": 48,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 24,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "SPACE_BETWEEN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "yHk2O",
+                          "id": "1:5141",
                           "name": "storageLabelCol",
-                          "width": "fill_container",
-                          "layout": "vertical",
-                          "gap": 2,
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 958,
+                          "height": 48,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 2,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutGrow": 1,
                           "children": [
                             {
-                              "type": "text",
-                              "id": "SxRaF",
+                              "id": "1:5142",
                               "name": "storageLabel",
-                              "fill": "$foreground/foreground",
-                              "content": "Game data storage class",
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 14,
-                              "fontWeight": "500"
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 163,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Game data storage class",
+                              "font": ["Geist", 500, 14],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "type": "text",
-                              "id": "SVuHj",
+                              "id": "1:5143",
                               "name": "storageHint",
-                              "fill": "$muted",
-                              "textGrowth": "fixed-width",
-                              "width": "fill_container",
-                              "content": "StorageClass for new GameServers' game-data volumes — set by the operator.gameDataStorage.storageClassName Helm value and applied by the operator to every new PVC; the API is passed the same value as --game-data-storage-class only to report it here. Left unset, so new volumes use the cluster's default StorageClass.",
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 20,
+                              "width": 958,
+                              "height": 28,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "layoutAlignSelf": "STRETCH",
+                              "text": "StorageClass for new GameServers' game-data volumes — set by the operator.gameDataStorage.storageClassName Helm value and applied by the operator to every new PVC; the API is passed the same value as --game-data-storage-class only to report it here. Left unset, so new volumes use the cluster's default StorageClass.",
+                              "font": ["Geist", 400, 11],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             }
                           ]
                         },
                         {
-                          "id": "xdA6a",
-                          "type": "ref",
-                          "ref": "Q9wWz",
+                          "id": "1:5144",
                           "name": "storageValueDefaultPill",
-                          "descendants": {
-                            "WO3un": {
-                              "content": "Cluster default",
-                              "fontFamily": "$typography/font-mono",
-                              "fontSize": 14
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 958,
+                          "y": 13,
+                          "width": 142,
+                          "height": 22,
+                          "component": "Chip/Secondary/Default/MD",
+                          "componentId": "1:5145",
+                          "fills": [{"type": "SOLID", "color": "#232128"}],
+                          "cornerRadius": 16,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 2,
+                            "padding": [2, 8, 2, 8],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+                          "texts": ["Cluster default"]
                         }
                       ]
                     }
@@ -235,11 +445,68 @@
               ]
             },
             {
-              "id": "O1yaf",
-              "type": "ref",
-              "ref": "U0VCJ",
+              "id": "1:5147",
               "name": "Node Grid",
-              "width": "fill_container"
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 264,
+              "width": 1132,
+              "height": 274,
+              "component": "Gameplane/Node Grid",
+              "componentId": "1:2945",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 16,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "texts": [
+                "kubelab-control",
+                "control-plane",
+                "● READY",
+                "UPTIME",
+                "18d 16h",
+                "PODS",
+                "0/110",
+                "CPU",
+                "4 cores",
+                "CPU",
+                "0%",
+                "Memory",
+                "0%",
+                "0 B / 14 GB",
+                "kubelab-worker-1",
+                "worker",
+                "● READY",
+                "UPTIME",
+                "18d 16h",
+                "PODS",
+                "0/110",
+                "CPU",
+                "4 cores",
+                "CPU",
+                "0%",
+                "Memory",
+                "0%",
+                "0 B / 14 GB",
+                "kubelab-worker-2",
+                "worker",
+                "● READY",
+                "UPTIME",
+                "18d 16h",
+                "PODS",
+                "0/110",
+                "CPU",
+                "4 cores",
+                "CPU",
+                "0%",
+                "Memory",
+                "0%",
+                "0 B / 14 GB"
+              ]
             }
           ]
         }

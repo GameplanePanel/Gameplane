@@ -1,182 +1,346 @@
 {
-  "id": "VM7ro",
-  "type": "ref",
-  "reusable": true,
-  "ref": "x3beP",
+  "file": "VM7ro",
+  "id": "1:10351",
   "name": "Gameplane/Dialog/Share Link Created",
+  "type": "FRAME",
   "x": 2720,
   "y": 6274,
-  "theme": {},
-  "descendants": {
-    "E7Whx": {
-      "content": "Share link created"
+  "width": 480,
+  "height": 344,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 32, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 140,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "Share link created",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
-    "qzcst": {
-      "content": "Send this to your friend. It works without a Gameplane account.",
-      "lineHeight": 1.4286
-    },
-    "Nht52": {
-      "type": "frame",
-      "id": "J5VxNe",
-      "name": "mBody",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 16,
-      "padding": [
-        16,
-        0,
-        0,
-        0
-      ],
+    {
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 440,
+      "height": 24,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "frame",
-          "id": "Hp206",
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 4,
+          "width": 440,
+          "height": 20,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutGrow": 1,
+          "text": "Send this to your friend. It works without a Gameplane account.",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "id": "1:10352",
+      "name": "mBody",
+      "type": "FRAME",
+      "x": 20,
+      "y": 68,
+      "width": 440,
+      "height": 204,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:10353",
           "name": "warningBox",
-          "width": "fill_container",
-          "fill": "$warning/10",
+          "type": "FRAME",
+          "x": 0,
+          "y": 16,
+          "width": 440,
+          "height": 112,
+          "fills": [{"type": "SOLID", "color": "#F59E0B1A", "opacity": 0.1}],
+          "strokes": [{"type": "SOLID", "color": "#F59E0B"}],
+          "strokeWeight": 2,
           "cornerRadius": 8,
-          "stroke": "$warning/warning",
-          "strokeWidth": 2,
-          "strokeAlignment": "inner",
-          "gap": 8,
-          "padding": 14,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [14, 14, 14, 14],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "warning/10", "strokes/0/color": "warning/warning"},
           "children": [
             {
-              "type": "icon",
-              "id": "UzYfu",
+              "id": "1:10354",
               "name": "icon",
+              "type": "FRAME",
+              "x": 14,
+              "y": 14,
               "width": 20,
               "height": 20,
-              "icon": "circle-alert",
-              "library": "lucide",
-              "fill": "$warning/warning"
-            },
-            {
-              "type": "frame",
-              "id": "lATVG",
-              "name": "warningContent",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 4,
+              "variables": {"fills/0/color": "warning/warning"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "b8l6B",
-                  "name": "warningTitle",
-                  "fill": "$warning/warning",
-                  "content": "You will not see this link again",
-                  "lineHeight": 1.4286,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "700"
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 1.67,
+                  "y": 1.67,
+                  "width": 16.67,
+                  "height": 16.67,
+                  "strokes": [{"type": "SOLID", "color": "#F59E0B"}],
+                  "strokeWeight": 1.67
                 },
                 {
-                  "type": "text",
-                  "id": "mjjwe",
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 10,
+                  "y": 6.67,
+                  "width": 0.01,
+                  "height": 6.67,
+                  "strokes": [{"type": "SOLID", "color": "#F59E0B"}],
+                  "strokeWeight": 1.67
+                }
+              ]
+            },
+            {
+              "id": "1:10355",
+              "name": "warningContent",
+              "type": "FRAME",
+              "x": 42,
+              "y": 14,
+              "width": 384,
+              "height": 84,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 4,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "children": [
+                {
+                  "id": "1:10356",
+                  "name": "warningTitle",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 206,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#F59E0B"}],
+                  "text": "You will not see this link again",
+                  "font": ["Geist", 700, 14],
+                  "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/warning"}
+                },
+                {
+                  "id": "1:10357",
                   "name": "warningDesc",
-                  "fill": "$warning/warning",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Gameplane stores only a one-way hash of the token, so it\ncan't be shown or recovered after you close this dialog.\nCopy it now.",
-                  "lineHeight": 1.4286,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 24,
+                  "width": 384,
+                  "height": 60,
+                  "fills": [{"type": "SOLID", "color": "#F59E0B"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Gameplane stores only a one-way hash of the token, so it\ncan't be shown or recovered after you close this dialog.\nCopy it now.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/warning"}
                 }
               ]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "SICns",
+          "id": "1:10358",
           "name": "tokenRow",
-          "width": "fill_container",
-          "fill": "$default/default",
+          "type": "FRAME",
+          "x": 0,
+          "y": 144,
+          "width": 440,
+          "height": 60,
+          "fills": [{"type": "SOLID", "color": "#F6DCE7"}],
+          "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+          "strokeWeight": 1,
           "cornerRadius": 8,
-          "stroke": "$border/border",
-          "strokeWidth": 1,
-          "strokeAlignment": "inner",
-          "gap": 12,
-          "padding": [
-            11,
-            14
-          ],
-          "justifyContent": "space_between",
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [11, 14, 11, 14],
+            "primary": "SPACE_BETWEEN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "default/default", "strokes/0/color": "border/border"},
           "children": [
             {
-              "type": "text",
-              "id": "OEaBF",
-              "fill": "$foreground/foreground",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "http://localhost:5173/share/8f3ac1e0b2d94f7c9a5e\n6b7d1c0e2f4a5b6c7",
-              "lineHeight": 1.4615,
-              "fontFamily": "$typography/font-mono",
-              "fontSize": 13,
-              "fontWeight": "normal"
+              "id": "1:10359",
+              "name": "text",
+              "type": "TEXT",
+              "x": 14,
+              "y": 11,
+              "width": 396,
+              "height": 38,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "layoutGrow": 1,
+              "text": "http://localhost:5173/share/8f3ac1e0b2d94f7c9a5e\n6b7d1c0e2f4a5b6c7",
+              "font": ["JetBrains Mono", 400, 13],
+              "lineHeight": {"value": 146.150004863739, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
             },
             {
-              "type": "icon",
-              "id": "w5JpSz",
+              "id": "1:10360",
+              "name": "icon",
+              "type": "FRAME",
+              "x": 410,
+              "y": 11,
               "width": 16,
               "height": 16,
-              "icon": "copy",
-              "library": "lucide",
-              "fill": "$muted"
+              "variables": {"fills/0/color": "muted"},
+              "children": [
+                {
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 5.33,
+                  "y": 5.33,
+                  "width": 9.33,
+                  "height": 9.33,
+                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
+                  "strokeWeight": 1.33
+                },
+                {
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 1.33,
+                  "y": 1.33,
+                  "width": 9.33,
+                  "height": 9.33,
+                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
+                  "strokeWeight": 1.33
+                }
+              ]
             }
           ]
         }
       ]
     },
-    "GCwAF": {
-      "type": "frame",
-      "id": "bvUYp",
+    {
+      "id": "1:10361",
       "name": "mFooter",
-      "width": "fill_container",
-      "gap": 8,
-      "padding": [
-        20,
-        0,
-        0,
-        0
-      ],
-      "justifyContent": "end",
-      "alignItems": "center",
+      "type": "FRAME",
+      "x": 20,
+      "y": 272,
+      "width": 440,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "kbpwg",
-          "type": "ref",
-          "ref": "FIB65",
+          "id": "1:10362",
           "name": "btnCopy",
-          "cornerRadius": 6,
+          "type": "INSTANCE",
+          "x": 281,
+          "y": 20,
           "width": 99,
-          "descendants": {
-            "K8d1zg": {
-              "icon": "copy"
-            },
-            "zMNkR": {
-              "content": "Copy link"
-            }
-          }
+          "height": 32,
+          "component": "Button/Outline/SM",
+          "componentId": "1:633",
+          "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+          "strokeWeight": 1,
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 5,
+            "padding": [8, 12, 8, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "variables": {
+            "paddingRight": "spacing/3",
+            "paddingLeft": "spacing/3",
+            "cornerRadius": "radius/3xl",
+            "strokes/0/color": "border-2"
+          },
+          "texts": ["Copy link"]
         },
         {
-          "id": "m6ngX",
-          "type": "ref",
-          "ref": "j9c5W",
+          "id": "1:10363",
           "name": "btnPrimary",
-          "cornerRadius": 6,
-          "descendants": {
-            "n8Hmwk": {
-              "enabled": false
-            },
-            "U1xvSo": {
-              "content": "Done"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 388,
+          "y": 20,
+          "width": 52,
+          "height": 32,
+          "component": "Button/Primary/SM",
+          "componentId": "1:629",
+          "fills": [{"type": "SOLID", "color": "#DB2777"}],
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 5,
+            "padding": [8, 10, 8, 10],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"},
+          "texts": ["Done"]
         }
       ]
     }
-  }
+  ]
 }

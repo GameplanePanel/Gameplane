@@ -2,8 +2,8 @@ apiVersion: v2
 name: gameplane
 description: Kubernetes-native game server control panel (open-source alternative to CubeCoders AMP).
 type: application
-version: 0.4.0
-appVersion: "0.4.0"
+version: 0.4.3
+appVersion: "0.4.3"
 kubeVersion: ">=1.30.0-0"
 home: https://github.com/GameplanePanel/gameplane
 sources:
@@ -20,5 +20,5 @@ dependencies:
   # Vendored locally so installs never fetch another chart. Helm resolves this
   # condition before installing native CRDs, including on a fresh cluster.
   - name: gameplane-crds
-    version: 0.4.0
+    version: 0.4.3
     condition: operator.enabled

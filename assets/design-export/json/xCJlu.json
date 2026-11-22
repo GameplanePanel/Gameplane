@@ -1,1 +1,1193 @@
-{"type":"frame","id":"xCJlu","x":0,"y":53350,"name":"Screen/Server Detail — Settings · Share links","theme":{"semantic":"dark"},"clip":true,"width":1440,"height":900,"fill":"$background/background","children":[{"id":"oTwRW","type":"ref","ref":"kKFX9","height":"fill_container","descendants":{"iTbd8":{"fill":"#00000000"},"iTbd8/ghUsw":{"fill":"$foreground/foreground"},"iTbd8/bpSQ7":{"fill":"$foreground/foreground"},"i8Z1B":{"fill":"$accent/soft"},"i8Z1B/Sr2Q5":{"fill":"$accent/soft-foreground"},"i8Z1B/Ra9NK":{"fill":"$accent/soft-foreground"}}},{"type":"frame","id":"blozd","name":"Main","width":"fill_container","height":"fill_container","fill":"$background/background","layout":"vertical","children":[{"id":"H3zBj","type":"ref","ref":"gu5WY","width":"fill_container","descendants":{"Gl7AY":{"content":"mc-survival"}}},{"type":"frame","id":"zTKKm","name":"Body","width":"fill_container","height":"fill_container","fill":"$background/background","layout":"vertical","gap":24,"padding":24,"children":[{"id":"thUaP","type":"ref","ref":"S4k0x","name":"Detail Header","width":"fill_container"},{"id":"u0xtqP","type":"ref","ref":"I9kvlZ","name":"Tabs Bar","width":"fill_container","padding":[0,0,0,24],"descendants":{"Wp6q1":{"fill":"#00000000"},"Wp6q1/YUR8N":{"fill":"$muted"},"Y4QES":{"fill":"$segment"},"Y4QES/VcxMI":{"fill":"$foreground/segment"}}},{"type":"frame","id":"hG7GD","name":"Settings Content","width":"fill_container","height":"fill_container","children":[{"id":"yEFMI","type":"ref","ref":"EV8mp","name":"Settings Sub Nav","width":224,"height":"fill_container","descendants":{"axMXL":{"fill":"#00000000"},"JlFDJ":{"fill":"$surface/secondary"},"Qbxnz":{"fill":"$foreground/foreground"}}},{"type":"frame","id":"jq8Ik","name":"Settings Panel Wrap","width":"fill_container","height":"fill_container","layout":"vertical","children":[{"type":"frame","id":"oo5Et","name":"Settings Form","width":"fill_container","height":"fill_container","layout":"vertical","children":[{"type":"frame","id":"xlCWU","name":"Form Body","width":"fill_container","height":"fill_container","layout":"vertical","gap":16,"padding":24,"children":[{"type":"frame","id":"FSQFv","name":"Share Links Header","width":"fill_container","justifyContent":"space_between","alignItems":"center","children":[{"type":"frame","id":"wrMwX","name":"titleCol","layout":"vertical","gap":4,"children":[{"type":"text","id":"S8qldJ","fill":"$foreground/foreground","content":"Share links","fontFamily":"$typography/font-sans","fontSize":17,"fontWeight":"500"},{"type":"text","id":"FCOnx","fill":"$muted","textGrowth":"fixed-width","width":520,"content":"Let people without a Gameplane account check this server's status and connection address. Only the owner can create or revoke links.","fontFamily":"$typography/font-sans","fontSize":12,"fontWeight":"normal"}]},{"id":"EmHnL","type":"ref","ref":"z9ShNE","name":"btnCreateLink","fill":"#00000000","padding":0,"height":"fit_content","cornerRadius":0,"descendants":{"nWTJb":{"icon":"link"},"IVgQ8/U1xvSo":{"content":"Create link"}}}]},{"id":"j0MM9","type":"ref","ref":"ECbbo","name":"Share Links Table","width":"fill_container","stroke":"$border/border","strokeWidth":1,"cornerRadius":8,"children":[{"id":"C6RWz","type":"ref","ref":"eafUs","name":"Table Header","width":"fill_container","layout":"horizontal","children":[{"id":"oCSgI","type":"ref","ref":"DYYKO","name":"Column - Created","width":"fill_container","descendants":{"SIu74":{"content":"Created","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}},{"id":"Yjl8P","type":"ref","ref":"DYYKO","name":"Column - Expires","width":"fill_container","descendants":{"SIu74":{"content":"Expires","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}},{"id":"kAy8Y","type":"ref","ref":"DYYKO","name":"Column - Can start","width":120,"descendants":{"SIu74":{"content":"Can start","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}},{"id":"gCkZa","type":"ref","ref":"DYYKO","name":"Column - Status","width":110,"descendants":{"SIu74":{"content":"Status","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}},{"id":"s87yP","type":"ref","ref":"DYYKO","name":"Column - Actions","width":140,"descendants":{"SIu74":{"content":"","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}}]},{"id":"vbxAw","type":"ref","ref":"GUHQo","name":"Table Body","width":"fill_container","children":[{"id":"CCCbH","type":"ref","ref":"tDY4O","name":"Link Row","width":"fill_container","layout":"horizontal","fill":"#00000000","stroke":"$border/border","strokeWidth":1,"children":[{"id":"KsML2","type":"ref","ref":"TDRJE","name":"Created Cell","width":"fill_container","height":"fill_container","descendants":{"HNAOu":{"content":"Jul 28, 2026","fontFamily":"$typography/font-mono","fontSize":13,"fontWeight":"normal"}}},{"id":"IiHOi","type":"ref","ref":"TDRJE","name":"Expires Cell","width":"fill_container","height":"fill_container","descendants":{"HNAOu":{"content":"Never","fontFamily":"$typography/font-mono","fontSize":13,"fontWeight":"normal"}}},{"id":"Z0lTbG","type":"ref","ref":"TDRJE","name":"Can Start Cell","width":120,"height":"fill_container","children":[{"id":"dBlhj","type":"ref","ref":"kGH2O","name":"Capability Chip","descendants":{"O1PqF5":{"content":"Can start","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}}]},{"id":"eY4sa","type":"ref","ref":"TDRJE","name":"Status Cell","width":110,"height":"fill_container","children":[{"id":"BxcGi","type":"ref","ref":"UOoQW","name":"Status Chip","descendants":{"YXoPG":{"content":"Active","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}}]},{"id":"nFDwY","type":"ref","ref":"TDRJE","name":"Action Cell","width":140,"height":"fill_container","children":[{"id":"NJjup","type":"ref","ref":"IU7OG","name":"Revoke Button","height":32,"fill":"#00000000","padding":0,"cornerRadius":0,"descendants":{"E4lQce/gsuz1":{"icon":"link-2-off"},"E4lQce/IUtnC":{"content":"Revoke"}}}]}]},{"id":"WkLza","type":"ref","ref":"tDY4O","name":"Link Row","width":"fill_container","layout":"horizontal","fill":"#00000000","stroke":"$border/border","strokeWidth":1,"children":[{"id":"Hwsid","type":"ref","ref":"TDRJE","name":"Created Cell","width":"fill_container","descendants":{"HNAOu":{"content":"Jun 1, 2026","fontFamily":"$typography/font-mono","fontSize":13,"fontWeight":"normal"}}},{"id":"d5nGN","type":"ref","ref":"TDRJE","name":"Expires Cell","width":"fill_container","descendants":{"HNAOu":{"content":"Jun 8, 2026","fontFamily":"$typography/font-mono","fontSize":13,"fontWeight":"normal"}}},{"id":"RTbzF","type":"ref","ref":"TDRJE","name":"Can Start Cell","width":120,"children":[{"id":"ZwHE7","type":"ref","ref":"KmZnF","name":"Capability Chip","descendants":{"xZ9ah":{"content":"View only","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}}]},{"id":"a3Fu3h","type":"ref","ref":"TDRJE","name":"Status Cell","width":110,"children":[{"id":"ZhlaX","type":"ref","ref":"KmZnF","name":"Status Chip","descendants":{"xZ9ah":{"content":"Expired","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}}]},{"id":"K4Ci1","type":"ref","ref":"TDRJE","name":"Action Cell","width":140,"descendants":{"HNAOu":{"content":"—","fill":"$muted","fontFamily":"$typography/font-sans","fontSize":13,"fontWeight":"normal"}}}]},{"id":"lg05a","type":"ref","ref":"tDY4O","name":"Link Row","width":"fill_container","layout":"horizontal","fill":"#00000000","stroke":"$border/border","strokeWidth":1,"children":[{"id":"h8xYb","type":"ref","ref":"TDRJE","name":"Created Cell","width":"fill_container","descendants":{"HNAOu":{"content":"May 12, 2026","fontFamily":"$typography/font-mono","fontSize":13,"fontWeight":"normal"}}},{"id":"j0ZTmU","type":"ref","ref":"TDRJE","name":"Expires Cell","width":"fill_container","descendants":{"HNAOu":{"content":"May 19, 2026","fontFamily":"$typography/font-mono","fontSize":13,"fontWeight":"normal"}}},{"id":"F0aJg","type":"ref","ref":"TDRJE","name":"Can Start Cell","width":120,"children":[{"id":"ph6wx","type":"ref","ref":"kGH2O","name":"Capability Chip","descendants":{"O1PqF5":{"content":"Can start","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}}]},{"id":"d4Y37L","type":"ref","ref":"TDRJE","name":"Status Cell","width":110,"children":[{"id":"gPEJX","type":"ref","ref":"eg3vM","name":"Status Chip","descendants":{"S2JwD":{"content":"Revoked","fontFamily":"$typography/font-mono","fontSize":14,"fontWeight":"normal"}}}]},{"id":"d4skfd","type":"ref","ref":"TDRJE","name":"Action Cell","width":140,"descendants":{"HNAOu":{"content":"—","fill":"$muted","fontFamily":"$typography/font-sans","fontSize":13,"fontWeight":"normal"}}}]}]}]}]}]}]}]}]}]}]}
+{
+  "file": "xCJlu",
+  "id": "1:4432",
+  "name": "Screen/Server Detail — Settings · Share links",
+  "type": "FRAME",
+  "x": 0,
+  "y": 53350,
+  "width": 1440,
+  "height": 900,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "id": "1:4433",
+      "name": "Gameplane/App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "id": "1:4434",
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "id": "1:4435",
+          "name": "Gameplane/Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
+        },
+        {
+          "id": "1:4436",
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "children": [
+            {
+              "id": "1:4437",
+              "name": "Detail Header",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 86,
+              "component": "Gameplane/Server Detail Header",
+              "componentId": "1:447",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 24, 16, 24],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "MI",
+                "mc-survival",
+                "Running",
+                "site: remote-lab · minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+                "Restart",
+                "Stop",
+                "Open console"
+              ]
+            },
+            {
+              "id": "1:4438",
+              "name": "Tabs Bar",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 134,
+              "width": 1132,
+              "height": 40,
+              "component": "Gameplane/Server Detail Tabs",
+              "componentId": "1:466",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+              "texts": [
+                "Overview",
+                "Events",
+                "Console",
+                "Logs",
+                "Files",
+                "Mods",
+                "Modpacks",
+                "Players",
+                "Backups",
+                "Capture",
+                "Settings"
+              ]
+            },
+            {
+              "id": "1:4439",
+              "name": "Settings Content",
+              "type": "FRAME",
+              "x": 24,
+              "y": 198,
+              "width": 1132,
+              "height": 614,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:4440",
+                  "name": "Settings Sub Nav",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 224,
+                  "height": 614,
+                  "component": "Gameplane/Server Settings Sub Nav",
+                  "componentId": "1:1289",
+                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [8, 8, 8, 8],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+                  "texts": [
+                    "General",
+                    "Version",
+                    "Game configuration",
+                    "Resources",
+                    "Networking",
+                    "Environment",
+                    "Lifecycle",
+                    "Scheduled backups",
+                    "Network capture",
+                    "Placement",
+                    "RBAC & access",
+                    "Share links",
+                    "Danger zone"
+                  ]
+                },
+                {
+                  "id": "1:4441",
+                  "name": "Settings Panel Wrap",
+                  "type": "FRAME",
+                  "x": 224,
+                  "y": 0,
+                  "width": 908,
+                  "height": 614,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "layoutAlignSelf": "STRETCH",
+                  "children": [
+                    {
+                      "id": "1:4442",
+                      "name": "Settings Form",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 908,
+                      "height": 614,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "id": "1:4443",
+                          "name": "Form Body",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 908,
+                          "height": 614,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 16,
+                            "padding": [24, 24, 24, 24],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "id": "1:4444",
+                              "name": "Share Links Header",
+                              "type": "FRAME",
+                              "x": 24,
+                              "y": 24,
+                              "width": 860,
+                              "height": 58,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "SPACE_BETWEEN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "children": [
+                                {
+                                  "id": "1:4445",
+                                  "name": "titleCol",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 520,
+                                  "height": 58,
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 4,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "HUG"]
+                                  },
+                                  "children": [
+                                    {
+                                      "id": "1:4446",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 89,
+                                      "height": 22,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "Share links",
+                                      "font": ["Geist", 500, 17],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                                    },
+                                    {
+                                      "id": "1:4447",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 26,
+                                      "width": 520,
+                                      "height": 32,
+                                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                      "text": "Let people without a Gameplane account check this server's status and connection address. Only the owner can create or revoke links.",
+                                      "font": ["Geist", 400, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "1:4448",
+                                  "name": "btnCreateLink",
+                                  "type": "INSTANCE",
+                                  "x": 754,
+                                  "y": 13,
+                                  "width": 106,
+                                  "height": 32,
+                                  "component": "Gameplane/Button/Small/Default",
+                                  "componentId": "1:709",
+                                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "CENTER",
+                                    "counter": "CENTER",
+                                    "sizing": ["HUG", "HUG"]
+                                  },
+                                  "texts": ["Create link"]
+                                }
+                              ]
+                            },
+                            {
+                              "id": "1:4449",
+                              "name": "Share Links Table",
+                              "type": "FRAME",
+                              "x": 24,
+                              "y": 98,
+                              "width": 860,
+                              "height": 235,
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 8,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 0,
+                                "padding": [0, 4, 4, 4],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "clips": true,
+                              "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+                              "children": [
+                                {
+                                  "id": "1:4450",
+                                  "name": "Table Header",
+                                  "type": "FRAME",
+                                  "x": 4,
+                                  "y": 0,
+                                  "width": 852,
+                                  "height": 39,
+                                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "separator/separator"},
+                                  "children": [
+                                    {
+                                      "id": "1:4451",
+                                      "name": "Column - Created",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 241,
+                                      "height": 38,
+                                      "component": "Table Column",
+                                      "componentId": "1:1264",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [10, 16, 10, 16],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "HUG"]
+                                      },
+                                      "layoutGrow": 1,
+                                      "variables": {"fills/0/color": "surface/secondary"},
+                                      "texts": ["Created"]
+                                    },
+                                    {
+                                      "id": "1:4452",
+                                      "name": "Column - Expires",
+                                      "type": "INSTANCE",
+                                      "x": 241,
+                                      "y": 0,
+                                      "width": 241,
+                                      "height": 38,
+                                      "component": "Table Column",
+                                      "componentId": "1:1264",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [10, 16, 10, 16],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "HUG"]
+                                      },
+                                      "layoutGrow": 1,
+                                      "variables": {"fills/0/color": "surface/secondary"},
+                                      "texts": ["Expires"]
+                                    },
+                                    {
+                                      "id": "1:4453",
+                                      "name": "Column - Can start",
+                                      "type": "INSTANCE",
+                                      "x": 482,
+                                      "y": 0,
+                                      "width": 120,
+                                      "height": 38,
+                                      "component": "Table Column",
+                                      "componentId": "1:1264",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [10, 16, 10, 16],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "HUG"]
+                                      },
+                                      "variables": {"fills/0/color": "surface/secondary"},
+                                      "texts": ["Can start"]
+                                    },
+                                    {
+                                      "id": "1:4454",
+                                      "name": "Column - Status",
+                                      "type": "INSTANCE",
+                                      "x": 602,
+                                      "y": 0,
+                                      "width": 110,
+                                      "height": 38,
+                                      "component": "Table Column",
+                                      "componentId": "1:1264",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [10, 16, 10, 16],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "HUG"]
+                                      },
+                                      "variables": {"fills/0/color": "surface/secondary"},
+                                      "texts": ["Status"]
+                                    },
+                                    {
+                                      "id": "1:4455",
+                                      "name": "Column - Actions",
+                                      "type": "INSTANCE",
+                                      "x": 712,
+                                      "y": 0,
+                                      "width": 140,
+                                      "height": 39,
+                                      "component": "Table Column",
+                                      "componentId": "1:1264",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [10, 16, 10, 16],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "HUG"]
+                                      },
+                                      "variables": {"fills/0/color": "surface/secondary"}
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "1:4456",
+                                  "name": "Table Body",
+                                  "type": "FRAME",
+                                  "x": 4,
+                                  "y": 39,
+                                  "width": 852,
+                                  "height": 192,
+                                  "cornerRadius": 16,
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 0,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
+                                  "clips": true,
+                                  "variables": {"cornerRadius": "radius/2xl"},
+                                  "children": [
+                                    {
+                                      "id": "1:4457",
+                                      "name": "Link Row",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 852,
+                                      "height": 100,
+                                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["FIXED", "HUG"]
+                                      },
+                                      "layoutAlignSelf": "STRETCH",
+                                      "variables": {"strokes/0/color": "border/border"},
+                                      "children": [
+                                        {
+                                          "id": "1:4458",
+                                          "name": "Created Cell",
+                                          "type": "INSTANCE",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 241,
+                                          "height": 100,
+                                          "component": "Table Cell",
+                                          "componentId": "1:824",
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "FIXED"]
+                                          },
+                                          "layoutGrow": 1,
+                                          "layoutAlignSelf": "STRETCH",
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "texts": ["Jul 28, 2026"]
+                                        },
+                                        {
+                                          "id": "1:4459",
+                                          "name": "Expires Cell",
+                                          "type": "INSTANCE",
+                                          "x": 241,
+                                          "y": 0,
+                                          "width": 241,
+                                          "height": 100,
+                                          "component": "Table Cell",
+                                          "componentId": "1:824",
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "FIXED"]
+                                          },
+                                          "layoutGrow": 1,
+                                          "layoutAlignSelf": "STRETCH",
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "texts": ["Never"]
+                                        },
+                                        {
+                                          "id": "1:4460",
+                                          "name": "Can Start Cell",
+                                          "type": "FRAME",
+                                          "x": 482,
+                                          "y": 0,
+                                          "width": 120,
+                                          "height": 100,
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "FIXED"]
+                                          },
+                                          "layoutAlignSelf": "STRETCH",
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "children": [
+                                            {
+                                              "id": "1:4461",
+                                              "name": "Capability Chip",
+                                              "type": "INSTANCE",
+                                              "x": 16,
+                                              "y": 39,
+                                              "width": 84,
+                                              "height": 22,
+                                              "component": "Chip/Soft/Accent/SM",
+                                              "componentId": "1:1397",
+                                              "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                                              "cornerRadius": 16,
+                                              "layout": {
+                                                "mode": "HORIZONTAL",
+                                                "gap": 2,
+                                                "padding": [2, 4, 2, 4],
+                                                "primary": "MIN",
+                                                "counter": "CENTER",
+                                                "sizing": ["HUG", "HUG"]
+                                              },
+                                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "accent/soft"},
+                                              "texts": ["Can start"]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": "1:4462",
+                                          "name": "Status Cell",
+                                          "type": "FRAME",
+                                          "x": 602,
+                                          "y": 0,
+                                          "width": 110,
+                                          "height": 100,
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "FIXED"]
+                                          },
+                                          "layoutAlignSelf": "STRETCH",
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "children": [
+                                            {
+                                              "id": "1:4463",
+                                              "name": "Status Chip",
+                                              "type": "INSTANCE",
+                                              "x": 16,
+                                              "y": 39,
+                                              "width": 59,
+                                              "height": 22,
+                                              "component": "Chip/Soft/Success/SM",
+                                              "componentId": "1:1790",
+                                              "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
+                                              "cornerRadius": 16,
+                                              "layout": {
+                                                "mode": "HORIZONTAL",
+                                                "gap": 2,
+                                                "padding": [2, 4, 2, 4],
+                                                "primary": "MIN",
+                                                "counter": "CENTER",
+                                                "sizing": ["HUG", "HUG"]
+                                              },
+                                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                                              "texts": ["Active"]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": "1:4464",
+                                          "name": "Action Cell",
+                                          "type": "FRAME",
+                                          "x": 712,
+                                          "y": 0,
+                                          "width": 140,
+                                          "height": 100,
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "FIXED"]
+                                          },
+                                          "layoutAlignSelf": "STRETCH",
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "children": [
+                                            {
+                                              "id": "1:4465",
+                                              "name": "Revoke Button",
+                                              "type": "INSTANCE",
+                                              "x": 16,
+                                              "y": 34,
+                                              "width": 88,
+                                              "height": 32,
+                                              "component": "Gameplane/Button/Small/Danger",
+                                              "componentId": "1:1878",
+                                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                              "layout": {
+                                                "mode": "HORIZONTAL",
+                                                "gap": 0,
+                                                "padding": [0, 0, 0, 0],
+                                                "primary": "CENTER",
+                                                "counter": "CENTER",
+                                                "sizing": ["HUG", "FIXED"]
+                                              },
+                                              "texts": ["Revoke"]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": "1:4466",
+                                      "name": "Link Row",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 100,
+                                      "width": 852,
+                                      "height": 46,
+                                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["FIXED", "HUG"]
+                                      },
+                                      "layoutAlignSelf": "STRETCH",
+                                      "variables": {"strokes/0/color": "border/border"},
+                                      "children": [
+                                        {
+                                          "id": "1:4467",
+                                          "name": "Created Cell",
+                                          "type": "INSTANCE",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 241,
+                                          "height": 41,
+                                          "component": "Table Cell",
+                                          "componentId": "1:824",
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "layoutGrow": 1,
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "texts": ["Jun 1, 2026"]
+                                        },
+                                        {
+                                          "id": "1:4468",
+                                          "name": "Expires Cell",
+                                          "type": "INSTANCE",
+                                          "x": 241,
+                                          "y": 0,
+                                          "width": 241,
+                                          "height": 41,
+                                          "component": "Table Cell",
+                                          "componentId": "1:824",
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "layoutGrow": 1,
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "texts": ["Jun 8, 2026"]
+                                        },
+                                        {
+                                          "id": "1:4469",
+                                          "name": "Can Start Cell",
+                                          "type": "FRAME",
+                                          "x": 482,
+                                          "y": 0,
+                                          "width": 120,
+                                          "height": 46,
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "children": [
+                                            {
+                                              "id": "1:4470",
+                                              "name": "Capability Chip",
+                                              "type": "INSTANCE",
+                                              "x": 16,
+                                              "y": 12,
+                                              "width": 84,
+                                              "height": 22,
+                                              "component": "Chip/Soft/Default/SM",
+                                              "componentId": "1:1002",
+                                              "fills": [{"type": "SOLID", "color": "#232128"}],
+                                              "cornerRadius": 16,
+                                              "layout": {
+                                                "mode": "HORIZONTAL",
+                                                "gap": 2,
+                                                "padding": [2, 4, 2, 4],
+                                                "primary": "MIN",
+                                                "counter": "CENTER",
+                                                "sizing": ["HUG", "HUG"]
+                                              },
+                                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+                                              "texts": ["View only"]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": "1:4471",
+                                          "name": "Status Cell",
+                                          "type": "FRAME",
+                                          "x": 602,
+                                          "y": 0,
+                                          "width": 110,
+                                          "height": 46,
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "children": [
+                                            {
+                                              "id": "1:4472",
+                                              "name": "Status Chip",
+                                              "type": "INSTANCE",
+                                              "x": 16,
+                                              "y": 12,
+                                              "width": 67,
+                                              "height": 22,
+                                              "component": "Chip/Soft/Default/SM",
+                                              "componentId": "1:1002",
+                                              "fills": [{"type": "SOLID", "color": "#232128"}],
+                                              "cornerRadius": 16,
+                                              "layout": {
+                                                "mode": "HORIZONTAL",
+                                                "gap": 2,
+                                                "padding": [2, 4, 2, 4],
+                                                "primary": "MIN",
+                                                "counter": "CENTER",
+                                                "sizing": ["HUG", "HUG"]
+                                              },
+                                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+                                              "texts": ["Expired"]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": "1:4473",
+                                          "name": "Action Cell",
+                                          "type": "INSTANCE",
+                                          "x": 712,
+                                          "y": 0,
+                                          "width": 140,
+                                          "height": 41,
+                                          "component": "Table Cell",
+                                          "componentId": "1:824",
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "texts": ["—"]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": "1:4474",
+                                      "name": "Link Row",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 146,
+                                      "width": 852,
+                                      "height": 46,
+                                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["FIXED", "HUG"]
+                                      },
+                                      "layoutAlignSelf": "STRETCH",
+                                      "variables": {"strokes/0/color": "border/border"},
+                                      "children": [
+                                        {
+                                          "id": "1:4475",
+                                          "name": "Created Cell",
+                                          "type": "INSTANCE",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 241,
+                                          "height": 41,
+                                          "component": "Table Cell",
+                                          "componentId": "1:824",
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "layoutGrow": 1,
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "texts": ["May 12, 2026"]
+                                        },
+                                        {
+                                          "id": "1:4476",
+                                          "name": "Expires Cell",
+                                          "type": "INSTANCE",
+                                          "x": 241,
+                                          "y": 0,
+                                          "width": 241,
+                                          "height": 41,
+                                          "component": "Table Cell",
+                                          "componentId": "1:824",
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "layoutGrow": 1,
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "texts": ["May 19, 2026"]
+                                        },
+                                        {
+                                          "id": "1:4477",
+                                          "name": "Can Start Cell",
+                                          "type": "FRAME",
+                                          "x": 482,
+                                          "y": 0,
+                                          "width": 120,
+                                          "height": 46,
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "children": [
+                                            {
+                                              "id": "1:4478",
+                                              "name": "Capability Chip",
+                                              "type": "INSTANCE",
+                                              "x": 16,
+                                              "y": 12,
+                                              "width": 84,
+                                              "height": 22,
+                                              "component": "Chip/Soft/Accent/SM",
+                                              "componentId": "1:1397",
+                                              "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                                              "cornerRadius": 16,
+                                              "layout": {
+                                                "mode": "HORIZONTAL",
+                                                "gap": 2,
+                                                "padding": [2, 4, 2, 4],
+                                                "primary": "MIN",
+                                                "counter": "CENTER",
+                                                "sizing": ["HUG", "HUG"]
+                                              },
+                                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "accent/soft"},
+                                              "texts": ["Can start"]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": "1:4479",
+                                          "name": "Status Cell",
+                                          "type": "FRAME",
+                                          "x": 602,
+                                          "y": 0,
+                                          "width": 110,
+                                          "height": 46,
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "children": [
+                                            {
+                                              "id": "1:4480",
+                                              "name": "Status Chip",
+                                              "type": "INSTANCE",
+                                              "x": 16,
+                                              "y": 12,
+                                              "width": 67,
+                                              "height": 22,
+                                              "component": "Chip/Soft/Warning/SM",
+                                              "componentId": "1:3082",
+                                              "fills": [{"type": "SOLID", "color": "#F7B75026", "opacity": 0.15}],
+                                              "cornerRadius": 16,
+                                              "layout": {
+                                                "mode": "HORIZONTAL",
+                                                "gap": 2,
+                                                "padding": [2, 4, 2, 4],
+                                                "primary": "MIN",
+                                                "counter": "CENTER",
+                                                "sizing": ["HUG", "HUG"]
+                                              },
+                                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "warning/soft"},
+                                              "texts": ["Revoked"]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": "1:4481",
+                                          "name": "Action Cell",
+                                          "type": "INSTANCE",
+                                          "x": 712,
+                                          "y": 0,
+                                          "width": 140,
+                                          "height": 41,
+                                          "component": "Table Cell",
+                                          "componentId": "1:824",
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "texts": ["—"]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -244,7 +244,7 @@ func TestEndpointsFromService_ClusterIP(t *testing.T) {
 			},
 		},
 	}
-	got := endpointsFromService(svc, addressPlan{})
+	got := endpointsFromService(svc, addressPlan{}, "")
 	if len(got) != 2 || got[0].Host != "10.0.0.5" || got[0].Port != 25565 {
 		t.Fatalf("got %+v", got)
 	}
@@ -259,7 +259,7 @@ func TestEndpointsFromService_NodePort(t *testing.T) {
 			},
 		},
 	}
-	got := endpointsFromService(svc, addressPlan{})
+	got := endpointsFromService(svc, addressPlan{}, "")
 	if got[0].Port != 30001 {
 		t.Fatalf("expected NodePort %d, got %d", 30001, got[0].Port)
 	}
@@ -281,7 +281,7 @@ func TestEndpointsFromService_LoadBalancer(t *testing.T) {
 			},
 		},
 	}
-	got := endpointsFromService(svc, addressPlan{})
+	got := endpointsFromService(svc, addressPlan{}, "")
 	if got[0].Host != "203.0.113.1" {
 		t.Fatalf("got host=%q", got[0].Host)
 	}
@@ -299,7 +299,7 @@ func TestEndpointsFromService_LoadBalancerHostname(t *testing.T) {
 			},
 		},
 	}
-	got := endpointsFromService(svc, addressPlan{})
+	got := endpointsFromService(svc, addressPlan{}, "")
 	if got[0].Host != "elb.example.com" {
 		t.Fatalf("got %q", got[0].Host)
 	}

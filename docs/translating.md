@@ -9,6 +9,21 @@ your work, and when a language shows in the picker.
 Translations are welcome as a partial pack. A pack merges even when it is
 not finished. It stays hidden from users until enough of it is translated.
 
+A message moves from the dashboard source to a language picker along this path:
+
+```mermaid
+flowchart LR
+    A["Dashboard source: intl.formatMessage calls"] --> B["npm run i18n:extract writes locales/en/app.json"]
+    B --> C["Translators: Weblate or a pull request"]
+    C --> D["locales/tag/app.json and meta.json"]
+    D --> E["i18n-check: findings and exit codes"]
+    E -->|accepted entries| F["npm run i18n:compile writes src/generated/i18n/tag.json"]
+    E -->|listed languages| G["npm run i18n:manifest writes languages.json"]
+    F --> H["Dashboard shows English for anything not accepted"]
+    G --> I["Picker lists languages at 80% or more, ltr"]
+    D --> J["i18n/embed.go embeds the packs into the Go catalog used by the API and operator"]
+```
+
 ## Folder layout
 
 ```

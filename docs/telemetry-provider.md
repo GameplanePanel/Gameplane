@@ -23,6 +23,35 @@ project's data-handling statement is at
 The dashboard listener starts only when `DASHBOARD_TOKEN` is set. The
 public listener answers `404` for `/metrics`.
 
+A report travels from an install's reporter, through the checks on the public
+listener, into the daily aggregates that the two listeners read:
+
+```mermaid
+flowchart TD
+    subgraph Install["Install (API telemetry reporter)"]
+        TK["Tick: basic consent on and send slot due"] --> BD["Build report: basic, plus extended when enabled"]
+        BD --> SG["Extended report: sign body"]
+        SG --> PW["Solve proof-of-work when the endpoint asks"]
+    end
+    PW --> IN["POST /ingest on public listener"]
+    IN --> AU{"AUTH_TOKEN set and matched?"}
+    AU -- no --> E1["401"]
+    AU -- yes --> POW{"INGEST_POW off, or challenge solved?"}
+    POW -- no --> E2["428"]
+    POW -- busy --> E2b["503, Retry-After 60"]
+    POW -- yes --> DC["Decode and validate report"]
+    DC --> EX{"Extended part?"}
+    EX -- yes --> VS["Verify signature and install ID claim"]
+    EX -- no --> RL
+    VS -- refused --> E4["403 replay, 409 install ID claimed"]
+    VS -- ok --> RL{"Within INGEST_SOURCE_DAILY_LIMIT?"}
+    RL -- no --> E3["429"]
+    RL -- yes --> AG["Daily aggregates in SQLite"]
+    AG --> DB["Dashboard listener: /api/v1/views, /metrics"]
+    AG --> SM["GET /v1/summary: snapshot, refreshed at most every 5 min"]
+    LC["Hourly lifecycle sweep"] --> AG
+```
+
 ## Deploy the image
 
 The receiver is a single static binary in a distroless, non-root image:

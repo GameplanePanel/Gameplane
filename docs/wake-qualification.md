@@ -133,6 +133,21 @@ The GameServer UID and sleep episode let a replacement operator resume the
 same reservation. A queued game retains its unacknowledged wake token and
 waker. Its `status.idle.reason` reports the capacity wait. When the game
 StatefulSet first has a Ready replica the next waiter can use the slot.
+
+The reservation moves through these states; the diagram omits the wait and retry loops:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Asleep: sleep marker set
+    Asleep --> Requested: sentinel sets wake token
+    Requested --> Queued: fleet limit reached, token kept
+    Queued --> Admitted: a slot is freed
+    Requested --> Admitted: slot available
+    Admitted --> Starting: sleep marker cleared, token acked
+    Starting --> Released: first Ready replica
+    Released --> [*]
+```
+
 Readiness ends startup accounting. Only the game client's completed join
 measures the player objective.
 

@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -43,8 +44,12 @@ func (r *GameServerReconciler) reconcileStatus(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer,
 	idle idleState, idleStatus *gameplanev1alpha1.IdleStatus, idleScheduleErr error, tunnelPlan tunnelPlan,
 	tmpl *gameplanev1alpha1.GameTemplate, svcEvents []corev1.Event, conflictingServer string,
-	hostportConditions ...*metav1.Condition,
+	extras ...statusExtras,
 ) (time.Duration, error) {
+	var extra statusExtras
+	if len(extras) != 0 {
+		extra = extras[0]
+	}
 	// base captures the object as fetched so we can issue a JSON merge
 	// patch of only the fields this reconciler owns. The agent sidecar
 	// concurrently patches status.agent (its heartbeat); a full
@@ -195,11 +200,12 @@ func (r *GameServerReconciler) reconcileStatus(
 
 	// Compute tunnel conditions.
 	gs.Status.Conditions = computeTunnelConditions(gs, tunnelPlan, tunnelDep)
-	if len(hostportConditions) != 0 && hostportConditions[0] != nil {
-		gs.Status.Conditions = applyHostportCondition(gs.Status.Conditions, hostportConditions[0])
+	if extra.hostport != nil {
+		gs.Status.Conditions = applyHostportCondition(gs.Status.Conditions, extra.hostport)
 	} else {
 		gs.Status.Conditions = removeCondition(gs.Status.Conditions, hostportWakeCondition)
 	}
+	gs.Status.Conditions = portAllocationCondition(gs.Status.Conditions, gs, extra.portAllocation)
 
 	// Validate and merge playit tunnel endpoints if present.
 	var playitErr string
@@ -264,9 +270,30 @@ func (r *GameServerReconciler) reconcileStatus(
 
 	// Endpoints: tunnel endpoints come first (when present) so the dashboard's
 	// Connection card reads the address players actually use.
-	if svcExists {
-		gs.Status.Endpoints = endpointsFromService(&svc, addrPlan)
-	} else {
+	unpublished := extra.portAllocation.pooled && !extra.portAllocation.published
+	switch {
+	case unpublished:
+		// A pooled server with no record has no Service, so no address
+		// reaches it, a relay's included, even while its old Service is
+		// still being deleted.
+		gs.Status.Endpoints = nil
+	case gs.Spec.Networking.Expose == "NodePort" && (!svcExists || svc.Spec.Type != corev1.ServiceTypeNodePort):
+		// During creation or an exposure change, old status and the previous
+		// Service type cannot establish which node ports are allocated.
+		gs.Status.Endpoints = nil
+	case svcExists:
+		host := gs.Spec.Networking.Hostname
+		if svc.Spec.Type == corev1.ServiceTypeNodePort && host == "" {
+			var err error
+			host, err = r.nodePortExternalIP(ctx, &svc)
+			if err != nil {
+				// Publish the allocated ports and retry discovery on the normal
+				// status requeue, even when the node can't be read this pass.
+				log.FromContext(ctx).Error(err, "discover NodePort address")
+			}
+		}
+		gs.Status.Endpoints = endpointsFromService(&svc, addrPlan, host)
+	default:
 		// A deleted/replacing Service must not preserve a stale tailnet endpoint
 		// when the forwarding deployment has since lost readiness.
 		var retained []gameplanev1alpha1.GameServerEndpoint
@@ -277,7 +304,7 @@ func (r *GameServerReconciler) reconcileStatus(
 		}
 		gs.Status.Endpoints = retained
 	}
-	if tunnelPlan.wantTunnel && len(tunnelPlan.endpoints) > 0 &&
+	if tunnelPlan.wantTunnel && !unpublished && len(tunnelPlan.endpoints) > 0 &&
 		(gs.Spec.Networking.Tunnel.Provider != "tailscale" || meta.IsStatusConditionTrue(gs.Status.Conditions, "TunnelReady")) {
 		gs.Status.Endpoints = append(tunnelPlan.endpoints, gs.Status.Endpoints...)
 	}
@@ -310,6 +337,7 @@ func (r *GameServerReconciler) reconcileStatus(
 		tunnelPlan:   tunnelPlan,
 		playitErr:    playitErr,
 		idleSchedErr: idleScheduleErr,
+		ports:        extra.portAllocation,
 	})
 
 	if !reflect.DeepEqual(orig, &gs.Status) {
@@ -327,6 +355,13 @@ func (r *GameServerReconciler) reconcileStatus(
 
 // applyHostportCondition preserves the more specific failure already computed
 // for the game while still exposing the independent endpoint diagnostic.
+// statusExtras carries this pass's results that reconcileStatus reports but
+// doesn't compute itself.
+type statusExtras struct {
+	hostport       *metav1.Condition
+	portAllocation portAllocation
+}
+
 func applyHostportCondition(conditions []metav1.Condition, hostport *metav1.Condition) []metav1.Condition {
 	conditions = upsertCondition(conditions, *hostport)
 	ready := meta.FindStatusCondition(conditions, "Ready")
@@ -1311,10 +1346,10 @@ func loadBalancerAddress(svc *corev1.Service) string {
 	return ing.IP
 }
 
-// endpointsFromService lists the per-port externally reachable address
-// for a Service. For ClusterIP we report the cluster IP; for NodePort
-// we report the Service's declared port (the node IP is left to the API
-// layer since the operator doesn't know which node a user will hit).
+// endpointsFromService keeps the Service's assigned address separate from
+// the host players use. A LoadBalancer can advertise a hostname once it has
+// ingress. A NodePort reports only allocated node ports and leaves Host empty
+// until an advertised hostname or a selected node's external IP is known.
 //
 // plan supplies the pool each endpoint's address was drawn from. That name is
 // the pool the operator *requested*, not one the address manager confirmed:
@@ -1329,27 +1364,39 @@ func loadBalancerAddress(svc *corev1.Service) string {
 // was configured to act on, or for one ignored because the expose mode is not
 // LoadBalancer.
 func endpointsFromService(
-	svc *corev1.Service, plan addressPlan,
+	svc *corev1.Service, plan addressPlan, advertisedHost string,
 ) []gameplanev1alpha1.GameServerEndpoint {
-	out := make([]gameplanev1alpha1.GameServerEndpoint, 0, len(svc.Spec.Ports))
-	host := svc.Spec.ClusterIP
+	var out []gameplanev1alpha1.GameServerEndpoint
+	serviceAddress := svc.Spec.ClusterIP
+	host := serviceAddress
 	pool := ""
 	if addr := loadBalancerAddress(svc); addr != "" {
+		serviceAddress = addr
 		host = addr
+		if advertisedHost != "" {
+			host = advertisedHost
+		}
 		if plan.Outcome == addressPlanTranslated {
 			pool = plan.Pool
 		}
+	} else if svc.Spec.Type == corev1.ServiceTypeNodePort {
+		host = advertisedHost
 	}
 	for _, p := range svc.Spec.Ports {
-		ep := gameplanev1alpha1.GameServerEndpoint{
-			Name:     p.Name,
-			Host:     host,
-			Port:     p.Port,
-			Protocol: p.Protocol,
-			Pool:     pool,
+		port := p.Port
+		if svc.Spec.Type == corev1.ServiceTypeNodePort {
+			if p.NodePort == 0 {
+				continue
+			}
+			port = p.NodePort
 		}
-		if svc.Spec.Type == corev1.ServiceTypeNodePort && p.NodePort != 0 {
-			ep.Port = p.NodePort
+		ep := gameplanev1alpha1.GameServerEndpoint{
+			Name:           p.Name,
+			Host:           host,
+			ServiceAddress: serviceAddress,
+			Port:           port,
+			Protocol:       p.Protocol,
+			Pool:           pool,
 		}
 		out = append(out, ep)
 	}

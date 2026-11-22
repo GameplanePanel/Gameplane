@@ -1,280 +1,459 @@
 {
-  "type": "frame",
-  "id": "V1VhGE",
+  "file": "V1VhGE",
+  "id": "1:1095",
+  "name": "Screen/Server Detail — Mods — Install mod (upload)",
+  "type": "FRAME",
   "x": 6560,
   "y": 31670,
-  "name": "Screen/Server Detail — Mods — Install mod (upload)",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "P30bzP",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:1096",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "zw4jw",
+      "id": "1:1097",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "bV6p7",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:1098",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "mc-survival"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "xKqVn",
+          "id": "1:1099",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 16,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 16,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "g2NvK",
-              "type": "ref",
-              "ref": "S4k0x",
+              "id": "1:1100",
               "name": "Detail Header",
-              "width": "fill_container",
-              "descendants": {
-                "UpnRk": {
-                  "content": "minecraft-java · fabric 1.21.4 · ns: gameplane-games · up 3d 4h"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 86,
+              "component": "Gameplane/Server Detail Header",
+              "componentId": "1:447",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 24, 16, 24],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "MI",
+                "mc-survival",
+                "Running",
+                "minecraft-java · fabric 1.21.4 · ns: gameplane-games · up 3d 4h",
+                "Restart",
+                "Stop",
+                "Open console"
+              ]
             },
             {
-              "id": "ghzuK",
-              "type": "ref",
-              "ref": "I9kvlZ",
+              "id": "1:1101",
               "name": "Tabs Bar",
-              "width": "fill_container",
-              "padding": [
-                0,
-                0,
-                0,
-                24
-              ],
-              "descendants": {
-                "Wp6q1": {
-                  "fill": "#00000000"
-                },
-                "Wp6q1/YUR8N": {
-                  "fill": "$muted"
-                },
-                "RfiZy": {
-                  "fill": "$segment"
-                },
-                "RfiZy/VcxMI": {
-                  "fill": "$foreground/segment"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 126,
+              "width": 1132,
+              "height": 40,
+              "component": "Gameplane/Server Detail Tabs",
+              "componentId": "1:466",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+              "texts": [
+                "Overview",
+                "Events",
+                "Console",
+                "Logs",
+                "Files",
+                "Mods",
+                "Modpacks",
+                "Players",
+                "Backups",
+                "Capture",
+                "Settings"
+              ]
             },
             {
-              "type": "frame",
-              "id": "hpc62",
+              "id": "1:1102",
               "name": "Install Header",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 12,
+              "type": "FRAME",
+              "x": 24,
+              "y": 182,
+              "width": 1132,
+              "height": 65,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "eZ0Kh",
+                  "id": "1:1103",
                   "name": "Back Link",
-                  "gap": 4,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 99,
+                  "height": 16,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
                   "children": [
                     {
-                      "type": "icon",
-                      "id": "auotS",
+                      "id": "1:1104",
                       "name": "Back Icon",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 1,
                       "width": 14,
                       "height": 14,
-                      "icon": "arrow-left",
-                      "library": "lucide",
-                      "weight": 400,
-                      "fill": "$muted"
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.92,
+                          "y": 2.92,
+                          "width": 8.17,
+                          "height": 8.17,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1.17
+                        }
+                      ]
                     },
                     {
-                      "type": "text",
-                      "id": "RgvHz",
+                      "id": "1:1105",
                       "name": "Back Label",
-                      "fill": "$muted",
-                      "content": "Installed mods",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 18,
+                      "y": 0,
+                      "width": 81,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Installed mods",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "JcJay",
+                  "id": "1:1106",
                   "name": "Title Row",
-                  "width": "fill_container",
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 28,
+                  "width": 1132,
+                  "height": 37,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "h1XBud",
+                      "id": "1:1107",
                       "name": "Title Col",
-                      "layout": "vertical",
-                      "gap": 2,
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 348,
+                      "height": 37,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 2,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "type": "text",
-                          "id": "iSjY4",
+                          "id": "1:1108",
                           "name": "Page Title",
-                          "fill": "$foreground/foreground",
-                          "content": "Install mods",
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 16,
-                          "fontWeight": "600"
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 94,
+                          "height": 21,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "Install mods",
+                          "font": ["Geist", 600, 16],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "type": "text",
-                          "id": "p65oXc",
+                          "id": "1:1109",
                           "name": "Subtitle",
-                          "fill": "$muted",
-                          "content": "Upload a mod file from your machine into the server’s mods directory.",
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 23,
+                          "width": 348,
+                          "height": 14,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Upload a mod file from your machine into the server’s mods directory.",
+                          "font": ["Geist", 400, 11],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "I2halc",
+                      "id": "1:1110",
                       "name": "Mode Toggle",
-                      "clip": true,
+                      "type": "FRAME",
+                      "x": 854,
+                      "y": 2.5,
+                      "width": 278,
+                      "height": 32,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
                       "cornerRadius": 4,
-                      "stroke": "$border/border",
-                      "strokeWidth": 1,
-                      "strokeAlignment": "inner",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "clips": true,
+                      "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "u5lxq",
+                          "id": "1:1111",
                           "name": "Browse Pill",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 113,
                           "height": 32,
-                          "padding": [
-                            0,
-                            12
-                          ],
-                          "justifyContent": "center",
-                          "alignItems": "center",
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 12, 0, 12],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
                           "children": [
                             {
-                              "type": "text",
-                              "id": "umANw",
+                              "id": "1:1112",
                               "name": "Label",
-                              "fill": "$muted",
-                              "content": "Browse registry",
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 12,
-                              "fontWeight": "500"
+                              "type": "TEXT",
+                              "x": 12,
+                              "y": 8,
+                              "width": 89,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "Browse registry",
+                              "font": ["Geist", 500, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             }
                           ]
                         },
                         {
-                          "type": "frame",
-                          "id": "vppQy",
+                          "id": "1:1113",
                           "name": "URL Pill",
+                          "type": "FRAME",
+                          "x": 113,
+                          "y": 0,
+                          "width": 80,
                           "height": 32,
-                          "stroke": "$border/border",
-                          "strokeWidth": {
-                            "left": 1
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 12, 0, 12],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
                           },
-                          "strokeLinejoin": "round",
-                          "padding": [
-                            0,
-                            12
-                          ],
-                          "justifyContent": "center",
-                          "alignItems": "center",
+                          "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "type": "text",
-                              "id": "I2RYWg",
+                              "id": "1:1114",
                               "name": "Label",
-                              "fill": "$muted",
-                              "content": "From URL",
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 12,
-                              "fontWeight": "500"
+                              "type": "TEXT",
+                              "x": 12,
+                              "y": 8,
+                              "width": 56,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "From URL",
+                              "font": ["Geist", 500, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             }
                           ]
                         },
                         {
-                          "type": "frame",
-                          "id": "U8sfvB",
+                          "id": "1:1115",
                           "name": "Upload Pill",
+                          "type": "FRAME",
+                          "x": 193,
+                          "y": 0,
+                          "width": 85,
                           "height": 32,
-                          "fill": "$surface/secondary",
-                          "stroke": "$border/border",
-                          "strokeWidth": {
-                            "left": 1
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 12, 0, 12],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
                           },
-                          "strokeLinejoin": "round",
-                          "padding": [
-                            0,
-                            12
-                          ],
-                          "justifyContent": "center",
-                          "alignItems": "center",
+                          "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "type": "text",
-                              "id": "T9z4T9",
+                              "id": "1:1116",
                               "name": "Label",
-                              "fill": "$foreground/foreground",
-                              "content": "Upload file",
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 12,
-                              "fontWeight": "500"
+                              "type": "TEXT",
+                              "x": 12,
+                              "y": 8,
+                              "width": 61,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Upload file",
+                              "font": ["Geist", 500, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             }
                           ]
                         }
@@ -285,103 +464,150 @@
               ]
             },
             {
-              "type": "frame",
-              "id": "lo6SC",
+              "id": "1:1117",
               "name": "Upload Dropzone",
-              "width": "fill_container",
+              "type": "FRAME",
+              "x": 24,
+              "y": 263,
+              "width": 1132,
+              "height": 148,
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
               "cornerRadius": 10,
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "strokeAlignment": "inner",
-              "layout": "vertical",
-              "gap": 6,
-              "padding": [
-                40,
-                24
-              ],
-              "justifyContent": "center",
-              "alignItems": "center",
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [40, 24, 40, 24],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "icon",
-                  "id": "TBpMH",
+                  "id": "1:1118",
                   "name": "Upload Icon",
+                  "type": "FRAME",
+                  "x": 554,
+                  "y": 40,
                   "width": 24,
                   "height": 24,
-                  "icon": "upload",
-                  "library": "lucide",
-                  "fill": "$muted"
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 3,
+                      "y": 3,
+                      "width": 18,
+                      "height": 18,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 2
+                    }
+                  ]
                 },
                 {
-                  "type": "text",
-                  "id": "OQj6X",
+                  "id": "1:1119",
                   "name": "Dropzone Title",
-                  "fill": "$foreground/foreground",
-                  "content": "Drop a mod file here, or click to browse",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "500"
+                  "type": "TEXT",
+                  "x": 438.5,
+                  "y": 70,
+                  "width": 255,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Drop a mod file here, or click to browse",
+                  "font": ["Geist", 500, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "Dzo2f",
+                  "id": "1:1120",
                   "name": "Dropzone Hint",
-                  "fill": "$muted",
-                  "content": "Accepted: .jar · lands in the active loader’s mod volume",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 428,
+                  "y": 94,
+                  "width": 276,
+                  "height": 14,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Accepted: .jar · lands in the active loader’s mod volume",
+                  "font": ["Geist", 400, 11],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "m2VHjo",
+              "id": "1:1121",
               "name": "Upload Note",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Uploads are recorded as provider “upload” in the manifest — they’re never update-checked.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 11,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 24,
+              "y": 427,
+              "width": 1132,
+              "height": 14,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "Uploads are recorded as provider “upload” in the manifest — they’re never update-checked.",
+              "font": ["Geist", 400, 11],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "type": "frame",
-              "id": "feLOd",
+              "id": "1:1122",
               "name": "Upload Footer",
-              "width": "fill_container",
-              "gap": 8,
-              "justifyContent": "end",
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 24,
+              "y": 457,
+              "width": 1132,
+              "height": 32,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MAX",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "mNVzY",
-                  "type": "ref",
-                  "ref": "J09iP",
+                  "id": "1:1123",
                   "name": "Btn Cancel",
-                  "descendants": {
-                    "eWkIT/WtPjS": {
-                      "opacity": 0
-                    },
-                    "eWkIT/r4VbAi": {
-                      "content": "Cancel"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 978,
+                  "y": 0,
+                  "width": 82,
+                  "height": 32,
+                  "component": "Gameplane/Button/Small/Ghost",
+                  "componentId": "1:1124",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Cancel"]
                 },
                 {
-                  "id": "QglXH",
-                  "type": "ref",
-                  "ref": "z9ShNE",
+                  "id": "1:1125",
                   "name": "Btn Upload",
-                  "descendants": {
-                    "nWTJb": {
-                      "enabled": false
-                    },
-                    "IVgQ8/U1xvSo": {
-                      "content": "Upload"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 1068,
+                  "y": 0,
+                  "width": 64,
+                  "height": 32,
+                  "component": "Gameplane/Button/Small/Default",
+                  "componentId": "1:709",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Upload"]
                 }
               ]
             }

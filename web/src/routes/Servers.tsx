@@ -31,15 +31,13 @@ import { useMediaQuery } from "@/lib/media";
 import type { GameServer, GameServerPhase, GameTemplate } from "@/types";
 import { Servers, type LifecycleVerb } from "@/lib/endpoints";
 import { countByState } from "@/lib/servers";
+import { connectionAddress } from "@/lib/connectionAddress";
 import { useFleetLocation, Fleet, inventoryTotals, playerCoverage, templateKey, useFleetGameCodes, located, resourceTarget, targetKey, targetLabel, targetSearch, useFleetPlacements, useFleetServerSelection, useFleetServers, type FleetTarget, type Located } from "@/lib/fleet";
 import { FleetCoverage, FleetScopeFilter } from "@/components/FleetScope";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { defineMessages, type MessageDescriptor } from "react-intl";
 
 type FilterKey = "all" | "running" | "stopped";
-
-// Namespace of the shared game-server namespace; a machine value, not copy.
-const DEFAULT_NAMESPACE = "gameplane-games";
 
 const RUNNING_SUB_LABELS = defineMessages({
   ofReturned: { id: "web.routes.servers.of_returned", defaultMessage: "of {count} returned", description: "Servers: sub-label on the Running card when the server list is partial; {count} is the number of returned servers" },
@@ -92,7 +90,7 @@ export function ServersPage() {
   const vcpus = (clusterView?.nodes ?? []).reduce((s, n) => s + (n.cpu?.capacity ?? 0), 0);
   const emptyValue = intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
   const inventoryUnavailable = intl.formatMessage({ id: "web.routes.servers.inventory_unavailable", defaultMessage: "inventory unavailable", description: "Servers: sub-label on the storage and inventory-nodes cards when inventory cannot be read" });
-  const storage = cluster.usedStorageBytes === undefined ? { valueText: emptyValue, subText: inventoryUnavailable, overcommitted: false } : describeStorageProvisioned(cluster.usedStorageBytes, cluster.totalStorageBytes, intl);
+  const storage = cluster.usedStorageBytes === undefined ? { valueText: emptyValue, subText: inventoryUnavailable, overcommitted: false } : describeStorageProvisioned(cluster.usedStorageBytes, cluster.totalStorageBytes, intl, cluster.storageCapacitySource);
 
   // Derive distinct games and namespaces from servers
   const distinctGames = useMemo(() => {
@@ -222,7 +220,7 @@ export function ServersPage() {
             sub={inventory?.partial
               ? intl.formatMessage({ id: "web.routes.servers.returned_inventory_cores", defaultMessage: "returned inventory cores", description: "Servers: sub-label on the vCPUs card when the inventory is partial" })
               : intl.formatMessage({ id: "web.routes.servers.authorized_inventory_cores", defaultMessage: "authorized inventory cores", description: "Servers: sub-label on the vCPUs card" })}
-            accent="warning"
+            accent="violet"
           />
           <StatCard
             label={intl.formatMessage({ id: "web.routes.servers.storage_provisioned", defaultMessage: "Storage provisioned", description: "Servers: label of the summary card with the total provisioned storage; the line under it says whether it covers returned or all authorized inventory" })}
@@ -242,7 +240,7 @@ export function ServersPage() {
                 : inventory?.partial
                   ? intl.formatMessage({ id: "web.routes.servers.returned_nodes_only", defaultMessage: "returned nodes only", description: "Servers: sub-label on the inventory-nodes card when the inventory is partial" })
                   : intl.formatMessage({ id: "web.routes.servers.authorized_inventory_nodes", defaultMessage: "authorized inventory nodes", description: "Servers: sub-label on the inventory-nodes card" })}
-            accent="warning"
+            accent="violet"
           />
         </div>
       )}
@@ -410,9 +408,6 @@ export function ServersPage() {
                           {gs.metadata.name}
                         </Link>
                         <div className="truncate text-xs text-muted">{targetLabel(resourceTarget(gs))}</div>
-                        <div className="text-[11px] text-foreground/60">
-                          {gs.metadata.namespace ?? DEFAULT_NAMESPACE}
-                        </div>
                       </div>
                     </div>
                   </Table.Cell>
@@ -599,9 +594,8 @@ function ServerCard({
   const intl = useOptionalIntl();
   const { phase, asleep, memLabel, playersLabel } = serverRowData(intl, gs);
 
-  // Extract address from the first endpoint, if available
   const endpoint = gs.status?.endpoints?.[0];
-  const address = endpoint ? `${endpoint.host}:${endpoint.port}` : intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
+  const address = connectionAddress(endpoint, gs.spec.networking?.expose) ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
 
   return (
     <Card className="border border-border bg-card p-3.5 shadow-none">

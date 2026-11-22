@@ -83,6 +83,16 @@ cause API downtime. A PDB is not an availability guarantee and does not prevent
 node failures. The persistent telemetry receiver is also a singleton; avoid a
 zero-unavailable budget unless intentionally accepting a blocked drain.
 
+The operator's replica count selects its election and update strategy:
+
+```mermaid
+flowchart TD
+  rep{"operator.replicas > 1 or operator.leaderElect"} -- yes --> le["Leader election on (--leader-elect) and RollingUpdate"]
+  rep -- no --> rc["Single reconciler: Recreate strategy"]
+  rc --> mig{"Upgrade over a RollingUpdate Deployment?"}
+  mig -- yes --> hook["Pre-upgrade hook clears RollingUpdate fields"]
+```
+
 Redundant operator replicas use leader election and rolling updates. The chart
 automatically enables election when replicas exceed one, even when an older
 release retained `leaderElect: false`; upgrades continue rendering and install
@@ -120,6 +130,22 @@ termination grace already configured on their Pods.
 With the NodeRestriction admission plugin, a label key such as
 `gameplane.node-restriction.kubernetes.io/pool` also prevents a kubelet from
 labeling itself as a game worker. Set the configured key and worker taint to match.
+
+With the policy enabled, a game Pod passes through these checks before it can run:
+
+```mermaid
+flowchart TD
+  op["Operator sets pool nodeSelector and exact toleration"] --> sts["Game StatefulSet Pod"]
+  sts --> vap["release.namespace.game-workers ValidatingAdmissionPolicy"]
+  vap --> p1{"Selects the configured pool and has no nodeName on create?"}
+  p1 -- no --> deny["Rejected"]
+  p1 -- yes --> p2{"Resource requests and memory limit within bounds?"}
+  p2 -- no --> deny
+  p2 -- yes --> sched["kube-scheduler"]
+  sched --> ok{"Matching schedulable worker?"}
+  ok -- yes --> run["Pod runs on the game worker pool"]
+  ok -- no --> pending["Pod stays Pending"]
+```
 
 The policy validates effective game resources before workload creation and
 template adoption. The CPU request must fall between the configured bounds.

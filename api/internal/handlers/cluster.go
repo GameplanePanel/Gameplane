@@ -161,14 +161,14 @@ type clusterInfo struct {
 }
 
 type clusterStats struct {
-	Nodes int `json:"nodes"`
-	// TotalStorageBytes is the physical disk the cluster's nodes report
-	// (ephemeral-storage capacity) — the denominator the web client
-	// compares provisioned storage against.
+	Nodes                 int    `json:"nodes"`
+	StorageCapacitySource string `json:"storageCapacitySource"`
+	// TotalStorageBytes is configured pool capacity, or legacy node EPHEMERAL
+	// capacity when no storage-pool annotation is present.
 	TotalStorageBytes int64 `json:"totalStorageBytes"`
 	// UsedStorageBytes is NOT disk usage — Kubernetes exposes no such
 	// metric without a metrics/monitoring pipeline. It is storage
-	// *provisioned*: the capacity of Bound PersistentVolumes, i.e. what has
+	// *provisioned*: Bound PV capacity in the reported storage scope, i.e. what has
 	// been handed out to workloads regardless of how full those volumes
 	// actually are. With networked storage (Ceph, EBS, …) PVs don't come
 	// off node disk, so this can legitimately exceed TotalStorageBytes —
@@ -398,24 +398,16 @@ func (h *clusterHandler) stats(w http.ResponseWriter, req *http.Request) {
 		h.writeError(w, req, err)
 		return
 	}
-	writeJSON(w, clusterStats{
-		Nodes:             len(nodes.Items),
-		TotalStorageBytes: nodeStorageCapacity(nodes.Items),
-		UsedStorageBytes:  boundVolumeBytes(pvs.Items),
-	})
+	stats, err := resolveStorageInventory(req.Context(), h.k, nodes.Items, pvs.Items)
+	if err != nil {
+		h.writeError(w, req, err)
+		return
+	}
+	writeJSON(w, stats)
 }
 
-// nodeStorageCapacity sums the ephemeral-storage capacity each node reports:
-// the physical disk behind the cluster.
-//
-// Measuring "total" as the sum of *all* PersistentVolume capacity — as this
-// once did — makes the storage meter degenerate. Every PV that exists is
-// almost always Bound, so used == total and the meter reads 100% on every
-// install. Nodes give an independent denominator.
-//
-// Caveat: with networked storage (Ceph, EBS) the volumes do not come off the
-// node disks, so provisioned storage can exceed this figure. That reads as
-// >100% — an honest signal of overcommit rather than a silent 100%.
+// nodeStorageCapacity is the legacy node EPHEMERAL denominator, not a
+// measurement of separate data pools. It is used only without pool references.
 func nodeStorageCapacity(nodes []corev1.Node) int64 {
 	var total int64
 	for i := range nodes {

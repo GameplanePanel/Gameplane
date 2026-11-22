@@ -12,6 +12,41 @@ point. Assume:
 - a dashboard user with only `servers:read` must not be able to read game passwords (RCON, admin or server passwords) out of a GameServer,
 - a usage-telemetry receiver is reachable by anyone on the internet, so it must stay safe when fed hostile or invented reports, and must never reveal figures to an unauthenticated viewer (see [Telemetry](#telemetry)).
 
+The main trust boundaries, and the outbound dials that pass a dial-time address guard, are:
+
+```mermaid
+flowchart LR
+  subgraph Internet["Untrusted"]
+    Browser["Dashboard user browser"]
+    Players["Scanners and game players"]
+    Hosts["Mod download hosts"]
+    Steam["api.steampowered.com"]
+    Sinks["Notification sinks (HTTP, SMTP)"]
+    Sources["Module sources (git, http, OCI)"]
+  end
+  subgraph Cluster["Gameplane cluster"]
+    Ingress["Ingress and web (nginx)"]
+    API["API (chi gateway)"]
+    Operator["Operator (controller-runtime)"]
+    K8s["Kubernetes API server"]
+    subgraph Game["Game pod (low-trust)"]
+      Agent["Agent sidecar :8090"]
+      Server["Game process"]
+    end
+  end
+  Browser -->|"HTTPS, session cookie and CSRF header"| Ingress
+  Ingress --> API
+  Players -->|"advertised ports only (NetworkPolicy)"| Server
+  API -->|"ServiceAccount, Kubernetes RBAC"| K8s
+  Operator -->|"reconciles CRDs"| K8s
+  API -->|"mTLS client cert"| Agent
+  Operator -->|"mTLS, agent CA"| Agent
+  Agent -->|"IsPublic guard"| Hosts
+  API -->|"IsPublic guard"| Steam
+  API -->|"IsAllowed guard"| Sinks
+  Operator -->|"IsAllowed guard"| Sources
+```
+
 ## Authentication
 
 ### Snapshot data and namespace storage trust
@@ -55,8 +90,10 @@ Two modes, configurable independently:
   State validated through a short-lived cookie; `id_token` signature
   verified against the provider's JWKS.
 
-On first OIDC login for a subject, Gameplane creates a user row with
-role `viewer`. Admins must promote new OIDC users manually.
+On first OIDC login for a subject, Gameplane creates a user row. Without
+role mappings the role is `viewer` and admins must promote new OIDC users
+manually; with role mappings the role comes from the user's IdP groups (see
+[Install-Time OIDC Role Mappings](#install-time-oidc-role-mappings)).
 
 ### Dashboard-managed providers
 
@@ -108,6 +145,20 @@ loopback and private ranges `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`,
 `192.168.0.0/16`, `169.254.0.0/16`, `::1/128`, `fc00::/7`, `fe80::/10`).
 
 The API applies these rules in order (`api/internal/auth/clientip.go`):
+
+```mermaid
+flowchart TD
+  A["TCP peer address"] --> B{"Peer in api.trustedProxies?"}
+  B -- no --> C["Client = peer, X-Forwarded-For ignored"]
+  B -- yes --> D{"Any X-Forwarded-For entry left?"}
+  D -- no --> E["Client = leftmost address reached"]
+  D -- yes --> F["Take the rightmost unread entry"]
+  F --> G{"Entry is an IP address?"}
+  G -- no --> H["Client = last address reached"]
+  G -- yes --> I{"Entry in api.trustedProxies?"}
+  I -- no --> J["Client = this entry"]
+  I -- yes --> D
+```
 
 1. A TCP peer outside `api.trustedProxies` is the client. Any
    `X-Forwarded-For` header on its request is ignored.
@@ -213,6 +264,24 @@ named set of permissions, and a user is bound to roles **per namespace**.
   The API does this itself rather than relying on foreign-key cascades,
   which the shipped SQLite DSN leaves off. An SSO user who is deleted and
   signs in again is provisioned as a new user.
+
+The middleware decides each request as follows:
+
+```mermaid
+flowchart TD
+  A["Authenticated request"] --> B{"Route in the permission table?"}
+  B -- no --> X["Refused (fail closed)"]
+  B -- yes --> C{"Route needs no permission?"}
+  C -- yes --> OK["Allowed"]
+  C -- no --> D["Resolve cluster (cluster selector) and namespace"]
+  D --> E{"Permission namespaced?"}
+  E -- no --> F{"Cluster-wide binding on any cluster?"}
+  E -- yes --> G{"Cluster-wide or same-namespace binding grants it?"}
+  F -- yes --> OK
+  F -- no --> X
+  G -- yes --> OK
+  G -- no --> X
+```
 
 ### Per-GameServer access (owner + collaborators)
 
@@ -812,10 +881,11 @@ termination is not clean.
 Default timeout budget is ≤30 minutes. Documented exceptions with inline
 justification comments:
 
-- The five e2e jobs in ci.yaml run at 60 minutes (the `e2e-go` job uses a
-  `job_timeout` matrix value; `e2e-multicluster`, `e2e-upgrade`, `e2e-web-live`,
-  `e2e-game-bot` set it directly). E2E test suites on kind clusters are
-  inherently slow; 60 minutes is measured from prior runs.
+- The e2e jobs in ci.yaml run at 45 to 105 minutes: most buckets at 60 or 75 minutes (the `e2e-go` jobs use a
+  `job_timeout` matrix value), `e2e-upgrade` at 85 and `e2e-postgres` at 105.
+  E2E test suites on kind clusters are inherently slow; the budgets are measured
+  from prior runs.
+- **release.yaml**: the `images` job runs at 45 minutes.
 - **publish-edge.yaml**: the `images` job runs at 35 minutes (measured 31-minute
   historical max for full image build and push across all components).
 
@@ -842,8 +912,7 @@ by matching known patterns:
 An important limitation: **redaction is pattern-based and therefore best-effort.**
 A credential in an unrecognised shape — a long hex string, a custom token format,
 or a value buried in a JSON log without a recognisable key — may not be caught.
-No Kubernetes Secret object is ever collected into dumps (`for obj in deployments
-statefulsets daemonsets jobs configmaps`), so high-entropy database passwords and
+No Kubernetes Secret object is ever collected into dumps (the action only runs `kubectl get all -A`, `get jobs`, `describe pods`, pod and container queries, and `logs`, plus `helm history gameplane` when `include-helm-history` is true; none of these read Secrets, but reviewers should inspect the Helm history output like the rest of the dump), so high-entropy database passwords and
 OIDC secrets bound to the pod via Secrets are outside the dump scope entirely.
 
 Operators should: treat CI artifacts as sensitive (not suitable for sharing with
@@ -907,8 +976,8 @@ Anyone can therefore post reports. Defences:
 - only daily aggregates and expiring activity records are stored; raw
   reports and source addresses are never written to disk
 
-`GET /v1/summary` is off unless `PUBLIC_SUMMARY=true`. It returns five
-fixed counts and nothing else: no breakdown, no per-day series, no install
+`GET /v1/summary` is off unless `PUBLIC_SUMMARY=true`. It returns four
+fixed counts plus an as-of timestamp and nothing else: no breakdown, no per-day series, no install
 ID. It is cached and rate-limited so public polling can't degrade ingest.
 
 What this does not stop: someone can invent installs and send fabricated
@@ -1056,7 +1125,7 @@ Secret read. Without the grant, the API omits "used" and the dashboard shows
 
 ## mcp-server (optional)
 
-The optional MCP server [optional] (`mcpServer.enabled`, see [`mcp-server/README.md`](../mcp-server/README.md))
+The optional MCP server [optional] (`mcpServer.enabled`, see [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/main/README.md))
 is strictly read-only — no tool it exposes can create, update, patch,
 delete, or apply anything, enforced structurally (its tool handlers only
 ever hold a client whose exported methods are List/Get-shaped) and by RBAC
@@ -1264,7 +1333,14 @@ To audit what is actually configured, consult the dashboard's `/admin/config` vi
 (`installTimeSettings.oidcHelmProvider` shows the Helm seed, `auth.helmOverride`
 shows any database overrides) rather than relying on Helm values alone.
 
-### Most-Privileged-Match Rule Across Sources
+### Most-Privileged-Match Rule Across Sources (Per-Role Form Only)
+
+This section applies only to the old per-role form (`roleMappings` with admin,
+operator and viewer lists, seeded by Helm and overridden per role). A provider that
+uses the ordered `roleRules` list takes the role of the **first matching rule**
+instead, whatever its privilege (see "Re-evaluation on Every Login" below), and a
+dashboard `helmOverride.roleRules` replaces the whole Helm rule list rather than
+merging per role.
 
 When resolving a user's role, Gameplane matches the user's groups against every
 role's effective mapping (seed + overrides merged) and assigns the **highest
@@ -1284,26 +1360,58 @@ On each OIDC login, Gameplane:
 
 1. Extracts the user's group membership from the OIDC token's group claim (configured
    via `api.oidc.groupsClaim`; defaults to `"groups"`).
-2. Reads the effective role mappings: the Helm-seeded values, merged with any
-   database overrides for each role independently.
-3. Matches the user's groups against the effective mappings to compute their role.
-4. If no role matches, assigns the default role (configured via `api.oidc.defaultRole`;
-   defaults to `viewer`; can be set to `deny` to reject login).
+2. Reads the provider's ordered role rules (`roleRules`, from the dashboard provider
+   or the Helm provider; the old `roleMappings` keys are read as rules in the order
+   admin, operator, viewer).
+3. Takes the role of the first rule whose group the user is in. Any role may be named,
+   built-in or custom. Groups are matched exactly and case-sensitively.
+4. If no rule matches, uses the provider's fallback `defaultRole` (`""` for viewer,
+   `deny` to refuse the sign-in, or any role name).
+5. Looks up the user's stored role source (`sso`, `sso_pending` or `manual`) and applies
+   the result as described below.
 
-This re-evaluation runs whenever the effective role mappings exist: Helm-seeded
-`api.oidc.roleMappings` (at least one non-empty role array), a dashboard
-`helmOverride.roleMappings` overlay (which counts even when the Helm values set
-no mappings), or the mappings of a dashboard-managed provider. If none is
-configured, new OIDC users receive the fixed `viewer` role and existing users'
-roles are never re-evaluated.
+Role source decides whether sign-in may change the stored role:
+
+- **`manual` (set by hand):** an admin set this role on the Users page or through the
+  users API. Sign-in keeps the stored role and never changes it. When the rule result
+  differs from it, or would have refused the sign-in, it is written to the audit log as
+  not applied.
+- **`sso` or `sso_pending`:** the rule result is applied, including demotion when the
+  user has left the mapped groups. `sso_pending` (returned to SSO control, not signed in
+  since) becomes `sso` at this sign-in.
+- **New user:** created with the rule result as its role and source `sso`.
+
+A refused result (fallback `deny`, or a matched rule or fallback that names a role that
+no longer exists) refuses a new or SSO-managed user. The refusal is the same generic
+403 as any other refused sign-in, so the response does not reveal the group, the rule
+or the role. A `manual` user is always let in with their stored role, even when the
+result is a refusal, so a fallback of `deny` cannot lock out a hand-set admin.
+
+An SSO sign-in with mapping on writes one audit event when it changes, keeps or refuses
+a role. The reason has the form:
+
+```
+oidc role decision: provider=<name> rule=<n|default|none> group=<group|-> role=<role|deny> source=<source> result=<result>
+```
+
+`result` is one of `applied`, `unchanged`, `kept_manual`, `admitted_manual`,
+`guard_last_manager`, `refused_deny` or `refused_missing_role`. Refusals are recorded
+with status 403; the others with 200. The event is part of the audit hash chain (see
+"Audit log integrity"). A sign-in whose rule result equals the stored role writes no
+event, as before, except when it moves an `sso_pending` user to `sso`
+(`result=unchanged`).
+
+If no rule and no old-form mapping is configured for a provider, new OIDC users receive
+the fixed `viewer` role and existing users' roles are never re-evaluated.
 
 Two guards prevent lockout during re-evaluation:
 
 - **No lockout rule at login**: If re-evaluating a user's role would remove the
   last user able to manage users (hold the `users:manage` permission), the
   re-evaluation is **not applied** — that user retains their old role and can
-  still manage other users. This prevents an operator from accidentally creating
-  an unrecoverable lockout via an override change.
+  still manage other users. The decision is recorded as `guard_last_manager`. This
+  prevents an operator from accidentally creating an unrecoverable lockout via a rule
+  change.
 - **Break-glass mechanism**: If role mappings are misconfigured such that nobody
   can reach admin, an operator can run the `bootstrap-admin` break-glass command
   to create a local admin account and fix the mappings. Bootstrap-admin and
@@ -1336,14 +1444,16 @@ is recorded in `audit_events` with the matched group name and role transition:
   - Which OIDC provider performed the assignment (`"helm"` for the Helm-seeded provider, otherwise the dashboard-managed provider's name)
   - Which group matched a mapping rule (or `"none"` if no mapping matched)
   - The user's old role (`"new_user"` on first login, or the previous role)
-  - The assigned role (`"viewer"`, `"operator"`, `"admin"`, or `"denied"` if rejected)
+  - The assigned role (any role name, or `"deny"` if rejected)
+  - The user's role source and the result (applied, kept because set by hand,
+    refused, ...); the reason format is given under "Re-evaluation on Every Login"
 
 Examples of what gets logged:
 - First login, matched admin group: user created with admin role from group membership
 - Re-evaluation, no mapping match: role re-evaluated to default role on next login
 - Subsequent login, role upgraded: user's role changed from viewer to operator based on new group membership
 
-Every dashboard change to a role's override — writing a new group list via
+Every dashboard change to a role's old-form override — writing a new group list via
 `PUT /admin/config/auth` or resetting it via `DELETE /admin/config/auth/role-mappings/{role}`
 — is also audited as a configuration change:
 
@@ -1353,23 +1463,35 @@ Every dashboard change to a role's override — writing a new group list via
   - Which admin made the change (from session)
   - The new or reset value (the group list, if changed)
 
+Changes to `roleRules`, `defaultRole` and `helmOverride.roleRules` have no per-role
+event; like every other config write, the `PUT /admin/config/auth` request itself is
+recorded by the API's audit middleware with actor and status. Setting a user's role
+by hand and returning a user to SSO control are `PATCH /users/{id}` requests,
+recorded the same way.
+
 This allows operators to track who changed what mappings and when, and to
 correlate unexpected role assignments with dashboard configuration changes.
 
-### `groupsClaim` and `defaultRole` Are Helm-Only
+### `groupsClaim` Is Helm-Only for the Helm Provider
 
 `api.oidc.groupsClaim` (the claim name from the OIDC token that holds group
-information) and `api.oidc.defaultRole` (the fallback role when no group matches)
-are configured via Helm values only — there is no dashboard write path for either
-in v1.
+information) for the Helm provider is configured via Helm values only — the
+dashboard has no write path for it.
+
+The Helm provider's fallback `api.oidc.defaultRole` can be overridden from the
+dashboard (`helmOverride.defaultRole`, spec 034), together with the rule list
+(`helmOverride.roleRules`). Dashboard-managed providers set their own `groupsClaim`,
+`roleRules` and `defaultRole` in the dashboard.
 
 **Why this matters for security**: An attacker with dashboard admin access can
-override individual role mappings but **cannot** repoint the group claim to a
-different OIDC token field (e.g., changing from `"groups"` to a field they control),
-nor can they change the default role fallback to `"deny"` to lock everyone out. These
-two settings remain under the operator's full control, via Helm values only, and
-require a `helm upgrade` to change — an out-of-band action that can be audited and
-gated by access controls on the cluster itself (e.g., who can run Helm in production).
+change the Helm provider's rules and fallback but **cannot** repoint its group claim
+to a different OIDC token field (e.g., changing from `"groups"` to a field they
+control); that requires a `helm upgrade`, an out-of-band action that can be audited
+and gated by access controls on the cluster itself. Setting the fallback to `"deny"`
+refuses new and SSO-managed users that match no rule, but cannot lock out users whose
+role was set by hand (they are always admitted with their stored role), and
+`bootstrap-admin` remains the break-glass path. Every such change is a
+`PUT /admin/config/auth` recorded in the audit log.
 
 ## Pre-auth screens
 

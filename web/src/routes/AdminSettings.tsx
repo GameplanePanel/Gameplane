@@ -1,3 +1,4 @@
+import { useModRegistrySave, type RegistryChange } from "@/lib/useModRegistrySave";
 import { useInstallation } from "@/lib/useInstallation";
 import { useState, useEffect, useRef, type ChangeEvent, type ComponentType, type ReactNode, type SetStateAction } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -5,7 +6,6 @@ import {
   Bell,
   BellRing,
   CircleHelp,
-  CircleSlash2,
   Cog,
   Flame,
   Gamepad2,
@@ -16,6 +16,7 @@ import {
   Mail,
   Megaphone,
   MessagesSquare,
+  Pencil,
   Plus,
   Puzzle,
   RotateCcw,
@@ -38,28 +39,40 @@ import {
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ConfirmAdminMappingDialog } from "@/components/ui/ConfirmAdminMappingDialog";
-import { RemovableGroupChip } from "@/components/ui/RemovableGroupChip";
 import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
+import {
+  RolePill,
+  RoleRuleList,
+  addedOverrideAdminGroups,
+  RoleRulesEditor,
+  effectiveOverrideFallback,
+  effectiveOverrideRules,
+  fallbackLabel,
+  fallbackRoleLabel,
+  helmRules,
+  isOverrideActive,
+  normalizeAuthForSave,
+  rulesInvalid,
+  useRoleNames,
+} from "@/components/ui/admin/RoleRulesEditor";
 import { SlackIcon } from "@/components/ui/SlackIcon";
 import { SettingsNav, type SettingsSectionKey } from "@/components/ui/SettingsNav";
 import { cn } from "@/lib/utils";
 import { errorTextIntl } from "@/lib/errors";
 import { Telemetry, type TelemetryInfo } from "@/lib/api";
 import { TELEMETRY_STATEMENT_URL } from "@/lib/links";
-import { Auth, AuthProviders, Cluster, ModRegistries, Notifications, type SinkSecretBody } from "@/lib/endpoints";
+import { Auth, AuthProviders, Cluster, Notifications, type SinkSecretBody } from "@/lib/endpoints";
 import { LegacyBackupSettings } from "@/components/clusters/LegacyBackupSettings";
 import { can, useMe } from "@/lib/auth";
 import type { ClusterInfo } from "@/types";
 import {
   useConfig,
   useUpdateConfigSection,
-  useResetRoleMapping,
   type AllConfig,
   type AuthCfg,
-  type AuthDefaultRole,
   type AuthKind,
   type AuthProvider,
-  type AuthRoleMappings,
+  type AuthRoleRule,
   type GeneralCfg,
   type I18nCfg,
   type InstallTimeSettings,
@@ -227,8 +240,13 @@ type StagedSecret = { kind: "write" | "remove"; run: () => Promise<unknown> };
 // rendered SaveStatus, and reset the "Saved" indicator on next edit.
 // Managed-Secret changes are staged with the draft (stageSecret) and
 // applied only by Save, so the stored config and its Secrets change
-// together.
-function useSectionForm<T>(initial: T, section: Parameters<typeof useUpdateConfigSection>[0]) {
+// together. prepare, when given, turns the draft into the body Save sends
+// (the auth section writes old-form role mappings as roleRules).
+function useSectionForm<T>(
+  initial: T,
+  section: Parameters<typeof useUpdateConfigSection>[0],
+  prepare?: (value: T) => T,
+) {
   const [draft, setDraft] = useState<T>(initial);
   const [base, setBase] = useState<T>(initial);
   const [dirty, setDirty] = useState(false);
@@ -330,7 +348,8 @@ function useSectionForm<T>(initial: T, section: Parameters<typeof useUpdateConfi
       setWriting(false);
     }
     const beforeSave = qc.getQueryState(["config"])?.dataUpdateCount ?? 0;
-    mut.mutate(draft as never, {
+    const body = prepare ? prepare(draft) : draft;
+    mut.mutate(body as never, {
       onSuccess: () => {
         for (const c of list) {
           if (c.kind === "remove") void c.run().catch(() => undefined);
@@ -343,8 +362,8 @@ function useSectionForm<T>(initial: T, section: Parameters<typeof useUpdateConfi
         setCommittedAfter(beforeSave);
         const refreshedState = qc.getQueryState<AllConfig>(["config"]);
         const refreshed = refreshedState?.status === "success" && refreshedState.dataUpdateCount > beforeSave
-          ? (refreshedState.data?.[section] ?? draft) as T
-          : draft;
+          ? (refreshedState.data?.[section] ?? body) as T
+          : body;
         setBase(refreshed);
         const unchanged = revision.current === submittedRevision;
         if (unchanged) {
@@ -491,34 +510,14 @@ const defaultAuth: AuthCfg = {
 const providerSecretPrefix = "gameplane-auth-";
 const maxProviderName = 63 - providerSecretPrefix.length;
 
-// Scopes may be space- or comma-separated; group lists are comma-separated
-// only (group names may contain spaces). Both trim entries and drop empties
-// so blank inputs serialize to absent fields, never [""].
+// Scopes may be space- or comma-separated; blank inputs serialize to
+// absent fields, never [""].
 const parseScopes = (raw: string) => raw.split(/[\s,]+/).filter(Boolean);
-const parseGroups = (raw: string) =>
-  raw
-    .split(",")
-    .map((g) => g.trim())
-    .filter(Boolean);
-
-// withoutRoleOverride drops one role's dashboard override from an auth
-// draft: the same change the reset endpoint makes to the stored config,
-// including removing containers left empty.
-function withoutRoleOverride(cfg: AuthCfg, role: "admin" | "operator" | "viewer"): AuthCfg {
-  const mappings: AuthRoleMappings = { ...cfg.helmOverride?.roleMappings };
-  delete mappings[role];
-  const next: AuthCfg = { ...cfg };
-  if (Object.keys(mappings).length > 0) {
-    next.helmOverride = { ...cfg.helmOverride, roleMappings: mappings };
-  } else {
-    delete next.helmOverride;
-  }
-  return next;
-}
 
 function AuthSection({ initial, general, installTimeSettings }: { initial?: AuthCfg; general?: GeneralCfg; installTimeSettings?: InstallTimeSettings }) {
   const intl = useOptionalIntl();
-  const f = useSectionForm<AuthCfg>(initial ?? defaultAuth, "auth");
+  const helmProvider = installTimeSettings?.oidcHelmProvider;
+  const f = useSectionForm<AuthCfg>(initial ?? defaultAuth, "auth", (d) => normalizeAuthForSave(d, helmProvider));
   const [adding, setAdding] = useState(false);
   // Runtime providers reveal whether a Helm-flag ("helm") provider exists;
   // it always counts as enabled and is managed in values.yaml, not here.
@@ -550,6 +549,17 @@ function AuthSection({ initial, general, installTimeSettings }: { initial?: Auth
     f.replace({ ...f.draft, providers: f.draft.providers.filter((_, i) => i !== idx) });
   };
   const me = useMe().data;
+  // FR-015: a save that newly grants admin through the Helm override, from
+  // either Save button of this section, needs an explicit confirmation.
+  const [confirmingAdmin, setConfirmingAdmin] = useState<string[] | null>(null);
+  const saveAuth = () => {
+    const added = addedOverrideAdminGroups(f.draft, initial ?? defaultAuth, helmProvider);
+    if (added.length > 0) {
+      setConfirmingAdmin(added);
+      return;
+    }
+    f.save();
+  };
   return (
     <div className="space-y-6">
       <SectionCard
@@ -564,7 +574,7 @@ function AuthSection({ initial, general, installTimeSettings }: { initial?: Auth
         footer={
           <>
             <SaveStatus pending={f.pending} error={f.error} saved={f.saved} />
-            <Button variant="primary" onPress={f.save} isDisabled={f.pending}>{intl.formatMessage({ id: "web.routes.admin_settings.save_changes", defaultMessage: "Save changes", description: "Admin settings: button that saves the changes in this section; keep it short" })}</Button>
+            <Button variant="primary" onPress={saveAuth} isDisabled={f.pending}>{intl.formatMessage({ id: "web.routes.admin_settings.save_changes", defaultMessage: "Save changes", description: "Admin settings: button that saves the changes in this section; keep it short" })}</Button>
           </>
         }
       >
@@ -651,37 +661,28 @@ function AuthSection({ initial, general, installTimeSettings }: { initial?: Auth
             <Plus className="h-3.5 w-3.5" />{intl.formatMessage({ id: "web.routes.admin_settings.add_provider", defaultMessage: "Add provider", description: "Admin settings: button that opens the form to add an identity provider, and the button in that form that submits it; keep it short" })}</Button>
         )}
       </SectionCard>
-      {installTimeSettings?.oidcHelmProvider && (
-        <HelmOIDCProviderCard provider={installTimeSettings.oidcHelmProvider} />
-      )}
-      {can(me, "config:manage") && (
-        <RoleMappingOverridesCard
-          initial={f.draft}
-          installTimeSettings={installTimeSettings}
+      {helmProvider && <HelmOIDCProviderCard provider={helmProvider} />}
+      {can(me, "config:manage") && (helmProvider || isOverrideActive(f.draft.helmOverride)) && (
+        <RoleRuleOverrideCard
+          draft={f.draft}
+          helm={helmProvider}
           onUpdate={f.replace}
-          onResetDone={(role) => f.acceptReset((d) => withoutRoleOverride(d, role))}
-          onResetError={f.fail}
-          formState={{ pending: f.pending, error: f.error, saved: f.saved }}
-          onSave={f.save}
+          pending={f.pending}
+          onSave={saveAuth}
         />
       )}
-    </div>
-  );
-}
-
-/**
- * Inline warning banner shown in AddProviderForm when admin groups are entered.
- * Alerts the user to the security implications of mapping admin group membership.
- */
-function AdminGroupsInlineWarning() {
-  const intl = useOptionalIntl();
-  return (
-    <div className="rounded-md border border-warning-soft-foreground bg-warning-soft p-3 flex gap-3">
-      <Megaphone className="h-4 w-4 text-warning-soft-foreground flex-shrink-0 mt-0.5" />
-      <div className="text-xs">
-        <div className="font-medium text-warning-soft-foreground mb-1">{intl.formatMessage({ id: "web.routes.admin_settings.full_admin_access", defaultMessage: "Full admin access", description: "Admin settings: warning heading shown when groups are about to be mapped to the admin role" })}</div>
-        <p className="text-warning-soft-foreground">{intl.formatMessage({ id: "web.routes.admin_settings.groups_added_here_will_be_mapped_to_the", defaultMessage: "Groups added here will be mapped to the admin role and get full cluster control from their next login. You'll be asked to confirm before this is saved.", description: "Admin settings: warning text explaining that groups added here get full cluster control from their next login and must be confirmed before saving" })}</p>
-      </div>
+      {/* T030: admin mapping confirmation for the Helm override */}
+      <ConfirmAdminMappingDialog
+        open={confirmingAdmin !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmingAdmin(null);
+        }}
+        adminGroups={confirmingAdmin ?? []}
+        onConfirm={() => {
+          setConfirmingAdmin(null);
+          f.save();
+        }}
+      />
     </div>
   );
 }
@@ -706,20 +707,17 @@ function AddProviderForm({
   const [clientSecret, setClientSecret] = useState("");
   const [scopes, setScopes] = useState("");
   const [groupsClaim, setGroupsClaim] = useState("");
-  const [adminGroups, setAdminGroups] = useState("");
-  const [operatorGroups, setOperatorGroups] = useState("");
-  const [viewerGroups, setViewerGroups] = useState("");
-  const [defaultRole, setDefaultRole] = useState<AuthDefaultRole | "">("");
+  // Spec 034: ordered group → role rules and the fallback ("" = viewer).
+  const [rules, setRules] = useState<AuthRoleRule[]>([]);
+  const [fallback, setFallback] = useState("");
   const [confirmingAdmin, setConfirmingAdmin] = useState(false);
+  const roles = useRoleNames();
 
-
-  // Role-mapping lists, parsed live so the Default role select can unlock
-  // as soon as any mapping exists (the API rejects defaultRole without
-  // roleMappings).
-  const adminList = parseGroups(adminGroups);
-  const operatorList = parseGroups(operatorGroups);
-  const viewerList = parseGroups(viewerGroups);
-  const hasMappings = adminList.length + operatorList.length + viewerList.length > 0;
+  // Trimmed as saved. No rules means mapping off, so neither roleRules nor
+  // defaultRole is sent (the API refuses defaultRole without rules).
+  const cleanRules = rules.map((r) => ({ group: r.group.trim(), role: r.role }));
+  const hasRules = cleanRules.length > 0;
+  const adminList = cleanRules.filter((r) => r.role === "admin").map((r) => r.group);
 
   // Presets prefill what they can: Google is a real OIDC issuer;
   // github.com publishes no OIDC discovery for user login, so that kind
@@ -737,7 +735,8 @@ function AddProviderForm({
   const dns = /^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$/;
   const nameOk =
     dns.test(name) && name !== "helm" && name.length <= maxProviderName && !existing.includes(name);
-  const valid = nameOk && /^https?:\/\/.+/.test(issuer) && clientID !== "" && clientSecret !== "";
+  const valid = nameOk && /^https?:\/\/.+/.test(issuer) && clientID !== "" && clientSecret !== ""
+    && !rulesInvalid(rules, hasRules ? fallback : "", roles.names, roles.loaded);
 
   // The clientSecret is written by the section's Save, just before the
   // provider row that references it; nothing is stored before then.
@@ -755,24 +754,16 @@ function AddProviderForm({
         configRef: providerSecretPrefix + name,
         ...(scopeList.length > 0 ? { scopes: scopeList } : {}),
         ...(claim ? { groupsClaim: claim } : {}),
-        ...(hasMappings
-          ? {
-              roleMappings: {
-                ...(adminList.length > 0 ? { admin: adminList } : {}),
-                ...(operatorList.length > 0 ? { operator: operatorList } : {}),
-                ...(viewerList.length > 0 ? { viewer: viewerList } : {}),
-              },
-            }
-          : {}),
-        ...(hasMappings && defaultRole ? { defaultRole } : {}),
+        ...(hasRules ? { roleRules: cleanRules } : {}),
+        ...(hasRules && fallback ? { defaultRole: fallback } : {}),
       },
       clientSecret,
     );
     onClose();
   };
 
-  // Handle submit button click — if admin groups exist and not yet confirmed,
-  // show confirmation dialog; otherwise proceed with submit
+  // Handle submit button click — if a rule grants admin and it is not yet
+  // confirmed, show the confirmation dialog; otherwise proceed with submit
   const handleSubmitClick = () => {
     if (adminList.length > 0 && !confirmingAdmin) {
       setConfirmingAdmin(true);
@@ -866,64 +857,16 @@ function AddProviderForm({
           </Description>
         </TextField>
       </div>
-      <div className="space-y-3 border-t border-border pt-3">
-        <div>
-          <div className="text-sm font-medium">{intl.formatMessage({ id: "web.routes.admin_settings.role_mapping", defaultMessage: "Role mapping", description: "Admin settings: heading of the part of the provider form that maps identity-provider groups to dashboard roles" })}</div>
-          <p className="pt-0.5 text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.map_idp_groups_comma_separated_to", defaultMessage: "Map IdP groups (comma-separated) to dashboard roles. A user's highest matching role wins (admin > operator > viewer), and roles re-sync on every login while any mapping is set.", description: "Admin settings: explanation under the role mapping heading: comma-separated IdP groups map to dashboard roles, the highest match wins and roles resync on each login" })}</p>
-        </div>
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="flex flex-col gap-3">
-            <TextField>
-              <Label className="text-xs">{intl.formatMessage({ id: "web.routes.admin_settings.admin_groups", defaultMessage: "Admin groups", description: "Admin settings: label of the field listing the identity-provider groups that map to the admin role" })}</Label>
-              <HeroInput
-                placeholder={intl.formatMessage({ id: "web.routes.admin_settings.gameplane_admins", defaultMessage: "gameplane-admins", description: "Admin settings: grey example group name inside the admin groups field, shown only while it is empty" })}
-                value={adminGroups}
-                onChange={(e) => setAdminGroups(e.target.value)}
-              />
-            </TextField>
-            {adminList.length > 0 && <AdminGroupsInlineWarning />}
-          </div>
-          <TextField>
-            <Label className="text-xs">{intl.formatMessage({ id: "web.routes.admin_settings.operator_groups", defaultMessage: "Operator groups", description: "Admin settings: label of the field listing the identity-provider groups that map to the operator role" })}</Label>
-            <HeroInput
-              placeholder={intl.formatMessage({ id: "web.routes.admin_settings.gameplane_operators", defaultMessage: "gameplane-operators", description: "Admin settings: grey example group name inside the operator groups field, shown only while it is empty" })}
-              value={operatorGroups}
-              onChange={(e) => setOperatorGroups(e.target.value)}
-            />
-          </TextField>
-          <TextField>
-            <Label className="text-xs">{intl.formatMessage({ id: "web.routes.admin_settings.viewer_groups", defaultMessage: "Viewer groups", description: "Admin settings: label of the field listing the identity-provider groups that map to the viewer role" })}</Label>
-            <HeroInput
-              placeholder={intl.formatMessage({ id: "web.routes.admin_settings.gameplane_viewers", defaultMessage: "gameplane-viewers", description: "Admin settings: grey example group name inside the viewer groups field, shown only while it is empty" })}
-              value={viewerGroups}
-              onChange={(e) => setViewerGroups(e.target.value)}
-            />
-          </TextField>
-          <TextField>
-            <Label className="text-xs">{intl.formatMessage({ id: "web.routes.admin_settings.default_role", defaultMessage: "Default role", description: "Admin settings: label for the default role, the role given to users whose groups match no mapping; also a row label in the Helm provider details" })}</Label>
-            <Select
-              aria-label={intl.formatMessage({ id: "web.routes.admin_settings.default_role", defaultMessage: "Default role", description: "Admin settings: label for the default role, the role given to users whose groups match no mapping; also a row label in the Helm provider details" })}
-              selectedKey={defaultRole}
-              onSelectionChange={(key) => setDefaultRole((key ?? "") as AuthDefaultRole | "")}
-              isDisabled={!hasMappings}
-            >
-              <Select.Trigger className="w-full rounded border border-border bg-surface px-3 py-2 text-sm hover:bg-surface/80">
-                <Select.Value />
-                <Select.Indicator className="ml-auto h-4 w-4" />
-              </Select.Trigger>
-              <Select.Popover className="rounded border border-border">
-                <ListBox aria-label={intl.formatMessage({ id: "web.routes.admin_settings.default_role", defaultMessage: "Default role", description: "Admin settings: label for the default role, the role given to users whose groups match no mapping; also a row label in the Helm provider details" })}>
-                  <ListBoxItem id="">{intl.formatMessage({ id: "web.routes.admin_settings.no_mapping", defaultMessage: "(no mapping)", description: "Admin settings: first option in the default role dropdown, meaning no default role is set; keep it short" })}</ListBoxItem>
-                  <ListBoxItem id="viewer">{intl.formatMessage({ id: "web.routes.admin_settings.viewer", defaultMessage: "Viewer", description: "Admin settings: option in the default role dropdown for the viewer role; keep it short" })}</ListBoxItem>
-                  <ListBoxItem id="operator">{intl.formatMessage({ id: "web.routes.admin_settings.operator", defaultMessage: "Operator", description: "Admin settings: option in the default role dropdown for the operator role; keep it short" })}</ListBoxItem>
-                  <ListBoxItem id="admin">{intl.formatMessage({ id: "web.routes.admin_settings.admin", defaultMessage: "Admin", description: "Admin settings: option in the default role dropdown for the admin role; keep it short" })}</ListBoxItem>
-                  <ListBoxItem id="deny">{intl.formatMessage({ id: "web.routes.admin_settings.deny_sign_in", defaultMessage: "Deny sign-in", description: "Admin settings: option in the default role dropdown that refuses sign-in when no group matches; keep it short" })}</ListBoxItem>
-                </ListBox>
-              </Select.Popover>
-            </Select>
-            <Description className="text-[11px]">{intl.formatMessage({ id: "web.routes.admin_settings.applied_when_no_group_matches_deny_sign", defaultMessage: "Applied when no group matches. “Deny sign-in” refuses logins without a mapped group.", description: "Admin settings: hint under the default role dropdown explaining the default applies when no group matches, and that Deny sign-in refuses such logins" })}</Description>
-          </TextField>
-        </div>
+      <div className="border-t border-border pt-3">
+        <RoleRulesEditor
+          rules={rules}
+          onRulesChange={setRules}
+          fallback={fallback}
+          onFallbackChange={setFallback}
+          roleNames={roles.names}
+          rolesLoaded={roles.loaded}
+          fallbackDisabled={!hasRules}
+        />
       </div>
       <div className="flex justify-end gap-2 pt-1">
         <Button variant="ghost" onPress={onClose}>{intl.formatMessage({ id: "web.routes.admin_settings.cancel", defaultMessage: "Cancel", description: "Admin settings: button that closes an add or set form without saving; keep it short" })}</Button>
@@ -947,12 +890,6 @@ function AddProviderForm({
   );
 }
 
-const defaultModRegistries: ModRegistriesCfg = { registries: [] };
-
-// The managed-Secret name the API derives for a provider's key (mirrors
-// registryKeySecretPrefix / DefaultKeySecretName in api/internal/registry/keys.go).
-const registryKeySecretPrefix = "gameplane-modreg-";
-
 // Keyed providers only: curseforge, steam, and nexus need an admin-set API
 // key and stay hidden from the Mods browser until one exists (mirrors
 // registry.KeyedProviders server-side). The icon is purely decorative, one
@@ -964,37 +901,34 @@ const keyedRegistryProviders: Array<{ provider: KeyedRegistryProvider; label: st
 ];
 
 function SetRegistryKeyForm({
-  provider,
+  pending,
   label,
   replacing,
-  onSaved,
+  onSave,
   onClose,
 }: {
-  provider: KeyedRegistryProvider;
+  pending: boolean;
   label: string;
   replacing: boolean;
-  onSaved: (entry: ModRegistryEntry, apiKey: string) => void;
+  onSave: (apiKey: string) => void;
   onClose: () => void;
 }) {
   const intl = useOptionalIntl();
   const [apiKey, setApiKey] = useState("");
 
-  // The key is written by the section's Save, just before the registries
-  // row that references it; nothing is stored before then. The key itself
-  // is never displayed — this input only ever writes, and the server never
-  // echoes the value.
-  const submit = () => {
-    onSaved({ provider, configRef: registryKeySecretPrefix + provider }, apiKey);
-    onClose();
-  };
-
+  // Keep the write-only value until the complete save succeeds. The parent
+  // unmounts this form on success, clearing the key without ever displaying it.
   return (
-    <div className="space-y-3 rounded-md border border-border bg-surface/30 p-4">
+    <form className="space-y-3 rounded-md border border-border bg-surface/30 p-4" onSubmit={(event) => {
+      event.preventDefault();
+      if (!pending && apiKey.trim() !== "") onSave(apiKey);
+    }}>
       <div className="text-sm font-medium">
         {replacing ? intl.formatMessage({ id: "web.routes.admin_settings.replace_verb", defaultMessage: "Replace", description: "Admin settings: verb on the button that replaces a stored API key" }) : intl.formatMessage({ id: "web.routes.admin_settings.set_verb", defaultMessage: "Set", description: "Admin settings: verb on the button that sets an API key for the first time" })} {intl.formatMessage({ id: "web.routes.admin_settings.api_key_label", defaultMessage: "API key — {label}", description: "Admin settings: sentence with label in div" }, { label: label })}</div>
       <Field label={intl.formatMessage({ id: "web.routes.admin_settings.api_key", defaultMessage: "API key", description: "Admin settings: label of the API key field in the dialog that sets the key for a module registry" })}>
         <HeroInput
           type="password"
+          disabled={pending}
           autoFocus
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
@@ -1002,54 +936,54 @@ function SetRegistryKeyForm({
         />
       </Field>
       <div className="flex justify-end gap-2 pt-1">
-        <Button variant="ghost" onPress={onClose}>{intl.formatMessage({ id: "web.routes.admin_settings.cancel", defaultMessage: "Cancel", description: "Admin settings: button that closes an add or set form without saving; keep it short" })}</Button>
-        <Button isDisabled={apiKey.trim() === ""} onPress={submit}>{intl.formatMessage({ id: "web.routes.admin_settings.save", defaultMessage: "Save", description: "Admin settings: button that saves the module registry API key; keep it short" })}</Button>
+        <Button type="button" variant="ghost" isDisabled={pending} onPress={onClose}>{intl.formatMessage({ id: "web.routes.admin_settings.cancel", defaultMessage: "Cancel", description: "Admin settings: button that closes an add or set form without saving; keep it short" })}</Button>
+        <Button type="submit" isDisabled={pending || apiKey.trim() === ""}>{intl.formatMessage({ id: "web.routes.admin_settings.save", defaultMessage: "Save", description: "Admin settings: button that saves the module registry API key; keep it short" })}</Button>
       </div>
-    </div>
+    </form>
   );
 }
 
 function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
   const intl = useOptionalIntl();
-  const f = useSectionForm<ModRegistriesCfg>(initial ?? defaultModRegistries, "modRegistries");
-  const [editing, setEditing] = useState<KeyedRegistryProvider | null>(null);
+  const save = useModRegistrySave();
+  const saving = useRef(false);
+  const [editing, setEditing] = useState<{ provider: KeyedRegistryProvider; expected?: ModRegistryEntry } | null>(null);
+  const entryFor = (provider: KeyedRegistryProvider) => initial?.registries.find((entry) => entry.provider === provider);
 
-  const entryFor = (p: KeyedRegistryProvider) => f.draft.registries.find((r) => r.provider === p);
-
-  const removeEntry = (provider: KeyedRegistryProvider) => {
-    const entry = entryFor(provider);
-    // The API-managed key Secret is removed only by the Save that drops
-    // this row; the server refuses Secrets it didn't create.
-    if (!entry?.configRef || entry.configRef === registryKeySecretPrefix + provider) {
-      f.stageSecret(`registry:${provider}`, {
-        kind: "remove",
-        run: () => ModRegistries.deleteSecret(provider),
-      });
+  const openEditor = (provider: KeyedRegistryProvider) => {
+    save.reset();
+    setEditing({ provider, expected: entryFor(provider) });
+  };
+  const persist = async (change: RegistryChange) => {
+    // Block repeated events before the pending mutation renders disabled controls.
+    if (saving.current) return;
+    saving.current = true;
+    try {
+      await save.mutateAsync(change);
+      setEditing(null);
+    } catch {
+      // SaveStatus renders the mutation error; retain the form and entered key.
+    } finally {
+      saving.current = false;
     }
-    f.replace({ ...f.draft, registries: f.draft.registries.filter((r) => r.provider !== provider) });
   };
 
   return (
     <SectionCard
       title={intl.formatMessage({ id: "web.routes.admin_settings.mod_registries", defaultMessage: "Mod registries", description: "Admin settings: title of the Mod registries card that lists mod registries which may need an API key; keep it short" })}
       subtitle={intl.formatMessage({ id: "web.routes.admin_settings.registries_that_require_an_api_key_stay", defaultMessage: "Registries that require an API key stay hidden from the Mods browser until a key is configured.", description: "Admin settings: subtitle under Mod registries: registries that need an API key stay hidden from the Mods browser until a key is set" })}
-      footer={
-        <>
-          <SaveStatus pending={f.pending} error={f.error} saved={f.saved} />
-          <Button onPress={f.save} isDisabled={f.pending}>{intl.formatMessage({ id: "web.routes.admin_settings.save_changes", defaultMessage: "Save changes", description: "Admin settings: button that saves the changes in this section; keep it short" })}</Button>
-        </>
-      }
+      footer={<SaveStatus pending={save.isPending} error={save.error ? errorTextIntl(intl, save.error) : null} saved={save.isSuccess} />}
     >
       <ul className="divide-y divide-border">
         {keyedRegistryProviders.map(({ provider, label, icon: Icon }) => {
           const entry = entryFor(provider);
           const configured = Boolean(entry);
           return (
-            <li key={provider} className="flex items-center gap-3 py-3">
+            <li key={provider} className="flex flex-wrap items-center gap-3 py-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-surface">
                 <Icon className="h-4 w-4 text-muted" />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-28 flex-1">
                 <div className="text-sm">{label}</div>
                 <div className="truncate text-xs text-muted">
                   {configured ? intl.formatMessage({ id: "web.routes.admin_settings.active_in_mods_browser", defaultMessage: "Active in the Mods browser", description: "Admin settings: registry status when a key is configured and the provider shows in the Mods browser" }) : intl.formatMessage({ id: "web.routes.admin_settings.hidden_from_mods_browser", defaultMessage: "Hidden from the Mods browser", description: "Admin settings: registry status when no key is configured and the provider is hidden from the Mods browser" })}
@@ -1064,14 +998,14 @@ function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
                 {configured ? intl.formatMessage({ id: "web.routes.admin_settings.configured", defaultMessage: "Configured", description: "Admin settings: badge on a mod registry whose API key is set" }) : intl.formatMessage({ id: "web.routes.admin_settings.not_configured", defaultMessage: "Not configured", description: "Admin settings: badge on a mod registry whose API key is not set" })}
               </span>
-              {editing !== provider && (
+              {editing?.provider !== provider && (
                 configured ? (
                   <>
-                    <Button variant="primary" size="sm" onPress={() => setEditing(provider)}>{intl.formatMessage({ id: "web.routes.admin_settings.replace", defaultMessage: "Replace", description: "Admin settings: button on a configured module registry that opens the dialog to replace its API key; keep it short" })}</Button>
-                    <Button variant="danger" size="sm" onPress={() => removeEntry(provider)}>{intl.formatMessage({ id: "web.routes.admin_settings.remove", defaultMessage: "Remove", description: "Admin settings: button that removes the API key entry of a module registry; keep it short" })}</Button>
+                    <Button variant="primary" size="sm" isDisabled={save.isPending || editing !== null} onPress={() => openEditor(provider)}>{intl.formatMessage({ id: "web.routes.admin_settings.replace", defaultMessage: "Replace", description: "Admin settings: button on a configured module registry that opens the dialog to replace its API key; keep it short" })}</Button>
+                    <Button variant="danger" size="sm" isDisabled={save.isPending || editing !== null} onPress={() => { void persist({ kind: "remove", provider, expected: entry }); }}>{intl.formatMessage({ id: "web.routes.admin_settings.remove", defaultMessage: "Remove", description: "Admin settings: button that removes the API key entry of a module registry; keep it short" })}</Button>
                   </>
                 ) : (
-                  <Button variant="primary" size="sm" onPress={() => setEditing(provider)}>{intl.formatMessage({ id: "web.routes.admin_settings.set_api_key", defaultMessage: "Set API key", description: "Admin settings: button on an unconfigured module registry that opens the dialog to add its API key; keep it short" })}</Button>
+                  <Button variant="primary" size="sm" isDisabled={save.isPending || editing !== null} onPress={() => openEditor(provider)}>{intl.formatMessage({ id: "web.routes.admin_settings.set_api_key", defaultMessage: "Set API key", description: "Admin settings: button on an unconfigured module registry that opens the dialog to add its API key; keep it short" })}</Button>
                 )
               )}
             </li>
@@ -1080,20 +1014,12 @@ function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
       </ul>
       {editing && (
         <SetRegistryKeyForm
-          provider={editing}
-          label={keyedRegistryProviders.find((p) => p.provider === editing)?.label ?? editing}
-          replacing={Boolean(entryFor(editing))}
-          onSaved={(entry, apiKey) => {
-            f.stageSecret(`registry:${entry.provider}`, {
-              kind: "write",
-              run: () => ModRegistries.putSecret(entry.provider, apiKey),
-            });
-            f.replace({
-              ...f.draft,
-              registries: [...f.draft.registries.filter((r) => r.provider !== entry.provider), entry],
-            });
-          }}
-          onClose={() => setEditing(null)}
+          key={editing.provider}
+          pending={save.isPending}
+          label={keyedRegistryProviders.find((provider) => provider.provider === editing.provider)?.label ?? editing.provider}
+          replacing={Boolean(editing.expected)}
+          onSave={(apiKey) => { void persist({ kind: "set", provider: editing.provider, expected: editing.expected, apiKey }); }}
+          onClose={() => { setEditing(null); save.reset(); }}
         />
       )}
       <p className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.always_available_modrinth_thunderstore", defaultMessage: "Always available: Modrinth, Thunderstore, Hangar, Factorio, Spigot, GitHub, uMod", description: "Admin settings: note under the registry list naming the registries that need no key; the names are product names, usually left untranslated" })}</p>
@@ -1958,16 +1884,17 @@ function AboutSection() {
   );
 }
 
-// T023: Read-only Helm-seeded OIDC provider display (from installTimeSettings.oidcHelmProvider)
+// T023 / spec 034: read-only Helm-seeded OIDC provider (installTimeSettings.oidcHelmProvider),
+// its rules listed in order (design UdnBT).
 function HelmOIDCProviderCard({ provider }: { provider: OIDCHelmProvider }) {
   const intl = useOptionalIntl();
-  const hasRoleMappings = provider.roleMappings && Object.keys(provider.roleMappings).length > 0;
-  const adminMapped = provider.roleMappings?.admin && provider.roleMappings.admin.length > 0;
+  const rules = helmRules(provider);
+  const adminRules = rules.flatMap((r, i) => (r.role === "admin" ? [i + 1] : []));
   return (
     <SectionCard
       className="gap-0 space-y-0 p-0"
       title={intl.formatMessage({ id: "web.routes.admin_settings.helm_seeded_oidc_provider", defaultMessage: "Helm-seeded OIDC provider", description: "Admin settings: title of the card showing the OIDC provider set up through Helm values (OIDC: technical term, usually left untranslated)" })}
-      subtitle={intl.formatMessage({ id: "web.routes.admin_settings.read_only_snapshot_of_the_identity", defaultMessage: "Read-only snapshot of the identity provider configured via api.oidc.* Helm values at install time. Connection settings are not editable here; role mappings can be overridden below.", description: "Admin settings: subtitle under the Helm-seeded provider title: a read-only snapshot taken at install time; role mappings can be overridden below" })}
+      subtitle={intl.formatMessage({ id: "web.routes.admin_settings.helm_card_subtitle_rules", defaultMessage: "Read-only snapshot of the identity provider configured via api.oidc.* Helm values at install time. Connection settings are not editable here; the role rules can be overridden below.", description: "Admin settings: subtitle under the Helm-seeded provider title: a read-only snapshot taken at install time; the role rules can be overridden in the card below" })}
       titleClassName="text-sm font-medium"
       subtitleClassName="text-sm"
       headerClassName="px-5 pt-5 pb-4 space-y-1"
@@ -1976,61 +1903,29 @@ function HelmOIDCProviderCard({ provider }: { provider: OIDCHelmProvider }) {
       <div>
         <div className="space-y-0.5 pb-1">
           <div className="font-medium text-sm">{intl.formatMessage({ id: "web.routes.admin_settings.provider", defaultMessage: "Provider", description: "Admin settings: heading of the provider details block in the Helm-seeded card; keep it short" })}</div>
-          <p className="text-[11px] text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.groups_claim_and_default_role_are", defaultMessage: "Groups claim and default role are seeded from the same Helm values and are not editable here.", description: "Admin settings: note under the provider heading: groups claim and default role come from Helm values and cannot be edited here" })}</p>
+          <p className="text-[11px] text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.helm_card_not_editable_rules", defaultMessage: "Groups claim, rules and fallback come from the same Helm values and are not editable here.", description: "Admin settings: note under the provider heading of the Helm card: the groups claim, role rules and fallback role come from Helm values and cannot be edited here" })}</p>
         </div>
         <div className="flex items-center justify-between py-2">
           <span className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.groups_claim", defaultMessage: "Groups claim", description: "Admin settings: row label for the groups claim in the Helm provider details; keep it short" })}</span>
           <span className="font-mono text-xs font-medium text-foreground">{provider.groupsClaim}</span>
         </div>
         <div className="flex items-center justify-between py-2">
-          <span className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.default_role", defaultMessage: "Default role", description: "Admin settings: label for the default role, the role given to users whose groups match no mapping; also a row label in the Helm provider details" })}</span>
-          <span className="rounded-full px-1 py-0.5 text-[11px] font-mono font-medium bg-default text-default-foreground">
-            {provider.defaultRole}
-          </span>
+          <span className="text-xs text-muted">{fallbackRoleLabel(intl)}</span>
+          <RolePill role={fallbackLabel(intl, provider.defaultRole)} />
         </div>
-        {hasRoleMappings ? (
-          <div className="space-y-2.5 pt-2">
-            <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.helm_seeded_role_mappings", defaultMessage: "Helm-seeded role mappings", description: "Admin settings: label above the role mappings seeded from Helm values" })}</div>
-            {["admin", "operator", "viewer"].map((role) => {
-              const groups = provider.roleMappings?.[role as keyof typeof provider.roleMappings];
-              return (
-                <div key={role} className="flex items-center gap-3">
-                  <span className="text-xs font-medium w-[70px] flex-shrink-0 capitalize">{role}</span>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {groups && groups.length > 0 ? (
-                      groups.map((group) => (
-                        <span
-                          key={group}
-                          className={cn(
-                            "rounded-full px-1 py-0.5 text-[11px] font-mono font-medium",
-                            role === "admin" && "bg-warning-soft text-warning-soft-foreground",
-                            role === "operator" && "bg-accent-soft text-accent-soft-foreground",
-                            role === "viewer" && "bg-default text-default-foreground",
-                          )}
-                        >
-                          {group}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-muted italic">{intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="rounded-md border border-border bg-surface/50 p-4 space-y-2">
-            <div className="font-medium text-sm">{intl.formatMessage({ id: "web.routes.admin_settings.no_oidc_role_mappings_yet", defaultMessage: "No OIDC role mappings yet", description: "Admin settings: heading shown when the OIDC provider has no role mappings yet; the text below says how to add them" })}</div>
-            <p className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.every_oidc_user_currently_signs_in_with", defaultMessage: "Every OIDC user currently signs in with the {defaultRole} default role. Two ways to change that: add mappings in Role mapping overrides below — they apply from the next login, with no restart or Helm re-run — or seed them at install time with api.oidc.roleMappings.admin / .operator / .viewer in your Helm values.", description: "Admin settings: sentence with defaultRole in p" }, { defaultRole: provider.defaultRole })}</p>
-          </div>
-        )}
-        {adminMapped && (
+        <div className="space-y-2.5 pt-2">
+          <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.helm_rules", defaultMessage: "Helm rules", description: "Admin settings: label above the ordered role rules seeded from Helm values; keep it short" })}</div>
+          <RoleRuleList
+            rules={rules}
+            label={intl.formatMessage({ id: "web.routes.admin_settings.helm_rules", defaultMessage: "Helm rules", description: "Admin settings: label above the ordered role rules seeded from Helm values; keep it short" })}
+          />
+        </div>
+        {adminRules.length > 0 && (
           <div className="mt-3 rounded-lg border border-warning-soft-foreground bg-warning-soft px-4 py-3 flex gap-4">
             <Megaphone className="h-4 w-4 text-warning-soft-foreground flex-shrink-0 mt-0.5" />
             <div className="text-sm">
               <div className="font-medium text-warning-soft-foreground mb-1">{intl.formatMessage({ id: "web.routes.admin_settings.helm_configured_admin_mapping", defaultMessage: "Helm-configured admin mapping", description: "Admin settings: warning heading shown when the admin role is mapped through Helm values" })}</div>
-              <p className="text-warning-soft-foreground">{intl.formatMessage({ id: "web.routes.admin_settings.the_group_s_on_the_admin_row_above_were", defaultMessage: "The group(s) on the Admin row above were mapped to admin via Helm values, not the dashboard, so there is no confirmation step here. Verify they contain only trusted accounts — anyone in them gets full admin access.", description: "Admin settings: warning text: the groups on the Admin row were mapped to admin through Helm, so there is no confirmation step; check they hold only trusted accounts" })}</p>
+              <p className="text-warning-soft-foreground">{intl.formatMessage({ id: "web.routes.admin_settings.helm_admin_rules_warning", defaultMessage: "{count, plural, one {Rule {rules} above grants admin through Helm values, not the dashboard, so there is no confirmation step here. Verify the group contains only trusted accounts — anyone in it gets full admin access.} other {Rules {rules} above grant admin through Helm values, not the dashboard, so there is no confirmation step here. Verify the groups contain only trusted accounts — anyone in them gets full admin access.}}", description: "Admin settings: warning under the Helm rules: the listed rules grant admin through Helm, so there is no confirmation step; {rules} is the rule numbers, such as 1 or 1, 3; {count} is how many rules" }, { count: adminRules.length, rules: adminRules.join(", ") })}</p>
             </div>
           </div>
         )}
@@ -2039,268 +1934,104 @@ function HelmOIDCProviderCard({ provider }: { provider: OIDCHelmProvider }) {
   );
 }
 
-// T024: Role mapping overrides card
-function RoleMappingOverridesCard({
-  initial,
-  installTimeSettings,
+// Spec 034 (OD-3): the dashboard override replaces the whole Helm rule list
+// and fallback. Before an override the card shows the Helm values read-only
+// with "Override" (design mrF6f); with one it shows the rule editor and
+// "Reset to Helm default" (design UdnBT). Reset only changes the draft;
+// "Save role rules" (the same save as the section's Save changes, admin
+// confirmation included) writes it.
+function RoleRuleOverrideCard({
+  draft,
+  helm,
   onUpdate,
-  onResetDone,
-  onResetError,
-  formState,
+  pending,
   onSave,
 }: {
-  initial: AuthCfg;
-  installTimeSettings?: InstallTimeSettings;
+  draft: AuthCfg;
+  helm?: OIDCHelmProvider;
   onUpdate: (cfg: AuthCfg) => void;
-  onResetDone: (role: "admin" | "operator" | "viewer") => void;
-  onResetError: (message: string) => void;
-  formState: { pending: boolean; error: string | null; saved: boolean };
+  pending: boolean;
   onSave: () => void;
 }) {
   const intl = useOptionalIntl();
-  const [adminInput, setAdminInput] = useState("");
-  const [operatorInput, setOperatorInput] = useState("");
-  const [viewerInput, setViewerInput] = useState("");
-  const [confirmingRole, setConfirmingRole] = useState<string | null>(null);
-  const [pendingGroups, setPendingGroups] = useState<string[]>([]);
-  const resetMutation = useResetRoleMapping();
+  const roles = useRoleNames();
+  const active = isOverrideActive(draft.helmOverride);
+  const rules = effectiveOverrideRules(draft.helmOverride, helm);
+  const fallback = effectiveOverrideFallback(draft.helmOverride, helm);
 
-  const helmMappings = installTimeSettings?.oidcHelmProvider?.roleMappings;
-
-  const getRoleMapping = (role: "admin" | "operator" | "viewer") => {
-    return initial.helmOverride?.roleMappings?.[role];
+  const setOverride = (nextRules: AuthRoleRule[], nextFallback: string) =>
+    onUpdate({ ...draft, helmOverride: { roleRules: nextRules, defaultRole: nextFallback } });
+  const startOverride = () => setOverride(helmRules(helm), helm?.defaultRole ?? "");
+  const reset = () => {
+    const next: AuthCfg = { ...draft };
+    delete next.helmOverride;
+    onUpdate(next);
   };
 
-  const getProvenance = (role: "admin" | "operator" | "viewer"): "overridden" | "fromHelm" | "notConfigured" => {
-    const hasOverride = initial.helmOverride?.roleMappings && role in initial.helmOverride.roleMappings;
-    if (hasOverride) return "overridden";
-    if (helmMappings) return "fromHelm";
-    return "notConfigured";
-  };
-
-  const getRoleVariant = (role: "admin" | "operator" | "viewer"): "secondary" | "orange" | "violet" => {
-    if (role === "admin") return "orange";
-    if (role === "operator") return "violet";
-    return "secondary";
-  };
-
-  const getRoleGroups = (role: "admin" | "operator" | "viewer"): string[] => {
-    const override = getRoleMapping(role);
-    if (override !== undefined) return override;
-    return helmMappings?.[role] || [];
-  };
-
-  const handleAddGroup = (role: "admin" | "operator" | "viewer", group: string) => {
-    const trimmed = group.trim();
-    if (!trimmed) return;
-
-    // Check if it's trying to add an admin mapping - if so, show confirmation
-    if (role === "admin" && !confirmingRole) {
-      setConfirmingRole(role);
-      setPendingGroups([...getRoleGroups(role), trimmed]);
-      return;
-    }
-
-    const current = getRoleGroups(role);
-    if (current.includes(trimmed)) return;
-
-    const newMapping = [...current, trimmed];
-    const newOverride = {
-      ...initial.helmOverride,
-      roleMappings: {
-        ...initial.helmOverride?.roleMappings,
-        [role]: newMapping,
-      },
-    };
-    onUpdate({
-      ...initial,
-      helmOverride: newOverride,
-    });
-
-    if (role === "admin") setAdminInput("");
-    else if (role === "operator") setOperatorInput("");
-    else setViewerInput("");
-  };
-
-  const handleRemoveGroup = (role: "admin" | "operator" | "viewer", group: string) => {
-    const current = getRoleGroups(role);
-    const newMapping = current.filter((g) => g !== group);
-    const newOverride = {
-      ...initial.helmOverride,
-      roleMappings: {
-        ...initial.helmOverride?.roleMappings,
-        [role]: newMapping,
-      },
-    };
-    onUpdate({
-      ...initial,
-      helmOverride: newOverride,
-    });
-  };
-
-  // A reset removes the stored override. Dropping it from the section
-  // draft as well keeps the card on the Helm value and keeps a later save
-  // from writing the override back. A failure shows in the section's save
-  // status and leaves the draft as it was.
-  const handleReset = (role: "admin" | "operator" | "viewer") => {
-    resetMutation.mutate(role, {
-      onSuccess: () => onResetDone(role),
-      onError: (err) => onResetError(errorTextIntl(intl, err, intl.formatMessage({ id: "web.routes.admin_settings.reset_failed", defaultMessage: "Reset failed", description: "Admin settings: fallback error when resetting a role mapping fails" }))),
-    });
-  };
-
-  const handleConfirmAdminMapping = () => {
-    if (confirmingRole === "admin" && pendingGroups.length > 0) {
-      const newOverride = {
-        ...initial.helmOverride,
-        roleMappings: {
-          ...initial.helmOverride?.roleMappings,
-          admin: pendingGroups,
-        },
-      };
-      onUpdate({
-        ...initial,
-        helmOverride: newOverride,
-      });
-    }
-    setConfirmingRole(null);
-    setPendingGroups([]);
-    setAdminInput("");
-  };
+  const invalid = active && rulesInvalid(rules, fallback, roles.names, roles.loaded);
 
   return (
-    <>
-      <SectionCard
-        title={intl.formatMessage({ id: "web.routes.admin_settings.role_mapping_overrides", defaultMessage: "Role mapping overrides", description: "Admin settings: title of the card where role mappings can be overridden per role in the dashboard; keep it short" })}
-        subtitle={intl.formatMessage({ id: "web.routes.admin_settings.override_the_helm_seeded_oidc_group", defaultMessage: "Override the Helm-seeded OIDC group mappings per role from here. A change takes effect the next time an affected user logs in — no restart or reinstall needed.", description: "Admin settings: subtitle under Role mapping overrides: change the Helm-seeded group mappings per role; changes apply at the next login without a restart" })}
-        className="bg-card gap-0 space-y-0 p-0"
-        titleClassName="text-sm font-medium"
-        subtitleClassName="text-sm"
-        headerClassName="px-5 pt-5 pb-4 space-y-1"
-        contentClassName="px-5 pb-5 space-y-4"
-        footerClassName="px-5 pt-2 pb-5 justify-between"
-        footer={
-          <div className="flex items-center justify-between w-full">
-            <p className="text-[11px] text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.saved_changes_take_effect_on_next_login", defaultMessage: "Saved changes take effect on next login for affected users — no restart or reinstall needed.", description: "Admin settings: footer note of the role mapping overrides card: saved changes apply at the next login for affected users, with no restart needed" })}</p>
-            <div className="flex gap-2">
-              {/* No SaveStatus here: this card shares f.error/f.saved with the
-                  Authentication card above (same useSectionForm, same PUT), whose
-                  own footer already renders it. Duplicating it here means the exact
-                  same text (e.g. a save error) appears twice in the DOM, breaking
-                  any singular getByText/findByText query for it — see the
-                  "surfaces a backend rejection when saving the auth section" test. */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-[13px] font-medium"
-                onPress={onSave}
-                isDisabled={formState.pending}
-              >{intl.formatMessage({ id: "web.routes.admin_settings.save_role_mappings", defaultMessage: "Save role mappings", description: "Admin settings: button that saves the role mapping overrides; keep it short" })}</Button>
-            </div>
-          </div>
-        }
-      >
-        <div className="space-y-3.5">
-          {["admin", "operator", "viewer"].map((role) => {
-            const typedRole = role as "admin" | "operator" | "viewer";
-            const groups = getRoleGroups(typedRole);
-            const hasOverride =
-              initial.helmOverride?.roleMappings && typedRole in initial.helmOverride.roleMappings;
-            const input =
-              typedRole === "admin" ? adminInput : typedRole === "operator" ? operatorInput : viewerInput;
-            const setInput =
-              typedRole === "admin"
-                ? setAdminInput
-                : typedRole === "operator"
-                  ? setOperatorInput
-                  : setViewerInput;
-
-            return (
-              <div key={role} role="group" aria-label={intl.formatMessage({ id: "web.routes.admin_settings.role_mapping_group", defaultMessage: "{role} role mapping", description: "Admin settings: accessible name of the group for one role's mapping; {role} is the capitalized role name" }, { role: role.charAt(0).toUpperCase() + role.slice(1) })}>
-                {role !== "admin" && <div className="mb-4 h-px bg-border" />}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-semibold capitalize">{role}</span>
-                      <ProvenanceBadge type={getProvenance(typedRole)} size="sm" />
-                    </div>
-                    {hasOverride && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-[13px] font-medium"
-                        aria-label={intl.formatMessage({ id: "web.routes.admin_settings.reset_helm_default_role", defaultMessage: "Reset to Helm default ({role} role mapping)", description: "Admin settings: accessible name of the button that resets one role's mapping to the Helm default; {role} is the role name" }, { role })}
-                        onPress={() => handleReset(typedRole)}
-                        isDisabled={resetMutation.isPending}
-                      >
-                        <RotateCcw className="h-3.5 w-3.5 mr-1.5" />{intl.formatMessage({ id: "web.routes.admin_settings.reset_to_helm_default", defaultMessage: "Reset to Helm default", description: "Admin settings: button that resets one role's mapping to the Helm default; keep it short" })}</Button>
-                    )}
-                  </div>
-
-                  {groups.length > 0 ? (
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {groups.map((group) => (
-                        <RemovableGroupChip
-                          key={group}
-                          label={group}
-                          variant={getRoleVariant(typedRole)}
-                          onRemove={() => handleRemoveGroup(typedRole, group)}
-                          size="md"
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-border text-xs italic text-muted">
-                      <CircleSlash2 className="h-3.5 w-3.5" />{intl.formatMessage({ id: "web.routes.admin_settings.no_groups_mapped_nobody_signs_in_as", defaultMessage: "No groups mapped — nobody signs in as {role} via OIDC.", description: "Admin settings: sentence with role in div" }, { role: role })}</div>
-                  )}
-
-                  <div className="flex items-center gap-2">
-                    <div className="w-[250px] shrink-0">
-                      <HeroInput
-                        type="text"
-                        placeholder={intl.formatMessage({ id: "web.routes.admin_settings.add_idp_group_name", defaultMessage: "Add IdP group name…", description: "Admin settings: grey placeholder inside the field where an identity-provider group name is typed to add it to a role" })}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddGroup(typedRole, input);
-                          }
-                        }}
-                        className="h-8 text-[13px]"
-                      />
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      aria-label={intl.formatMessage({ id: "web.routes.admin_settings.add_group", defaultMessage: "Add group", description: "Admin settings: accessible name of the button that adds the typed group to a role; keep it short" })}
-                      onPress={() => handleAddGroup(typedRole, input)}
-                      isDisabled={!input.trim()}
-                      className="h-8 gap-1 text-[13px] font-medium"
-                    >
-                      <Plus className="h-3.5 w-3.5" />{intl.formatMessage({ id: "web.routes.admin_settings.add", defaultMessage: "Add", description: "Admin settings: button that adds the typed group to the role; keep it short" })}</Button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+    <SectionCard
+      title={intl.formatMessage({ id: "web.routes.admin_settings.role_rule_override", defaultMessage: "Role rule override", description: "Admin settings: title of the card where the Helm provider's role rules can be replaced from the dashboard; keep it short" })}
+      subtitle={active
+        ? intl.formatMessage({ id: "web.routes.admin_settings.role_rule_override_subtitle_active", defaultMessage: "Overrides the whole Helm rule list and fallback. A change takes effect the next time an affected user signs in — no restart or reinstall needed.", description: "Admin settings: subtitle of the Role rule override card while an override is set: it replaces the Helm rules and fallback, and changes apply at the next sign-in" })
+        : intl.formatMessage({ id: "web.routes.admin_settings.role_rule_override_subtitle_helm", defaultMessage: "Overrides the whole Helm rule list and fallback. Until you override, sign-in uses the Helm values shown here.", description: "Admin settings: subtitle of the Role rule override card before any override: sign-in uses the Helm values shown in the card" })}
+      className="bg-card gap-0 space-y-0 p-0"
+      titleClassName="text-sm font-medium"
+      subtitleClassName="text-sm"
+      headerClassName="px-5 pt-5 pb-4 space-y-1"
+      contentClassName="px-5 pb-5 space-y-4"
+      footerClassName="px-5 pt-2 pb-5 justify-between"
+      footer={active ? (
+        <div className="flex items-center justify-between w-full">
+          <p className="text-[11px] text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.saved_changes_take_effect_at_next_sign_in", defaultMessage: "Saved changes take effect at each user's next sign-in.", description: "Admin settings: footer note of the Role rule override card: saved changes apply when each user next signs in" })}</p>
+          {/* No SaveStatus here: this card shares f.error/f.saved with the
+              Authentication card above (same useSectionForm, same PUT), whose
+              own footer already renders it. Duplicating it here means the exact
+              same text (e.g. a save error) appears twice in the DOM, breaking
+              any singular getByText/findByText query for it — see the
+              "surfaces a backend rejection when saving the auth section" test. */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-[13px] font-medium"
+            onPress={onSave}
+            isDisabled={pending || invalid}
+          >{intl.formatMessage({ id: "web.routes.admin_settings.save_role_rules", defaultMessage: "Save role rules", description: "Admin settings: button that saves the Helm role rule override; keep it short" })}</Button>
         </div>
-      </SectionCard>
-
-      {/* T030: Admin mapping confirmation dialog */}
-      <ConfirmAdminMappingDialog
-        open={confirmingRole === "admin"}
-        onOpenChange={(open) => {
-          if (!open) {
-            setConfirmingRole(null);
-            setPendingGroups([]);
-            setAdminInput("");
-          }
-        }}
-        adminGroups={pendingGroups}
-        onConfirm={handleConfirmAdminMapping}
-      />
-    </>
+      ) : undefined}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <ProvenanceBadge type={active ? "overridden" : "fromHelm"} size="sm" />
+        {active ? (
+          <Button variant="outline" size="sm" className="gap-1.5 text-[13px] font-medium" onPress={reset}>
+            <RotateCcw className="h-3.5 w-3.5" />{intl.formatMessage({ id: "web.routes.admin_settings.reset_override_to_helm_default", defaultMessage: "Reset to Helm default", description: "Admin settings: button that removes the dashboard override of the Helm role rules, so sign-in uses the Helm values again; keep it short" })}</Button>
+        ) : (
+          <Button variant="outline" size="sm" className="gap-1.5 text-[13px] font-medium" onPress={startOverride}>
+            <Pencil className="h-3.5 w-3.5" />{intl.formatMessage({ id: "web.routes.admin_settings.override", defaultMessage: "Override", description: "Admin settings: button that starts a dashboard override of the Helm role rules, filled with the Helm values; keep it short" })}</Button>
+        )}
+      </div>
+      {active ? (
+        <RoleRulesEditor
+          rules={rules}
+          onRulesChange={(next) => setOverride(next, fallback)}
+          fallback={fallback}
+          onFallbackChange={(next) => setOverride(rules, next)}
+          roleNames={roles.names}
+          rolesLoaded={roles.loaded}
+        />
+      ) : (
+        <div className="space-y-2 opacity-70">
+          <RoleRuleList
+            rules={rules}
+            label={intl.formatMessage({ id: "web.routes.admin_settings.helm_rules", defaultMessage: "Helm rules", description: "Admin settings: label above the ordered role rules seeded from Helm values; keep it short" })}
+          />
+          <div className="flex items-center justify-between py-1">
+            <span className="text-xs text-muted">{fallbackRoleLabel(intl)}</span>
+            <RolePill role={fallbackLabel(intl, fallback)} />
+          </div>
+        </div>
+      )}
+    </SectionCard>
   );
 }
-

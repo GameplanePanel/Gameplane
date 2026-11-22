@@ -604,9 +604,11 @@ func (h fleetHandler) readInventory(ctx context.Context, c fleetCluster) (*fleet
 	}
 	// Version is optional in clusterView. Discovery.ServerVersion has no
 	// context argument, so fleet reads omit it rather than break their deadline.
-	return &fleetInventory{Cluster: c.id, Name: name, View: view, Stats: clusterStats{
-		Nodes: len(nodes.Items), TotalStorageBytes: nodeStorageCapacity(nodes.Items), UsedStorageBytes: boundVolumeBytes(pvs.Items),
-	}}, nil
+	stats, err := resolveStorageInventory(ctx, c.k, nodes.Items, pvs.Items)
+	if err != nil {
+		return nil, fleetSafeIssue(c.id, "", fleetErrorCode(err))
+	}
+	return &fleetInventory{Cluster: c.id, Name: name, View: view, Stats: stats}, nil
 }
 
 func (h fleetHandler) serverAccess(w http.ResponseWriter, req *http.Request) {

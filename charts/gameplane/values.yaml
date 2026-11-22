@@ -156,6 +156,21 @@ operator:
   # MetalLB event. "metallb-system" is MetalLB's own install convention, not
   # a contract, hence configurable.
   metalLBNamespace: metallb-system
+  # Port pools: ranges of Service ports on one shared public endpoint, such
+  # as a relay or an edge that forwards ports to the cluster, for games whose
+  # clients send no hostname and so need ports of their own behind one
+  # address. Every server of a listed template gets a contiguous block of the
+  # pool, one port per advertised port, recorded in its
+  # gameplane.local/pool-ports annotation and kept for the server's life. A
+  # (protocol, port) pair goes to one server, whatever its template. Servers'
+  # explicit servicePort overrides are reserved too, and refused when another
+  # server holds the port. Shrinking a range leaves existing servers their
+  # ports; keep forwarding them. A template draws from at most one pool. See docs/networking.md#port-pools. Example:
+  #   portPools:
+  #     - name: edge
+  #       ports: "2456-2499"
+  #       templates: [valheim, factorio]
+  portPools: []
   # Tunnel provider images: relay binaries wrapped in OCI images for reaching
   # players through relay services when the cluster has no public IP or port-
   # forwarding. Each wraps a third-party relay binary (frpc, tailscaled, playit)
@@ -481,11 +496,25 @@ api:
     # if empty or omitted. Examples: "groups", "roles", "membership",
     # "department".
     groupsClaim: ""
-    # Default role when no group matches. Helm-only, no dashboard override
-    # path exists for this field. Accepted values: "" (default to "viewer"),
-    # "viewer", "operator", "admin", "deny". "deny" = reject login (no user
-    # created/updated). Only meaningful if roleMappings is set.
+    # Fallback when no group rule matches (only meaningful when roleRules or
+    # roleMappings is set). Helm-only for this value unless an admin sets a
+    # dashboard override. "" = viewer, "deny" = reject the login (no user
+    # created or updated), or the name of any role, built-in or custom. The
+    # role is looked up at sign-in; a missing role refuses the login.
     defaultRole: ""
+    # Ordered group-to-role rules for the synthetic "helm" provider. The first
+    # rule whose group the user is in decides the role. Group names are
+    # matched exactly (case-sensitive) and may contain spaces or commas.
+    # role is any role name, built-in or custom. Cannot be combined with
+    # roleMappings below: setting both fails the render. Passed to the API as
+    # one JSON flag, --oidc-role-rules.
+    # Example:
+    #   - group: gameplane-admins
+    #     role: admin
+    #   - group: gameplane login only
+    #     role: login-only
+    roleRules: []
+    # Old per-role form (kept for one release; prefer roleRules above).
     # Group-to-role mapping, seeded at install/upgrade time. Defines which
     # IdP groups map to which dashboard roles for the synthetic "helm"
     # provider. If omitted/empty, role mapping is disabled (new OIDC users
@@ -843,7 +872,7 @@ defaultModuleSource:
     # own cluster). Bump this ref only in lockstep with a chart release that
     # was actually tested against the matching module-repo tag. Set to
     # "main" explicitly if you want the bleeding edge instead.
-    ref: v0.4.0
+    ref: v0.4.1
     subPath: ""           # module directories live at the repo root
   oci:
     url: ghcr.io/gameplanepanel/gameplane-modules

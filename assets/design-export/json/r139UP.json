@@ -1,227 +1,565 @@
 {
-  "type": "frame",
-  "id": "r139UP",
+  "file": "r139UP",
+  "id": "1:9500",
+  "name": "Screen/Standalone — System logs",
+  "type": "FRAME",
   "x": 1640,
   "y": 73032,
-  "name": "Screen/Standalone — System logs",
-  "context": "PR #630 standalone installation. No local Kubernetes metadata or local workload fallback. Master-key storage and offline rotation have no dashboard controls.",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "WWoii",
-      "type": "ref",
-      "ref": "kKFX9",
-      "height": "fill_container",
-      "descendants": {
-        "BuhAS": {
-          "content": "Central management"
-        },
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "zV6Z5": {
-          "fill": "$accent/soft"
-        },
-        "zV6Z5/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "zV6Z5/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "id": "1:9501",
+      "name": "Gameplane/App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "Central management",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "bR7V9",
+      "id": "1:9502",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "GFROW",
-          "type": "ref",
-          "ref": "gu5WY",
-          "width": "fill_container",
-          "descendants": {
-            "VzGni": {
-              "type": "frame",
-              "id": "i0bjE",
-              "name": "Breadcrumbs",
-              "gap": 8,
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "AFgeH",
-                  "name": "crumbRoot",
-                  "fill": "$muted",
-                  "content": "gameplane",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "icon",
-                  "id": "hxYAU",
-                  "name": "crumbSep",
-                  "width": 14,
-                  "height": 14,
-                  "icon": "chevron-right",
-                  "library": "lucide",
-                  "fill": "$muted"
-                },
-                {
-                  "type": "text",
-                  "id": "u2AU5",
-                  "name": "crumbMid",
-                  "fill": "$muted",
-                  "content": "Settings",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "icon",
-                  "id": "trGtl",
-                  "name": "crumbSep",
-                  "width": 14,
-                  "height": 14,
-                  "icon": "chevron-right",
-                  "library": "lucide",
-                  "fill": "$muted"
-                },
-                {
-                  "type": "text",
-                  "id": "SXXoW",
-                  "name": "crumbPage",
-                  "fill": "$foreground/foreground",
-                  "content": "System logs",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "500"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "type": "frame",
-          "id": "cI7TE",
-          "name": "Central management notice",
-          "width": "fill_container",
-          "fill": "$surface/surface",
-          "stroke": "$border/border",
-          "strokeWidth": {
-            "bottom": 1
+          "id": "1:9503",
+          "name": "Gameplane/Top Bar",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
           },
-          "layout": "vertical",
-          "padding": [
-            12,
-            24
-          ],
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
           "children": [
             {
-              "type": "text",
-              "id": "MILE7",
-              "name": "Central management scope",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Central management. This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s cluster.",
-              "lineHeight": 1.5,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 14,
-              "fontWeight": "normal"
+              "id": "1:9504",
+              "name": "Breadcrumbs",
+              "type": "FRAME",
+              "x": 32,
+              "y": 23,
+              "width": 266,
+              "height": 18,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "id": "1:9505",
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 72,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "gameplane",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "id": "1:9506",
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 80,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "id": "1:9507",
+                  "name": "crumbMid",
+                  "type": "TEXT",
+                  "x": 102,
+                  "y": 0,
+                  "width": 53,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Settings",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "id": "1:9508",
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 163,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "id": "1:9509",
+                  "name": "crumbPage",
+                  "type": "TEXT",
+                  "x": 185,
+                  "y": 0,
+                  "width": 81,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "System logs",
+                  "font": ["Geist", 500, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                }
+              ]
+            },
+            {
+              "name": "Actions",
+              "type": "FRAME",
+              "x": 752,
+              "y": 0,
+              "width": 396,
+              "height": 64,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "name": "Cluster Pill",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 15.5,
+                  "width": 94,
+                  "height": 33,
+                  "visible": false,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 8,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "name": "healthDot",
+                      "type": "ELLIPSE",
+                      "x": 12,
+                      "y": 12.5,
+                      "width": 8,
+                      "height": 8,
+                      "fills": [{"type": "SOLID", "color": "#21C45D"}],
+                      "variables": {"fills/0/color": "success/success"}
+                    },
+                    {
+                      "name": "clusterName",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 8,
+                      "width": 30,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "local",
+                      "font": ["Geist", 500, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "chevron",
+                      "type": "INSTANCE",
+                      "x": 66,
+                      "y": 8.5,
+                      "width": 16,
+                      "height": 16,
+                      "component": "lucide/chevron-down/16x16",
+                      "variables": {"fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Search",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 12,
+                  "width": 300,
+                  "height": 40,
+                  "component": "SearchField/Primary",
+                  "componentId": "1:1928",
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "texts": ["Search servers…"]
+                },
+                {
+                  "name": "Bell Wrap",
+                  "type": "FRAME",
+                  "x": 312,
+                  "y": 12,
+                  "width": 40,
+                  "height": 40,
+                  "children": [
+                    {
+                      "name": "Sdet8",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 36,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 8,
+                          "y": 8,
+                          "width": 20,
+                          "height": 20,
+                          "component": "lucide/bell/20x20",
+                          "variables": {"fills/0/color": "foreground/foreground"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "UnreadDot",
+                      "type": "ELLIPSE",
+                      "x": 29,
+                      "y": 1,
+                      "width": 8,
+                      "height": 8,
+                      "visible": false,
+                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "strokes": [{"type": "SOLID", "color": "#121114"}],
+                      "strokeWeight": 1.5,
+                      "variables": {"fills/0/color": "accent/accent", "strokes/0/color": "background/background"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Avatar",
+                  "type": "INSTANCE",
+                  "x": 364,
+                  "y": 16,
+                  "width": 32,
+                  "height": 32,
+                  "component": "Avatar/Text",
+                  "componentId": "1:2407",
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 9999,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "accent/accent"},
+                  "texts": ["AD"]
+                }
+              ]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "HdzoC",
-          "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "id": "1:9510",
+          "name": "Central management notice",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 45,
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "padding": [12, 24, 12, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "SC3by",
-              "type": "ref",
-              "ref": "xCDF7",
-              "name": "System logs header",
-              "width": "fill_container",
-              "descendants": {
-                "spCmk": {
-                  "content": "System logs"
-                },
-                "VbHwU": {
-                  "content": "Logs for this standalone panel."
-                },
-                "TgdLz": {
-                  "type": "frame",
-                  "id": "bVoTh",
-                  "x": 1132,
-                  "y": 8.5,
-                  "name": "Page actions",
-                  "enabled": false,
-                  "width": 1,
-                  "height": 1,
-                  "gap": 8,
-                  "alignItems": "center"
-                }
-              }
-            },
+              "id": "1:9511",
+              "name": "Central management scope",
+              "type": "TEXT",
+              "x": 24,
+              "y": 12,
+              "width": 1132,
+              "height": 21,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "Central management. This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s cluster.",
+              "font": ["Geist", 400, 14],
+              "lineHeight": {"value": 150, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+            }
+          ]
+        },
+        {
+          "id": "1:9512",
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 109,
+          "width": 1180,
+          "height": 791,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "children": [
             {
-              "type": "frame",
-              "id": "s6N0gl",
-              "name": "Container logs",
-              "width": "fill_container",
-              "fill": "$surface/surface",
-              "cornerRadius": "$radius/3xl",
-              "layout": "vertical",
-              "gap": 8,
-              "padding": 24,
+              "id": "1:9513",
+              "name": "System logs header",
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "yPx4G",
-                  "name": "Container logs title",
-                  "fill": "$foreground/foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "View logs through your container runtime",
-                  "lineHeight": 1.5,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 16,
-                  "fontWeight": "normal"
+                  "name": "Title Col",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 197,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "phTitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 142,
+                      "height": 31,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "System logs",
+                      "font": ["Geist", 600, 24],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "phSubtitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 35,
+                      "width": 197,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Logs for this standalone panel.",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
                 },
                 {
-                  "type": "text",
-                  "id": "TT48A",
+                  "id": "1:9514",
+                  "name": "Page actions",
+                  "type": "FRAME",
+                  "x": 1132,
+                  "y": 8.5,
+                  "width": 1,
+                  "height": 1,
+                  "visible": false,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1:9515",
+              "name": "Container logs",
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 101,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [24, 24, 24, 24],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
+              "children": [
+                {
+                  "id": "1:9516",
+                  "name": "Container logs title",
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 24,
+                  "width": 1084,
+                  "height": 24,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "View logs through your container runtime",
+                  "font": ["Geist", 400, 16],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "id": "1:9517",
                   "name": "Container logs guidance",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "For Docker Compose, run docker compose logs --follow from your panel installation directory. Operator logs are available on each workload cluster.",
-                  "lineHeight": 1.5,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 56,
+                  "width": 1084,
+                  "height": 21,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "For Docker Compose, run docker compose logs --follow from your panel installation directory. Operator logs are available on each workload cluster.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             }

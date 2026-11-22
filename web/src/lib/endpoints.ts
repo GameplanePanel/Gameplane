@@ -8,6 +8,7 @@ import type {
   BackupDestination,
   BackupSchedule,
   BannedPlayer,
+  ServerOperator,
   CatalogEntry,
   ClusterInfo,
   ClusterRegistry,
@@ -209,6 +210,10 @@ export interface UserUpdate {
   displayName?: string;
   email?: string;
   role?: string;
+  // "sso" returns an SSO user to SSO control: the role source becomes
+  // sso_pending and the rules apply at their next sign-in. The API refuses
+  // it together with role.
+  roleSource?: "sso";
 }
 
 // Theme preferences request bodies (contracts/user-preferences-api.md
@@ -917,6 +922,8 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
     snapshot: (server: string, ns?: string) => api<PlayersResp>(withNS(`/servers/${server}/players`, ns)),
     banned: (server: string, ns?: string) =>
       api<BannedPlayer[]>(withNS(`/servers/${server}/players/banned`, ns)),
+    operators: (server: string, ns?: string) =>
+      api<ServerOperator[]>(withNS(`/servers/${server}/players/operators`, ns)),
     moderate: (
       server: string,
       action: ModerateAction,

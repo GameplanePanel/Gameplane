@@ -282,8 +282,7 @@ function SSOButtons({ providers }: { providers: LoginProvider[] }) {
           key={p.name ?? p.label}
           type="button"
           variant="outline"
-          fullWidth
-          className="font-mono"
+          className="self-start rounded-full font-mono"
           onPress={() => location.assign(Auth.oidcStartURL(p.name))}
         >
           <KeyRound className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.login.continue_with_label", defaultMessage: "Continue with {label}", description: "Login: sentence with label in Button" }, { label: p.label })}</Button>

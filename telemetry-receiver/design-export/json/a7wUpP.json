@@ -1,187 +1,271 @@
 {
-  "type": "frame",
-  "id": "a7wUpP",
-  "x": 5127.959083557127,
-  "y": 1020.8789062499995,
+  "file": "a7wUpP",
+  "id": "1:939",
   "name": "Receiver / Login — refused",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
+  "type": "FRAME",
+  "x": 5127.96,
+  "y": 1020.88,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
-  "layout": "vertical",
-  "justifyContent": "center",
-  "alignItems": "center",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "CENTER",
+    "counter": "CENTER",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "v4MbR",
-      "type": "ref",
-      "ref": "f07b1",
+      "id": "1:940",
       "name": "Login card",
+      "type": "FRAME",
+      "x": 520,
+      "y": 214.5,
       "width": 400,
-      "padding": 32,
-      "gap": 24,
-      "stroke": "$border",
-      "strokeWidth": 1,
-      "strokeAlignment": "inner",
+      "height": 431,
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+      "cornerRadius": 24,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 24,
+        "padding": [32, 32, 32, 32],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface", "strokes/0/color": "border"},
       "children": [
         {
-          "type": "frame",
-          "id": "ojnmT",
+          "id": "1:941",
           "name": "Heading",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 10,
+          "type": "FRAME",
+          "x": 32,
+          "y": 32,
+          "width": 336,
+          "height": 137,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 10,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "d3ASU",
+              "id": "1:942",
               "name": "Brand",
-              "gap": 10,
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 116,
+              "height": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 10,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
               "children": [
+                {"id": "1:943", "name": "Logo", "type": "RECTANGLE", "x": 0, "y": 0, "width": 24, "height": 24},
                 {
-                  "type": "rectangle",
-                  "id": "tOXnc",
-                  "name": "Logo",
-                  "fill": {
-                    "type": "image",
-                    "enabled": true,
-                    "url": "../website/design-assets/gameplane-icon.png",
-                    "mode": "contain"
-                  },
-                  "width": 24,
-                  "height": 24
-                },
-                {
-                  "type": "text",
-                  "id": "Rj0dV",
+                  "id": "1:944",
                   "name": "Wordmark",
-                  "fill": "$foreground/foreground",
-                  "content": "gameplane",
-                  "fontFamily": "$typography/font-mono",
-                  "fontSize": 15,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 34,
+                  "y": 2,
+                  "width": 82,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "gameplane",
+                  "font": ["JetBrains Mono", 600, 15],
+                  "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "E5yaH",
+              "id": "1:945",
               "name": "Eyebrow",
-              "fill": "$accent/accent",
-              "content": "PRIVATE DASHBOARD",
-              "fontFamily": "$typography/font-mono",
-              "fontSize": 11,
-              "fontWeight": "normal",
-              "letterSpacing": 1.5
+              "type": "TEXT",
+              "x": 0,
+              "y": 34,
+              "width": 137,
+              "height": 15,
+              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+              "text": "PRIVATE DASHBOARD",
+              "font": ["JetBrains Mono", 400, 11],
+              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "accent/accent"}
             },
             {
-              "type": "text",
-              "id": "bVf7f",
+              "id": "1:946",
               "name": "Title",
-              "fill": "$foreground/foreground",
-              "content": "Gameplane telemetry",
-              "fontFamily": "$typography/font-mono",
-              "fontSize": 24,
-              "fontWeight": "600"
+              "type": "TEXT",
+              "x": 0,
+              "y": 59,
+              "width": 274,
+              "height": 32,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Gameplane telemetry",
+              "font": ["JetBrains Mono", 600, 24],
+              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
             },
             {
-              "type": "text",
-              "id": "GZktc",
+              "id": "1:947",
               "name": "Subtitle",
-              "fill": "$foreground/secondary",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Private dashboard. Sign in with the dashboard token.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 14,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 101,
+              "width": 336,
+              "height": 36,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "Private dashboard. Sign in with the dashboard token.",
+              "font": ["Geist", 400, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/secondary"}
             }
           ]
         },
         {
-          "id": "D2oxw0",
-          "type": "ref",
-          "ref": "YxI4e",
+          "id": "1:948",
           "name": "Refusal alert",
-          "width": "fill_container",
-          "descendants": {
-            "K5BCAi": {
-              "content": "Invalid credentials"
-            },
-            "jLj0v": {
-              "enabled": false
-            },
-            "BLuJ9": {
-              "enabled": false
-            }
-          }
+          "type": "INSTANCE",
+          "x": 32,
+          "y": 193,
+          "width": 336,
+          "height": 48,
+          "component": "Alert/Danger",
+          "componentId": "1:82",
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 16,
+            "padding": [12, 16, 12, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
+          "texts": ["Invalid credentials"]
         },
         {
-          "type": "frame",
-          "id": "XgGt2",
+          "id": "1:949",
           "name": "Form",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 16,
+          "type": "FRAME",
+          "x": 32,
+          "y": 265,
+          "width": 336,
+          "height": 134,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 16,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "lZ2GC",
-              "type": "ref",
-              "ref": "Tu3H4",
+              "id": "1:950",
               "name": "Token field",
-              "width": "fill_container",
-              "descendants": {
-                "I4m7NO": {
-                  "content": "Dashboard token"
-                },
-                "DJsYb": {
-                  "content": "••••••••••••••••••••••••"
-                },
-                "PvRXY": {
-                  "content": "The DASHBOARD_TOKEN value from the receiver's Secret."
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 0,
+              "width": 336,
+              "height": 82,
+              "component": "Input/Primary",
+              "componentId": "1:739",
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 4,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "texts": [
+                "Dashboard token",
+                "••••••••••••••••••••••••",
+                "The DASHBOARD_TOKEN value from the receiver's Secret."
+              ]
             },
             {
-              "id": "W9k1fv",
-              "type": "ref",
-              "ref": "hvQ4m",
+              "id": "1:951",
               "name": "Sign in",
-              "width": "fill_container",
-              "justifyContent": "center",
-              "descendants": {
-                "UYKSN": {
-                  "enabled": false
-                },
-                "y9bBK0": {
-                  "content": "Sign in"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 98,
+              "width": 336,
+              "height": 36,
+              "component": "Button/Primary/MD",
+              "componentId": "1:114",
+              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [8, 16, 8, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "itemSpacing": "spacing/2",
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "fills/0/color": "accent/accent"
+              },
+              "texts": ["Sign in"]
             }
           ]
         }
       ]
     },
     {
-      "type": "frame",
-      "id": "E1qJ3",
+      "id": "1:952",
       "name": "Footer gap",
+      "type": "FRAME",
+      "x": 715,
+      "y": 645.5,
       "width": 10,
-      "height": 24
+      "height": 24,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      }
     },
     {
-      "type": "text",
-      "id": "vbkKX",
+      "id": "1:953",
       "name": "Footnote",
-      "fill": "$foreground/muted",
-      "content": "Sessions last 12 hours. Rotating the token signs everyone out.",
-      "fontFamily": "$typography/font-sans",
-      "fontSize": 12,
-      "fontWeight": "normal"
+      "type": "TEXT",
+      "x": 551,
+      "y": 669.5,
+      "width": 338,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+      "text": "Sessions last 12 hours. Rotating the token signs everyone out.",
+      "font": ["Geist", 400, 12],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
     }
   ]
 }

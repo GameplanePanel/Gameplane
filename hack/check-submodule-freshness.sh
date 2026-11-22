@@ -7,10 +7,13 @@
 #   Such a pointer references a commit that exists only on a feature branch,
 #   so a fresh clone of the superproject cannot fetch it. Spec 013 G6 / OD-1.
 #
-# Checked submodules (path -> upstream URL, overridable through env):
-#   modules -> ${SUBMODULE_URL_MODULES:-https://github.com/GameplanePanel/module}
-#   website -> ${SUBMODULE_URL_WEBSITE:-https://github.com/GameplanePanel/website}
-#   Upstream branch: ${SUBMODULE_BRANCH:-main}
+# Checked submodules: every gitlink at HEAD plus every path .gitmodules declares
+#   (a declared path with no gitlink fails). For each one:
+#   upstream URL: ${SUBMODULE_URL_<PATH>} (path upper-cased, '-' -> '_', e.g.
+#                 SUBMODULE_URL_MCP_SERVER), else its .gitmodules url
+#   branch:       ${SUBMODULE_BRANCH}, else its .gitmodules branch, else main
+#   The fixture superproject in check-submodule-freshness_test.sh has no
+#   .gitmodules, so it relies on the gitlinks and the URL overrides.
 #
 # Environment:
 #   SUBMODULE_FRESHNESS_REPO  superproject to check (default: this repo root).
@@ -27,14 +30,26 @@ else
   cd "${SCRIPT_DIR}/.."
 fi
 
-BRANCH="${SUBMODULE_BRANCH:-main}"
-URL_MODULES="${SUBMODULE_URL_MODULES:-https://github.com/GameplanePanel/module}"
-URL_WEBSITE="${SUBMODULE_URL_WEBSITE:-https://github.com/GameplanePanel/website}"
-
-PAIRS=(
-  "modules ${URL_MODULES}"
-  "website ${URL_WEBSITE}"
+# Union of HEAD gitlinks and .gitmodules paths, in a stable order.
+mapfile -t PATHS < <(
+  {
+    git ls-tree -r HEAD | awk '$2=="commit"{print $4}'
+    if [[ -f .gitmodules ]]; then
+      git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}'
+    fi
+  } | sort -u
 )
+
+# gitmodules_value <path> <key>: the .gitmodules value for the entry at <path>.
+gitmodules_value() {
+  [[ -f .gitmodules ]] || return 0
+  local key name
+  key="$(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' |
+    awk -v p="$1" '$2==p{print $1; exit}')"
+  [[ -n "${key}" ]] || return 0
+  name="${key%.path}"
+  git config -f .gitmodules --get "${name}.$2" || true
+}
 
 TMP="$(mktemp -d)"
 cleanup() {
@@ -44,9 +59,16 @@ trap cleanup EXIT
 
 failures=0
 
-for pair in "${PAIRS[@]}"; do
-  path="${pair%% *}"
-  url="${pair#* }"
+for path in "${PATHS[@]}"; do
+  override="SUBMODULE_URL_$(tr '[:lower:]-' '[:upper:]_' <<<"${path}")"
+  url="${!override:-$(gitmodules_value "${path}" url)}"
+  branch="${SUBMODULE_BRANCH:-$(gitmodules_value "${path}" branch)}"
+  BRANCH="${branch:-main}"
+  if [[ -z "${url}" ]]; then
+    echo "✗ ${path}: no upstream URL (.gitmodules url or ${override})"
+    failures=$((failures + 1))
+    continue
+  fi
 
   sha="$(git ls-tree HEAD "${path}" | awk '$2=="commit"{print $3}')"
   if [[ -z "${sha}" ]]; then

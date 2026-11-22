@@ -40,6 +40,24 @@ git fetch --quiet --no-tags --depth=1 origin "refs/tags/$tag"
 revision=$(git rev-parse --verify 'FETCH_HEAD^{commit}')
 git show "$revision:.github/workflows/release.yaml" > "$scratch/published-release.yaml"
 printf 'Release `%s` at Git commit `%s`\n' "$tag" "$revision" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+
+# The standalone CRD chart must carry exactly the CRDs bundled in the parent.
+# Releases before it was published (v0.4.0 and earlier) package only the
+# parent, so the published workflow decides whether it is required; a release
+# that publishes it still fails on a missing chart or a bad signature.
+publishes_crds=$(yq -r '[.jobs[].steps[] | select(.name == "helm package") | .run | test("gameplane-crds")] | any' \
+  "$scratch/published-release.yaml")
+if [[ $publishes_crds == true ]]; then
+  crds_chart="$registry/charts/gameplane-crds"
+  crds_digest="$(oras resolve "$crds_chart:$version")"
+  verify_release_signature "$crds_chart" "$crds_digest"
+  helm pull "oci://$crds_chart@$crds_digest" --untar --untardir "$scratch/standalone"
+  test "$(yq -r '.version' "$scratch/standalone/gameplane-crds/Chart.yaml")" = "$version"
+  diff -r "$GAMEPLANE_PUBLISHED_CHART/charts/gameplane-crds/crds" "$scratch/standalone/gameplane-crds/crds"
+  printf 'Verified chart `%s@%s`\n' "$crds_chart" "$crds_digest" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+else
+  printf 'Release `%s` predates the standalone `gameplane-crds` chart\n' "$tag" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+fi
 components="$(yq -r '.jobs.images.strategy.matrix.include[].component' "$scratch/published-release.yaml")"
 test -n "$components"
 while read -r component; do

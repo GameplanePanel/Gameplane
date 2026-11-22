@@ -43,6 +43,8 @@ jobs:
             dockerfile: tunnel/Dockerfile.playit
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: init component submodules
+        run: ./hack/submodules.sh init
       # Signing is mandatory for an official release: fail before anything is
       # pushed rather than publish unsigned images. Mirrors publish-edge.yaml.
       - name: require signing key
@@ -208,8 +210,12 @@ jobs:
         run: |
           sed -i "s/^version: .*/version: ${GITHUB_REF_NAME#v}/" charts/gameplane/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: ${GITHUB_REF_NAME#v}/" charts/gameplane/Chart.yaml
+          sed -i "s/^version: .*/version: ${GITHUB_REF_NAME#v}/" charts/gameplane/charts/gameplane-crds/Chart.yaml
+          sed -i "/- name: gameplane-crds/,/version:/ s/version: .*/version: ${GITHUB_REF_NAME#v}/" charts/gameplane/Chart.yaml
+      # gameplane-crds is also published on its own, for GitOps setups where a
+      # separate Application owns the CRDs (docs/argocd.md).
       - name: helm package
-        run: helm package charts/gameplane -d dist
+        run: helm package charts/gameplane charts/gameplane/charts/gameplane-crds -d dist
       # The chart is a published artifact like the images, so it must be signed
       # too — it was previously pushed unsigned, which made the "everything we
       # publish is signed" claim untrue.
@@ -236,40 +242,52 @@ jobs:
           # account's original casing (GameplanePanel), so fold it down.
           owner_lc="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
           helm registry login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-          # `helm push` prints "Digest: sha256:…" for the pushed chart manifest;
-          # capture it so the signature covers the immutable digest, not a tag.
-          out="$(helm push dist/gameplane-*.tgz "oci://ghcr.io/${owner_lc}/charts" 2>&1)"
-          printf '%s\n' "$out"
-          digest="$(printf '%s\n' "$out" | sed -n 's/^Digest: \(sha256:[0-9a-f]\{64\}\).*/\1/p' | head -n1)"
-          if [ -z "$digest" ]; then
-            echo "::error::could not parse the pushed chart digest from helm push output"
-            exit 1
-          fi
-          echo "ref=ghcr.io/${owner_lc}/charts/gameplane@${digest}" >> "$GITHUB_OUTPUT"
+          refs=()
+          for chart in gameplane gameplane-crds; do
+            # `helm push` prints "Digest: sha256:…" for the pushed chart manifest;
+            # capture it so the signature covers the immutable digest, not a tag.
+            out="$(helm push "dist/${chart}-${GITHUB_REF_NAME#v}.tgz" "oci://ghcr.io/${owner_lc}/charts" 2>&1)"
+            printf '%s\n' "$out"
+            digest="$(printf '%s\n' "$out" | sed -n 's/^Digest: \(sha256:[0-9a-f]\{64\}\).*/\1/p' | head -n1)"
+            if [ -z "$digest" ]; then
+              echo "::error::could not parse the pushed ${chart} chart digest from helm push output"
+              exit 1
+            fi
+            refs+=("ghcr.io/${owner_lc}/charts/${chart}@${digest}")
+          done
+          echo "refs=${refs[*]}" >> "$GITHUB_OUTPUT"
       - name: sign chart (keyed, logged)
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          REF: ${{ steps.push.outputs.ref }}
+          REFS: ${{ steps.push.outputs.refs }}
         run: |
-          for attempt in 1 2 3; do
-            if cosign sign --yes --key env://COSIGN_PRIVATE_KEY \
-                --new-bundle-format=false --use-signing-config=false "$REF"; then
-              exit 0
+          for ref in $REFS; do
+            signed=false
+            for attempt in 1 2 3; do
+              if cosign sign --yes --key env://COSIGN_PRIVATE_KEY \
+                  --new-bundle-format=false --use-signing-config=false "$ref"; then
+                signed=true
+                break
+              fi
+              echo "::warning::cosign sign attempt ${attempt} for ${ref} failed; retrying"
+              sleep $((attempt * 10))
+            done
+            if [ "$signed" != true ]; then
+              echo "::error::cosign sign failed for ${ref} after 3 attempts (Rekor unavailable?)"
+              exit 1
             fi
-            echo "::warning::cosign sign attempt ${attempt} failed; retrying"
-            sleep $((attempt * 10))
           done
-          echo "::error::cosign sign failed after 3 attempts (Rekor unavailable?)"
-          exit 1
       - name: verify chart signature
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          REF: ${{ steps.push.outputs.ref }}
+          REFS: ${{ steps.push.outputs.refs }}
         run: |
           cosign public-key --key env://COSIGN_PRIVATE_KEY --outfile "$RUNNER_TEMP/cosign.pub"
-          cosign verify --key "$RUNNER_TEMP/cosign.pub" --new-bundle-format=false "$REF"
+          for ref in $REFS; do
+            cosign verify --key "$RUNNER_TEMP/cosign.pub" --new-bundle-format=false "$ref"
+          done
 
   consumer:
     name: qualify published artifacts as an anonymous consumer

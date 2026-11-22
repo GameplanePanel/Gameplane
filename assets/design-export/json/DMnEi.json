@@ -1,382 +1,822 @@
 {
-  "id": "DMnEi",
-  "type": "ref",
-  "reusable": true,
-  "ref": "x3beP",
+  "file": "DMnEi",
+  "id": "1:10241",
   "name": "Gameplane/Dialog/Add Module Source",
+  "type": "FRAME",
   "x": 2760,
   "y": 5341,
-  "theme": {},
-  "descendants": {
-    "E7Whx": {
-      "content": "Add module source"
+  "width": 480,
+  "height": 885,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 32, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 148,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "Add module source",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
-    "qzcst": {
-      "content": "Where the operator discovers and pulls module bundles from."
-    },
-    "Nht52": {
-      "type": "frame",
-      "id": "e8g6GR",
-      "name": "mBody",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 16,
-      "padding": [
-        16,
-        0,
-        0,
-        0
-      ],
+    {
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 440,
+      "height": 25,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "frame",
-          "id": "Dy7HC",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 4,
+          "width": 440,
+          "height": 21,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutGrow": 1,
+          "text": "Where the operator discovers and pulls module bundles from.",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "id": "1:10242",
+      "name": "mBody",
+      "type": "FRAME",
+      "x": 20,
+      "y": 69,
+      "width": 440,
+      "height": 744,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:10243",
+          "name": "frame",
+          "type": "FRAME",
+          "x": 0,
+          "y": 16,
+          "width": 440,
+          "height": 78,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "KgxT0",
-              "fill": "$muted",
-              "content": "Name",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "id": "1:10244",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 33,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Name",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "jV8Vg",
-              "type": "ref",
-              "ref": "D0cDM",
+              "id": "1:10245",
               "name": "Input",
-              "width": "fill_container",
-              "descendants": {
-                "PJERm": {
-                  "content": "community",
-                  "fill": "$field/placeholder"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["community"]
             },
             {
-              "type": "text",
-              "id": "oafU1",
-              "fill": "$muted",
-              "content": "DNS label identifying this source.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 11,
-              "fontWeight": "normal"
+              "id": "1:10246",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 64,
+              "width": 166,
+              "height": 14,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "DNS label identifying this source.",
+              "font": ["Geist", 400, 11],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "johlb",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "id": "1:10247",
+          "name": "frame",
+          "type": "FRAME",
+          "x": 0,
+          "y": 110,
+          "width": 440,
+          "height": 58,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "NNDZs",
-              "fill": "$muted",
-              "content": "Type",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "id": "1:10248",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 26,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Type",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "JRooL",
-              "type": "ref",
-              "ref": "AT7ya",
+              "id": "1:10249",
               "name": "Select",
-              "width": "fill_container",
-              "descendants": {
-                "cFsFk": {
-                  "content": "OCI registry"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Select",
+              "componentId": "1:311",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["OCI registry"]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "u6it9",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "id": "1:10250",
+          "name": "frame",
+          "type": "FRAME",
+          "x": 0,
+          "y": 184,
+          "width": 440,
+          "height": 58,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "K2Lrm",
-              "fill": "$muted",
-              "content": "Registry URL",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "id": "1:10251",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 72,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Registry URL",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "SLiFX",
-              "type": "ref",
-              "ref": "D0cDM",
+              "id": "1:10252",
               "name": "Input",
-              "width": "fill_container",
-              "descendants": {
-                "PJERm": {
-                  "content": "ghcr.io/valgulnecron/gameplane-modules",
-                  "fill": "$field/placeholder"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["ghcr.io/valgulnecron/gameplane-modules"]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "CVnIW",
+          "id": "1:10253",
           "name": "Modules field",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "type": "FRAME",
+          "x": 0,
+          "y": 258,
+          "width": 440,
+          "height": 78,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "ShBKa",
+              "id": "1:10254",
               "name": "Label",
-              "fill": "$muted",
-              "content": "Modules",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 47,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Modules",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "M73AW",
-              "type": "ref",
-              "ref": "D0cDM",
+              "id": "1:10255",
               "name": "Input",
-              "width": "fill_container",
-              "descendants": {
-                "PJERm": {
-                  "content": "minecraft-java, valheim",
-                  "fill": "$field/placeholder"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["minecraft-java, valheim"]
             },
             {
-              "type": "text",
-              "id": "vtZ6U",
+              "id": "1:10256",
               "name": "Helper",
-              "fill": "$muted",
-              "content": "Comma-separated module names (registries can't be enumerated).",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 11,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 64,
+              "width": 334,
+              "height": 14,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Comma-separated module names (registries can't be enumerated).",
+              "font": ["Geist", 400, 11],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "a59Ig1",
+          "id": "1:10257",
           "name": "Pull secret field",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "type": "FRAME",
+          "x": 0,
+          "y": 352,
+          "width": 440,
+          "height": 78,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "Hmycd",
+              "id": "1:10258",
               "name": "Label",
-              "fill": "$muted",
-              "content": "Pull secret",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Pull secret",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "jsvc6",
-              "type": "ref",
-              "ref": "D0cDM",
+              "id": "1:10259",
               "name": "Input",
-              "width": "fill_container",
-              "descendants": {
-                "PJERm": {
-                  "content": "registry-creds",
-                  "fill": "$field/placeholder"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["registry-creds"]
             },
             {
-              "type": "text",
-              "id": "QyoqV",
+              "id": "1:10260",
               "name": "Helper",
-              "fill": "$muted",
-              "content": "dockerconfigjson Secret in the operator namespace (optional).",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 11,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 64,
+              "width": 311,
+              "height": 14,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "dockerconfigjson Secret in the operator namespace (optional).",
+              "font": ["Geist", 400, 11],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "xUVD0",
+          "id": "1:10261",
           "name": "Allow plain HTTP row",
-          "width": "fill_container",
-          "gap": 8,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 0,
+          "y": 446,
+          "width": 440,
+          "height": 16,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "aH0oy",
-              "type": "ref",
-              "ref": "aOvvm",
+              "id": "1:10262",
               "name": "Checkbox",
-              "descendants": {
-                "rKaQI": {
-                  "enabled": false
-                }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 0,
+              "width": 16,
+              "height": 16,
+              "component": "Checkbox/Unchecked",
+              "componentId": "1:2237",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
               }
             },
             {
-              "type": "text",
-              "id": "q2v8i6",
-              "fill": "$foreground/foreground",
-              "content": "Allow plain HTTP (local registries only)",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "id": "1:10263",
+              "name": "text",
+              "type": "TEXT",
+              "x": 24,
+              "y": 0,
+              "width": 208,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Allow plain HTTP (local registries only)",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "F1DqtC",
+          "id": "1:10264",
           "name": "Signature verification field",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "type": "FRAME",
+          "x": 0,
+          "y": 478,
+          "width": 440,
+          "height": 78,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "zbyve",
+              "id": "1:10265",
               "name": "Label",
-              "fill": "$muted",
-              "content": "Signature verification",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 116,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Signature verification",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "D85k8m",
-              "type": "ref",
-              "ref": "AT7ya",
+              "id": "1:10266",
               "name": "Select",
-              "width": "fill_container",
-              "descendants": {
-                "cFsFk": {
-                  "content": "None"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Select",
+              "componentId": "1:311",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["None"]
             },
             {
-              "type": "text",
-              "id": "B3rm7",
+              "id": "1:10267",
               "name": "Helper",
-              "fill": "$muted",
-              "content": "Require a valid cosign signature on every bundle pulled from this source.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 11,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 64,
+              "width": 363,
+              "height": 14,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Require a valid cosign signature on every bundle pulled from this source.",
+              "font": ["Geist", 400, 11],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "Y9caAc",
+          "id": "1:10268",
           "name": "Allow list field",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "type": "FRAME",
+          "x": 0,
+          "y": 572,
+          "width": 440,
+          "height": 78,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "nHT3d",
+              "id": "1:10269",
               "name": "Label",
-              "fill": "$muted",
-              "content": "Allow list",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 50,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Allow list",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "GC69u",
-              "type": "ref",
-              "ref": "D0cDM",
+              "id": "1:10270",
               "name": "Input",
-              "width": "fill_container",
-              "descendants": {
-                "PJERm": {
-                  "content": "minecraft-*",
-                  "fill": "$field/placeholder"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["minecraft-*"]
             },
             {
-              "type": "text",
-              "id": "pE6ps",
+              "id": "1:10271",
               "name": "Helper",
-              "fill": "$muted",
-              "content": "Optional module name filter — exact names or globs, comma-separated.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 11,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 64,
+              "width": 362,
+              "height": 14,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Optional module name filter — exact names or globs, comma-separated.",
+              "font": ["Geist", 400, 11],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "FYTUs",
+          "id": "1:10272",
           "name": "Refresh interval field",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "type": "FRAME",
+          "x": 0,
+          "y": 666,
+          "width": 440,
+          "height": 78,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "QaZnI",
+              "id": "1:10273",
               "name": "Label",
-              "fill": "$muted",
-              "content": "Refresh interval",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 87,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Refresh interval",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "nWpyS",
-              "type": "ref",
-              "ref": "D0cDM",
+              "id": "1:10274",
               "name": "Input",
-              "width": "fill_container",
-              "descendants": {
-                "PJERm": {
-                  "content": "1h",
-                  "fill": "$field/placeholder"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["1h"]
             },
             {
-              "type": "text",
-              "id": "x4FVfL",
+              "id": "1:10275",
               "name": "Helper",
-              "fill": "$muted",
-              "content": "How often the catalog re-indexes. Defaults to 1h.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 11,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 64,
+              "width": 244,
+              "height": 14,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "How often the catalog re-indexes. Defaults to 1h.",
+              "font": ["Geist", 400, 11],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         }
       ]
     },
-    "TZ7Ef": {
-      "content": "Add source"
+    {
+      "name": "mFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 813,
+      "width": 440,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 280,
+          "y": 20,
+          "width": 64,
+          "height": 32,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 40,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "btnPrimary",
+          "type": "FRAME",
+          "x": 352,
+          "y": 20,
+          "width": 88,
+          "height": 32,
+          "opacity": 0.5,
+          "fills": [{"type": "SOLID", "color": "#DB2777"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "accent/accent"},
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 64,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "text": "Add source",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/foreground"}
+            }
+          ]
+        }
+      ]
     }
-  }
+  ]
 }

@@ -438,6 +438,8 @@ export interface GameServerNetworking {
   serviceAnnotations?: Record<string, string>;
   portOverrides?: PortOverride[];
   sourceRanges?: string[];
+  // The Service's loadBalancerClass; honored only for expose: LoadBalancer.
+  loadBalancerClass?: string;
   // Load-balancer address pool to allocate from; honored only for
   // expose: LoadBalancer, and only when the cluster runs a supported
   // address manager (MetalLB or Cilium LB-IPAM).
@@ -548,7 +550,10 @@ export interface InlineBackupPolicy {
 
 export interface GameServerEndpoint {
   name: string;
+  // The address players connect to: the Service's, or the server's hostname.
   host: string;
+  // The address the Service was assigned, when host is an advertised hostname.
+  serviceAddress?: string;
   port: number;
   protocol?: string;
   // Tailscale endpoints are tailnet-private only, not reachable from the internet.
@@ -781,6 +786,12 @@ export type BuiltinRole = "admin" | "operator" | "viewer";
 // the oidc_links table; "local" = password-backed local account.
 export type UserProvider = "local" | "oidc" | "pending";
 
+// Where a user's role came from (spec 034, contracts/users-api.md): "sso" =
+// each sign-in applies the SSO group rules; "sso_pending" = returned to SSO
+// control, the rules apply at the next sign-in; "manual" = set by hand and
+// never changed by sign-in.
+export type UserRoleSource = "sso" | "sso_pending" | "manual";
+
 export interface User {
   id: number;
   username: string;
@@ -788,6 +799,9 @@ export interface User {
   email: string;
   role: UserRole;
   provider?: UserProvider;
+  // Every user payload carries it; optional only so payloads typed before
+  // spec 034 still type-check. The dashboard shows it for non-local users.
+  roleSource?: UserRoleSource;
   createdAt?: string;
   // Effective permission set keyed by namespace ("*" = cluster-wide; a "*"
   // permission means all). Present on /users/me; drives can()-based UI
@@ -876,10 +890,14 @@ export interface List<T> {
   items: T[];
 }
 
+export type StorageCapacitySource = "node-ephemeral" | "openebs-lvm";
+
 export interface ClusterStats {
   nodes?: number;
   totalStorageBytes?: number;
   usedStorageBytes?: number;
+  /** Omitted by older API responses, which report node ephemeral capacity. */
+  storageCapacitySource?: StorageCapacitySource;
 }
 
 export interface ClusterNode {
@@ -949,6 +967,7 @@ export interface PlayerCapabilities {
   ban: boolean;
   unban: boolean;
   whitelist?: boolean;
+  operators?: boolean;
 }
 
 export interface PlayerEntry {
@@ -967,6 +986,11 @@ export interface PlayersResp {
   entries?: PlayerEntry[];
   asOf: string;
   capabilities: PlayerCapabilities;
+}
+
+export interface ServerOperator {
+  name: string;
+  uuid?: string;
 }
 
 export interface BannedPlayer {
@@ -1189,6 +1213,10 @@ export interface ShareAddr {
 export interface ShareLinkPublic {
   serverName: string;
   status: string; // e.g. "Running", "Asleep", "Failed"
+  /** Explicit owner stop; optional for older API versions. */
+  manuallyStopped?: boolean;
+  /** This link permits waking and the server is not manually stopped. */
+  canStart?: boolean;
   address?: ShareAddr; // undefined if no public endpoint is exposed
   playersOnline?: number; // undefined if not exposed by the game
 }
