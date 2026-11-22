@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -198,6 +199,11 @@ func (p *standalonePanel) install(allowed string) {
 	}
 	chart := filepath.Join("..", "..", "charts", "gameplane")
 	t.Cleanup(func() {
+		// On CI, keep a failed install for the workflow's failure dump of
+		// e2e-standalone-panel; the runner VM is discarded afterwards.
+		if t.Failed() && os.Getenv("GITHUB_ACTIONS") == "true" {
+			return
+		}
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 		_ = exec.CommandContext(ctx, "helm", "uninstall", standaloneRelease, "--namespace", standaloneNamespace,

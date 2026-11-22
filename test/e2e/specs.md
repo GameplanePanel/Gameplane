@@ -208,7 +208,7 @@ rows. Each matrix leg skips cluster setup only when its selected test pattern
 is empty; full-scope and affected-component runs must include the affected
 buckets.
 
-The CI report counts `wake-hostport` and `recovery` only when their exact
+The CI report counts `wake-hostport`, `recovery` and `standalone` only when their exact
 `run go e2e (<bucket>)` test step completes with success or failure. Skipped,
 cancelled or absent test steps do not count as executed drills.
 
