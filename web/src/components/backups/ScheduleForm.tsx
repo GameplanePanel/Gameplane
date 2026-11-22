@@ -14,11 +14,15 @@ import {
 } from "@heroui/react";
 
 import { useBackupDestinations } from "@/lib/destinations";
+import { APIError } from "@/lib/api";
+import { mergeValue, SettingsConflictError } from "@/lib/settingsMerge";
+import type { BackupSchedule } from "@/types";
 import { ErrorBanner } from "./ErrorBanner";
 import { RetentionFields, buildRetention, type RetentionForm } from "./RetentionFields";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
 interface Props {
+  existing?: BackupSchedule;
   target?: ResourceTarget;
   permissions?: string[];
   serverName: string;
@@ -26,7 +30,7 @@ interface Props {
   onClose: () => void;
 }
 
-export function ScheduleForm({ serverName, ns, onClose, target: explicitTarget, permissions: explicitPermissions }: Props) {
+export function ScheduleForm({ existing, serverName, ns, onClose, target: explicitTarget, permissions: explicitPermissions }: Props) {
   const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name: serverName, namespace: ns }, explicitTarget);
   const resourceClient = useResourceClient(resourceTarget);
@@ -35,36 +39,53 @@ export function ScheduleForm({ serverName, ns, onClose, target: explicitTarget, 
   const qc = useQueryClient();
   const { data: destinations = [], error: destinationError, isSuccess: destinationsLoaded } = useBackupDestinations(resourceTarget, permissions);
   const [form, setForm] = useState({
-    schedule: "0 */6 * * *",
-    strategy: "restic-snapshot" as "restic-snapshot" | "volume-snapshot",
-    repoName: "",
-    repoKey: "repo",
+    schedule: existing?.spec.schedule ?? "0 */6 * * *",
+    strategy: existing?.spec.strategy ?? "restic-snapshot",
+    repoName: existing?.spec.repoRef?.name ?? "",
+    repoKey: existing?.spec.repoRef?.key ?? "repo",
   });
-  const [retention, setRetention] = useState<RetentionForm>({ keepLast: 7 });
+  const [retention, setRetention] = useState<RetentionForm>(existing ? existing.spec.retention ?? {} : { keepLast: 7 });
   const isVolumeSnapshot = form.strategy === "volume-snapshot";
   // Default the destination to the first one once the list resolves. The
   // user can still pick a different one if more than one exists. Adjusted
   // directly during render (not in an effect) — the condition becomes false
   // as soon as repoName is set, so this can't loop.
-  if (!form.repoName && destinations.length > 0) {
+  if (!form.repoName && !isVolumeSnapshot && destinations.length > 0 && (!existing || existing.spec.strategy === "volume-snapshot")) {
     setForm((f) => ({ ...f, repoName: destinations[0].name }));
   }
 
-  const create = useMutation({
-    mutationFn: () =>
-      Schedules.create(
-        {
-          serverRef: { name: serverName },
-          schedule: form.schedule,
-          strategy: form.strategy,
-          // restic needs a repo; volume-snapshot captures a CSI snapshot.
-          ...(isVolumeSnapshot
-            ? {}
-            : { repoRef: { name: form.repoName, key: form.repoKey } }),
-          retention: buildRetention(retention),
-        },
-        ns,
-      ),
+  const strategyChanged = form.strategy !== (existing?.spec.strategy ?? "restic-snapshot");
+  const repositoryChanged = form.repoName !== (existing?.spec.repoRef?.name ?? "") || form.repoKey !== (existing?.spec.repoRef?.key ?? "repo");
+  const needsDestination = !isVolumeSnapshot && (!existing || strategyChanged || repositoryChanged);
+  const save = useMutation({
+    mutationFn: () => {
+      const repoRef = isVolumeSnapshot ? undefined : { name: form.repoName, key: form.repoKey };
+      const editedRetention = buildRetention(retention);
+      if (!existing) {
+        return Schedules.create({ serverRef: { name: serverName }, schedule: form.schedule, strategy: form.strategy, repoRef, retention: editedRetention }, ns);
+      }
+      const draft = { ...existing.spec, schedule: form.schedule };
+      if (strategyChanged) draft.strategy = form.strategy;
+      if (repositoryChanged || strategyChanged) draft.repoRef = repoRef;
+      if (retention !== existing.spec.retention) draft.retention = editedRetention;
+      return Schedules.patchSpec(existing.metadata.name, current => {
+        try {
+          if (existing.metadata.uid !== current.metadata.uid || current.spec.serverRef.name !== serverName ||
+              current.metadata.ownerReferences?.some(ref => ref.controller && ref.kind === "GameServer")) {
+            throw new SettingsConflictError();
+          }
+          return mergeValue(existing.spec, draft, current.spec) as BackupSchedule["spec"];
+        } catch (error) {
+          if (!(error instanceof SettingsConflictError)) throw error;
+          throw new APIError(409, intl.formatMessage({ id: "web.components.backups.schedule_form.changed", defaultMessage: "This schedule changed. Reopen it to edit the latest version.", description: "Schedule editor: conflict while saving a changed or replaced schedule" }));
+        }
+      }, ns);
+    },
+    onError: error => {
+      if (error instanceof APIError && (error.status === 409 || error.status === 404)) {
+        void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "schedules") });
+      }
+    },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["fleet"] });
       void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "schedules", ns) });
@@ -76,7 +97,9 @@ export function ScheduleForm({ serverName, ns, onClose, target: explicitTarget, 
     <Card className="space-y-3">
       <CardContent className="space-y-4 pt-6">
         <div>
-          <h3 className="text-sm font-medium">{intl.formatMessage({ id: "web.components.backups.schedule_form.new_backup_schedule", defaultMessage: "New backup schedule", description: "Schedule form: heading of the card for creating a new backup schedule" })}</h3>
+          <h3 className="text-sm font-medium">{existing
+            ? intl.formatMessage({ id: "web.components.backups.schedule_form.edit_schedule", defaultMessage: "Edit {name}", description: "Schedule editor heading, where {name} is the existing backup schedule" }, { name: existing.metadata.name })
+            : intl.formatMessage({ id: "web.components.backups.schedule_form.new_backup_schedule", defaultMessage: "New backup schedule", description: "Schedule form: heading of the card for creating a new backup schedule" })}</h3>
           <Description className="text-xs">
             {isVolumeSnapshot
               ? intl.formatMessage({ id: "web.components.backups.schedule_form.csi_hint", defaultMessage: "Cron-based recurring CSI volume snapshot. No restic repository needed.", description: "Schedule form: hint for the CSI snapshot schedule type" })
@@ -131,6 +154,9 @@ export function ScheduleForm({ serverName, ns, onClose, target: explicitTarget, 
                   </Select.Trigger>
                   <Select.Popover className="rounded border border-border">
                     <ListBox aria-label={intl.formatMessage({ id: "web.components.backups.schedule_form.destination", defaultMessage: "Destination", description: "Schedule form: label above the dropdown that picks the backup destination" })}>
+                      {existing?.spec.repoRef?.name && !destinations.some(d => d.name === existing.spec.repoRef?.name) && (
+                        <ListBoxItem id={existing.spec.repoRef.name}>{existing.spec.repoRef.name}</ListBoxItem>
+                      )}
                       {destinationsLoaded && destinations.length === 0 ? (
                         <ListBoxItem id="" isDisabled>{intl.formatMessage({ id: "web.components.backups.schedule_form.no_destinations_configured", defaultMessage: "No destinations configured", description: "Schedule form: disabled option in the destination dropdown shown when no backup destinations have been set up" })}</ListBoxItem>
                       ) : (
@@ -164,18 +190,20 @@ export function ScheduleForm({ serverName, ns, onClose, target: explicitTarget, 
         </div>
 
         {!isVolumeSnapshot && destinationError && <ErrorBanner err={destinationError} />}
-        {create.error && <ErrorBanner err={create.error} />}
+        {save.error && <ErrorBanner err={save.error} />}
 
         <div className="flex justify-end gap-2 pt-2">
-          <Button variant="ghost" onPress={onClose} size="sm">{intl.formatMessage({ id: "web.components.backups.schedule_form.cancel", defaultMessage: "Cancel", description: "Schedule form: button that closes the form without creating a schedule; keep it short" })}</Button>
+          <Button variant="ghost" isDisabled={save.isPending} onPress={onClose} size="sm">{intl.formatMessage({ id: "web.components.backups.schedule_form.cancel", defaultMessage: "Cancel", description: "Schedule form: button that closes the form without creating a schedule; keep it short" })}</Button>
           <Button
-            onPress={() => create.mutate()}
+            onPress={() => save.mutate()}
             isDisabled={
-              !resourceCan(permissions, "schedules:write") || !form.schedule || (!isVolumeSnapshot && (!form.repoName || Boolean(destinationError))) || create.isPending
+              !resourceCan(permissions, "schedules:write") || !form.schedule.trim() || (needsDestination && (!form.repoName || !form.repoKey || Boolean(destinationError))) || save.isPending
             }
             size="sm"
           >
-            {create.isPending ? intl.formatMessage({ id: "web.components.backups.schedule_form.creating", defaultMessage: "Creating…", description: "Schedule form: submit button label while the schedule is created" }) : intl.formatMessage({ id: "web.components.backups.schedule_form.create_schedule", defaultMessage: "Create schedule", description: "Schedule form: submit button label" })}
+            {existing
+              ? intl.formatMessage({ id: "web.components.backups.schedule_form.save_changes", defaultMessage: "Save changes", description: "Schedule editor: save changes to the existing schedule" })
+              : save.isPending ? intl.formatMessage({ id: "web.components.backups.schedule_form.creating", defaultMessage: "Creating…", description: "Schedule form: submit button label while the schedule is created" }) : intl.formatMessage({ id: "web.components.backups.schedule_form.create_schedule", defaultMessage: "Create schedule", description: "Schedule form: submit button label" })}
           </Button>
         </div>
       </CardContent>

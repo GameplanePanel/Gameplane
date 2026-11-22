@@ -1360,7 +1360,21 @@ export function buildScreenshotHandlers() {
     http.delete("/backups/:name", () => new HttpResponse(null, { status: 204 })),
 
     // Schedules: use screenshot schedules
-    http.get("/schedules", () => HttpResponse.json({ items: data.schedules })),
+    http.get("/schedules", ({ cookies }) => {
+      if (cookies.e2e_server_schedule_actions !== "1") return HttpResponse.json({ items: data.schedules });
+      const nextRun = (hours: number) => new Date(Date.now() + (hours * 60 + 1) * 60_000).toISOString();
+      const daily = data.schedules[0];
+      return HttpResponse.json({ items: [
+        { ...daily, status: { ...daily.status, nextScheduleTime: nextRun(8) } },
+        makeSchedule({
+          metadata: { name: "mc-survival-auto", namespace: daily.metadata.namespace, ownerReferences: [
+            { kind: "GameServer", name: "mc-survival", uid: data.servers.find(s => s.metadata.name === "mc-survival")?.metadata.uid ?? "mc-survival", controller: true },
+          ] },
+          spec: { serverRef: { name: "mc-survival" }, schedule: "0 */6 * * *" },
+          status: { nextScheduleTime: nextRun(2) },
+        }),
+      ] });
+    }),
     http.get("/schedules/:name", ({ params }) =>
       HttpResponse.json(makeSchedule({ metadata: { name: String(params.name) } })),
     ),

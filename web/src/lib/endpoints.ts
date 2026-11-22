@@ -888,11 +888,10 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
         body: envelope("BackupSchedule", ident, spec),
       });
     },
-    // Read-modify-write: fetches the current object, applies changes to its
-    // spec, and PUTs the merged result. Used for the suspend toggle.
-    patchSpec: async (name: string, patch: Partial<BackupSchedule["spec"]>, ns?: string) => {
+    // The GET supplies the current resourceVersion for the conditional PUT.
+    patchSpec: async (name: string, patch: Partial<BackupSchedule["spec"]> | ((current: BackupSchedule) => BackupSchedule["spec"]), ns?: string) => {
       const current = await api<BackupSchedule>(withNS(`/schedules/${name}`, ns));
-      const next = { ...current, spec: { ...current.spec, ...patch } };
+      const next = { ...current, spec: typeof patch === "function" ? patch(current) : { ...current.spec, ...patch } };
       return api<BackupSchedule>(withNS(`/schedules/${name}`, ns), { method: "PUT", body: next });
     },
     remove: (name: string, ns?: string) =>

@@ -1803,6 +1803,10 @@
     "defaultMessage": "Cancel",
     "description": "Schedule form: button that closes the form without creating a schedule; keep it short"
   },
+  "web.components.backups.schedule_form.changed": {
+    "defaultMessage": "This schedule changed. Reopen it to edit the latest version.",
+    "description": "Schedule editor: conflict while saving a changed or replaced schedule"
+  },
   "web.components.backups.schedule_form.create_schedule": {
     "defaultMessage": "Create schedule",
     "description": "Schedule form: submit button label"
@@ -1822,6 +1826,10 @@
   "web.components.backups.schedule_form.destination": {
     "defaultMessage": "Destination",
     "description": "Schedule form: label above the dropdown that picks the backup destination"
+  },
+  "web.components.backups.schedule_form.edit_schedule": {
+    "defaultMessage": "Edit {name}",
+    "description": "Schedule editor heading, where {name} is the existing backup schedule"
   },
   "web.components.backups.schedule_form.new_backup_schedule": {
     "defaultMessage": "New backup schedule",
@@ -1846,6 +1854,10 @@
   "web.components.backups.schedule_form.retention_policy": {
     "defaultMessage": "Retention policy",
     "description": "Schedule form: label above the retention settings that decide how many old backups are kept"
+  },
+  "web.components.backups.schedule_form.save_changes": {
+    "defaultMessage": "Save changes",
+    "description": "Schedule editor: save changes to the existing schedule"
   },
   "web.components.backups.schedule_form.schedule_cron": {
     "defaultMessage": "Schedule (cron)",
@@ -8059,13 +8071,21 @@
     "defaultMessage": "Completed",
     "description": "Backups tab: column heading for when each backup finished in the backups table; keep it short"
   },
+  "web.routes.tabs.backups.delete_schedule_hint": {
+    "defaultMessage": "Deleting this schedule stops future runs. Backups already taken are kept.",
+    "description": "Server Backups tab: explains the effect of deleting a schedule"
+  },
+  "web.routes.tabs.backups.edit": {
+    "defaultMessage": "Edit",
+    "description": "Server Backups tab: opens the selected backup schedule for editing"
+  },
   "web.routes.tabs.backups.last_backup": {
     "defaultMessage": "Last backup",
     "description": "Backups tab: stat card label for the time of the most recent backup; the value shows that time relative to now, or Unavailable"
   },
   "web.routes.tabs.backups.managed_by_server_settings": {
     "defaultMessage": "Managed by server settings",
-    "description": "Backups tab: small badge on a schedule row meaning the schedule is set by the server settings and not edited here; keep it short"
+    "description": "Backups tab: opens the server settings that control this schedule"
   },
   "web.routes.tabs.backups.name": {
     "defaultMessage": "Name",
