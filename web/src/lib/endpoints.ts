@@ -806,14 +806,6 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
           ns,
         ),
       ),
-    // Apply an env-mode modpack (e.g. Minecraft/itzg): pins the pack on the
-    // server and restarts it.
-    // Legacy env-mode install; slice 3 stops using it and deletes it.
-    installModpackLegacy: (name: string, body: { ref: string }, provider?: string, ns?: string) =>
-      api<{ ok: boolean }>(
-        withNS(`/servers/${name}/modpack` + (provider ? `?provider=${encodeURIComponent(provider)}` : ""), ns),
-        { method: "POST", body },
-      ),
     // Modpack state for the server (active pack, phase, missing CurseForge files).
     modpack: (name: string, ns?: string) => api<ModpackView>(withNS(`/servers/${name}/modpack`, ns)),
     // Install or change the server's modpack (202 + the new view).
