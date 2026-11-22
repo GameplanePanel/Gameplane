@@ -41,7 +41,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 - [X] T010 Replace the `spec.env` patch in `installModpack` with a `spec.modpack` write and add `GET /servers/{name}/modpack` (active, phase, message, backupName, keyShared, backupAvailable; missingFiles empty for now) per contracts/api-modpack.md in api/internal/handlers/registry.go
 - [X] T011 Write the local Pencil prompt for the six surfaces in contracts/ui-modpacks-tab.md (repo `local-prompt` skill) and save it as notes/design-prompts/035-modpacks-tab.md in the project files
 - [X] T012 (valgul's machine, pencil-designer) Design the six surfaces in design.pen and export touched nodes to assets/design-export/json/ and assets/design-export/screenshots/ in the same commit (redone in design.fig)
-- [ ] T013 (valgul) Approve the T012 screenshots; record the approval in this file
+- [X] T013 (valgul) Approve the T012 screenshots; record the approval in this file (approved by valgul 2026-11-22)
 
 **Checkpoint**: CRDs regenerated, operator renders pack env from `spec.modpack`, module declares all three registries, design approved.
 
