@@ -19,7 +19,7 @@ Validation runs in CI (CLAUDE.md rule 8, Constitution VI). Locally, only compile
 
 ## What is not covered
 
-No `test/e2e/` test starts a standalone panel, and no CI job installs the Helm panel-only profile in a cluster. See [spec.md](spec.md#known-gaps).
+CI leg `e2e standalone / amd64 (kind)` runs `TestStandalone_HelmPanelLifecycle`, which installs the Helm panel-only profile in a Kind cluster and exercises it (tasks T052 to T055).
 
 ## Manual check (optional, on a host with Docker)
 

@@ -32,6 +32,14 @@ Every task is ticked and PR #630 is merged, so Constitution IV and CLAUDE.md rul
 
 Ruling: the folder keeps the bare `025-` name until a standalone E2E test exists. Adding that test is new work and needs its own decision.
 
+## OD-6: What the standalone E2E test covers — **Settled (valgul, 2026-11-22): steps 1 to 7**
+
+One test, `TestStandalone_HelmPanelLifecycle`, on the chart's panel-only profile: (1) install and check one replica, `Recreate` and no service-account token; (2) bootstrap and log in, empty clusters and fleet with no `local`, `/admin/installation` standalone and 401 when anonymous, 501 from system logs; (3) refuse disallowed kubeconfigs, then register the Kind cluster and wait for Healthy; (4) create a GameServer through the panel and see the remote operator reconcile it; (5) replace the kubeconfig, revoke the old credential, still reach the cluster; (6) restart the API and keep working; (7) remove the cluster. Agent console through the gateway and offline `rotate-panel-key` on Helm were offered and not chosen; `TestPanel_OfflineRecovery` already covers wrong-key fail-closed and restore.
+
+## OD-7: Which CI job runs it — **Settled (valgul, 2026-11-22): a new `standalone` bucket**
+
+A new amd64-only `standalone` bucket and `e2e-go` matrix leg, fully isolated, rather than the `recovery` or `operator` buckets.
+
 ## Moot
 
 - Splitting the share-links token fix (`834c3ca`) out of PR #630: merged inside PR #630, so there is nothing left to split.

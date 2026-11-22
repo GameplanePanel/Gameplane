@@ -496,8 +496,18 @@ bucket_network_isolation() {
 	printf '%s\n' TestNetworkIsolation_EnforcedAndUpgrade TestNetworkIsolation_ProbeOutput
 }
 
+# standalone owns its cluster (spec 025 OD-7): TestStandalone_HelmPanelLifecycle
+# installs the chart's panel-only profile as a second Helm release in the fixed
+# namespace e2e-standalone-panel and registers this Kind cluster as its remote.
+# Zero shared panel logins; the standalone panel has its own login limiter
+# (3 logins).
+bucket_standalone() { cat <<'EOF'
+TestStandalone_HelmPanelLifecycle
+EOF
+}
+
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery standalone
 }
 
 list_bucket() {
@@ -525,6 +535,7 @@ list_bucket() {
 	management-placement) bucket_management_placement ;;
 	backup-preparation) bucket_backup_preparation ;;
 	recovery) bucket_recovery ;;
+	standalone) bucket_standalone ;;
 	monitoring) bucket_monitoring ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2

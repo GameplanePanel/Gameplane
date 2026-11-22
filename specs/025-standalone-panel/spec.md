@@ -171,7 +171,7 @@ An operator installs a central panel on a Kubernetes cluster that will not host 
 
 Found while documenting the merged code (2026-10-14). They are reported, not planned; no task exists for them here.
 
-- **No `test/e2e/` coverage for standalone mode** (Constitution I). Standalone is exercised only by the Compose smoke test (`deploy/standalone/smoke.py`, CI job `standalone-compose`) and render-only chart checks (`charts/tests/check_standalone.py`). No bucket in `test/e2e/buckets.sh` runs a standalone panel, and no CI job installs the Helm panel-only profile in a cluster.
+- **No `test/e2e/` coverage for standalone mode** (Constitution I): closed by tasks T052 to T055 (2026-11-22). `TestStandalone_HelmPanelLifecycle` in the `standalone` bucket installs the Helm panel-only profile and exercises it; `TestPanel_OfflineRecovery` (`recovery` bucket) runs a hand-built standalone API for key and recovery checks. The Compose smoke test and render-only chart checks remain.
 - **Design came after the first UI code** (Constitution II). The first dashboard commit `0182e16` (2026-10-07) predates the design commit `6eb7ac3` (2026-10-08). The design export is complete in the merged tree.
 - **`--skip-crds` is documented, not enforced.** A panel-only Helm install without `--skip-crds` still creates the Gameplane CRDs (`charts/gameplane/examples/standalone-panel-values.yaml`, `templates/NOTES.txt`). Follow-up issue owed by valgul.
 - **Single API container in Compose is documented, not enforced.** Helm enforces `api.replicas=1` (`templates/validate.yaml`); `deploy/standalone/compose.yaml` does not.

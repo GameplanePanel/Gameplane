@@ -36,7 +36,7 @@ The API gains a standalone mode that runs without any local Kubernetes cluster. 
 
 | Principle | Result | Evidence |
 |---|---|---|
-| I. E2E-tested delivery | **Not met** | No `test/e2e/` test runs a standalone panel and no bucket in `test/e2e/buckets.sh` covers it. Coverage is the Compose smoke test and render-only chart checks. Recorded as a known gap in [spec.md](spec.md#known-gaps); no task added. |
+| I. E2E-tested delivery | **Met after Phase 9** | Not met when PR #630 merged. Phase 9 (T052 to T055) adds `TestStandalone_HelmPanelLifecycle` in the new `standalone` bucket of `test/e2e/buckets.sh`. |
 | II. Design-first | **Partly met** | 19 standalone frames exported to `assets/design-export/` (MANIFEST section "Standalone panel (PR #630, 2026-10-08)"), but design commit `6eb7ac3` came after the first UI commit `0182e16`. |
 | III. Language best practice | Met | No `//nolint`, `eslint-disable`, `@ts-ignore` or `#nosec` added; no lint config loosened; errors wrapped with `%w`. |
 | IV. Spec-driven development | **Partly met** | Only the contributor's design note came with the first code commit (`0182e16`); spec, plan and tasks were written after the merge, on 2026-10-14. `api/specs.md` and `web/specs.md` were updated in PR #630. |
