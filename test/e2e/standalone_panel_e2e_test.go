@@ -96,6 +96,7 @@ func TestStandalone_HelmPanelLifecycle(t *testing.T) {
 		if err != nil {
 			t.Fatalf("register %s kubeconfig: request failed (details withheld)", name)
 		}
+		_ = resp.Body.Close()
 		if resp.StatusCode != http.StatusBadRequest {
 			t.Fatalf("register %s kubeconfig: status=%d, want 400 (body withheld)", name, resp.StatusCode)
 		}
@@ -271,6 +272,7 @@ func (p *standalonePanel) expect(c *APIClient, method, path string, body any, wa
 	if err != nil {
 		t.Fatalf("standalone %s %s: request failed: %v", method, path, err)
 	}
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != want {
 		t.Fatalf("standalone %s %s: status=%d want=%d (body withheld)", method, path, resp.StatusCode, want)
 	}
@@ -314,6 +316,7 @@ func (p *standalonePanel) waitHealthy(c *APIClient) {
 		if err != nil {
 			return false, fmt.Sprintf("list clusters: %v", err)
 		}
+		defer func() { _ = resp.Body.Close() }()
 		if resp.StatusCode != http.StatusOK {
 			return false, fmt.Sprintf("list clusters: status=%d", resp.StatusCode)
 		}
@@ -340,6 +343,7 @@ func (p *standalonePanel) waitServer(c *APIClient, path, uid string) {
 		if err != nil {
 			return false, fmt.Sprintf("read server: %v", err)
 		}
+		defer func() { _ = resp.Body.Close() }()
 		if resp.StatusCode != http.StatusOK {
 			return false, fmt.Sprintf("read server: status=%d", resp.StatusCode)
 		}
