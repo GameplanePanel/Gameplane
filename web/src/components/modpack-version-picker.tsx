@@ -43,8 +43,8 @@ function versionDetailLine(v: RegistryVersion, fmt: ReturnType<typeof useFormat>
   return intl.formatMessage({ id: "web.components.modpack_version_picker.published_with_details", defaultMessage: "Published {date} · {details}", description: "Modpack version picker: version row line giving the publish date and the loader and game version; {date} is a formatted date, {details} the loader and game version" }, { date, details });
 }
 
-// releaseChip marks a non-stable release channel. Stable releases and
-// versions without a reported channel get no chip.
+// releaseChip marks the release channel: Release, Beta or Alpha. Versions
+// without a reported channel get no chip.
 function releaseChip(v: RegistryVersion, intl: ReturnType<typeof useOptionalIntl>) {
   switch (v.releaseType) {
     case "release":

@@ -325,7 +325,7 @@ export function ModpacksTab({
           backupAvailable={view?.backupAvailable === true}
           backupDestination={view?.backupDestination}
           pending={installMut.isPending}
-          error={confirmErrorText(installMut.error)}
+          error={installMut.error ? errMsg(installMut.error, intl) : undefined}
           onConfirm={({ backupFirst }) =>
             installMut.mutate({
               provider: confirm.provider,
