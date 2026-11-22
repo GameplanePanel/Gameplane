@@ -1236,6 +1236,8 @@ jobs:
       - run: helm lint charts/gameplane
       - name: evaluate monitoring rules
         run: bash charts/gameplane/tests/monitoring-rules.sh
+      - name: check MCP server RBAC scope
+        run: bash charts/gameplane/tests/mcp-server-rbac.sh
 
   standalone-compose:
     name: standalone Compose smoke

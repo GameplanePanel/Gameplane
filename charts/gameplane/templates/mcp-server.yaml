@@ -1,12 +1,26 @@
 {{- if not .Values.api.standalone }}
 {{- if .Values.mcpServer.enabled }}
+{{- $gameNamespaces := include "gameplane.operatorGameNamespaces" . | fromJsonArray }}
+{{- $scopeNamespaces := uniq (concat (list .Release.Namespace) $gameNamespaces) }}
 # Optional, strictly read-only MCP server. It speaks MCP (JSON-RPC 2.0) over
 # stdio only, never a network port, so there is no Service here — reach a
 # running instance with:
 #   kubectl exec -i deploy/gameplane-mcp-server -n {{ .Release.Namespace }} -- /mcp-server serve
 # The container's own long-running process runs the `idle` subcommand (no
 # args); it does nothing besides keep a container alive for `kubectl exec`
-# to attach to. Each `serve` session gets its own isolated read-only client.
+# to attach to.
+#
+# This is break-glass access only: `kubectl exec` requires cluster exec rights,
+# so no Gameplane user check happens on this path. Per-user MCP access runs on
+# the user's own machine and reads through the API with a personal token, so
+# it needs no RBAC here.
+#
+# Scope is namespaced and read-only (get/list/watch, no write verb anywhere in
+# this file). The server reads only the release namespace and the managed game
+# namespaces, through namespaced Roles. The single cluster-scoped grant is a
+# read-only ClusterRole for GameTemplate, Module and ModuleSource, which are
+# cluster-scoped kinds. See mcp-server/README.md for the read-only guarantee
+# this mirrors in code.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -14,41 +28,68 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 ---
-# Cluster-wide, read-only: get/list/watch only, on exactly the resources the
-# server's tools read. No write verb (create/update/patch/delete) appears
-# anywhere in this file — see mcp-server/README.md for the read-only
-# guarantee this mirrors in code (Client in mcp-server/internal/kube/client.go exposes no
-# mutating method, and main_test.go asserts no tool is registered that could
-# use one).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ .Release.Name }}-mcp-server-read
+  name: {{ .Release.Name }}-mcp-server-catalog-read
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 rules:
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers, gametemplates, backups, backupschedules, restores, modules, modulesources]
+    resources: [gametemplates, modules, modulesources]
     verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-mcp-server-catalog-read
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Release.Name }}-mcp-server-catalog-read
+subjects:
+  - kind: ServiceAccount
+    name: gameplane-mcp-server
+    namespace: {{ .Release.Namespace }}
+{{- range $namespace := $scopeNamespaces }}
+---
+# Namespaced read-only Role for one in-scope namespace. A game namespace also
+# gets the GameServer, backup and restore reads; the release namespace gets
+# them only when it is also a game namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $.Release.Name }}-mcp-server-read
+  namespace: {{ $namespace }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+rules:
   - apiGroups: [""]
     resources: [pods, events]
     verbs: [get, list, watch]
   - apiGroups: [""]
     resources: [pods/log]
     verbs: [get]
+{{- if has $namespace $gameNamespaces }}
+  - apiGroups: ["gameplane.local"]
+    resources: [gameservers, backups, backupschedules, restores]
+    verbs: [get, list, watch]
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
-  name: {{ .Release.Name }}-mcp-server-read
-  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  name: {{ $.Release.Name }}-mcp-server-read
+  namespace: {{ $namespace }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {{ .Release.Name }}-mcp-server-read
+  kind: Role
+  name: {{ $.Release.Name }}-mcp-server-read
 subjects:
   - kind: ServiceAccount
     name: gameplane-mcp-server
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ $.Release.Namespace }}
+{{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -80,6 +121,9 @@ spec:
           # No ports, no probes: this container exposes no HTTP/TCP surface to
           # probe — its only interface is `kubectl exec -i ... -- /mcp-server
           # serve`, which Kubernetes doesn't have a probe verb for.
+          env:
+            - name: GAMEPLANE_MCP_NAMESPACES
+              value: {{ join "," $scopeNamespaces | quote }}
           resources: {{ toYaml .Values.mcpServer.resources | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false

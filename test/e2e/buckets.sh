@@ -433,10 +433,14 @@ EOF
 
 # optional-components owns its cluster: TestOptionalComponents_Lifecycle runs
 # `helm upgrade --reuse-values` to enable the MCP server and the audit-syslog
-# bridge, so it is the bucket's only test. Login budget: 2 (one admin, one
-# restricted user).
+# bridge, so it owns the bucket's cluster. Login budget: 2 (one admin, one
+# restricted user). TestOptionalComponents_MCPScope is the bucket's other test:
+# it is non-parallel, so Go runs it before the parallel lifecycle test resumes,
+# it re-enables the MCP server itself, scales the API to 0 and back, disables
+# the MCP server again on cleanup, and makes no logins.
 bucket_optional_components() { cat <<'EOF'
 TestOptionalComponents_Lifecycle
+TestOptionalComponents_MCPScope
 EOF
 }
 

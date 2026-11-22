@@ -1125,26 +1125,35 @@ Secret read. Without the grant, the API omits "used" and the dashboard shows
 
 ## mcp-server (optional)
 
-The optional MCP server [optional] (`mcpServer.enabled`, see [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/main/README.md))
-is strictly read-only — no tool it exposes can create, update, patch,
-delete, or apply anything, enforced structurally (its tool handlers only
-ever hold a client whose exported methods are List/Get-shaped) and by RBAC
-(a ClusterRole granting only `get`/`list`/`watch`, plus `get` on
-`pods/log`).
+The optional MCP server (`mcpServer.enabled`, see [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/main/README.md))
+is strictly read-only: no tool it exposes can create, update, patch, delete,
+or apply anything. It runs in one of two modes.
 
-That RBAC grant is **cluster-wide**, not scoped to `gameplane-games` or any
-other single namespace: the server can list/read Pods, Events, and pod logs
-in every namespace, including `kube-system` and any other workload's
-namespace sharing the cluster. Pod logs in particular can surface secrets
-an application logs at startup or during errors (API keys, connection
-strings, stack traces) — Kubernetes has no mechanism to redact those.
-Combined with write-freedom and opt-in, admin-only installation
-(`mcpServer.enabled` plus whatever gates `kubectl exec` access to the
-`gameplane-mcp-server` pod), this is an accepted tradeoff, not an oversight
-— but install it knowing that anyone who can reach a `serve` session gets
-read access to cluster-wide pod state and logs, not just Gameplane-managed
-namespaces. If that blast radius is wider than acceptable for a given
-cluster, don't enable `mcpServer` there.
+- **Per-user mode.** A user creates a personal MCP token in the dashboard and
+  runs the MCP client on their own machine. The client reads only through the
+  API, with the user's roles, namespace grants and per-cluster grants. The API
+  accepts an MCP token only for `GET` on a fixed list of read routes. The
+  server itself holds no Kubernetes permissions in this mode, so the RBAC
+  described below does not apply to it.
+- **Break-glass mode.** `kubectl exec -i deploy/gameplane-mcp-server -n <release-namespace> -- /mcp-server serve`.
+  Access is admin-only by virtue of `kubectl exec` rights; no Gameplane user
+  check happens on this path. The pod's ServiceAccount has namespaced Roles
+  only, in the release namespace and in each managed game namespace, granting
+  `get`/`list`/`watch` on Pods, Events and `pods/log` (`get`), and
+  `get`/`list`/`watch` on GameServers, backups, backup schedules and restores
+  in the game namespaces. Its one ClusterRole covers GameTemplate, Module and
+  ModuleSource only, which are cluster-scoped kinds. No other cluster-wide
+  read is granted, and no write verb appears anywhere.
+
+Break-glass reads therefore cover the release namespace and the managed game
+namespaces, not every namespace in the cluster. Pod logs can still surface
+secrets an application logs at startup or during errors (API keys, connection
+strings, stack traces), and Kubernetes has no mechanism to redact those. Within
+the scoped namespaces this is an accepted tradeoff for an opt-in, admin-only
+install (`mcpServer.enabled` plus whatever gates `kubectl exec` access to the
+`gameplane-mcp-server` pod). Anyone who can reach a break-glass `serve` session
+can read pods, events and logs in those namespaces. If that is wider than
+acceptable for a cluster, don't enable `mcpServer` there.
 
 ## Secrets
 

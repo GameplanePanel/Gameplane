@@ -85,3 +85,8 @@ Accounts, roles, audit and installation settings remain centrally managed. Their
 requests do not inherit the inventory selection. Combined panels manage the local
 module catalog; standalone panels require an explicit remote target for modules
 and sources.
+
+**MCP access.** Personal MCP tokens read through the API with the same per-cluster
+grants as the dashboard. A session lists every cluster the user may read, and an
+ungranted cluster answers like an unknown one. See
+[`docs/security.md`](security.md#mcp-server-optional).
