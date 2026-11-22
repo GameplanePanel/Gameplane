@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// TestMulticluster_MCPTokenRemoteGrant proves that a personal MCP token
+// TestMultiCluster_MCPTokenRemoteGrant proves that a personal MCP token
 // follows its owner's per-cluster grants on a registered REMOTE cluster, not
 // just the home cluster. The owner has no local grant at all, and only a
 // namespace-scoped servers:read grant on the remote cluster. With that token:
@@ -22,7 +22,7 @@ import (
 // package doc of multicluster_e2e_test.go (see ensureClusterB).
 //
 // Budget: one e2e-admin login (the admin fixture) and one throwaway user login.
-func TestMulticluster_MCPTokenRemoteGrant(t *testing.T) {
+func TestMultiCluster_MCPTokenRemoteGrant(t *testing.T) {
 	t.Parallel()
 
 	_, clusterBName := ensureClusterB(t)

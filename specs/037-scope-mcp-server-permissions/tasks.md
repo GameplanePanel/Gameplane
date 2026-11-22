@@ -71,7 +71,7 @@
 - [ ] T020 [P] [US2] New envtest `api/internal/handlers/mcp_tokens_envtest_test.go`: create/list/revoke as self, admin list/revoke needs `users:read`/`users:manage`, a token cannot call token routes, CSRF still required for cookie POST/DELETE, audit rows written.
 - [ ] T021 [P] [US2] New envtest `api/internal/handlers/pods_envtest_test.go`: namespace-scoped `servers:read` user sees only that namespace; owner-only user reaches `/servers/{name}/pods` and log tail but not `/pods`; control-plane namespace denied for non-admin, allowed for `*`; unknown cluster → forbidden; log tail bounds; events truncation.
 - [ ] T022 [US2] Add the client methods and types to `web/src/lib/api.ts` (`listMcpTokens`, `createMcpToken`, `revokeMcpToken`, `listUserMcpTokens`, `revokeUserMcpToken`).
-- [ ] T023 [US2] New E2E `TestAPIRBAC_MCPTokenReads` in `test/e2e/api_rbac_mcp_token_e2e_test.go` (bucket `api-rbac`, register in `test/e2e/buckets.sh`; uses 2 logins of the bucket budget): token user with `servers:read` in one namespace reads only that namespace through `/servers`, `/pods`, `/kube-events`; POST with the token → 403; role removal → next read 403; revoke → 401; password reset → 401. `t.Parallel()`, unique names.
+- [ ] T023 [US2] New E2E `TestAPI_RBAC_MCPTokenReads` in `test/e2e/api_rbac_mcp_token_e2e_test.go` (bucket `api-rbac`, register in `test/e2e/buckets.sh`; uses 2 logins of the bucket budget): token user with `servers:read` in one namespace reads only that namespace through `/servers`, `/pods`, `/kube-events`; POST with the token → 403; role removal → next read 403; revoke → 401; password reset → 401. `t.Parallel()`, unique names.
 - [ ] T024 [US2] Changelog `changelog/unreleased/<PR A number>-mcp-tokens-api.md` (personal MCP tokens, new read routes).
 
 ### Design and dashboard (design branch, PR B)
@@ -104,7 +104,7 @@
 - [ ] T036 [US3] In `mcp-server/internal/panel/client.go`: with no `cluster` argument, call `/clusters`, run the read on each listed cluster concurrently (bounded, 4 at a time, 10 s each), return results grouped by cluster plus `unavailable: [ids]`; with no `namespace`, use `/namespaces?cluster=` for that cluster.
 - [ ] T037 [US3] Shape grouped results in `mcp-server/tools.go` (`{clusters: {<id>: …}, unavailable: […]}`), keeping single-cluster output unchanged when `cluster` is given.
 - [ ] T038 [P] [US3] New tests `mcp-server/internal/panel/fanout_test.go`: two clusters merged and labelled, one unreachable reported not fatal, forbidden cluster indistinguishable from unknown.
-- [ ] T039 [US3] New E2E `TestMulticluster_MCPTokenRemoteGrant` in `test/e2e/multicluster_mcp_e2e_test.go` (bucket `multicluster`, register in `test/e2e/buckets.sh`): user with a remote grant for one namespace reads it with `?cluster=<remote>` through the token, gets forbidden on an ungranted cluster with the same body as an unknown ID, and a namespace-only server grant cannot read `/cluster` data.
+- [ ] T039 [US3] New E2E `TestMultiCluster_MCPTokenRemoteGrant` in `test/e2e/multicluster_mcp_e2e_test.go` (bucket `multicluster`, register in `test/e2e/buckets.sh`): user with a remote grant for one namespace reads it with `?cluster=<remote>` through the token, gets forbidden on an ungranted cluster with the same body as an unknown ID, and a namespace-only server grant cannot read `/cluster` data.
 
 ---
 
