@@ -332,7 +332,7 @@ func TestModpackRemove_RetryAfterFailedBackup(t *testing.T) {
 		o.SetAnnotations(map[string]string{modpackRemoveAnnotation: `{"requestId":"old","backupFirst":true}`})
 	})
 	setServerStatus(t, gs.GetName(), map[string]any{"phase": "Running", "modpack": map[string]any{
-		"phase": "BackupFailed", "observedGeneration": gs.GetGeneration(), "message": "backup failed", "applied": appliedCF()}})
+		"phase": "BackupFailed", "observedGeneration": gs.GetGeneration(), "requestId": "old", "message": "backup failed", "applied": appliedCF()}})
 	path := "/servers/" + gs.GetName() + "/modpack"
 
 	g := decodeModpackView(t, modpackReq(t, e.router, http.MethodGet, path, nil))

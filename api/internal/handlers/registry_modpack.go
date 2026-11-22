@@ -19,6 +19,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/audit"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // Spec 035: GameServer.spec.modpack is the only place the API records a pack;
@@ -28,6 +29,11 @@ import (
 // modpackRemoveAnnotation mirrors v1alpha1.ModpackRemoveAnnotation (the API
 // reads unstructured objects and does not import the operator types).
 const modpackRemoveAnnotation = "gameplane.local/modpack-remove"
+
+// modpackInstallAnnotation mirrors v1alpha1.ModpackInstallAnnotation: a fresh
+// request id stamped on every install POST, so a retry of the same choice after
+// BackupFailed (identical spec, same generation) still starts a new change.
+const modpackInstallAnnotation = "gameplane.local/modpack-install-request"
 
 // modpackProjectRe and modpackVersionRe mirror the GameServer CRD patterns of
 // spec.modpack.project and spec.modpack.version, so a bad value is a 400 from
@@ -145,8 +151,10 @@ func (h *registryHandler) modpackViewFor(req *http.Request, target *modTarget, g
 // modpackPhase is status.modpack.phase, except that a change the operator has
 // not picked up yet (spec.modpack differs from status.modpack.applied, or a
 // removal is requested while a pack is still applied) reads "Pending". The one
-// exception: BackupFailed for the generation that is current stays visible,
-// because the operator leaves spec unequal to applied after refusing it.
+// exception: BackupFailed for the request that is current (same request id and
+// the target it started from still desired) stays visible, because the
+// operator leaves spec unequal to applied after refusing it; an unrelated spec
+// edit does not hide it.
 func modpackPhase(gs *unstructured.Unstructured) string {
 	st, _, _ := unstructured.NestedMap(gs.Object, "status", "modpack")
 	phase, _, _ := unstructured.NestedString(st, "phase")
@@ -158,16 +166,33 @@ func modpackPhase(gs *unstructured.Unstructured) string {
 		return phase
 	}
 	if phase == modpackPhaseBackupFailed {
-		if observed, _, _ := unstructured.NestedInt64(st, "observedGeneration"); observed == gs.GetGeneration() {
+		target, hasTarget, _ := unstructured.NestedMap(st, "target")
+		requestID, _, _ := unstructured.NestedString(st, "requestId")
+		sameTarget := (hasSpec && samePack(spec, target, hasTarget)) || (!hasSpec && !hasTarget)
+		if sameTarget && requestID == currentModpackRequestID(gs) {
 			return phase
 		}
 	}
 	return modpackPhasePending
 }
 
+// currentModpackRequestID mirrors the operator's modpackRequestID: the removal
+// request id when a removal is requested, else the install request id.
+func currentModpackRequestID(gs *unstructured.Unstructured) string {
+	ann := gs.GetAnnotations()
+	if raw := ann[modpackRemoveAnnotation]; raw != "" {
+		var req modpackRemoveRequest
+		if err := json.Unmarshal([]byte(raw), &req); err != nil {
+			return raw
+		}
+		return req.RequestID
+	}
+	return ann[modpackInstallAnnotation]
+}
+
 // modpackChangeInProgress reports that a previous change has not finished:
 // POST and DELETE answer 409 server.modpack.change_in_progress meanwhile.
-// Applied, BackupFailed (for the current generation) and "never managed" are
+// Applied, BackupFailed (for the current request) and "never managed" are
 // all free to change.
 func modpackChangeInProgress(gs *unstructured.Unstructured) bool {
 	switch modpackPhase(gs) {
@@ -254,7 +279,10 @@ func (h *registryHandler) modpacksBlockedReason(ctx context.Context, target *mod
 	if tag == "" || !slices.Contains(p.modpacks.needsKeyImageTags, tag) {
 		return ""
 	}
-	if h.keyShared(ctx) {
+	// The share flag lives on the management cluster's Secret; a remote
+	// cluster's operator reads its own namespace and never gets the key, so
+	// it counts as not shared there.
+	if target.cluster == scope.DefaultCluster && h.keyShared(ctx) {
 		return ""
 	}
 	return blockedCurseForgeKeyNotShared

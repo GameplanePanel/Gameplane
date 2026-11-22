@@ -272,17 +272,28 @@ func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Reques
 		action = "change"
 	}
 	spec := modpackSpecFrom(prov.provider, body)
+	requestID, err := newModpackRequestID()
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
 	updated, err := updateModTarget(req.Context(), target, func(current *unstructured.Unstructured) {
 		// SetNestedMap only fails on a non-map parent; spec is always a map here.
 		_ = unstructured.SetNestedMap(current.Object, spec, "spec", "modpack")
 		// A removal whose backup failed leaves its request behind, and an
 		// adopted legacy pin would hold back the new pack; installing a pack
 		// supersedes both.
-		if ann := current.GetAnnotations(); ann[modpackRemoveAnnotation] != "" || ann[modpackAdoptedAnnotation] != "" {
-			delete(ann, modpackRemoveAnnotation)
-			delete(ann, modpackAdoptedAnnotation)
-			current.SetAnnotations(ann)
+		ann := current.GetAnnotations()
+		if ann == nil {
+			ann = map[string]string{}
 		}
+		delete(ann, modpackRemoveAnnotation)
+		delete(ann, modpackAdoptedAnnotation)
+		// A fresh id per request: a repeat POST of the same choice after
+		// BackupFailed writes an identical spec (same generation), and the id
+		// is what tells the operator to start a new change.
+		ann[modpackInstallAnnotation] = requestID
+		current.SetAnnotations(ann)
 	})
 	if err != nil {
 		httperr.Write(w, req, err)

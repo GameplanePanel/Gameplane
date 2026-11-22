@@ -141,8 +141,10 @@ func TestModpackInstall_ConflictWhileChangeInProgress(t *testing.T) {
 			t.Errorf("%s: status %d, want 409", phase, rr.Code)
 		}
 	}
-	// BackupFailed for the current generation: a new change is allowed.
-	setServerStatus(t, gs.GetName(), modpackStatus("BackupFailed", gs.GetGeneration(), nil))
+	// BackupFailed for the current request and target: a new change is allowed.
+	failed := modpackStatus("BackupFailed", gs.GetGeneration(), nil)
+	failed["modpack"].(map[string]any)["target"] = same
+	setServerStatus(t, gs.GetName(), failed)
 	if rr := modpackReq(t, e.router, http.MethodPost, path, body); rr.Code != http.StatusAccepted {
 		t.Errorf("BackupFailed: status %d: %s", rr.Code, rr.Body)
 	}
