@@ -23,8 +23,8 @@
   $$\text{mib} = \lfloor \text{bytes} \times \text{percent} / 100 / (1024 \times 1024) \rfloor \implies \text{"<mib>M"}$$
 - Export valid OCI artifact bundles matching Gameplane's canonical media types and annotations.
 - Provide Go library functions under `pkg/` (backed by `internal/`) reusable by `api/` for web dashboard integration.
-- Check the template's `spec.security` offline (`validateTemplateSchema` path in `internal/validator/rules.go`, wired from `validator.go`): a `risky` member must be one of `runAsUser`, `runAsGroup`, `fsGroup` or `volumeOwnershipCheck`, a `risky` reason may be at most 200 characters, and `volumeOwnershipCheck` without `fsGroup` is a warning.
-- Show the resolved security defaults, the ownership check and the risky settings with their reasons in `preview` output (`internal/preview/preview.go`).
+- Check the template's `spec.security` offline. `validateSecurityRisky` and `validateSecurityOwnershipCheck` in `internal/validator/rules.go` run from `validator.go` next to `validateConfigSchemaRules`. A `risky` member must be one of `runAsUser`, `runAsGroup`, `fsGroup` or `volumeOwnershipCheck` (error otherwise), a `risky` reason may be at most 200 characters (`maxSecurityRiskReasonLength`, error), and `volumeOwnershipCheck` without `fsGroup` is a warning. All three report under `RuleTemplateSchemaViolation`.
+- Show the resolved security defaults, the ownership policy and the risky settings with their reasons in `preview` output. `internal/preview/security.go` (`buildSecurityPreview`) builds the block; `Result.Security` in `internal/preview/preview.go` carries it and `FormatHuman` prints it. With `fsGroup` set and no policy, the resolved ownership policy is `OnlyWhenWrong` (built-in default); a policy without `fsGroup` is flagged as having no effect.
 
 ## Non-goals / boundaries
 

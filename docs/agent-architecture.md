@@ -61,7 +61,7 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | Change the website | `website/AGENTS.md` (submodule) |
 | Add a DB migration | `api/specs.md`, `api/internal/db/migrations/README.md` |
 | Change CI or a workflow | `docs/contributing.md` ("CI and workflows", "How CI picks tests") |
-| Server security overrides (run-as user or group, fsGroup, ownership check, root rule, per-cluster allow-root setting) | `docs/security.md` ("Server security overrides"), `docs/module-authoring.md` ("Security context"), `operator/specs.md`, `api/specs.md`, `operator/internal/controller/security_overrides.go`, `operator/internal/controller/security_settings.go`, `api/internal/handlers/security_overrides.go`, `api/internal/handlers/security_settings.go` |
+| Server security overrides (run-as user or group, fsGroup, ownership check, root rule, per-cluster allow-root setting) | `docs/security.md` ("Server security overrides"), `docs/module-authoring.md` ("Security context"), `operator/specs.md`, `api/specs.md`, `operator/internal/controller/security_overrides.go`, `operator/internal/controller/security_settings.go`, `api/internal/handlers/security_overrides.go`, `api/internal/handlers/security_settings.go`, `web/src/components/SecurityAdvanced.tsx`, `web/src/components/clusters/SecuritySettingsPanel.tsx` |
 | Decide where new code goes | `docs/layout.md` |
 
 ## How to use this index
