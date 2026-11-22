@@ -41,8 +41,23 @@ describe("BackupsPage flows", () => {
     renderWithQuery(<BackupsPage />);
     // "Back up now" lives in the page header and opens the snapshot dialog.
     await userEvent.click(screen.getByRole("button", { name: /Back up now/i }));
+    await userEvent.click(serverSelect());
+    await userEvent.click(await screen.findByRole("option", { name: /^alpha · local \/ gameplane-games$/ }));
     expect(await screen.findByText(/No backup destinations configured/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Run snapshot/i })).toBeDisabled();
+  });
+
+  it("shows a destination lookup error without claiming the server has no destinations", async () => {
+    server.use(http.get("/backup-destinations", () => HttpResponse.text("Destination lookup failed", { status: 403 })));
+    renderWithQuery(<BackupsPage />);
+    await userEvent.click(screen.getByRole("button", { name: /Back up now/i }));
+    await userEvent.click(serverSelect());
+    await userEvent.click(await screen.findByRole("option", { name: /^alpha · local \/ gameplane-games$/ }));
+    const dialog = within(screen.getByRole("dialog"));
+    expect(await dialog.findByText("Destination lookup failed")).toBeInTheDocument();
+    expect(dialog.queryByText(/No backup destinations configured/i)).not.toBeInTheDocument();
+    expect(dialog.queryByRole("link", { name: "Manage destinations" })).not.toBeInTheDocument();
+    expect(dialog.getByRole("button", { name: /Run snapshot/i })).toBeDisabled();
   });
 
   it("runs a snapshot for the selected server", async () => {
