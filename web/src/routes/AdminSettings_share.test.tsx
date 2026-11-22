@@ -76,4 +76,25 @@ describe("AdminSettings CurseForge key share switch", () => {
     await waitFor(() => expect(document.body.textContent).toMatch(/share needs a managed key|managed/i));
     expect(screen.getByRole("switch", { name: /Share the CurseForge key/i })).not.toBeChecked();
   });
+
+  it("refreshes the switch when the key is removed", async () => {
+    let managedKey = true;
+    server.use(
+      http.get("/admin/config", () =>
+        HttpResponse.json(makeConfig({ modRegistries: { registries: managedKey ? [{ provider: "curseforge", configRef: "gameplane-modreg-curseforge" }] : [] } })),
+      ),
+      http.put("/admin/config/modRegistries", () => new HttpResponse(null, { status: 204 })),
+      http.delete("/admin/registries/:provider/secret", () => {
+        managedKey = false;
+        return new HttpResponse(null, { status: 204 });
+      }),
+      http.get("/admin/registries/curseforge/share", () => HttpResponse.json({ share: false, managedKey })),
+    );
+    renderWithQuery(<AdminSettingsPage />);
+    await gotoModRegistries();
+    const sw = await screen.findByRole("switch", { name: /Share the CurseForge key with game servers/i });
+    expect(sw).not.toBeDisabled();
+    await userEvent.click(await screen.findByRole("button", { name: /Remove/i }));
+    await waitFor(() => expect(screen.getByRole("switch", { name: /Share the CurseForge key/i })).toBeDisabled());
+  });
 });
