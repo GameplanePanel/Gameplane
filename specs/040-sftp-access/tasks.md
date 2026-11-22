@@ -1,6 +1,6 @@
 # Tasks: SFTP access to game servers
 
-**Input**: Design documents from `/specs/039-sftp-access/`
+**Input**: Design documents from `/specs/040-sftp-access/`
 
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/api.md. OD-1 to OD-6 settled by valgul on 2026-11-22. OD-7 settled A (new repository `GameplanePanel/sftp`) the same day. No decision is open. No implementation starts while any decision is open.
 
@@ -8,7 +8,7 @@
 
 **Organization**: by user story in spec priority order: US1, US2 (P1), US3, US4, US5 (P2).
 
-**Delivery** (plan.md): stacked PRs: agent `feat/039-sftp-agent`, operator `feat/039-sftp-files-pod`, API `feat/039-sftp-api`, component repo `GameplanePanel/sftp` `feat/initial-server`, design `design/039-sftp`, web `feat/039-sftp-ui`, chart/docs/E2E `feat/039-sftp-chart`. Implementation through `Workflow` scripts with explicit models (haiku first), one diff review per batch one tier up.
+**Delivery** (plan.md): stacked PRs: agent `feat/040-sftp-agent`, operator `feat/040-sftp-files-pod`, API `feat/040-sftp-api`, component repo `GameplanePanel/sftp` `feat/initial-server`, design `design/040-sftp`, web `feat/040-sftp-ui`, chart/docs/E2E `feat/040-sftp-chart`. Implementation through `Workflow` scripts with explicit models (haiku first), one diff review per batch one tier up.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -20,7 +20,7 @@
 ## Phase 1: Setup
 
 - [ ] T001 Confirm the spec docs PR is merged to `master`; create the branches in **Delivery** from fresh `master`; record base SHAs in each PR description.
-- [ ] T002 List every existing test that encodes behaviour this spec changes (file, test, assertion, needed change) and get valgul's written sign-off before editing any, in `specs/039-sftp-access/T002-test-signoff.md`. Candidates: `agent/internal/files/*_test.go` (route table, upload caps), `operator/internal/controller/*agent*_test.go` and envtests asserting the `<name>-agent` Service selector, `api/internal/gateway/*_test.go` (operation allow-list), `api/internal/audit/*_test.go` (row shape, webhook/S3 payload), `api/internal/rbac/*_test.go` (route rules), `charts` template checks, `test/e2e/optional_components_e2e_test.go`.
+- [ ] T002 List every existing test that encodes behaviour this spec changes (file, test, assertion, needed change) and get valgul's written sign-off before editing any, in `specs/040-sftp-access/T002-test-signoff.md`. Candidates: `agent/internal/files/*_test.go` (route table, upload caps), `operator/internal/controller/*agent*_test.go` and envtests asserting the `<name>-agent` Service selector, `api/internal/gateway/*_test.go` (operation allow-list), `api/internal/audit/*_test.go` (row shape, webhook/S3 payload), `api/internal/rbac/*_test.go` (route rules), `charts` template checks, `test/e2e/optional_components_e2e_test.go`.
 - [ ] T003 (OD-7 A) Once valgul has created `GameplanePanel/sftp`: scaffold it like `GameplanePanel/mcp` (`go.mod`, `.github/workflows/ci.yaml` calling `go-component.yaml` pinned by SHA, `.testcoverage.yml`, `CLAUDE.md`, `AGENTS.md`, `specs.md`, `Dockerfile` copying `sftp/…` from the Gameplane build context).
 
 ## Phase 2: Foundational (blocks every story)

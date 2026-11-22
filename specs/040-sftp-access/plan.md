@@ -1,8 +1,8 @@
 # Implementation Plan: SFTP access to game servers
 
-**Branch**: `spec-039/sftp-access` | **Date**: 2026-11-22 | **Spec**: [spec.md](spec.md)
+**Branch**: `spec-040/sftp-access` | **Date**: 2026-11-22 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/039-sftp-access/spec.md`
+**Input**: Feature specification from `specs/040-sftp-access/spec.md`
 
 **Open decisions**: OD-1 to OD-6 are settled (OD-6 B: one streaming upload path and limit for SFTP and the dashboard). OD-7 A: the SFTP server lives in a new split repository `GameplanePanel/sftp`, submodule `sftp/`. No decision is open. See [OPEN-DECISIONS.md](OPEN-DECISIONS.md).
 
@@ -48,7 +48,7 @@ Each cluster can run an optional SFTP endpoint (OD-3). It accepts SSH keys or a 
 ### Documentation (this feature)
 
 ```
-specs/039-sftp-access/
+specs/040-sftp-access/
 ├── spec.md
 ├── OPEN-DECISIONS.md
 ├── plan.md
