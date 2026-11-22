@@ -1,0 +1,440 @@
+{
+  "file": "901437436-465",
+  "name": "Screen/Server Detail — Settings · Security (Light)",
+  "type": "FRAME",
+  "x": 1640,
+  "y": 52539,
+  "width": 1440,
+  "height": 1001,
+  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "Gameplane/App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 1001,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#F8DDE9"}],
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 1001,
+      "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "name": "Gameplane/Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
+        },
+        {
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 937,
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "children": [
+            {
+              "name": "Detail Header",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 86,
+              "component": "Gameplane/Server Detail Header",
+              "componentId": "1:447",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 24, 16, 24],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "MI",
+                "mc-survival",
+                "Running",
+                "site: remote-lab · minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+                "Restart",
+                "Stop",
+                "Open console"
+              ]
+            },
+            {
+              "name": "Tabs Bar",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 134,
+              "width": 1132,
+              "height": 40,
+              "component": "Gameplane/Server Detail Tabs",
+              "componentId": "1:466",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+              "texts": [
+                "Overview",
+                "Events",
+                "Console",
+                "Logs",
+                "Files",
+                "Mods",
+                "Modpacks",
+                "Players",
+                "Backups",
+                "Capture",
+                "Settings"
+              ]
+            },
+            {
+              "name": "Settings Content",
+              "type": "FRAME",
+              "x": 24,
+              "y": 198,
+              "width": 1132,
+              "height": 715,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "name": "Settings Sub Nav",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 224,
+                  "height": 715,
+                  "component": "Gameplane/Server Settings Sub Nav",
+                  "componentId": "1:1289",
+                  "fills": [{"type": "SOLID", "color": "#F8DDE9"}],
+                  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [8, 8, 8, 8],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+                  "texts": [
+                    "General",
+                    "Version",
+                    "Game configuration",
+                    "Resources",
+                    "Networking",
+                    "Environment",
+                    "Lifecycle",
+                    "Scheduled backups",
+                    "Network capture",
+                    "Placement",
+                    "Security",
+                    "RBAC & access",
+                    "Share links",
+                    "Danger zone"
+                  ]
+                },
+                {
+                  "name": "Settings Panel Wrap",
+                  "type": "FRAME",
+                  "x": 224,
+                  "y": 0,
+                  "width": 908,
+                  "height": 715,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "layoutAlignSelf": "STRETCH",
+                  "children": [
+                    {
+                      "name": "Settings Form",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 908,
+                      "height": 715,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "Form Body",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 908,
+                          "height": 659,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 20,
+                            "padding": [24, 24, 24, 24],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "name": "Gameplane/Security Advanced",
+                              "type": "INSTANCE",
+                              "x": 24,
+                              "y": 24,
+                              "width": 860,
+                              "height": 611,
+                              "component": "Gameplane/Security Advanced",
+                              "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+                              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 16,
+                                "padding": [20, 20, 20, 20],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {
+                                "cornerRadius": "radius/3xl",
+                                "fills/0/color": "surface/surface",
+                                "strokes/0/color": "border/border"
+                              },
+                              "texts": [
+                                "Advanced security",
+                                "2 overrides",
+                                "Who the game runs as, and how the data volume's group is fixed. Leave a setting on Module default unless the game needs something else.",
+                                "Applies on the next restart",
+                                "Saving never restarts the server. Pending values take effect the next time it starts.",
+                                "Run-as user",
+                                "User ID the game process runs as.",
+                                "Module default: image default",
+                                "Custom value",
+                                "1000",
+                                "Applied: 1000",
+                                "Override",
+                                "Run-as group",
+                                "Group ID the game process runs as.",
+                                "Module default: 1000",
+                                "Custom value",
+                                "1001",
+                                "Applied: 1000",
+                                "Module default",
+                                "Pending: 1001 · applies on the next restart",
+                                "Filesystem group",
+                                "Group that owns the data volume, so the game can write to it.",
+                                "Module default: 1000",
+                                "Module default",
+                                "Applied: 1000",
+                                "Module default",
+                                "Volume ownership check",
+                                "When the data volume's group is fixed on start.",
+                                "Module default: Only when wrong (built-in)",
+                                "Module default",
+                                "Applied: Only when wrong",
+                                "Built-in default"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Form Footer",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 659,
+                          "width": 908,
+                          "height": 56,
+                          "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [12, 24, 12, 24],
+                            "primary": "MAX",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"strokes/0/color": "border/border"},
+                          "children": [
+                            {
+                              "name": "Btn Discard",
+                              "type": "INSTANCE",
+                              "x": 681,
+                              "y": 12,
+                              "width": 86,
+                              "height": 32,
+                              "component": "Gameplane/Button/Small/Ghost",
+                              "componentId": "1:1124",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Discard"]
+                            },
+                            {
+                              "name": "Btn Save Changes",
+                              "type": "INSTANCE",
+                              "x": 779,
+                              "y": 12,
+                              "width": 105,
+                              "height": 32,
+                              "component": "Gameplane/Button/Small/Default",
+                              "componentId": "1:709",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Save changes"]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

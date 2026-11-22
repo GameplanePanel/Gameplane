@@ -4,7 +4,7 @@
   "name": "Screen/Dialog/Build Module — Step 2 (Container & Ports)",
   "type": "FRAME",
   "x": 1000,
-  "y": 58400,
+  "y": 60641,
   "width": 800,
   "height": 546,
   "fills": [{"type": "SOLID", "color": "#1C1A20"}],

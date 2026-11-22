@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Settings · Danger zone",
   "type": "FRAME",
   "x": 0,
-  "y": 54650,
+  "y": 56891,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -250,6 +250,7 @@
                     "Scheduled backups",
                     "Network capture",
                     "Placement",
+                    "Security",
                     "RBAC & access",
                     "Share links",
                     "Danger zone"

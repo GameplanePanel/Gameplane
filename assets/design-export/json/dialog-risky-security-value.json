@@ -1,0 +1,228 @@
+{
+  "file": "dialog-risky-security-value",
+  "name": "Gameplane/Dialog/Risky Security Value",
+  "type": "COMPONENT",
+  "x": 535,
+  "y": 10137,
+  "width": 480,
+  "height": 271,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 32, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 270,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "Keep a risky value for Run-as user?",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 440,
+      "height": 25,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 4,
+          "width": 440,
+          "height": 21,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutGrow": 1,
+          "text": "The module marks this setting as risky. Its reason:",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "name": "mBody",
+      "type": "FRAME",
+      "x": 20,
+      "y": 69,
+      "width": 440,
+      "height": 130,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "reasonBox",
+          "type": "FRAME",
+          "x": 0,
+          "y": 16,
+          "width": 440,
+          "height": 66,
+          "fills": [{"type": "SOLID", "color": "#F8DDE9"}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "padding": [12, 12, 12, 12],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "surface/secondary"},
+          "children": [
+            {
+              "name": "reason",
+              "type": "TEXT",
+              "x": 12,
+              "y": 12,
+              "width": 416,
+              "height": 42,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "text": "The image must start as root to drop privileges; forcing a user breaks its start.",
+              "font": ["Geist", 400, 14],
+              "lineHeight": {"value": 150, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "consequence",
+          "type": "TEXT",
+          "x": 0,
+          "y": 98,
+          "width": 440,
+          "height": 32,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "With 1000 the server may fail to start. You can clear the override later to go back to the module default.",
+          "font": ["Geist", 400, 12],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "name": "mFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 199,
+      "width": 440,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 282,
+          "y": 20,
+          "width": 64,
+          "height": 32,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 40,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "btnPrimary",
+          "type": "FRAME",
+          "x": 354,
+          "y": 20,
+          "width": 86,
+          "height": 32,
+          "opacity": 0.5,
+          "fills": [{"type": "SOLID", "color": "#DB2777"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "accent/accent"},
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 62,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "text": "Keep value",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/foreground"}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

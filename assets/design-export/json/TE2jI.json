@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Overview (Asleep)",
   "type": "FRAME",
   "x": 4920,
-  "y": 24345,
+  "y": 24814,
   "width": 1440,
   "height": 1102,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -1904,7 +1904,6 @@
                         "sizing": ["HUG", "FIXED"]
                       },
                       "layoutAlignSelf": "STRETCH",
-                      "clips": true,
                       "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                       "texts": [
                         "QUICK ACTIONS",

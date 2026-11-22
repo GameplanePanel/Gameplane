@@ -221,7 +221,7 @@
     "figId": "1:2097",
     "name": "Screen/Create Server — Step 3 Configure",
     "width": 1440,
-    "height": 1989
+    "height": 2120
   },
   {
     "file": "f1Vga",
@@ -1208,7 +1208,7 @@
     "figId": "1:10655",
     "name": "Screen/Create Server — Step 3 Configure (Reserve less on)",
     "width": 1440,
-    "height": 2083
+    "height": 2214
   },
   {
     "file": "A8vGwM",
@@ -1243,14 +1243,14 @@
     "figId": "1:11004",
     "name": "Screen/Cluster Details — Configuration — Local",
     "width": 1440,
-    "height": 1060
+    "height": 1293
   },
   {
     "file": "t56aLu",
     "figId": "1:11035",
     "name": "Screen/Cluster Details — Configuration — Remote",
     "width": 1440,
-    "height": 1060
+    "height": 1293
   },
   {
     "file": "IBUqJ",
@@ -1271,7 +1271,7 @@
     "figId": "1:11192",
     "name": "Screen/Cluster Details — Configuration — Default storage",
     "width": 1440,
-    "height": 1060
+    "height": 1293
   },
   {
     "file": "KJdxg",
@@ -1321,5 +1321,131 @@
     "name": "Users & RBAC — Return to SSO control dialogs",
     "width": 1040,
     "height": 721
+  },
+  {
+    "file": "901437436-1",
+    "figId": "901437436:1",
+    "name": "Screen/Server Detail — Settings · Security",
+    "width": 1440,
+    "height": 1001
+  },
+  {
+    "file": "901437436-465",
+    "figId": "901437436:465",
+    "name": "Screen/Server Detail — Settings · Security (Light)",
+    "width": 1440,
+    "height": 1001
+  },
+  {
+    "file": "901437436-929",
+    "figId": "901437436:929",
+    "name": "Screen/Server Detail — Settings · Security (Image default, no effect)",
+    "width": 1440,
+    "height": 925
+  },
+  {
+    "file": "901437436-1393",
+    "figId": "901437436:1393",
+    "name": "Screen/Server Detail — Settings · Security (Read-only)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "901437436-1857",
+    "figId": "901437436:1857",
+    "name": "Screen/Server Detail — Settings · Security (Held back, stopped)",
+    "width": 1440,
+    "height": 1017
+  },
+  {
+    "file": "901437436-2321",
+    "figId": "901437436:2321",
+    "name": "Screen/Server Detail — Settings · Security (Held back, running)",
+    "width": 1440,
+    "height": 1017
+  },
+  {
+    "file": "901437436-2785",
+    "figId": "901437436:2785",
+    "name": "Screen/Server Detail — Settings · Security (Refused)",
+    "width": 1440,
+    "height": 1041
+  },
+  {
+    "file": "901437436-3249",
+    "figId": "901437436:3249",
+    "name": "Screen/Server Detail — Settings · Security (Forbidden)",
+    "width": 1440,
+    "height": 1001
+  },
+  {
+    "file": "901437436-3713",
+    "figId": "901437436:3713",
+    "name": "Screen/Server Detail — Settings · Security (File-access warning)",
+    "width": 1440,
+    "height": 925
+  },
+  {
+    "file": "1163467012-259",
+    "figId": "1163467012:259",
+    "name": "Screen/Create Server — Step 3 Configure (Advanced security open)",
+    "width": 1440,
+    "height": 2461
+  },
+  {
+    "file": "1163467012-906",
+    "figId": "1163467012:906",
+    "name": "Screen/Create Server — Step 3 Configure (Advanced security refused)",
+    "width": 1440,
+    "height": 2552
+  },
+  {
+    "file": "1163467012-1553",
+    "figId": "1163467012:1553",
+    "name": "Screen/Create Server — Step 3 Configure (Risky value confirmation)",
+    "width": 1440,
+    "height": 2461
+  },
+  {
+    "file": "1163467012-2214",
+    "figId": "1163467012:2214",
+    "name": "Screen/Mobile — Server Detail — Settings · Security",
+    "width": 375,
+    "height": 1352
+  },
+  {
+    "file": "1163467012-2492",
+    "figId": "1163467012:2492",
+    "name": "Screen/Cluster Details — Configuration — Remote (Allow root on)",
+    "width": 1440,
+    "height": 1293
+  },
+  {
+    "file": "1163467012-2680",
+    "figId": "1163467012:2680",
+    "name": "Screen/Cluster Details — Configuration — Remote (Security settings missing)",
+    "width": 1440,
+    "height": 1385
+  },
+  {
+    "file": "1163467012-2868",
+    "figId": "1163467012:2868",
+    "name": "Screen/Cluster Details — Configuration — Remote (Light)",
+    "width": 1440,
+    "height": 1293
+  },
+  {
+    "file": "1163467012-3056",
+    "figId": "1163467012:3056",
+    "name": "Screen/Standalone — Register cluster (Control-plane namespace edited)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1163467012-3228",
+    "figId": "1163467012:3228",
+    "name": "Screen/Standalone — Register cluster (Invalid control-plane namespace)",
+    "width": 1440,
+    "height": 900
   }
 ]

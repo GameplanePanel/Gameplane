@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Settings · Game configuration (Read-only)",
   "type": "FRAME",
   "x": 3280,
-  "y": 40770,
+  "y": 41239,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -250,6 +250,7 @@
                     "Scheduled backups",
                     "Network capture",
                     "Placement",
+                    "Security",
                     "RBAC & access",
                     "Share links",
                     "Danger zone"

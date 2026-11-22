@@ -6,7 +6,7 @@
   "x": 1640,
   "y": 18792,
   "width": 1440,
-  "height": 2083,
+  "height": 2214,
   "fills": [{"type": "SOLID", "color": "#121114"}],
   "layout": {
     "mode": "HORIZONTAL",
@@ -26,7 +26,7 @@
       "x": 0,
       "y": 0,
       "width": 260,
-      "height": 2083,
+      "height": 2214,
       "component": "Gameplane/App Sidebar",
       "componentId": "1:234",
       "fills": [{"type": "SOLID", "color": "#17151A"}],
@@ -69,7 +69,7 @@
       "x": 260,
       "y": 0,
       "width": 1180,
-      "height": 2083,
+      "height": 2214,
       "fills": [{"type": "SOLID", "color": "#121114"}],
       "layout": {
         "mode": "VERTICAL",
@@ -117,7 +117,7 @@
       "x": 0,
       "y": 0,
       "width": 1440,
-      "height": 2083,
+      "height": 2214,
       "fills": [{"type": "SOLID", "color": "#000000B3", "opacity": 0.7}],
       "layout": {
         "mode": "VERTICAL",
@@ -136,7 +136,7 @@
           "x": 240,
           "y": 77,
           "width": 960,
-          "height": 1929,
+          "height": 2060,
           "fills": [{"type": "SOLID", "color": "#1C1A20"}],
           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
           "strokeWeight": 1,
@@ -304,7 +304,7 @@
               "x": 0,
               "y": 229,
               "width": 960,
-              "height": 1632,
+              "height": 1763,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 12,
@@ -322,7 +322,7 @@
                   "x": 24,
                   "y": 24,
                   "width": 627,
-                  "height": 1584,
+                  "height": 1715,
                   "layout": {
                     "mode": "VERTICAL",
                     "gap": 12,
@@ -1493,6 +1493,37 @@
                           ]
                         }
                       ]
+                    },
+                    {
+                      "name": "Gameplane/Security Advanced",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 1596,
+                      "width": 627,
+                      "height": 119,
+                      "component": "Gameplane/Security Advanced",
+                      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 16,
+                        "padding": [20, 20, 20, 20],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {
+                        "cornerRadius": "radius/3xl",
+                        "fills/0/color": "surface/surface",
+                        "strokes/0/color": "border/border"
+                      },
+                      "texts": [
+                        "Advanced security",
+                        "Who the game runs as, and how the data volume's group is fixed. Leave a setting on Module default unless the game needs something else."
+                      ]
                     }
                   ]
                 },
@@ -1919,7 +1950,7 @@
               "name": "Footer",
               "type": "INSTANCE",
               "x": 0,
-              "y": 1861,
+              "y": 1992,
               "width": 960,
               "height": 68,
               "component": "Gameplane/Wizard Modal Footer",

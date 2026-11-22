@@ -4,7 +4,7 @@
   "name": "Server Detail · Settings · Networking · Tunnel initial enable",
   "type": "FRAME",
   "x": 3280,
-  "y": 43530,
+  "y": 44019,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -250,6 +250,7 @@
                     "Scheduled backups",
                     "Network capture",
                     "Placement",
+                    "Security",
                     "RBAC & access",
                     "Share links",
                     "Danger zone"

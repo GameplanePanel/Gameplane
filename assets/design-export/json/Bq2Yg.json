@@ -4,7 +4,7 @@
   "name": "Screen/Admin — System Logs",
   "type": "FRAME",
   "x": 0,
-  "y": 73032,
+  "y": 75988,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

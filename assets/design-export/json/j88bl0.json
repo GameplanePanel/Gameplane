@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Console (not running – Pod failure)",
   "type": "FRAME",
   "x": 3280,
-  "y": 27770,
+  "y": 28239,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

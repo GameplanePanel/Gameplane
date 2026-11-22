@@ -4,7 +4,7 @@
   "name": "Screen/Standalone — System logs",
   "type": "FRAME",
   "x": 1640,
-  "y": 73032,
+  "y": 75988,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

@@ -1,0 +1,1656 @@
+{
+  "file": "1163467012-259",
+  "name": "Screen/Create Server — Step 3 Configure (Advanced security open)",
+  "type": "FRAME",
+  "x": 3280,
+  "y": 18792,
+  "width": 1440,
+  "height": 2461,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 2461,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 2461,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "name": "TopBar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "New", "Search servers…", "AD"]
+        }
+      ]
+    },
+    {
+      "name": "ModalContainer",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 2461,
+      "fills": [{"type": "SOLID", "color": "#000000B3", "opacity": 0.7}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "absolute": true,
+      "children": [
+        {
+          "name": "Modal",
+          "type": "FRAME",
+          "x": 240,
+          "y": 77,
+          "width": 960,
+          "height": 2307,
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "effects": [{"type": "DROP_SHADOW", "radius": 60, "visible": true}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "clips": true,
+          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+          "children": [
+            {
+              "name": "Header",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 0,
+              "width": 960,
+              "height": 83,
+              "component": "Gameplane/Wizard Modal Header",
+              "componentId": "1:1889",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [20, 28, 20, 28],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "texts": ["New game server", "Step 3 of 5 · Configure"]
+            },
+            {
+              "name": "Location placement",
+              "type": "FRAME",
+              "x": 0,
+              "y": 83,
+              "width": 960,
+              "height": 102,
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 5,
+                "padding": [12, 24, 12, 24],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "children": [
+                {
+                  "name": "Location label",
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 12,
+                  "width": 40,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Cluster",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "name": "Creation location",
+                  "type": "INSTANCE",
+                  "x": 24,
+                  "y": 33,
+                  "width": 912,
+                  "height": 36,
+                  "component": "Gameplane/Select",
+                  "componentId": "1:311",
+                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "field/background",
+                    "strokes/0/color": "field/border"
+                  },
+                  "texts": ["remote-lab / gameplane-games"]
+                },
+                {
+                  "name": "Changing location help",
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 74,
+                  "width": 912,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Changing cluster starts a fresh draft. The chosen cluster handles all creation steps.",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                }
+              ]
+            },
+            {
+              "name": "Stepper",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 185,
+              "width": 960,
+              "height": 44,
+              "component": "Gameplane/Wizard Stepper",
+              "componentId": "1:1899",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [12, 24, 12, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "texts": [
+                "1",
+                "Template",
+                "·",
+                "2",
+                "Version",
+                "·",
+                "3",
+                "Configure",
+                "·",
+                "4",
+                "Network",
+                "·",
+                "5",
+                "Review"
+              ]
+            },
+            {
+              "name": "Body",
+              "type": "FRAME",
+              "x": 0,
+              "y": 229,
+              "width": 960,
+              "height": 2010,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [24, 24, 24, 24],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "name": "StepBody",
+                  "type": "FRAME",
+                  "x": 24,
+                  "y": 24,
+                  "width": 627,
+                  "height": 1962,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 12,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "name": "Field Server name",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 627,
+                      "height": 83,
+                      "component": "Input/Secondary",
+                      "componentId": "1:2112",
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "texts": ["Server name", "mc-survival", "Used as pod name and subdomain. Lowercase, dash-separated."]
+                    },
+                    {
+                      "name": "Field Description",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 95,
+                      "width": 627,
+                      "height": 98,
+                      "component": "Textarea/Secondary",
+                      "componentId": "1:2119",
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "texts": ["Description", "Hardcore survival realm with curated mods. Invite only.", "Max 500 characters."]
+                    },
+                    {
+                      "name": "ResourceRow",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 205,
+                      "width": 627,
+                      "height": 101,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 16,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "Field",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 305.5,
+                          "height": 101,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "children": [
+                            {
+                              "name": "Label",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 25,
+                              "height": 16,
+                              "opacity": 0,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "CPU",
+                              "font": ["Geist", 400, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            },
+                            {
+                              "name": "CtrlRow",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 20,
+                              "width": 305.5,
+                              "height": 62,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 8,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "children": [
+                                {
+                                  "name": "CpuSlider",
+                                  "type": "INSTANCE",
+                                  "x": 0,
+                                  "y": 10,
+                                  "width": 115.5,
+                                  "height": 42,
+                                  "component": "Slider",
+                                  "componentId": "1:1440",
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 4,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "texts": ["CPU"]
+                                },
+                                {
+                                  "name": "CpuValue",
+                                  "type": "INSTANCE",
+                                  "x": 123.5,
+                                  "y": 0,
+                                  "width": 64,
+                                  "height": 62,
+                                  "component": "Input/Primary",
+                                  "componentId": "1:1082",
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 4,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "texts": ["Email", "2", "We'll never share your email."]
+                                },
+                                {
+                                  "name": "CpuUnit",
+                                  "type": "INSTANCE",
+                                  "x": 195.5,
+                                  "y": 0,
+                                  "width": 110,
+                                  "height": 62,
+                                  "component": "Select/Secondary",
+                                  "componentId": "1:2132",
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 4,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "texts": ["Country", "cores", "Choose your country."]
+                                }
+                              ]
+                            },
+                            {
+                              "name": "Helper",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 86,
+                              "width": 305.5,
+                              "height": 15,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "layoutAlignSelf": "STRETCH",
+                              "text": "Max 4 (largest node)",
+                              "font": ["Geist", 400, 11],
+                              "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Field",
+                          "type": "FRAME",
+                          "x": 321.5,
+                          "y": 0,
+                          "width": 305.5,
+                          "height": 101,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "children": [
+                            {
+                              "name": "Label",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 45,
+                              "height": 16,
+                              "opacity": 0,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "Memory",
+                              "font": ["Geist", 400, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            },
+                            {
+                              "name": "CtrlRow",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 20,
+                              "width": 305.5,
+                              "height": 62,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 8,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "children": [
+                                {
+                                  "name": "MemSlider",
+                                  "type": "INSTANCE",
+                                  "x": 0,
+                                  "y": 10,
+                                  "width": 115.5,
+                                  "height": 42,
+                                  "component": "Slider",
+                                  "componentId": "1:1440",
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 4,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "texts": ["Memory"]
+                                },
+                                {
+                                  "name": "MemValue",
+                                  "type": "INSTANCE",
+                                  "x": 123.5,
+                                  "y": 0,
+                                  "width": 64,
+                                  "height": 62,
+                                  "component": "Input/Primary",
+                                  "componentId": "1:1082",
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 4,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "texts": ["Email", "4", "We'll never share your email."]
+                                },
+                                {
+                                  "name": "MemUnit",
+                                  "type": "INSTANCE",
+                                  "x": 195.5,
+                                  "y": 0,
+                                  "width": 110,
+                                  "height": 62,
+                                  "component": "Select/Secondary",
+                                  "componentId": "1:2132",
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 4,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "texts": ["Country", "GiB", "Choose your country."]
+                                }
+                              ]
+                            },
+                            {
+                              "name": "Helper",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 86,
+                              "width": 305.5,
+                              "height": 15,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "layoutAlignSelf": "STRETCH",
+                              "text": "Max 13 GiB (largest node)",
+                              "font": ["Geist", 400, 11],
+                              "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "ReserveLess",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 318,
+                      "width": 627,
+                      "height": 56,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 6,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "SwitchRow",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 627,
+                          "height": 20,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "name": "Switch",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
+                              "width": 36,
+                              "height": 20,
+                              "component": "Gameplane/Switch/Off",
+                              "componentId": "1:1470",
+                              "fills": [{"type": "SOLID", "color": "#2C2932"}],
+                              "cornerRadius": 24,
+                              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "border/border"}
+                            },
+                            {
+                              "name": "Label",
+                              "type": "TEXT",
+                              "x": 48,
+                              "y": 1,
+                              "width": 170,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Reserve less than the limit",
+                              "font": ["Geist", 400, 14],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Helper",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 26,
+                          "width": 627,
+                          "height": 30,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Only the reserved amount counts when the server is placed on a node, so more servers fit; it can use more, up to the limit, when the node has room (Burstable QoS).",
+                          "font": ["Geist", 400, 11],
+                          "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "StoragePlacementRow",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 386,
+                      "width": 627,
+                      "height": 79,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 16,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "Field Persistent storage",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 305.5,
+                          "height": 79,
+                          "component": "Input/Secondary",
+                          "componentId": "1:2112",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "texts": ["Persistent storage", "20Gi", "Mounted at /data (RWO PVC)."]
+                        },
+                        {
+                          "name": "NodePlacement",
+                          "type": "FRAME",
+                          "x": 321.5,
+                          "y": 0,
+                          "width": 305.5,
+                          "height": 75,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "children": [
+                            {
+                              "name": "Label",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 91,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "Node placement",
+                              "font": ["Geist", 400, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            },
+                            {
+                              "name": "Segmented",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 20,
+                              "width": 318,
+                              "height": 36,
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 6,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 4,
+                                "padding": [4, 4, 4, 4],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"strokes/0/color": "border/border"},
+                              "children": [
+                                {
+                                  "name": "Seg",
+                                  "type": "FRAME",
+                                  "x": 4,
+                                  "y": 4,
+                                  "width": 117,
+                                  "height": 28,
+                                  "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                                  "cornerRadius": 4,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [0, 12, 0, 12],
+                                    "primary": "CENTER",
+                                    "counter": "CENTER",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "variables": {"fills/0/color": "accent/soft"},
+                                  "children": [
+                                    {
+                                      "name": "Label",
+                                      "type": "TEXT",
+                                      "x": 12,
+                                      "y": 6,
+                                      "width": 93,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                      "text": "Auto (scheduler)",
+                                      "font": ["Geist", 500, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
+                                    }
+                                  ]
+                                },
+                                {
+                                  "name": "Seg",
+                                  "type": "FRAME",
+                                  "x": 125,
+                                  "y": 4,
+                                  "width": 87,
+                                  "height": 28,
+                                  "cornerRadius": 4,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [0, 12, 0, 12],
+                                    "primary": "CENTER",
+                                    "counter": "CENTER",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "children": [
+                                    {
+                                      "name": "Label",
+                                      "type": "TEXT",
+                                      "x": 12,
+                                      "y": 6,
+                                      "width": 63,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                      "text": "Pin to node",
+                                      "font": ["Geist", 400, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                                    }
+                                  ]
+                                },
+                                {
+                                  "name": "Seg",
+                                  "type": "FRAME",
+                                  "x": 216,
+                                  "y": 4,
+                                  "width": 98,
+                                  "height": 28,
+                                  "cornerRadius": 4,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [0, 12, 0, 12],
+                                    "primary": "CENTER",
+                                    "counter": "CENTER",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "children": [
+                                    {
+                                      "name": "Label",
+                                      "type": "TEXT",
+                                      "x": 12,
+                                      "y": 6,
+                                      "width": 74,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                      "text": "GPU-enabled",
+                                      "font": ["Geist", 400, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "name": "Helper",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 60,
+                              "width": 305.5,
+                              "height": 15,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "layoutAlignSelf": "STRETCH",
+                              "text": "Picks node with most free memory, tolerations or no taints.",
+                              "font": ["Geist", 400, 11],
+                              "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "TemplateConfigSection",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 477,
+                      "width": 627,
+                      "height": 1013,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 12,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "SectionLabel",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 146,
+                          "height": 14,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "TEMPLATE CONFIGURATION",
+                          "font": ["Geist", 500, 11],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "Field Difficulty",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 26,
+                          "width": 627,
+                          "height": 60,
+                          "component": "Select/Secondary",
+                          "componentId": "1:2132",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["Difficulty", "easy", "Choose your country."]
+                        },
+                        {
+                          "name": "Field Game mode",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 98,
+                          "width": 627,
+                          "height": 60,
+                          "component": "Select/Secondary",
+                          "componentId": "1:2132",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["Game mode", "survival", "Choose your country."]
+                        },
+                        {
+                          "name": "Field Max players",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 170,
+                          "width": 627,
+                          "height": 60,
+                          "component": "Input/Secondary",
+                          "componentId": "1:2112",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["Max players", "20", "We'll never share your email."]
+                        },
+                        {
+                          "name": "Field MOTD",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 242,
+                          "width": 627,
+                          "height": 77,
+                          "component": "Input/Secondary",
+                          "componentId": "1:2112",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["MOTD", "A Gameplane Minecraft server", "Server description shown in the multiplayer list."]
+                        },
+                        {
+                          "name": "Field World seed",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 331,
+                          "width": 627,
+                          "height": 77,
+                          "component": "Input/Secondary",
+                          "componentId": "1:2112",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["World seed", "Leave blank for a random seed."]
+                        },
+                        {
+                          "name": "Field Enforce whitelist",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 420,
+                          "width": 627,
+                          "height": 60,
+                          "component": "Select/Secondary",
+                          "componentId": "1:2132",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["Enforce whitelist", "false", "Choose your country."]
+                        },
+                        {
+                          "name": "Field PvP enabled",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 492,
+                          "width": 627,
+                          "height": 60,
+                          "component": "Select/Secondary",
+                          "componentId": "1:2132",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["PvP enabled", "true", "Choose your country."]
+                        },
+                        {
+                          "name": "Field Hardcore mode",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 564,
+                          "width": 627,
+                          "height": 60,
+                          "component": "Select/Secondary",
+                          "componentId": "1:2132",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["Hardcore mode", "false", "Choose your country."]
+                        },
+                        {
+                          "name": "Field Online mode",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 636,
+                          "width": 627,
+                          "height": 76,
+                          "component": "Select/Secondary",
+                          "componentId": "1:2132",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["Online mode", "true", "Verify players with Mojang. Disable only for offline/LAN setups."]
+                        },
+                        {
+                          "name": "Field View distance (chunks)",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 724,
+                          "width": 627,
+                          "height": 60,
+                          "component": "Input/Secondary",
+                          "componentId": "1:2112",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": ["View distance (chunks)", "10", "We'll never share your email."]
+                        },
+                        {
+                          "name": "Field JVM max heap",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 796,
+                          "width": 627,
+                          "height": 111,
+                          "component": "Input/Secondary",
+                          "componentId": "1:2112",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": [
+                            "JVM max heap",
+                            "Auto: 75% of the memory limit",
+                            "Java heap ceiling (-Xmx, e.g. 2G, 3072M). Leave empty to size it automatically to 75% of the container memory limit — it then tracks the limit whenever you resize the server. If you set it yourself, keep roughly 25% below the limit: the JVM needs headroom for non-heap memory, and exceeding the limit gets the server OOM-killed."
+                          ]
+                        },
+                        {
+                          "name": "Field JVM initial heap",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 919,
+                          "width": 627,
+                          "height": 94,
+                          "component": "Input/Secondary",
+                          "componentId": "1:2112",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "texts": [
+                            "JVM initial heap",
+                            "Auto: 75% of the memory limit",
+                            "Starting heap size (-Xms), at most JVM max heap. Leave empty to match the automatic max heap (a fixed heap avoids GC resizes)."
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Gameplane/Security Advanced",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 1502,
+                      "width": 627,
+                      "height": 460,
+                      "component": "Gameplane/Security Advanced",
+                      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 16,
+                        "padding": [20, 20, 20, 20],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {
+                        "cornerRadius": "radius/3xl",
+                        "fills/0/color": "surface/surface",
+                        "strokes/0/color": "border/border"
+                      },
+                      "texts": [
+                        "Advanced security",
+                        "2 overrides",
+                        "Who the game runs as, and how the data volume's group is fixed. Leave a setting on Module default unless the game needs something else.",
+                        "Run-as user",
+                        "User ID the game process runs as.",
+                        "Module default: image default",
+                        "Custom value",
+                        "1000",
+                        "Risky",
+                        "Run-as group",
+                        "Group ID the game process runs as.",
+                        "Module default: 1000",
+                        "Use image default",
+                        "Filesystem group",
+                        "Group that owns the data volume, so the game can write to it.",
+                        "Module default: 1000",
+                        "Module default",
+                        "Volume ownership check",
+                        "When the data volume's group is fixed on start.",
+                        "Module default: Only when wrong (built-in)",
+                        "Module default"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Preview",
+                  "type": "FRAME",
+                  "x": 663,
+                  "y": 24,
+                  "width": 273,
+                  "height": 387,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 8,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "clips": true,
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "name": "PreviewHeader",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 273,
+                      "height": 56,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [12, 14, 12, 14],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {"strokes/0/color": "border/border"},
+                      "children": [
+                        {
+                          "name": "IconWrap",
+                          "type": "FRAME",
+                          "x": 14,
+                          "y": 14,
+                          "width": 28,
+                          "height": 28,
+                          "fills": [{"type": "SOLID", "color": "#232128"}],
+                          "cornerRadius": 6,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "variables": {"fills/0/color": "default/default"},
+                          "children": [
+                            {
+                              "name": "GameIcon",
+                              "type": "FRAME",
+                              "x": 6,
+                              "y": 6,
+                              "width": 16,
+                              "height": 16,
+                              "variables": {"fills/0/color": "muted"},
+                              "children": [
+                                {
+                                  "name": "path",
+                                  "type": "VECTOR",
+                                  "x": 1.3,
+                                  "y": 1.33,
+                                  "width": 13.4,
+                                  "height": 13.33,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "name": "TitleGroup",
+                          "type": "FRAME",
+                          "x": 50,
+                          "y": 12,
+                          "width": 144,
+                          "height": 32,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 2,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "children": [
+                            {
+                              "name": "Title",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 144,
+                              "height": 17,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Minecraft (Java Edition)",
+                              "font": ["Geist", 500, 13],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "name": "Subtitle",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 19,
+                              "width": 144,
+                              "height": 13,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "Template: minecraft-java",
+                              "font": ["JetBrains Mono", 400, 10],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "CodeBlockWrap",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 56,
+                      "width": 273,
+                      "height": 277,
+                      "fills": [{"type": "SOLID", "color": "#0A0A0A"}],
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 2,
+                        "padding": [12, 14, 12, 14],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "L0",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 12,
+                          "width": 216,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "apiVersion: gameplane.local/v1alpha1",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L1",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 27,
+                          "width": 96,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "kind: GameServer",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L2",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 42,
+                          "width": 54,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "metadata:",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L3",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 57,
+                          "width": 114,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "  name: mc-survival",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L4",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 72,
+                          "width": 30,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "spec:",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L5",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 87,
+                          "width": 156,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "  template: minecraft-java",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L6",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 102,
+                          "width": 144,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "  version: fabric-1.21.4",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L7",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 117,
+                          "width": 72,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "  resources:",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L8",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 132,
+                          "width": 84,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "    cpu: 2000m",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L9",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 147,
+                          "width": 90,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "    memory: 6Gi",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L10",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 162,
+                          "width": 90,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "  storage: 50Gi",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L11",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 177,
+                          "width": 54,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "  config:",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L12",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 192,
+                          "width": 180,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "    motd: \"A Gameplane server\"",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L13",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 207,
+                          "width": 108,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "    maxPlayers: 20",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L14",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 222,
+                          "width": 120,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "    difficulty: hard",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L15",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 237,
+                          "width": 132,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "    gamemode: survival",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "L16",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 252,
+                          "width": 120,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "    onlineMode: true",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "MemoryTip",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 333,
+                      "width": 273,
+                      "height": 54,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [12, 14, 12, 14],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {"strokes/0/color": "border/border"},
+                      "children": [
+                        {
+                          "name": "TipText",
+                          "type": "TEXT",
+                          "x": 14,
+                          "y": 12,
+                          "width": 245,
+                          "height": 30,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "layoutGrow": 1,
+                          "text": "Memory tip — factor in mod/plugin overhead; Minecraft Vanilla uses ~1.5 GB at 4 players.",
+                          "font": ["Geist", 400, 11],
+                          "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Footer",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 2239,
+              "width": 960,
+              "height": 68,
+              "component": "Gameplane/Wizard Modal Footer",
+              "componentId": "1:2019",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 28, 16, 28],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "texts": ["Docs: Creating game servers", "Cancel", "Continue to Version"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

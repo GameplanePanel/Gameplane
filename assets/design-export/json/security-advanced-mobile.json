@@ -1,0 +1,360 @@
+{
+  "file": "security-advanced-mobile",
+  "name": "Gameplane/Security Advanced/Mobile",
+  "type": "COMPONENT",
+  "x": 160,
+  "y": 10137,
+  "width": 327,
+  "height": 891,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "cornerRadius": 24,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 16,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/3xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "header",
+      "type": "FRAME",
+      "x": 20,
+      "y": 20,
+      "width": 287,
+      "height": 23,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "chevron",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 3.5,
+          "width": 16,
+          "height": 16,
+          "component": "lucide/chevron-down/16x16"
+        },
+        {
+          "name": "title",
+          "type": "TEXT",
+          "x": 24,
+          "y": 0,
+          "width": 143,
+          "height": 23,
+          "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "Advanced security",
+          "font": ["Geist", 600, 16],
+          "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+        },
+        {
+          "name": "overrideCount",
+          "type": "INSTANCE",
+          "x": 175,
+          "y": 3,
+          "width": 60,
+          "height": 17,
+          "component": "Chip/Soft/Accent/SM",
+          "componentId": "1:1397",
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "cornerRadius": 16,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 2,
+            "padding": [2, 4, 2, 4],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
+          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "accent/soft"},
+          "texts": ["1 override"]
+        },
+        {
+          "name": "readOnlyChip",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 63,
+          "height": 17,
+          "visible": false,
+          "component": "Chip/Soft/Default/SM",
+          "componentId": "1:1002",
+          "fills": [{"type": "SOLID", "color": "#F6DCE7"}],
+          "cornerRadius": 16,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 2,
+            "padding": [2, 4, 2, 4],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
+          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+          "texts": ["Read-only"]
+        }
+      ]
+    },
+    {
+      "name": "desc",
+      "type": "TEXT",
+      "x": 20,
+      "y": 59,
+      "width": 287,
+      "height": 80,
+      "fills": [{"type": "SOLID", "color": "#6E5262"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "Who the game runs as, and how the data volume's group is fixed. Leave a setting on Module default unless the game needs something else.",
+      "font": ["Geist", 400, 14],
+      "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+    },
+    {
+      "name": "notices",
+      "type": "FRAME",
+      "x": 20,
+      "y": 155,
+      "width": 287,
+      "height": 100,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 8,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "heldBack",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 76,
+          "visible": false,
+          "component": "Gameplane/Inline Notice/Warning",
+          "fills": [{"type": "SOLID", "color": "#FEF3C7"}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [12, 16, 12, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "warning/soft"},
+          "texts": [
+            "Held back: root override not allowed",
+            "This server will not start. Run-as user is 0 (root), and root overrides are off on cluster remote-lab. Clear the override, or ask an administrator to allow root overrides in that cluster's Configuration."
+          ]
+        },
+        {
+          "name": "restartNotice",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 60,
+          "visible": false,
+          "component": "Gameplane/Inline Notice/Accent",
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [12, 16, 12, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "accent/soft"},
+          "texts": [
+            "Applies on the next restart",
+            "Saving never restarts the server. Pending values take effect the next time it starts."
+          ]
+        },
+        {
+          "name": "refusal",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 60,
+          "visible": false,
+          "component": "Gameplane/Inline Notice/Danger",
+          "fills": [{"type": "SOLID", "color": "#FEE2E2"}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [12, 16, 12, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "danger/soft"},
+          "texts": ["Not saved", "You need the servers:security permission to change these settings."]
+        },
+        {
+          "name": "readOnlyNote",
+          "type": "TEXT",
+          "x": 0,
+          "y": 22,
+          "width": 200,
+          "height": 48,
+          "visible": false,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "You can see these settings. Changing them needs the servers:security permission.",
+          "font": ["Geist", 400, 12],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "name": "rows",
+      "type": "FRAME",
+      "x": 20,
+      "y": 271,
+      "width": 287,
+      "height": 600,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 20,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "rowRunAsUser",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 287,
+          "height": 131,
+          "component": "Gameplane/Security Setting Row/Stacked",
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "texts": [
+            "Run-as user",
+            "User ID the game process runs as.",
+            "Module default: 1000",
+            "Module default",
+            "Applied: 1000",
+            "Module default"
+          ]
+        },
+        {
+          "name": "rowRunAsGroup",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 151,
+          "width": 287,
+          "height": 131,
+          "component": "Gameplane/Security Setting Row/Stacked",
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "texts": [
+            "Run-as group",
+            "Group ID the game process runs as.",
+            "Module default: 1000",
+            "Module default",
+            "Applied: 1000",
+            "Module default"
+          ]
+        },
+        {
+          "name": "rowFsGroup",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 302,
+          "width": 287,
+          "height": 147,
+          "component": "Gameplane/Security Setting Row/Stacked",
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "texts": [
+            "Filesystem group",
+            "Group that owns the data volume, so the game can write to it.",
+            "Module default: 1000",
+            "Module default",
+            "Applied: 1000",
+            "Module default"
+          ]
+        },
+        {
+          "name": "rowOwnership",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 469,
+          "width": 287,
+          "height": 131,
+          "component": "Gameplane/Security Setting Row/Stacked",
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "texts": [
+            "Volume ownership check",
+            "When the data volume's group is fixed on start.",
+            "Module default: Only when wrong (built-in)",
+            "Module default",
+            "Applied: Only when wrong",
+            "Built-in default"
+          ]
+        }
+      ]
+    }
+  ]
+}

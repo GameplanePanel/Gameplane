@@ -1,0 +1,563 @@
+{
+  "file": "1163467012-2868",
+  "name": "Screen/Cluster Details — Configuration — Remote (Light)",
+  "type": "FRAME",
+  "x": 26750,
+  "y": 66168,
+  "width": 1440,
+  "height": 1293,
+  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 1293,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#F8DDE9"}],
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 1293,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Clusters  ›  Remote lab  ›  Configuration", "Search servers…", "AD"]
+        },
+        {
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 1229,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "name": "Page Header",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "component": "Gameplane/Page Header",
+              "componentId": "1:3282",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": ["Remote lab", "remote-lab · Registered workload cluster"]
+            },
+            {
+              "name": "Cluster detail tabs",
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 44,
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 4,
+                "padding": [0, 0, 12, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "separator/separator"},
+              "children": [
+                {
+                  "name": "Overview tab",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 94,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Overview"]
+                },
+                {
+                  "name": "Nodes tab",
+                  "type": "INSTANCE",
+                  "x": 98,
+                  "y": 0,
+                  "width": 75,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Nodes"]
+                },
+                {
+                  "name": "Configuration tab",
+                  "type": "INSTANCE",
+                  "x": 177,
+                  "y": 0,
+                  "width": 121,
+                  "height": 32,
+                  "component": "Tab/Active",
+                  "componentId": "1:965",
+                  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+                  "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                  "texts": ["Configuration"]
+                }
+              ]
+            },
+            {
+              "name": "Access",
+              "type": "FRAME",
+              "x": 24,
+              "y": 169,
+              "width": 1132,
+              "height": 95,
+              "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "children": [
+                {
+                  "name": "Access heading",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 20,
+                  "width": 1092,
+                  "height": 23,
+                  "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Access",
+                  "font": ["Geist", 600, 16],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "name": "Access description",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 55,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Node enrollment and kubeconfig downloads are managed at this remote cluster.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                }
+              ]
+            },
+            {
+              "name": "Storage",
+              "type": "FRAME",
+              "x": 24,
+              "y": 288,
+              "width": 1132,
+              "height": 95,
+              "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "children": [
+                {
+                  "name": "Storage heading",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 20,
+                  "width": 1092,
+                  "height": 23,
+                  "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Storage",
+                  "font": ["Geist", 600, 16],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "name": "Storage description",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 55,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Storage settings are managed on this cluster. Install-time storage values are available only for the built-in local cluster.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                }
+              ]
+            },
+            {
+              "name": "Backup destinations",
+              "type": "FRAME",
+              "x": 24,
+              "y": 407,
+              "width": 1132,
+              "height": 175,
+              "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "children": [
+                {
+                  "name": "Backup destinations heading",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 20,
+                  "width": 1092,
+                  "height": 23,
+                  "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Backup destinations",
+                  "font": ["Geist", 600, 16],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "name": "Backup destinations description",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 55,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Repositories used by servers running on Remote lab.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "Empty backup destinations",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 87,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "No backup destinations configured. Add one to enable snapshots.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "Add remote backup destination",
+                  "type": "INSTANCE",
+                  "x": 20,
+                  "y": 119,
+                  "width": 159,
+                  "height": 36,
+                  "component": "Button/Primary/MD",
+                  "componentId": "1:1094",
+                  "fills": [{"type": "SOLID", "color": "#DB2777"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 16, 8, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "itemSpacing": "spacing/2",
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/4",
+                    "paddingLeft": "spacing/4",
+                    "fills/0/color": "accent/accent"
+                  },
+                  "texts": ["Add destination"]
+                }
+              ]
+            },
+            {
+              "name": "Security",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 606,
+              "width": 1132,
+              "height": 209,
+              "component": "Gameplane/Cluster Security Panel",
+              "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "texts": [
+                "Security",
+                "How game servers on this cluster may run.",
+                "Allow root overrides",
+                "Lets server owners run a game as root (user or group 0), or with the image's default user. Off by default, set per cluster.",
+                "Turning this off does not stop running servers on this cluster. Stopped servers that hold a root override will not start until the override is cleared or this is turned back on.",
+                "Control-plane namespace",
+                "gameplane-system"
+              ]
+            },
+            {
+              "name": "Remove cluster",
+              "type": "FRAME",
+              "x": 24,
+              "y": 839,
+              "width": 1132,
+              "height": 143,
+              "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+              "strokes": [{"type": "SOLID", "color": "#FEE2E2"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface", "strokes/0/color": "danger/soft"},
+              "children": [
+                {
+                  "name": "Remove cluster heading",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 20,
+                  "width": 1092,
+                  "height": 23,
+                  "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Remove cluster",
+                  "font": ["Geist", 600, 16],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "name": "Remove cluster description",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 55,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Remove this panel’s connection to Remote lab. Running workloads remain on the cluster.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "Remove cluster registration",
+                  "type": "INSTANCE",
+                  "x": 20,
+                  "y": 87,
+                  "width": 159,
+                  "height": 36,
+                  "component": "Button/Danger Soft/MD",
+                  "componentId": "1:5593",
+                  "fills": [{"type": "SOLID", "color": "#FEE2E2"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 16, 8, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "itemSpacing": "spacing/2",
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/4",
+                    "paddingLeft": "spacing/4",
+                    "fills/0/color": "danger/soft"
+                  },
+                  "texts": ["Remove cluster"]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

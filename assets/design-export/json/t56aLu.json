@@ -4,9 +4,9 @@
   "name": "Screen/Cluster Details — Configuration — Remote",
   "type": "FRAME",
   "x": 18040,
-  "y": 63932,
+  "y": 66168,
   "width": 1440,
-  "height": 1060,
+  "height": 1293,
   "fills": [{"type": "SOLID", "color": "#121114"}],
   "layout": {
     "mode": "HORIZONTAL",
@@ -26,7 +26,7 @@
       "x": 0,
       "y": 0,
       "width": 260,
-      "height": 1060,
+      "height": 1293,
       "component": "Gameplane/App Sidebar",
       "componentId": "1:234",
       "fills": [{"type": "SOLID", "color": "#17151A"}],
@@ -69,7 +69,7 @@
       "x": 260,
       "y": 0,
       "width": 1180,
-      "height": 1060,
+      "height": 1293,
       "layout": {
         "mode": "VERTICAL",
         "gap": 0,
@@ -113,7 +113,7 @@
           "x": 0,
           "y": 64,
           "width": 1180,
-          "height": 996,
+          "height": 1229,
           "layout": {
             "mode": "VERTICAL",
             "gap": 24,
@@ -461,11 +461,47 @@
               ]
             },
             {
+              "name": "Security",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 606,
+              "width": 1132,
+              "height": 209,
+              "component": "Gameplane/Cluster Security Panel",
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "texts": [
+                "Security",
+                "How game servers on this cluster may run.",
+                "Allow root overrides",
+                "Lets server owners run a game as root (user or group 0), or with the image's default user. Off by default, set per cluster.",
+                "Turning this off does not stop running servers on this cluster. Stopped servers that hold a root override will not start until the override is cleared or this is turned back on.",
+                "Control-plane namespace",
+                "gameplane-system"
+              ]
+            },
+            {
               "id": "1:11056",
               "name": "Remove cluster",
               "type": "FRAME",
               "x": 24,
-              "y": 606,
+              "y": 839,
               "width": 1132,
               "height": 143,
               "fills": [{"type": "SOLID", "color": "#1C1A20"}],
