@@ -35,6 +35,7 @@ import {
   Description,
   TextField,
   Alert,
+  Chip,
 } from "@heroui/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -964,16 +965,25 @@ function CurseForgeShareRow() {
   const data = shareQ.data;
   if (!data) return null;
   const off = !data.managedKey;
+  const fromFlag = data.keySource === "startup-flag";
   const error = shareMutation.error ? errorTextIntl(intl, shareMutation.error) : null;
 
   return (
     <li className="flex flex-wrap items-center gap-3 py-3">
       <div className={cn("min-w-28 flex-1", off && "opacity-60")}>
-        <div className="text-sm">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key", defaultMessage: "Share the CurseForge key with game servers", description: "Admin settings: title of the switch that lets game servers use the managed CurseForge key" })}</div>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span>{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key", defaultMessage: "Share the CurseForge key with game servers", description: "Admin settings: title of the switch that lets game servers use the managed CurseForge key" })}</span>
+          {fromFlag && (
+            <Chip size="sm" variant="tertiary">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_from_flag", defaultMessage: "From startup flag", description: "Admin settings: badge shown next to the CurseForge share title when the key comes from the --curseforge-api-key startup flag" })}</Chip>
+          )}
+        </div>
         <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_help", defaultMessage: "Lets servers on images without a built-in key (Minecraft 1.16.5 and older) install CurseForge packs.", description: "Admin settings: first description line under the CurseForge key share switch" })}</div>
         <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_risk", defaultMessage: "Mods running on those servers can read the key.", description: "Admin settings: second description line under the CurseForge key share switch; it warns that mods can read the shared key" })}</div>
         {data.share && (
           <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_apply", defaultMessage: "Changes apply to a server when it has 0 players, so nobody is kicked by a restart.", description: "Admin settings: note under the CurseForge key share switch when it is on; changes only apply to servers with 0 players" })}</div>
+        )}
+        {fromFlag && (
+          <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_flag_set", defaultMessage: "Set by the --curseforge-api-key startup flag", description: "Admin settings: line under the CurseForge key share title when the key comes from the --curseforge-api-key startup flag" })}</div>
         )}
         {off && (
           <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_flag", defaultMessage: "Store the key here to share it. A key from the startup flag stays inside the API.", description: "Admin settings: reason shown under the disabled CurseForge key share switch when the key comes from the startup flag, not from this page" })}</div>

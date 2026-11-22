@@ -323,6 +323,7 @@ export function ModpacksTab({
           fromVersionName={confirm.mode === "install" ? undefined : activePack?.versionName}
           serverName={name}
           backupAvailable={view?.backupAvailable === true}
+          backupDestination={view?.backupDestination}
           pending={installMut.isPending}
           error={confirmErrorText(installMut.error)}
           onConfirm={({ backupFirst }) =>
@@ -349,6 +350,7 @@ export function ModpacksTab({
           providerLabel={providerLabel(activePack.provider)}
           serverName={name}
           backupAvailable={view?.backupAvailable === true}
+          backupDestination={view?.backupDestination}
           pending={removeMut.isPending}
           error={confirmErrorText(removeMut.error)}
           onConfirm={({ backupFirst }) => removeMut.mutate(backupFirst)}

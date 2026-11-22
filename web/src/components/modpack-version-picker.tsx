@@ -17,7 +17,7 @@ import {
 import type { RegistryVersion } from "@/types";
 import { useResourceClient, useResourceTarget, resourceKey } from "@/lib/resourceTarget";
 import { errorTextIntl } from "@/lib/errors";
-import { useOptionalIntl } from "@/lib/i18n/format";
+import { useFormat, useOptionalIntl } from "@/lib/i18n/format";
 import { providerLabel } from "@/components/registry-browser";
 
 // isOlderThan reports whether candidateId sits further down the newest-first
@@ -28,6 +28,34 @@ export function isOlderThan(versions: RegistryVersion[], candidateId: string, pi
   const pinned = versions.findIndex((v) => v.id === pinnedId);
   if (candidate < 0 || pinned < 0) return false;
   return candidate > pinned;
+}
+
+// versionDetailLine is the second line of a version row: the publish date
+// (when known) followed by the loader and game version the row matches.
+function versionDetailLine(v: RegistryVersion, fmt: ReturnType<typeof useFormat>, intl: ReturnType<typeof useOptionalIntl>): string {
+  const details = [(v.loaders ?? []).join(", "), v.gameVersions?.[0] ?? ""].filter(Boolean).join(" ");
+  const published = v.publishedAt ? new Date(v.publishedAt) : null;
+  if (!published || Number.isNaN(published.getTime())) return details;
+  const date = fmt.date(published, { day: "numeric", month: "short", year: "numeric" });
+  if (!details) {
+    return intl.formatMessage({ id: "web.components.modpack_version_picker.published", defaultMessage: "Published {date}", description: "Modpack version picker: version row line giving the publish date; {date} is a formatted date" }, { date });
+  }
+  return intl.formatMessage({ id: "web.components.modpack_version_picker.published_with_details", defaultMessage: "Published {date} · {details}", description: "Modpack version picker: version row line giving the publish date and the loader and game version; {date} is a formatted date, {details} the loader and game version" }, { date, details });
+}
+
+// releaseChip marks a non-stable release channel. Stable releases and
+// versions without a reported channel get no chip.
+function releaseChip(v: RegistryVersion, intl: ReturnType<typeof useOptionalIntl>) {
+  switch (v.releaseType) {
+    case "release":
+      return <Chip size="sm" variant="soft" color="success">{intl.formatMessage({ id: "web.components.modpack_version_picker.release_type_release", defaultMessage: "Release", description: "Modpack version picker: chip for a stable release of the modpack version" })}</Chip>;
+    case "beta":
+      return <Chip size="sm" variant="soft" color="warning">{intl.formatMessage({ id: "web.components.modpack_version_picker.release_type_beta", defaultMessage: "Beta", description: "Modpack version picker: chip for a beta release of the modpack version" })}</Chip>;
+    case "alpha":
+      return <Chip size="sm" variant="soft" color="danger">{intl.formatMessage({ id: "web.components.modpack_version_picker.release_type_alpha", defaultMessage: "Alpha", description: "Modpack version picker: chip for an alpha release of the modpack version" })}</Chip>;
+    default:
+      return null;
+  }
 }
 
 // ModpackVersionPicker lists the versions of one modpack (newest first) and
@@ -59,6 +87,7 @@ export function ModpackVersionPicker({
   confirmLabel?: string;
 }) {
   const intl = useOptionalIntl();
+  const fmt = useFormat();
   const target = useResourceTarget({ name, namespace: ns });
   const client = useResourceClient(target);
   // undefined means "the newest version", so the selection resets on each open.
@@ -125,7 +154,7 @@ export function ModpackVersionPicker({
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-medium">{v.name || v.versionNumber || v.id}</span>
                           <span className="block truncate text-xs text-muted">
-                            {[(v.loaders ?? []).join(", "), v.gameVersions?.[0] ?? ""].filter(Boolean).join(" ")}
+                            {versionDetailLine(v, fmt, intl)}
                           </span>
                         </span>
                         {v.id === pinnedVersionId && (
@@ -138,6 +167,7 @@ export function ModpackVersionPicker({
                             {intl.formatMessage({ id: "web.components.modpack_version_picker.older", defaultMessage: "Older", description: "Modpack version picker: chip marking a version older than the one pinned on the server" })}
                           </Chip>
                         )}
+                        {releaseChip(v, intl)}
                       </Radio.Content>
                     </Radio>
                   ))}

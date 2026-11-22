@@ -2363,6 +2363,10 @@
     "defaultMessage": "Takes a backup to this server's backup destination before the change. If the backup fails, nothing changes.",
     "description": "Modpack confirm dialog: help text under the back-up checkbox explaining the backup is taken first and the change is cancelled if it fails"
   },
+  "web.components.modpack_confirm_dialog.backup_help_destination": {
+    "defaultMessage": "Takes a backup to the cluster’s backup destination ({destination}) before the change. If the backup fails, nothing changes.",
+    "description": "Modpack confirm dialog: help text under the back-up checkbox naming the backup destination; the backup is taken first and the change is cancelled if it fails; {destination} is the destination name"
+  },
   "web.components.modpack_confirm_dialog.cancel": {
     "defaultMessage": "Cancel",
     "description": "Modpack confirm dialog: button that closes the dialog without changing the modpack"
@@ -2510,6 +2514,26 @@
   "web.components.modpack_version_picker.pinned": {
     "defaultMessage": "Pinned",
     "description": "Modpack version picker: chip marking the version currently pinned on the server"
+  },
+  "web.components.modpack_version_picker.published": {
+    "defaultMessage": "Published {date}",
+    "description": "Modpack version picker: version row line giving the publish date; {date} is a formatted date"
+  },
+  "web.components.modpack_version_picker.published_with_details": {
+    "defaultMessage": "Published {date} · {details}",
+    "description": "Modpack version picker: version row line giving the publish date and the loader and game version; {date} is a formatted date, {details} the loader and game version"
+  },
+  "web.components.modpack_version_picker.release_type_alpha": {
+    "defaultMessage": "Alpha",
+    "description": "Modpack version picker: chip for an alpha release of the modpack version"
+  },
+  "web.components.modpack_version_picker.release_type_beta": {
+    "defaultMessage": "Beta",
+    "description": "Modpack version picker: chip for a beta release of the modpack version"
+  },
+  "web.components.modpack_version_picker.release_type_release": {
+    "defaultMessage": "Release",
+    "description": "Modpack version picker: chip for a stable release of the modpack version"
   },
   "web.components.modpack_version_picker.showing_versions": {
     "defaultMessage": "Showing versions for {mcLabel}, newest first.",
@@ -6090,6 +6114,14 @@
   "web.routes.admin_settings.share_curseforge_key_flag": {
     "defaultMessage": "Store the key here to share it. A key from the startup flag stays inside the API.",
     "description": "Admin settings: reason shown under the disabled CurseForge key share switch when the key comes from the startup flag, not from this page"
+  },
+  "web.routes.admin_settings.share_curseforge_key_flag_set": {
+    "defaultMessage": "Set by the --curseforge-api-key startup flag",
+    "description": "Admin settings: line under the CurseForge key share title when the key comes from the --curseforge-api-key startup flag"
+  },
+  "web.routes.admin_settings.share_curseforge_key_from_flag": {
+    "defaultMessage": "From startup flag",
+    "description": "Admin settings: badge shown next to the CurseForge share title when the key comes from the --curseforge-api-key startup flag"
   },
   "web.routes.admin_settings.share_curseforge_key_help": {
     "defaultMessage": "Lets servers on images without a built-in key (Minecraft 1.16.5 and older) install CurseForge packs.",

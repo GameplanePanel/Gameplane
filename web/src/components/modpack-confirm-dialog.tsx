@@ -28,6 +28,7 @@ export function ModpackConfirmDialog({
   fromVersionName,
   serverName,
   backupAvailable,
+  backupDestination,
   pending,
   error,
   onConfirm,
@@ -41,6 +42,8 @@ export function ModpackConfirmDialog({
   fromVersionName?: string;
   serverName: string;
   backupAvailable: boolean;
+  // Name of the backup destination the backup goes to, when known.
+  backupDestination?: string;
   pending: boolean;
   error?: string;
   onConfirm(opts: { backupFirst: boolean }): void;
@@ -101,7 +104,9 @@ export function ModpackConfirmDialog({
         }
       })();
 
-  const backupHelp = backupAvailable
+  const backupHelp = backupAvailable && backupDestination
+    ? intl.formatMessage({ id: "web.components.modpack_confirm_dialog.backup_help_destination", defaultMessage: "Takes a backup to the cluster’s backup destination ({destination}) before the change. If the backup fails, nothing changes.", description: "Modpack confirm dialog: help text under the back-up checkbox naming the backup destination; the backup is taken first and the change is cancelled if it fails; {destination} is the destination name" }, { destination: backupDestination })
+    : backupAvailable
     ? intl.formatMessage({ id: "web.components.modpack_confirm_dialog.backup_help", defaultMessage: "Takes a backup to this server's backup destination before the change. If the backup fails, nothing changes.", description: "Modpack confirm dialog: help text under the back-up checkbox explaining the backup is taken first and the change is cancelled if it fails" })
     : intl.formatMessage({ id: "web.components.modpack_confirm_dialog.no_backup_destination", defaultMessage: "No backup destination is set for this server's cluster.", description: "Modpack confirm dialog: help text under the disabled back-up checkbox when the cluster has no backup destination" });
 

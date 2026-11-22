@@ -23,9 +23,12 @@ export function ModpackMissingFiles({
       </p>
     );
   }
-  if (view.missingFiles.length === 0) return null;
+  // The view can arrive without the list (an older or partial response); treat
+  // that as "nothing to report" rather than crashing the tab.
+  const files = view.missingFiles ?? [];
+  if (files.length === 0) return null;
 
-  const count = view.missingFiles.length;
+  const count = files.length;
 
   return (
     <section className="flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
@@ -56,7 +59,7 @@ export function ModpackMissingFiles({
               <Table.Column key="download">{intl.formatMessage({ id: "web.components.modpack_missing_files.download", defaultMessage: "Download", description: "Modpack missing files: column heading for the link to the file's download page; keep it short" })}</Table.Column>
             </Table.Header>
             <Table.Body>
-              {view.missingFiles.map((f) => (
+              {files.map((f) => (
                 <Table.Row key={`${f.mod}|${f.filename}`} id={`${f.mod}|${f.filename}`}>
                   <Table.Cell>{f.mod}</Table.Cell>
                   <Table.Cell className="font-mono">{f.filename}</Table.Cell>

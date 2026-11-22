@@ -155,6 +155,8 @@ export interface ModpackView {
   missingFilesUnknown: boolean;
   downloadsPath: string;
   backupAvailable: boolean;
+  // Name of the backup destination the pre-change backup uses; absent when none.
+  backupDestination?: string;
 }
 
 export interface ModpackInstallBody {
@@ -169,6 +171,8 @@ export interface ModpackInstallBody {
 export interface CurseForgeShare {
   share: boolean;
   managedKey: boolean;
+  // Where the effective CurseForge key comes from; "" when there is none.
+  keySource?: "admin" | "startup-flag" | "";
 }
 
 // spec.capabilities.mods.idList — declares that this game's server
@@ -345,6 +349,10 @@ export interface RegistryVersion {
   versionNumber?: string;
   gameVersions?: string[];
   loaders?: string[];
+  // Provider-reported release channel; absent when the provider does not say.
+  releaseType?: "release" | "beta" | "alpha";
+  // RFC 3339 publish time; absent when unknown.
+  publishedAt?: string;
   files: RegistryFile[];
 }
 
