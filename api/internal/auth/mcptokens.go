@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"math"
 	"net"
 	"net/http"
 	"regexp"
@@ -102,14 +101,19 @@ func (s *SessionStore) mcpAudit(ctx context.Context, req *http.Request, reason s
 	}
 }
 
-// newMCPTokenID returns a random positive 63-bit integer for mcp_tokens.id.
+// newMCPTokenID returns a random positive 53-bit integer for mcp_tokens.id.
+// maxSafeJSONInt is 2^53-1, the largest integer a JSON number carries exactly.
+const maxSafeJSONInt = 1<<53 - 1
+
 func newMCPTokenID() int64 {
 	for {
 		var b [8]byte
 		if _, err := rand.Read(b[:]); err != nil {
 			panic("crypto/rand: " + err.Error())
 		}
-		if id := int64(binary.BigEndian.Uint64(b[:]) & math.MaxInt64); id != 0 {
+		// 53 bits: the id travels as a JSON number, and JavaScript (the
+		// dashboard) loses precision above Number.MAX_SAFE_INTEGER.
+		if id := int64(binary.BigEndian.Uint64(b[:]) & maxSafeJSONInt); id != 0 {
 			return id
 		}
 	}

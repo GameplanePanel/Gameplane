@@ -5,7 +5,7 @@
 --   session_epoch  copied from users.session_epoch at creation; a password reset
 --                  bumps the epoch and invalidates the token
 --   expires_at     RFC 3339 UTC; revoked_at is RFC 3339 UTC or NULL
--- id is generated in Go (a random positive 63-bit integer) so the same
+-- id is generated in Go (a random positive 53-bit integer, exact as a JSON number) so the same
 -- statement works on SQLite and PostgreSQL. Timestamps are bound from Go.
 -- No foreign key: SQLite does not enforce them, so DeleteUserTx deletes a
 -- user's tokens in Go (migrations README rule 3).
