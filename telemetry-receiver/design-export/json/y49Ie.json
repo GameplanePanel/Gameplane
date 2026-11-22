@@ -1,129 +1,161 @@
 {
-  "type": "frame",
-  "id": "y49Ie",
-  "x": 3567.959083557127,
-  "y": 2040.8789062499995,
+  "file": "y49Ie",
+  "id": "1:954",
   "name": "Telemetry components",
-  "theme": {
-    "semantic": "dark"
+  "type": "FRAME",
+  "x": 3567.96,
+  "y": 2040.88,
+  "width": 812,
+  "height": 177,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 48,
+    "padding": [32, 32, 32, 32],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "HUG"]
   },
-  "fill": "$background/background",
-  "gap": 48,
-  "padding": 32,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "type": "frame",
-      "id": "sDDfo",
+      "id": "1:955",
       "name": "Telemetry/Stat tile",
-      "reusable": true,
+      "type": "COMPONENT",
+      "x": 32,
+      "y": 32,
       "width": 280,
-      "fill": "$surface/surface",
-      "cornerRadius": "$radius/3xl",
-      "stroke": "$border",
-      "strokeWidth": 1,
-      "strokeAlignment": "inner",
-      "effect": {
-        "type": "shadow",
-        "shadowType": "outer",
-        "color": "#0000000A",
-        "offset": {
-          "x": 0,
-          "y": 2
-        },
-        "blur": 4
+      "height": 113,
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+      "cornerRadius": 24,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 6,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
       },
-      "layout": "vertical",
-      "gap": 6,
-      "padding": 16,
+      "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface", "strokes/0/color": "border"},
       "children": [
         {
-          "type": "text",
-          "id": "yia1E",
+          "id": "1:956",
           "name": "Label",
-          "fill": "$foreground/secondary",
-          "content": "Reports, today",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 13,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 16,
+          "y": 16,
+          "width": 87,
+          "height": 17,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "text": "Reports, today",
+          "font": ["Geist", 400, 13],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/secondary"}
         },
         {
-          "type": "text",
-          "id": "tZRdh",
+          "id": "1:957",
           "name": "Value",
-          "fill": "$foreground/foreground",
-          "content": "1,284",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 28,
-          "fontWeight": "600"
+          "type": "TEXT",
+          "x": 16,
+          "y": 39,
+          "width": 73,
+          "height": 36,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "text": "1,284",
+          "font": ["Geist", 600, 28],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "type": "text",
-          "id": "oPQEN",
+          "id": "1:958",
           "name": "Note",
-          "fill": "$foreground/muted",
-          "content": "2026-10-06 (UTC, in progress)",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 12,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 16,
+          "y": 81,
+          "width": 167,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "text": "2026-10-06 (UTC, in progress)",
+          "font": ["Geist", 400, 12],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
         }
       ]
     },
     {
-      "type": "frame",
-      "id": "wPbIp",
+      "id": "1:959",
       "name": "Telemetry/Share row",
-      "reusable": true,
+      "type": "COMPONENT",
+      "x": 360,
+      "y": 32,
       "width": 420,
-      "gap": 12,
-      "alignItems": "center",
+      "height": 17,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
       "children": [
         {
-          "type": "text",
-          "id": "j1J75",
+          "id": "1:960",
           "name": "Label",
-          "fill": "$foreground/foreground",
-          "textGrowth": "fixed-width",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
           "width": 128,
-          "content": "k3s",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 13,
-          "fontWeight": "normal"
+          "height": 17,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "text": "k3s",
+          "font": ["Geist", 400, 13],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "type": "frame",
-          "id": "L6Z5jA",
+          "id": "1:961",
           "name": "Track",
-          "width": "fill_container",
+          "type": "FRAME",
+          "x": 140,
+          "y": 2.5,
+          "width": 220,
           "height": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
           "children": [
             {
-              "type": "rectangle",
-              "cornerRadius": [
-                0,
-                4,
-                4,
-                0
-              ],
-              "id": "dMFUm",
+              "id": "1:962",
               "name": "Bar",
-              "fill": "$chart/series-1",
+              "type": "RECTANGLE",
+              "x": 0,
+              "y": 0,
               "width": 140,
-              "height": 12
+              "height": 12,
+              "fills": [{"type": "SOLID", "color": "#EC4899"}],
+              "variables": {"fills/0/color": "chart/series-1"}
             }
           ]
         },
         {
-          "type": "text",
-          "id": "uTqdm",
+          "id": "1:963",
           "name": "Value",
-          "fill": "$foreground/secondary",
-          "textGrowth": "fixed-width",
+          "type": "TEXT",
+          "x": 372,
+          "y": 0,
           "width": 48,
-          "content": "48%",
-          "textAlign": "right",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 13,
-          "fontWeight": "normal"
+          "height": 17,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "text": "48%",
+          "font": ["Geist", 400, 13],
+          "align": "RIGHT",
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/secondary"}
         }
       ]
     }

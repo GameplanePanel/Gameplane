@@ -1,9 +1,9 @@
 ---
 name: local-prompt
-description: "Use when a piece of work needs Pencil design or frontend changes that a cloud session cannot run. Writes a copy-paste prompt for the maintainer's local agent, which has the Pencil MCP."
+description: "Use when a piece of work needs design (OpenPencil, for design.fig or website.fig) or frontend changes that this session cannot run, or the maintainer asks for a local prompt. Writes a copy-paste prompt for the maintainer's local agent."
 ---
 
-Cloud sessions cannot run Pencil MCP (`mcp__pencil__*`). Pencil runs only on the maintainer's local machine. This skill writes the prompt the maintainer pastes into a local Claude Code session.
+The OpenPencil app and its MCP server run on the maintainer's local machine. Cloud sessions can edit `.fig` designs headlessly with the OpenPencil CLI from a ValgulNecron/open-pencil `master` checkout (see the `design-export` skill), so check that first and use the `pencil-designer` agent in this session when it works. Use this skill when neither path works here, or when the maintainer asks for a local prompt. It writes the prompt the maintainer pastes into a local Claude Code session.
 
 ## Steps
 
@@ -12,7 +12,7 @@ Cloud sessions cannot run Pencil MCP (`mcp__pencil__*`). Pencil runs only on the
 3. Collect the T-numbers for the work from `tasks.md` (`- [ ] T012 …` lines).
 4. Fill in the template below. Replace every `<placeholder>`. Remove sections that do not apply, but keep Constraints and Done when.
 5. Print the filled block in a fenced `text` block so the maintainer can copy it. If the maintainer named a shared folder, also save the same text there.
-6. Tell the maintainer: paste the block into a local Claude Code session that has the Pencil MCP connected, and paste the local agent's report back into this thread.
+6. Tell the maintainer: paste the block into a local Claude Code session that has OpenPencil connected, and paste the local agent's report back into this thread.
 
 ## Template
 
@@ -29,7 +29,7 @@ Task for the local agent. Read the repo CLAUDE.md first and follow it.
 - Tasks: <T-numbers, e.g. T012, T013, T014>
 
 ## What to design, then build
-- Design first in design.pen (dashboard) or website/website.pen (website), using the `pencil-designer` agent.
+- Design first in design.fig (dashboard) or website/website.fig (website) with OpenPencil, using the `pencil-designer` agent.
 - Then build the React code with the `web-builder` agent from the approved design export.
 - Screens: <list>
 - Components: <list>
@@ -41,7 +41,7 @@ Task for the local agent. Read the repo CLAUDE.md first and follow it.
 
 ## Constraints
 - Design first: nothing in web/ until the maintainer approves the screenshots.
-- Never hand-edit or read .pen files. Use Pencil MCP only.
+- Never hand-edit or read .fig files. Use OpenPencil or Figma.
 - Use `pen-canvas-layout` for placement, `pen-componentize` at the end of the design pass, and `design-export` in the same commit as the design change.
 - Compile checks only: `npx tsc --noEmit` in web/. Do not run tests or lint locally.
 - Signed commits (`git commit -s`), conventional prefixes, one logical unit per commit.

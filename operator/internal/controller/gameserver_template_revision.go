@@ -230,6 +230,11 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			if err := pruneEmptyProtectedConfigKeys(gs); err != nil {
 				return nil, false, err
 			}
+			// The pool ports were reserved at admission; this confirms they
+			// still are before the switch publishes them.
+			if reserved, err := r.reservePoolPortsForRollout(ctx, gs, target); err != nil || !reserved {
+				return effective, false, err
+			}
 			gs.Annotations[effectiveTemplateAnnotation] = op.Token
 			delete(gs.Annotations, stopRequestedAtAnnotation)
 			return effective, true, r.Update(ctx, gs)
@@ -292,6 +297,11 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			// Do not replace an unrelated restart or already-issued stop.
 			pending, err := backupLifecycleTransitionPending(ctx, r.wipeReader(), gs)
 			if err != nil || pending {
+				return effective, false, err
+			}
+			// Reserve the target's pool ports before the rollout drains the
+			// running server; without them it keeps its current revision.
+			if reserved, err := r.reservePoolPortsForRollout(ctx, gs, target); err != nil || !reserved {
 				return effective, false, err
 			}
 			revision, err := r.saveTemplateSnapshot(ctx, gs, target)

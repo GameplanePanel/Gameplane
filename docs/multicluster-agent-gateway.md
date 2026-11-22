@@ -8,6 +8,24 @@ central API still connects directly to each Kubernetes API for resource changes,
 pod logs, PTY attach, and stdin module actions. The gateway does not provide a
 Kubernetes tunnel, replicate storage, or run a second user database.
 
+The central API reaches each registered cluster on two separate paths: its
+Kubernetes API for resource management, and the gateway for agent operations.
+
+```mermaid
+flowchart LR
+    subgraph central["Central panel (combined or standalone)"]
+        api["Central API<br/>user authorization"]
+    end
+    subgraph remote["Registered game cluster"]
+        k8s["Kubernetes API"]
+        gw["Gateway<br/>gateway subcommand, TCP 8443"]
+        agent["Agent Service<br/>TCP 8090 agent, TCP 9091 capture"]
+    end
+    api -- "Kubernetes API: resources, logs, PTY, stdin" --> k8s
+    api -- "mTLS: agent operations and capture files" --> gw
+    gw -- "mTLS, /v1/targets/{uid}" --> agent
+```
+
 ## Register the gateway with the central API
 
 In either installation mode, register the workload cluster through
@@ -83,7 +101,29 @@ The gateway authenticates the central API, verifies its own cluster ID and the
 live GameServer/agent Service ownership, and connects to the local agent's UID
 route. The agent rejects a different UID. Older agents do not implement that
 versioned route and fail closed; they must be upgraded before gateway access is
-available. User cookies, bearer tokens and CSRF headers are never forwarded.
+available. User cookies, bearer tokens and CSRF headers are never forwarded. The sequence
+below shows each check in order.
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant A as Central API
+    participant K as Remote Kubernetes API
+    participant G as Gateway
+    participant P as Agent in game pod
+    B->>A: Operation with session cookie and CSRF header
+    A->>A: Authorize user for cluster, namespace and server
+    A->>K: Read GameServer and its UID
+    A->>G: mTLS request to /v1/clusters/.../uids/UID/operation
+    G->>G: Check central client URI SAN, cluster ID, namespace allowlist
+    G->>K: Confirm live UID and agent Service owner
+    G->>P: HTTPS /v1/targets/UID/operation
+    P->>P: Return 404 if UID differs
+    P-->>G: Response or stream
+    G-->>A: Response, with redirects refused and cookies removed
+    Note over G,P: Transport failure returns 502, and the write outcome may be unknown
+    A-->>B: Response
+```
 
 The central API is the user-authorization authority. A trusted gateway client
 certificate therefore grants delegated access to the gateway's allowlisted agent

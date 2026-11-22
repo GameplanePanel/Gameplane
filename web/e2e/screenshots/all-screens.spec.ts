@@ -452,7 +452,9 @@ test.describe("All-Screens: Capture tab (Desktop — 1440x900) @screenshots", ()
       await captureTab.click();
 
       // Look for start capture button
-      const startButton = page.getByRole("button", { name: /start|begin.*capture|new.*capture/i });
+      // Exact name: a /start/ pattern also matched the header's "Restart",
+      // so the lookup was ambiguous and the dialog never opened.
+      const startButton = page.getByRole("button", { name: "Start Capture" });
       if (await startButton.isVisible({ timeout: 5000 }).catch(() => false)) {
         await startButton.click();
         // Wait for dialog to open

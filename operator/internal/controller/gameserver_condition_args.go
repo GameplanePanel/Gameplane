@@ -35,6 +35,7 @@ type conditionArgsInput struct {
 	tunnelPlan   tunnelPlan
 	playitErr    string // errMsg from validatePlayitEndpoints ("" when none)
 	idleSchedErr error
+	ports        portAllocation
 }
 
 // deriveConditionArgs walks gs.Status.Conditions and returns the new map (nil when empty).
@@ -83,6 +84,25 @@ func conditionArgsFor(gs *gameplanev1alpha1.GameServer, cond *metav1.Condition, 
 		if cond.Reason == "ValidationFailed" {
 			return map[string]string{"details": in.playitErr}
 		}
+	case gameplanev1alpha1.GameServerConditionPortAllocation:
+		args := map[string]string{
+			"pool":  in.ports.pool,
+			"ports": poolPortsSummary(in.ports.record.entries),
+			"count": strconv.Itoa(int(in.ports.needed)),
+		}
+		switch cond.Reason {
+		case portReasonAllocated, portReasonExhausted, portReasonChangePending, portReasonRollout:
+		case portReasonOutsideRange:
+			args["outside"] = poolPortsSummary(in.ports.outside)
+		case portReasonConflict, portReasonConflictNoSvc, portReasonRolloutPort:
+			if in.ports.conflict == nil {
+				return nil
+			}
+			args["port"], args["holder"] = in.ports.conflict.String(), in.ports.conflict.holder
+		default:
+			return nil
+		}
+		return args
 	case "IdleScheduleInvalid":
 		if cond.Reason == "WakeWindowUnparseable" && in.idleSchedErr != nil {
 			return map[string]string{"details": in.idleSchedErr.Error()}

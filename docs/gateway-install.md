@@ -190,6 +190,62 @@ Remote all-namespace roles may contain `cluster:read`, `modules:read`,
 Wildcard or central-administration permissions are rejected, and a
 role cannot gain them later while it has remote all-namespace bindings.
 
+### Optional OpenEBS thin-pool capacity
+
+Without an explicit pool reference, inventory reports node ephemeral-storage
+capacity and provisioned Bound PV capacity. To report a separate local game-data
+pool, an administrator may annotate each participating Node:
+
+```yaml
+metadata:
+  annotations:
+    gameplane.local/storage-pool: >-
+      {"provider":"openebs-lvm","namespace":"openebs","volumeGroup":"game-vg","thinPool":"game-vg_thinpool","storageClasses":["games"]}
+```
+
+Only one selected pool per Node is supported. `thinPool` must be exactly
+`<volumeGroup>_thinpool`, the conventional OpenEBS name (`game-vg_thinpool`
+here). Other names are rejected before lookup, even if the named pool exists.
+The selected storage classes must be dedicated to OpenEBS LVM with
+`thinProvision: "yes"` and the selected VG/pool on participating nodes. This
+requirement includes existing volumes: changing the StorageClass does not
+migrate volumes already provisioned in another pool or without thin provisioning.
+PV metadata does not expose the actual thin pool or thin-provisioning mode;
+administrators must verify this prerequisite before opting in. Inventory does
+not read LVMVolumes to establish it.
+
+Create a namespace-scoped Role in the annotation's `namespace` (`openebs` in
+this example), granting only named read access to the same-name LVMNode. Bind
+it through a RoleBinding in that namespace to the identity used for inventory:
+
+- Local cluster: the local API's existing ServiceAccount, including its actual
+  ServiceAccount namespace in the binding subject.
+- Remote cluster: the selected remote kubeconfig's existing client identity,
+  with the Role and RoleBinding created in that remote cluster.
+
+The client's identity does not determine the Role namespace. These optional
+provider permissions supplement the existing node/PV inventory permissions;
+they are not granted to dashboard users. Replace `worker-1` with the Node's
+exact name (add each selected Node name when opting in multiple nodes):
+
+```yaml
+- apiGroups: [local.openebs.io]
+  resources: [lvmnodes]
+  resourceNames: [worker-1]
+  verbs: [get]
+```
+
+No list/watch, Secret access, pool management or Node mutation grant is needed.
+The selected pools' reported sizes supply capacity; matching Bound PV sizes
+remain logical provisioned allocation, not physical usage. With any pool
+configured, only annotated nodes' selected pools and matching PVs contribute;
+unannotated nodes' system disks, pools and PVs are excluded, and each PV is
+counted once. Configured source errors are unavailable/partial, never a fallback
+to the node system disk or zero.
+LVMNode has no freshness timestamp, so unchanged object age does not establish
+staleness. This opt-in changes only read-only inventory and does not manage game
+resources or their storage.
+
 ## Private networking
 
 The gateway Service is **ClusterIP on TCP 8443**. Provide private routing or a
@@ -206,6 +262,18 @@ and API endpoint allowlists. It permits only:
 - TCP 443/6443 to `apiServerCIDRs` in the local cluster.
 - TCP 8090 to game agents in the explicitly allowed namespaces.
 - TCP 9091 to capture sidecars in those same namespaces.
+
+The gateway's allowed flows are summarized below; the chart's policy lists the
+exact selectors.
+
+```mermaid
+flowchart LR
+    central["Central API<br/>peerCIDRs or peerSelectors"] -- "TCP 8443 mTLS" --> gw["Gateway Service"]
+    gw -- "TCP 443 and 6443" --> kapi["Local Kubernetes API<br/>apiServerCIDRs"]
+    gw -- "TCP and UDP 53" --> dns["DNS pods"]
+    gw -- "TCP 8090" --> agents["Game agents in allowed namespaces"]
+    gw -- "TCP 9091" --> sidecars["Capture sidecars in allowed namespaces"]
+```
 
 Use the source IPs the target cluster actually observes, accounting for private
 relay/SNAT behavior. `peerSelectors` identify pods **inside this cluster**, such

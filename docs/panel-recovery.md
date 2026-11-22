@@ -60,6 +60,27 @@ state and saves through the operational access available during the outage.
 
 ## Database loss and recovery order
 
+Choose the branch that matches the failed domain. Each branch restores only
+that domain, and none requires recreating live games.
+
+```mermaid
+flowchart TD
+  incident["Panel incident"] --> what{"Failed domain"}
+  what -- "SQL unreachable, full or locked, data intact" --> conn["Restore connectivity or capacity; do not bootstrap a new database"]
+  what -- "SQL lost or corrupt" --> fence["Stop all API writers and fence the old database"]
+  what -- "Management key missing or wrong" --> keep["Keep the panel stopped"]
+  conn --> verify["Verify readiness, login and cluster operations"]
+  fence --> restore["Restore a verified backup to a working copy"]
+  restore --> reconcile["Reconcile users, grants and UIDs with the external inventory"]
+  reconcile --> invalidate["Delete sessions, clear api_tokens and revoke share links"]
+  invalidate --> start["Start one API with --panel-key-provisioned and the original key"]
+  keep --> recover{"Original paired key recoverable?"}
+  recover -- yes --> start
+  recover -- no --> rebuild["Treat encrypted credentials as lost; rebuild under a reviewed plan"]
+  start --> verify
+  verify --> reopen["Reopen access"]
+```
+
 1. Restrict external panel access and stop **all** API writers. Fence the old
    database instance so it cannot resume writing. Record incident/recovery start
    time and live GameServer/PVC/Pod UIDs, container IDs and restart counts. Keep

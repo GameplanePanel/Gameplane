@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import type { ReactNode } from "react";
 import { http, HttpResponse } from "msw";
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "@/test/server";
 import { renderWithQuery } from "@/test/render";
@@ -65,6 +65,25 @@ async function sidebarRoot() {
 }
 
 describe("AppLayout", () => {
+  it("shares the saved instance name with desktop and mobile navigation and refreshes it", async () => {
+    server.use(http.get("/admin/installation", () => HttpResponse.json({ standalone: false, localCluster: true, instanceName: "  Baylem's 世界  " })));
+    const view = renderWithQuery(<AppLayout />);
+    try {
+      expect(await screen.findByText("Baylem's 世界")).toHaveAttribute("title", "Baylem's 世界");
+      await userEvent.click(await screen.findByRole("button", { name: /open navigation/i }));
+      await screen.findByRole("button", { name: /close navigation/i });
+      expect(screen.getAllByText("Baylem's 世界")).toHaveLength(2);
+      await act(() => view.client.setQueryData(["installation"], { standalone: false, localCluster: true, instanceName: "Updated instance" }));
+      await waitFor(() => expect(screen.getAllByText("Updated instance")).toHaveLength(2));
+      expect(screen.queryByText("Baylem's 世界")).not.toBeInTheDocument();
+      await act(() => view.client.setQueryData(["installation"], { standalone: false, localCluster: true, instanceName: "   " }));
+      await waitFor(() => expect(screen.getAllByTitle("gameplane")).toHaveLength(2));
+    } finally {
+      view.unmount();
+      view.client.clear();
+    }
+  });
+
   it.each([true, false])("labels module ownership for the installation mode (standalone=%s)", async (standalone) => {
     const originalLocation = routerMocks.useLocation;
     routerMocks.useLocation = () => ({ pathname: "/modules" } as ReturnType<typeof import("@tanstack/react-router").useLocation>);

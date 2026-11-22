@@ -22,21 +22,27 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 
 | Component | `specs.md` location | Primary Responsibilities |
 | --- | --- | --- |
-| **Capture Sidecar** | `capture-sidecar/specs.md` | Ephemeral network packet capture sidecar injected into game pods to capture traffic. |
+| **Capture Sidecar** | `capture-sidecar/specs.md` (submodule `GameplanePanel/capture-sidecar`) | Ephemeral network packet capture sidecar injected into game pods to capture traffic. |
 | **Sentinel** | `sentinel/specs.md` | Wake-on-connect daemon holding ports for sleeping servers and waking them up upon player connection attempts. |
-| **Tunnel** | `tunnel/specs.md` | Relay client supervisor for integrating with external tunnels (frp, Tailscale, playit). |
-| **Audit-Syslog-Bridge** | `audit-syslog-bridge/specs.md` | Relay forwarding HTTP JSON audit events to external syslog servers. |
+| **Tunnel** | `tunnel/specs.md` (submodule `GameplanePanel/tunnel`) | Relay client supervisor for integrating with external tunnels (frp, Tailscale, playit). |
+| **Audit-Syslog-Bridge** | `audit-syslog-bridge/specs.md` (submodule `GameplanePanel/audit-syslog-bridge`) | Relay forwarding HTTP JSON audit events to external syslog servers. |
 | **Telemetry-Receiver** | `telemetry-receiver/specs.md` | Ingests and processes anonymous usage telemetry from the API. |
 | **Telemetryschema** | `telemetryschema/specs.md` | Shared telemetry report contract (types, enumerations, strict decode, official module catalog, report signing) used by the API and the telemetry-receiver. |
-| **MCP-Server** | `mcp-server/specs.md` | Read-only Model Context Protocol server exposing cluster state to AI tools. |
-| **Svcutil** | `svcutil/specs.md` | Shared stdlib-only env and graceful-shutdown helpers used by backend components. |
+| **MCP-Server** | `mcp-server/specs.md` (submodule `GameplanePanel/mcp`) | Read-only Model Context Protocol server exposing cluster state to AI tools. |
+
+## Shared Libraries & Tooling
+
+| Component | `specs.md` location | Primary Responsibilities |
+| --- | --- | --- |
+| **i18n** | `i18n/specs.md` | Shared language packs (`go:embed`), the ICU MessageFormat subset, the pack validator and the `i18n-check` CI tool. Imported by the API, the operator and `gp-module`. |
+| **gp-module** | `gp-module/specs.md` | Module authoring CLI: scaffold, offline validate, dry-run preview and OCI package. Its `pkg/` packages are imported by the API and `test/e2e`. |
 
 ## Frontend & Other
 
 | Component | `specs.md` location | Primary Responsibilities |
 | --- | --- | --- |
 | **Web Dashboard** | `web/specs.md` | The React SPA frontend. |
-| **Design Export** | `assets/design-export/MANIFEST.md` | Plain-file snapshot of the Pencil source for the product's designed screens. |
+| **Design Export** | `assets/design-export/MANIFEST.md` | Per-screen snapshot (standalone .fig, JSON, screenshot) of `design.fig`, the product's designed screens. |
 | **Images** | `docs/img/` | Screenshot gallery for documentation and testing. |
 | **Website** | `website/` (submodule) | Public marketing and documentation site. |
 | **Modules** | `modules/<game>/specs.md` | OCI bundle templates for deploying specific games (e.g., Minecraft, Rust). |

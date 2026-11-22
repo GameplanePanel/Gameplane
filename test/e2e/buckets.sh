@@ -56,9 +56,11 @@ TestCRD_Validation_IdleRejectsBadValues
 TestCRD_Validation_TunnelServerAddrInvalid
 TestCRD_Validation_TunnelProxyNameInvalid
 TestCRD_Validation_TunnelServerAddrValid
+TestCRD_Validation_LoadBalancerClassNameLength
 TestGameServer_OperatorMaterializesChildren
 TestGameServer_SuspendScalesToZeroAndBack
 TestGameServer_IdleNeverSleepsWithoutAPlayerCount
+TestGameServer_A2SPlayerCountDrivesIdle
 TestGameServer_HeartbeatReachesRunning
 TestGameServer_PVCSurvivesPodDelete
 TestGameServer_InstallTimeDefaultApplies
@@ -72,6 +74,9 @@ TestGameServer_RestoredRolloutRehearsal
 TestGameServer_WipeReportsFailureOnPermissionDenied
 TestGameServer_CascadingDelete
 TestGameServer_SecurityOverrideAppliesOnRestart
+TestGameServer_LoadBalancerClassReplacesTheService
+TestGameServer_PortPoolAllocation
+TestGameServer_PortPoolServingAllocation
 TestGameServer_TunnelCredentialRefusalSurfaced
 TestGameServer_IngressNetworkPolicyShapeAndCascade
 TestGameServer_NetworkCaptureStartStopDownload
@@ -114,6 +119,7 @@ TestAddressPool_StatusVisibleInAddressAssignmentCondition
 TestAddressPool_ExplicitAddressRequest
 TestAddressPool_AddressInUseConflict
 TestAddressPool_PoolExhausted
+TestAddressPool_HostnameHolderKeepsAddress
 TestAPI_EventStreamAndRoleEdits_FollowCallerPermissions
 TestAPI_I18n_LanguagePref
 TestAPI_I18n_NotifyLanguage
@@ -369,11 +375,23 @@ EOF
 # logins with the EventStream test). All run against the primary cluster. api-auth,
 # api-roles, api-mods, api-rbac and api-agent are at their ceilings (see their
 # comments); do not add to them.
+#
+# TestAPI_SSORoleRules (spec 034, T048) lives here for the same reason: it
+# costs +1 e2e-admin login, bringing this job to 6 (ceiling ~7), plus 8 fake-IdP
+# sign-ins on its own dashboard provider (OIDCCallbackLimiter, per client IP,
+# burst 10, 10/min refill, retried on 429). With the account-removal test's 2
+# Helm sign-ins (not retried) the bucket makes 10 callbacks, exactly the burst:
+# do not add SSO sign-ins to this bucket. It is the only test in this bucket that writes
+# /admin/config/auth (and /admin/config/general, only when the External URL is
+# empty), and never writes helmOverride, so it cannot disturb the Helm provider
+# that TestAPI_AccountRemoval_RevokesSharesAndAllowsSSOReprovision signs in
+# through.
 bucket_multicluster() { cat <<'EOF'
 TestAPI_AccountRemoval_RevokesSharesAndAllowsSSOReprovision
 TestAPI_ModuleUpload_ExtractionStaysWithinBudget
 TestAPI_I18n_ProblemJSON
 TestAPI_I18n_ModuleLocales
+TestAPI_SSORoleRules
 TestMultiCluster_ClusterDispatchAndScopedRBAC
 TestMultiCluster_GatewayParity
 EOF

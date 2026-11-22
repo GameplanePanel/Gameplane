@@ -428,9 +428,13 @@ func (r *GameServerReconciler) reconcileGameDirectServiceFromTemplate(
 		// every GameServer merely *using* a nodePort override fails this
 		// CreateOrUpdate on every single reconcile — including all of its
 		// other, unrelated steps that run after this one.
+		// The sentinel dials the game at its container ports, so this
+		// Service publishes those: a pool port or servicePort override
+		// applies only to the main Service players reach.
 		ports := svcPortsFromTemplate(tmpl, gs)
 		for i := range ports {
 			ports[i].NodePort = 0
+			ports[i].Port = ports[i].TargetPort.IntVal
 		}
 		svc.Spec.Ports = ports
 		return controllerutil.SetControllerReference(gs, svc, r.Scheme)

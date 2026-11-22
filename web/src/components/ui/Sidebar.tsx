@@ -23,6 +23,7 @@ export interface SidebarNavGroup {
 export interface SidebarProps {
   navItems: SidebarNavGroup[];
   clusterName?: string;
+  instanceName?: string;
   user?: User;
   variant: "fixed" | "drawer";
   isOpen?: boolean;
@@ -40,6 +41,7 @@ export interface SidebarProps {
 export function Sidebar({
   navItems,
   clusterName,
+  instanceName,
   user,
   variant,
   isOpen,
@@ -53,6 +55,7 @@ export function Sidebar({
 }: SidebarProps) {
   const intl = useOptionalIntl();
   const { pathname } = useLocation();
+  const displayName = instanceName?.trim() || intl.formatMessage({ id: "web.components.ui.sidebar.gameplane", defaultMessage: "gameplane", description: "Sidebar: product name shown at the top of the side navigation, with the cluster name beneath it; keep the name as written" });
 
   // Compute which nav item is active (exact vs prefix matching per contract).
   const isActive = (to: string): boolean => {
@@ -75,11 +78,11 @@ export function Sidebar({
       )}>
       {/* Header */}
       <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/15">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/15">
           <ShieldCheck className="h-4 w-4 text-primary" />
         </div>
         <div className="min-w-0 flex-1 leading-tight">
-          <div className="font-mono text-base font-semibold text-fg">{intl.formatMessage({ id: "web.components.ui.sidebar.gameplane", defaultMessage: "gameplane", description: "Sidebar: product name shown at the top of the side navigation, with the cluster name beneath it; keep the name as written" })}</div>
+          <div className="truncate font-mono text-base font-semibold text-fg" title={displayName}>{displayName}</div>
           <div className="text-[11px] text-muted truncate">{clusterName || intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</div>
         </div>
         {variant === "drawer" && onClose && (

@@ -258,6 +258,41 @@ func validatePorts(node *yaml.Node) []Finding {
 	return findings
 }
 
+// validatePlayerQuery checks that capabilities.players.query points at one
+// of the template's declared UDP ports. The CRD bounds the port's range but
+// can't see spec.ports, so a query aimed at the TCP game port, or a port the
+// game doesn't use, would otherwise only show up as a server that never
+// reports a player count, and so never sleeps.
+func validatePlayerQuery(node *yaml.Node) []Finding {
+	query := common.FindNode(node, "spec.capabilities.players.query")
+	if query == nil || query.Kind != yaml.MappingNode {
+		return nil
+	}
+	portField := common.FindNode(query, "port")
+	if portField == nil {
+		return nil
+	}
+	if portsNode := common.FindNode(node, "spec.ports"); portsNode != nil && portsNode.Kind == yaml.SequenceNode {
+		for _, pNode := range portsNode.Content {
+			protoField := common.FindNode(pNode, "protocol")
+			containerPort := common.FindNode(pNode, "containerPort")
+			if protoField != nil && protoField.Value == "UDP" && containerPort != nil && containerPort.Value == portField.Value {
+				return nil
+			}
+		}
+	}
+	return []Finding{{
+		Level:       SeverityError,
+		RuleID:      RuleTemplateSchemaViolation,
+		File:        "template.yaml",
+		Line:        portField.Line,
+		Column:      portField.Column,
+		Field:       "spec.capabilities.players.query.port",
+		Message:     fmt.Sprintf("player query port %s is not a declared UDP port", portField.Value),
+		Remediation: "Set port to the game's UDP query port, and declare it in spec.ports with protocol: UDP.",
+	}}
+}
+
 func validateConfigSchemaRules(node *yaml.Node) []Finding {
 	var findings []Finding
 	cfgNode := common.FindNode(node, "spec.configSchema")

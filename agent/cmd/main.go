@@ -200,7 +200,7 @@ func main() {
 
 		protected.Group(func(bounded chi.Router) {
 			bounded.Use(middleware.Timeout(30 * time.Second))
-			players.Mount(bounded, rconClient, gameName, playerActions)
+			players.Mount(bounded, rconClient, gameName, playerActions, dataRoot)
 			quiesce.Mount(bounded, commands, gameName, quiesceSpec)
 			lifecycle.Mount(bounded, rconClient, gameName, lifecycleSpec)
 			actions.Mount(bounded, rconClient, gameName, actionSpecs)
@@ -284,8 +284,15 @@ func main() {
 			}
 			return nil
 		}(),
-		Usage:   usageReader,
-		Metrics: m,
+		PlayerQuery: func() *caps.PlayerQuery {
+			if playerActions != nil {
+				return playerActions.Query
+			}
+			return nil
+		}(),
+		QueryHost: rconHost,
+		Usage:     usageReader,
+		Metrics:   m,
 	})
 
 	go func() {

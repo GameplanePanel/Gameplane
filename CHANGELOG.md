@@ -5,26 +5,411 @@ All notable changes to Gameplane are documented here. The format is based on
 to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once it
 reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
 
-See the [unreleased change entries](changelog/unreleased/) for individual fixes and upgrade notes.
+Changes that are not released yet live in
+[`changelog/unreleased/`](changelog/unreleased/README.md), one file per pull request.
+They are folded into this file when a version is released; see
+[`docs/contributing.md`](docs/contributing.md#changelog-entries).
 
-## [Unreleased]
+## [0.4.3] — 2026-11-21
+
+A pre-v1 patch release that publishes [0.4.2](#042--2026-11-20). The v0.4.2 tag
+was pushed, but its release run stopped when the image scan found a HIGH
+vulnerability in the dashboard (`web`) image, so no 0.4.2 release was
+published. Version 0.4.3 ships every 0.4.2 change plus the fix below. Read the
+[0.4.2 upgrade notes](https://github.com/GameplanePanel/Gameplane/blob/v0.4.3/CHANGELOG.md#042--2026-11-20)
+before you upgrade from 0.4.1; two of them change behaviour.
+
+### Security
+
+- **Dashboard image libxml2 update:** the `web` image now upgrades libxml2 to
+  2.13.9-r3, which fixes CVE-2026-86144 in the nginx base image.
+  [PR #1037](https://github.com/GameplanePanel/Gameplane/pull/1037)
+
+## [0.4.2] — 2026-11-20
+
+A pre-v1 patch release with every change merged since v0.4.1: port pools for
+servers behind one shared address, a load-balancer class per server, hostname
+endpoints, player counts over the Steam query, a separate CRD chart, OpenEBS
+thin-pool capacity, NodePort player addresses, dashboard fixes and the move of
+four optional components to their own repositories.
+Read the upgrade notes below first; two of them change behaviour.
+
+### Upgrade Notes
+
+- **Breaking: LoadBalancer servers show their hostname as their address:**
+  after upgrading, every LoadBalancer server that already has
+  `spec.networking.hostname` set reports that hostname as its address in
+  `status.endpoints` and the dashboard, in place of the load balancer's IP,
+  once the load balancer has published one. Check that each such hostname
+  resolves to its server before upgrading, or clear it on servers where it
+  doesn't. The assigned address stays in the new
+  `status.endpoints[].serviceAddress`. Servers without a hostname, and
+  ClusterIP or NodePort servers, are unchanged. See
+  [A hostname as the server's address](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/networking.md#a-hostname-as-the-servers-address)
+  (PR #999).
+- **Breaking: default git module source moves to the v0.4.1 module tag:** the
+  chart's `defaultModuleSource.git.ref` now points at the module repository's
+  `v0.4.1` tag instead of `v0.4.0`. This only affects installs that set
+  `defaultModuleSource.type: git`; the default `oci` source is unaffected. A
+  git source serves one version per module, so these modules change version:
+  ark-survival-ascended 1.0.9, ark-survival-evolved 2.0.2, minecraft-java
+  2.12.0, mount-and-blade-2-bannerlord 1.1.1, nuclear-option 1.1.1, palworld
+  1.3.0, project-zomboid 1.0.6, squad 1.1.1 and the-isle 1.1.1. Before
+  upgrading the chart on a git-source install, repin each installed Module of
+  these games to the new version, or it goes `Failed` with
+  `VersionUnavailable`. ark-survival-evolved 2.0 is itself a breaking module
+  change; see its module README (PR #997).
 
 ### Added
 
-- The Files editor checks the open JavaScript or TypeScript file against the
-  standard library and provides inline diagnostics, completions, and Peek
-  Definition. The browser downloads the compiler on first use (about 12.7 MiB
-  gzipped). These features also work over plain HTTP on LAN browsers that
-  support WebAssembly JavaScript Promise Integration (PR #902).
-- Placement settings now underline JSON syntax errors as you type (PR #902).
+- **Port pools for servers behind one public address:** `operator.portPools`
+  defines ranges of ports on a shared endpoint, such as a relay or an edge
+  that forwards ports, and the templates whose servers draw from each. Every
+  such server gets a contiguous block of Service ports of its own, kept for
+  its life, even when the pool later shrinks, and shown by the new
+  `PortAllocation` condition. Servers whose games send no hostname no longer
+  need their ports set by hand behind one address. A full pool never takes
+  ports from a server that has them: new servers wait, and template updates
+  that need more ports wait on the current version. See
+  [Port pools](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/networking.md#port-pools)
+  (PR #1001).
+- **Choose a server's load-balancer implementation:** a LoadBalancer server
+  can set `spec.networking.loadBalancerClass` to pick which load-balancer
+  implementation handles its Service, for a cluster that runs more than one.
+  Changing it replaces the Service, since Kubernetes doesn't allow changing a
+  Service's class in place, and the server usually gets a new external
+  address. See
+  [Choosing a Load-Balancer Implementation](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/networking.md#choosing-a-load-balancer-implementation)
+  (PR #1000).
+- **Player counts from the Steam server query:** a module can read its player
+  count over Valve's A2S query instead of the console, with
+  `capabilities.players.query` (`protocol: a2s` and the UDP query port).
+  Games without a console that lists players, such as Valheim, which has no
+  RCON, can then show a player count and sleep when empty (PR #991).
+- **The CRDs are published as their own Helm chart:** each release now also
+  publishes the CRDs alone, as the OCI chart
+  `oci://ghcr.io/gameplanepanel/charts/gameplane-crds`, at the same version as
+  the `gameplane` chart. An Argo CD install can point its CRD Application at
+  that chart instead of the `crds` directory in Git; see
+  [One owner for each resource](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/argocd.md#one-owner-for-each-resource).
+  Existing installs need no change: the `gameplane` chart still ships the
+  CRDs (PR #990).
+- **Minecraft operators in Players:** the Players tab shows the count and
+  identities of configured Minecraft Java operators, including offline
+  operators, and refreshes them with the player information. The read-only
+  list comes from the server's `ops.json` file, works independently of live
+  RCON player queries, and distinguishes an empty list from a failed read
+  (PR #1022).
+- **OpenEBS game-data capacity:** cluster and fleet inventory can read an
+  administrator-selected OpenEBS LVM thin pool instead of the node's system
+  disk capacity. Storage cards use IEC units and name the capacity source while
+  still showing provisioned volume space rather than physical usage. Opt in
+  with a Node annotation, dedicated thin-provisioned storage classes and named
+  read-only LVMNode permissions; see the
+  [setup instructions](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/gateway-install.md#optional-openebs-thin-pool-capacity).
+  Unconfigured clusters keep their existing calculation, and a configured
+  lookup that fails shows as unavailable instead of falling back to the system
+  disk (PR #1002).
 
 ### Changed
 
-- The dashboard builds with TypeScript 7.0.2 and uses Monaco Editor 0.57.0.
-  ESLint 10 runs the React Hooks and FormatJS checks, and Oxlint checks React
-  and TypeScript code for issues such as unhandled promises. The translation
-  migration uses Babel and preserves JSX comments, escaped entities, Unicode,
-  and line endings (PR #902).
+- **Share links distinguish stopped and sleeping servers:** public share links
+  show manually stopped servers as stopped and explain that the owner must
+  start them. Shared start actions wake idle-asleep servers without
+  overriding a manual stop, and the page keeps observing an accepted wake
+  until the server starts or a five-minute wait times out. View-only links no
+  longer offer Start server, and a manual stop that races a wake request
+  shows the same owner-must-start message (PR #1019).
+- **API registry keys save immediately:** setting, replacing and removing a
+  mod registry API key now saves without a second Save changes button. Failed
+  saves keep the entered key available for retry, pending saves prevent
+  duplicate actions, and the configured status reflects the saved setting
+  after reopening the page (PR #1023).
+- **Folders sort before files:** the Files tab lists folders first, then
+  files, each group sorted alphabetically, also inside expanded folders and
+  after refreshing the listing (PR #1016).
+- **MCP server, audit syslog bridge, tunnel clients and capture sidecar moved
+  to their own repositories:** their code now lives in
+  [GameplanePanel/mcp](https://github.com/GameplanePanel/mcp),
+  [GameplanePanel/audit-syslog-bridge](https://github.com/GameplanePanel/audit-syslog-bridge),
+  [GameplanePanel/tunnel](https://github.com/GameplanePanel/tunnel) and
+  [GameplanePanel/capture-sidecar](https://github.com/GameplanePanel/capture-sidecar),
+  checked out here as submodules at the same paths. Nothing changes for
+  installs: images, image names and chart values stay the same. If you build
+  images or run `make dev-up` from a clone, run `hack/submodules.sh init`
+  first (`make images` and `make dev-up` also do it for you) (PRs #993, #995).
+- **Recent console output opens at the newest lines:** the Console tab opens
+  Recent pod output at the bottom. Loading older history keeps the output
+  already loaded and the reader's position (PR #1015).
+
+### Fixed
+
+- **`bootstrap-admin` no longer fails with "database is locked" on SQLite:**
+  running `bootstrap-admin` while the API was serving could fail at once with
+  `database is locked (SQLITE_BUSY)`, even with the busy timeout set. SQLite
+  read-write transactions now take the write lock when they begin, so they
+  wait for the lock instead of failing (PR #1028).
+- **Console output line spacing:** multiline Minecraft and other RCON replies
+  start each output line at the left edge instead of progressively indenting
+  the text. Existing indentation and PTY terminal output are preserved
+  (PR #1018).
+- **Placement labels and helper text:** Tolerations and Affinity descriptions
+  sit beneath their labels with consistent spacing, and server settings use a
+  scrollable tab row on narrow screens so the placement editors and save
+  controls remain usable (PR #1024).
+- **Backup empty states:** the Backups, Schedules and Restores tables give
+  empty-state messages consistent padding, centred alignment and
+  viewport-width wrapping (PR #1025).
+- **Player address for NodePort servers:** the dashboard shows and copies the
+  game's hostname or its serving node's external IP together with the assigned
+  NodePort. If your nodes have no external IP, set the hostname players use in
+  **Settings → Networking**. See
+  [Connecting to a NodePort server](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/networking.md#connecting-to-a-nodeport-server)
+  (PR #1034).
+- **Denied backup requests no longer repeat:** a server's Backups tab checks
+  permissions for its selected cluster and namespace before loading backups,
+  schedules, restores and destinations. Authorization failures stop automatic
+  retries and polling until access changes, and the tab shows an
+  access-denied message. Schedule creation and server backup settings apply the
+  same checks and tell denied access apart from missing configuration. Role
+  restrictions are unchanged (PR #1017).
+- **Saved instance name in the panel header:** the header uses the configured
+  instance name after saving general settings and after reloading. Unset or
+  blank names fall back to `gameplane` (PR #1021).
+- **Dashboard styling matches the design again:** selected tabs show their
+  pill again, and the Settings side menu, table headers, form fields and
+  selects, warning banners, login SSO buttons, Servers table and stat cards,
+  and checkboxes match the design. On the Console tab, Recent pod output now
+  sits under the terminal and folds away from its header (PR #1033).
+
+## [0.4.1] — 2026-11-17
+
+A pre-v1 patch release with every change merged since v0.4.0: the security
+and production-readiness follow-ups tracked in #867, a server file manager,
+earlier log history, staged JVM settings, PostgreSQL high availability and
+updated game modules. Read the upgrade notes below before upgrading; several
+of them change behaviour or need steps before the upgrade.
+
+### Upgrade Notes
+
+- **Breaking: native credential boundary (Kubernetes 1.30+):** the chart now
+  requires Kubernetes 1.30 or later with ValidatingAdmissionPolicy and
+  PodSecurity admission enabled. The native API stores its credentials and
+  uploaded module ConfigMaps in a dedicated namespace. Before upgrading,
+  migrate existing credentials, uploads and module locale ConfigMaps, remove
+  legacy service-account token Secrets, and bind each private HTTP or Git
+  module credential to its exact source URL with the
+  `gameplane.local/http-source-url` or `gameplane.local/git-source-url`
+  annotation. Fresh installs enforce Restricted Pod Security on game
+  namespaces; releases upgraded with `--reuse-values` can keep
+  `podSecurity.enforceRestricted=false`. Follow the
+  [native credential upgrade instructions](https://github.com/GameplanePanel/Gameplane/blob/v0.4.1/docs/install.md#upgrading-native-api-credentials)
+  (PR #886).
+- **Breaking: game probes are pod-local:** GameServer and GameTemplate HTTP
+  and TCP probes now reject an explicit host. Remove the host from existing
+  probes so the kubelet connects to the game Pod before its next rollout
+  (PR #889).
+- **Breaking: ARK: Survival Evolved module 2.x:** the module now runs the
+  maintained community image `hermsi/ark-server` (module 2.0.0) instead of a
+  Gameplane-built image. The data volume moves to `/app`, with the install
+  and saves under `server/`, and cluster transfers move to a second 1 GiB
+  volume at `/cluster`. Schedule downtime and move existing worlds before
+  adopting 2.x, or the server starts a new world; rename `MAP_NAME` to
+  `SERVER_MAP` and remove `RCON_PASSWORD`. Use 2.0.1 or later: it checks both
+  mounts and refuses to start on an old layout, leaving both volumes intact.
+  The image starts as root, so it does not run with
+  `podSecurity.enforceRestricted: true`. See the module's
+  [upgrade steps](https://github.com/GameplanePanel/module/tree/main/ark-survival-evolved#upgrading-from-1x)
+  (PRs #915, #926; module PRs #58, #64).
+- **SteamCMD games need amd64 workers:** the SteamCMD base image is built for
+  `linux/amd64` only, and game templates can require a worker architecture
+  with `spec.requiredNodeArchitecture`. ARK: Survival Evolved, Mount & Blade
+  II: Bannerlord, Nuclear Option, Squad and The Isle now require amd64
+  workers. On mixed clusters, set the `kubernetes.io/arch: amd64` node
+  selector on affected GameServers that still use older templates. See
+  [affected games and upgrade steps](https://github.com/GameplanePanel/Gameplane/blob/v0.4.1/containers/README.md#platform-support)
+  (PRs #958, #959; module PR #68).
+- **Live Minecraft Java backups:** before upgrading agents that only support
+  the v1 backup endpoint, let active live backups finish and check their
+  `Unquiesced` condition. See the
+  [operator upgrade guidance](https://github.com/GameplanePanel/Gameplane/blob/v0.4.1/docs/operator-operations.md#shared-operation-ownership)
+  (PR #899).
+- **Game worker policy takes over legacy games:** when the new placement and
+  resource policy takes over an existing game, the operator drains its Pod
+  before applying placement and resource changes. A verified running revision
+  uses its saved stop sequence; an unversioned game uses its Pod termination
+  grace (PR #903).
+- **PostgreSQL high availability rollout:** to run more than one API replica,
+  first roll out the HA-capable API with one replica and a Secret-backed DSN.
+  After the singleton is ready, enable `api.postgresHA.enabled` and set
+  `api.replicas` to at least `2`. SQLite and standalone installations keep
+  one API replica. See the
+  [Helm upgrade instructions](https://github.com/GameplanePanel/Gameplane/blob/v0.4.1/docs/install.md#api-rollout-and-postgresql-availability)
+  (PR #911).
+- **SSO usernames are refreshed on login:** each OIDC login now refreshes an
+  existing user's email and display name. SSO users whose username is still
+  the raw subject ID are renamed to their `preferred_username` (or email) on
+  their next login (PR #928).
+
+### Added
+
+- **Server file manager:** expand folders, link directly to a file and switch
+  between open editor tabs. Edits autosave in order, and failed saves stay
+  available for retry during the session. Select files and folders to
+  download a ZIP, save an archive on the server or delete them together
+  (#935, PR #941).
+- **Earlier log history:** the Logs tab pages through earlier game-file output
+  and game or setup container logs while the live stream stays connected. The
+  Console tab shows a separate pod-output snapshot alongside the live PTY or
+  RCON session (#936, PR #945).
+- **Stage game settings for the next start:** template authors can set
+  `applyOnRestart` on environment fields; saving or clearing them leaves the
+  running Pod in place. Adopting the updated template can restart an existing
+  server once. Minecraft Java previews the initial and maximum heap
+  independently, stages JVM options for the next start and shows when saved
+  changes take effect (#938, PRs #943, #959; module PR #66).
+- **Config fields can export a different env var name:** a module's
+  `configSchema` field can set `envName` to export its value under another
+  env var name. The stored config key does not change, so existing servers
+  keep their saved values (PR #951).
+- **TypeScript checks in the Files editor:** the editor checks the open
+  JavaScript or TypeScript file against the standard library and provides
+  inline diagnostics, completions and Peek Definition. The browser downloads
+  the compiler on first use (about 12.7 MiB gzipped). These features also
+  work over plain HTTP on LAN browsers that support WebAssembly JavaScript
+  Promise Integration (PR #902).
+- **Placement settings underline JSON syntax errors** as you type (PR #902).
+- **PostgreSQL availability and recovery:** Kubernetes-native installations
+  can run two or more API replicas on separate nodes against one writable
+  PostgreSQL primary. For point-in-time recovery, keep the physical base
+  backup and archived WAL on storage separate from the database volume. The
+  recovery drill fences the old writer, restores to a named WAL point and
+  reapplies authorization revocations before the API serves requests again.
+  See the [panel recovery procedure](https://github.com/GameplanePanel/Gameplane/blob/v0.4.1/docs/panel-recovery.md) (PR #911).
+- **PostgreSQL connection secrets:** the API and `bootstrap-admin` can read the
+  database connection string from an existing Secret. Set
+  `api.db.existingSecret` and `api.db.secretKey` to keep the DSN out of Helm
+  values (PR #887).
+- **Game worker placement and resource limits:** administrators can reserve
+  game workers with a node label and taint, bound CPU requests and memory
+  reservations and limits, and set per-namespace quotas. GameServer overrides
+  keep the template quantities for resources they omit (PR #903).
+- **Worker placement for wakers and relays:** service-backed wakers and relay
+  Pods can use an approved auxiliary worker pool. HostPort wakers keep the
+  game's placement and recorded endpoint node (PR #910).
+- **Tenant network isolation:** the opt-in
+  `networkPolicies.tenantIsolation` profile restricts traffic between game
+  workloads in managed namespaces (PR #894).
+- **Native administration permissions:** administrators can disable native
+  catalog writes and remote-cluster administration, and scope snapshot
+  permissions to deployments that use them. Existing native dashboard
+  permissions are kept on upgrade (PR #900).
+- **Argo CD upgrades:** the native Argo CD profile supports deterministic
+  offline rendering and externally managed trust material, and its upgrade
+  checks cover resource pruning and certificate rotation on a populated
+  installation (PR #901).
+- **Monitoring across managed tenants:** Prometheus discovers game workloads
+  in managed namespaces and tells missing targets apart from failed scrapes.
+  Dashboards show process RSS and container working set separately (PR #908).
+- **Relay flow metrics:** the Tailscale supervisor exposes flow, admission and
+  queue counters by protocol. The UDP benchmark compares direct and relayed
+  traffic at the same offered load and reports loss, round-trip latency and
+  jitter (PR #905).
+- **Restored-world template canaries:** the rollout tool checks signed
+  template and image pins, restores a stopped backup to a separate claim and
+  verifies a game client can join before admitting fleet targets one at a
+  time. It rehearses rollback on the clone (PR #909).
+- **Backup consistency reporting:** backup records distinguish an
+  acknowledged save with writes still enabled, a verified write freeze and a
+  stopped capture. Historical backups with unverified hooks stay restorable
+  and report unknown consistency (PR #907).
+- **Palworld frame rate:** the Overview and Prometheus show the dedicated
+  server's frame rate from its REST metrics (module 1.3.0; PR #926, module PR #60).
+- **Minecraft Java versions 26.3, 26.2, 26.1.2 and 1.21.11** in the version
+  picker (PRs #923, #926; module PRs #61, #62).
+
+### Changed
+
+- **Restic backup accounting:** Restic reuses the previous snapshot for the
+  same server after a worker or game Pod is replaced. Backup lists and details
+  show the packed data each new Restic run added alongside the logical
+  snapshot size (#933, PR #942).
+- **Dashboard toolchain:** the dashboard builds with TypeScript 7.0.2 and uses
+  Monaco Editor 0.57.0. ESLint 10 runs the React Hooks and FormatJS checks,
+  and Oxlint checks React and TypeScript code for issues such as unhandled
+  promises. The translation migration uses Babel and preserves JSX comments,
+  escaped entities, Unicode and line endings (PR #902).
+- **Published release verification:** release qualification verifies the
+  signed Helm chart and component image digests as an anonymous consumer, and
+  exercises a clean install and a populated upgrade from the previous
+  supported release (PR #906).
+- **Browser checks on CI runners:** the dashboard's mock, live Kubernetes and
+  screenshot jobs check that the locked Chromium build can render a
+  screenshot and record video, and install Ubuntu packages only when that
+  probe fails (PR #917).
+- **SteamCMD build mirror fallback:** SteamCMD image builds can switch to
+  alternate signed Ubuntu archives when the primary archive is unreachable.
+  Package signature verification and the pinned CA bundle stay in effect
+  (PR #922).
+- **Edge builds report `edge-<short sha>`** as their version, so the
+  telemetry receiver no longer counts edge installs as invalid (PR #952).
+- **ARK: Survival Ascended and Project Zomboid** no longer claim live
+  quiesce; their READMEs explain how to take a stopped backup (module 1.0.9
+  and 1.0.6; PR #926, module PR #59).
+
+### Fixed
+
+- **Agent heartbeats on a public API server endpoint:** the chart's
+  `allow-agent-to-apiserver` and `allow-sentinel-to-apiserver` policies only
+  allowed private ranges by default, so on a k3s node with a public IP every
+  agent heartbeat timed out and servers stayed "Starting" with no CPU, memory
+  or disk figures. When `networkPolicies.apiServerCIDRs` is unset, the chart
+  now also allows the `kubernetes` Service addresses it detects at install or
+  upgrade time (PR #930).
+- **Minecraft Java "Enforce whitelist" turns the whitelist on:** the module
+  exports it as `ENABLE_WHITELIST`, the variable the image reads (module
+  2.11.1, PR #954; module PR #67).
+- **Stop a provisioning server:** the server header and Overview let operators
+  stop a server while it is pending or starting (#932, PR #940).
+- **Recover a failed server after a corrected rollout:** the operator can
+  replace an obsolete game Pod stuck during startup once the StatefulSet has
+  observed a newer revision. Recovery respects lifecycle operations and
+  PodDisruptionBudgets (#934, PR #944).
+- **Per-server storage usage:** the agent reports storage scoped to the server
+  data directory. It uses native directory counters on kernel CephFS and a
+  bounded background scan on other filesystems. The dashboard labels
+  requested storage separately when measured capacity is unavailable
+  (#937, PR #946).
+- **Live Minecraft Java backups** verify the pause, flush and resume commands
+  against the original game process. The operator keeps an unconfirmed resume
+  across restarts and checks for container replacement before sending
+  `save-on` (PR #899).
+- **Concurrent game server wakes:** the operator durably reserves fleet wake
+  slots, observes explicit stops and recovers in-flight starts after a
+  restart. TCP and UDP clients can retry during a cold start without launching
+  a second copy of the game (PR #904).
+- **Bounded audit database writes:** the API limits the audit writes waiting
+  for the database and times out stalled inserts and retention runs, so a slow
+  PostgreSQL connection can no longer build an unbounded queue (PR #888).
+- **Dashboard favicon:** the dashboard ships the `favicon.svg` its page links
+  to, so browser tabs show the Gameplane mark (PR #988).
+
+### Removed
+
+- **Gameplane-built ARK: Survival Evolved image:** `containers/games/ark-survival-evolved/`
+  and its image build are removed; the module uses `hermsi/ark-server`
+  (PR #915).
+
+### Security
+
+- **Native credential boundary:** API-managed credentials and module
+  ConfigMaps move out of the release namespace, which also holds the operator
+  ServiceAccount and the agent CA key. Admission denies persistent
+  ServiceAccount token Secrets in protected namespaces, module credentials
+  can no longer be ServiceAccount token Secrets and are not forwarded across
+  redirects, and system and control-plane namespaces are rejected as game
+  namespaces. Upgrade checks refuse missing, stale or mutable copies of the
+  migrated credentials and uploads (PR #886).
 
 ## [0.4.0] — 2026-11-10
 
@@ -1395,7 +1780,9 @@ testing. Not yet recommended for unattended production workloads — see
   runner (retry + longer readiness window), eliminating a cascade of flaky
   API e2e failures.
 
-[Unreleased]: https://github.com/GameplanePanel/gameplane/compare/v0.4.0...HEAD
+[0.4.3]: https://github.com/GameplanePanel/gameplane/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/GameplanePanel/gameplane/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/GameplanePanel/gameplane/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/GameplanePanel/gameplane/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/GameplanePanel/gameplane/compare/v0.3.0-rc.1...v0.3.0
 [0.3.0-rc.2]: https://github.com/GameplanePanel/gameplane/compare/v0.3.0-rc.1...v0.3.0

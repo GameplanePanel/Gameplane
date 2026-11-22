@@ -43,6 +43,13 @@ const (
 	// run-as id). A stopped server is not started while False; a running one
 	// is left untouched.
 	GameServerConditionSecurityAllowed = "SecurityAllowed"
+
+	// GameServerConditionPortAllocation reports the Service ports a server
+	// holds in its template's port pool (operator --port-pool): True with
+	// Reason "Allocated", or False with Reason "PoolExhausted" when the pool
+	// has no free block, in which case the server has no Service. Absent
+	// when the template draws from no pool.
+	GameServerConditionPortAllocation = "PortAllocation"
 )
 
 // GameServer condition reasons for GameServerConditionSecurityAllowed.
@@ -392,6 +399,8 @@ type GameServerNetworking struct {
 	// RFC 1123 hostname: dotted labels of 1-63 alphanumeric characters
 	// or hyphens, no leading/trailing hyphen, at most 253 characters
 	// total. The operator does not create the DNS record itself.
+	// NodePort servers advertise this name with the assigned node port.
+	// LoadBalancer servers advertise it once the load balancer has an address.
 	// +kubebuilder:validation:MaxLength=253
 	// +kubebuilder:validation:Pattern=`^([a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)(\.[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)*$`
 	// +optional
@@ -409,6 +418,22 @@ type GameServerNetworking struct {
 	// the Service port for a named template port.
 	// +optional
 	PortOverrides []PortOverride `json:"portOverrides,omitempty"`
+
+	// LoadBalancerClass selects the load-balancer implementation for the
+	// fronting Service (service.spec.loadBalancerClass), for a cluster that
+	// runs more than one, or a custom one for game traffic. It only takes
+	// effect when Expose=LoadBalancer. Kubernetes doesn't allow changing a
+	// Service's class, so when this changes the operator replaces the
+	// Service, which gets a new cluster IP and, usually, a new external
+	// address. Unset leaves the Service's class as it is. The value is a
+	// Kubernetes qualified name: an optional DNS-subdomain prefix and a
+	// slash, then a name of at most 63 characters. The prefix is at most 253
+	// characters, so the whole value is at most 317.
+	// +kubebuilder:validation:MaxLength=317
+	// +kubebuilder:validation:XValidation:rule="!self.contains('/') || self.split('/')[0].size() <= 253",message="the loadBalancerClass prefix must be at most 253 characters"
+	// +kubebuilder:validation:Pattern=`^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?[A-Za-z0-9]([-A-Za-z0-9_.]{0,61}[A-Za-z0-9])?$`
+	// +optional
+	LoadBalancerClass *string `json:"loadBalancerClass,omitempty"`
 
 	// SourceRanges is an IP allow-list (CIDRs) for the fronting Service. It
 	// maps to service.spec.loadBalancerSourceRanges and therefore only takes
@@ -836,8 +861,18 @@ type CaptureStatus struct {
 // associated with a named template port.
 type GameServerEndpoint struct {
 	Name string `json:"name"`
+	// Host is the connection hostname or IP. For NodePort it is the game
+	// hostname or a serving node's external IP, or empty while neither is known.
 	Host string `json:"host"`
 	Port int32  `json:"port"`
+
+	// ServiceAddress is the address the backing Service was assigned (its
+	// load-balancer IP or hostname, or its cluster IP while none is
+	// published), kept apart from Host so an advertised hostname doesn't
+	// hide which address a server holds. Reconciler-owned; empty on tunnel
+	// endpoints and on status written by an operator that predates it.
+	// +optional
+	ServiceAddress string `json:"serviceAddress,omitempty"`
 	// +optional
 	Protocol corev1.Protocol `json:"protocol,omitempty"`
 

@@ -40,6 +40,8 @@ export interface EditUserDialogProps {
    * in — this keeps every pre-existing caller/test unaffected.
    */
   roleGrantsUserManagement?: (roleName: string) => boolean;
+  /** Content rendered right under the role select (e.g. the SSO role source). */
+  roleFooter?: ReactNode;
   /** Extra content rendered below the role select (e.g. namespace grants). */
   extraContent?: ReactNode;
   /** Error text from an external (API) failure, shown alongside client validation. */
@@ -60,6 +62,7 @@ export function EditUserDialog({
   username,
   isMe = false,
   roleGrantsUserManagement = () => true,
+  roleFooter,
   extraContent,
   apiError,
   contactFieldsOptional = false,
@@ -166,6 +169,7 @@ export function EditUserDialog({
               {wouldDemoteSelf && (
                 <p className="pt-1 text-[11px] text-danger">{intl.formatMessage({ id: "web.components.ui.admin.edit_user_dialog.you_can_t_remove_your_own_ability_to", defaultMessage: "You can’t remove your own ability to manage users.", description: "Edit user dialog: warning shown under the role dropdown when the change would remove the user's own ability to manage users" })}</p>
               )}
+              {roleFooter}
             </div>
 
             {extraContent && (

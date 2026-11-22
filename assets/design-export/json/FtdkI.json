@@ -1,287 +1,580 @@
 {
-  "type": "frame",
-  "id": "FtdkI",
+  "file": "FtdkI",
+  "id": "1:755",
+  "name": "Screen/Server Detail — Logs (Failed)",
+  "type": "FRAME",
   "x": 1640,
   "y": 29070,
-  "name": "Screen/Server Detail — Logs (Failed)",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "bj7qx",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:756",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "L8rOD",
+      "id": "1:757",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "phelD",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:758",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "mc-survival"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "rtf5z",
-          "type": "ref",
-          "ref": "S4k0x",
+          "id": "1:759",
           "name": "Detail Header",
-          "width": "fill_container",
-          "descendants": {
-            "N3nc2n": {
-              "id": "mTsdK",
-              "type": "ref",
-              "ref": "Yeemi",
-              "name": "statusBadge",
-              "descendants": {
-                "fRdhX": {
-                  "content": "Failed"
-                }
-              }
-            },
-            "UpnRk": {
-              "type": "frame",
-              "id": "ij6N6",
-              "name": "srvMeta",
-              "layout": "vertical",
-              "gap": 6,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 108,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [16, 24, 16, 24],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "children": [
+            {
+              "name": "srvLeft",
+              "type": "FRAME",
+              "x": 24,
+              "y": 16,
+              "width": 392,
+              "height": 76,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 16,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
               "children": [
                 {
-                  "type": "frame",
-                  "id": "MTJmq",
-                  "name": "errorLine",
-                  "gap": 6,
-                  "alignItems": "center",
+                  "name": "gameIcon",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 14,
+                  "width": 48,
+                  "height": 48,
+                  "fills": [{"type": "SOLID", "color": "#5B9A3E33", "opacity": 0.2}],
+                  "cornerRadius": 6,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
                   "children": [
                     {
-                      "type": "icon",
-                      "id": "h0eC5L",
-                      "width": 14,
-                      "height": 14,
-                      "icon": "triangle-alert",
-                      "library": "lucide",
-                      "weight": 400,
-                      "fill": "$danger/soft-foreground"
-                    },
-                    {
-                      "type": "text",
-                      "id": "f3knq",
-                      "fill": "$danger/soft-foreground",
-                      "content": "Back-off pulling image \"itzg/minecraft-server:bad-tag\"",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 12,
-                      "fontWeight": "500"
+                      "name": "gameIconLabel",
+                      "type": "TEXT",
+                      "x": 14,
+                      "y": 13.5,
+                      "width": 20,
+                      "height": 21,
+                      "fills": [{"type": "SOLID", "color": "#5B9A3E"}],
+                      "text": "MI",
+                      "font": ["JetBrains Mono", 700, 16],
+                      "variables": {"fontFamily": "typography/font-mono"}
                     }
                   ]
                 },
                 {
-                  "type": "text",
-                  "id": "BFfZU",
-                  "name": "srvSubtitle",
-                  "fill": "$muted",
-                  "content": "minecraft-java · 1.21.4-fabric · ns: gameplane-games",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
+                  "name": "srvTitle",
+                  "type": "FRAME",
+                  "x": 64,
+                  "y": 0,
+                  "width": 328,
+                  "height": 76,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 6,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "srvNameRow",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 209,
+                      "height": 32,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 10,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "children": [
+                        {
+                          "name": "srvName",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 159,
+                          "height": 32,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "mc-survival",
+                          "font": ["JetBrains Mono", 600, 24],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "statusBadge",
+                          "type": "INSTANCE",
+                          "x": 169,
+                          "y": 7.5,
+                          "width": 40,
+                          "height": 17,
+                          "component": "Chip/Soft/Danger/SM",
+                          "componentId": "1:760",
+                          "fills": [{"type": "SOLID", "color": "#2E1317"}],
+                          "cornerRadius": 16,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 2,
+                            "padding": [2, 4, 2, 4],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                          "texts": ["Failed"]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:762",
+                      "name": "srvMeta",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 38,
+                      "width": 328,
+                      "height": 38,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 6,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "children": [
+                        {
+                          "id": "1:763",
+                          "name": "errorLine",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 328,
+                          "height": 16,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 6,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "children": [
+                            {
+                              "id": "1:764",
+                              "name": "icon",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 1,
+                              "width": 14,
+                              "height": 14,
+                              "variables": {"fills/0/color": "danger/soft-foreground"},
+                              "children": [
+                                {
+                                  "name": "path",
+                                  "type": "VECTOR",
+                                  "x": 1.15,
+                                  "y": 1.74,
+                                  "width": 11.68,
+                                  "height": 10.51,
+                                  "strokes": [{"type": "SOLID", "color": "#F87171"}],
+                                  "strokeWeight": 1.17
+                                }
+                              ]
+                            },
+                            {
+                              "id": "1:765",
+                              "name": "text",
+                              "type": "TEXT",
+                              "x": 20,
+                              "y": 0,
+                              "width": 308,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#F87171"}],
+                              "text": "Back-off pulling image \"itzg/minecraft-server:bad-tag\"",
+                              "font": ["Geist", 500, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/soft-foreground"}
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:766",
+                          "name": "srvSubtitle",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 22,
+                          "width": 285,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+                          "font": ["Geist", 400, 12],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             },
-            "Gdnjm": {
-              "type": "frame",
-              "id": "AdGvP",
+            {
+              "id": "1:767",
               "name": "srvActions",
-              "gap": 8,
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 846,
+              "y": 36,
+              "width": 310,
+              "height": 36,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
               "children": [
                 {
-                  "id": "hJkbE",
-                  "type": "ref",
-                  "ref": "tpKRk",
+                  "id": "1:768",
                   "name": "Btn Start",
-                  "descendants": {
-                    "q58In/Xpn7K": {
-                      "icon": "play"
-                    },
-                    "q58In/U6q13B": {
-                      "content": "Start"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 89,
+                  "height": 36,
+                  "component": "Gameplane/Button/Default",
+                  "componentId": "1:306",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Start"]
                 },
                 {
-                  "id": "Cf6Gd",
-                  "type": "ref",
-                  "ref": "rNhll",
+                  "id": "1:769",
                   "name": "Btn Restart",
-                  "descendants": {
-                    "wDXFJ/K8d1zg": {
-                      "icon": "rotate-cw",
-                      "library": "lucide"
-                    },
-                    "wDXFJ/zMNkR": {
-                      "content": "Restart"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 97,
+                  "y": 2,
+                  "width": 89,
+                  "height": 32,
+                  "component": "Gameplane/Button/Outline",
+                  "componentId": "1:770",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Restart"]
                 },
                 {
-                  "id": "dOBfe",
-                  "type": "ref",
-                  "ref": "rNhll",
+                  "id": "1:772",
                   "name": "Btn Stop",
-                  "descendants": {
-                    "wDXFJ/K8d1zg": {
-                      "icon": "square",
-                      "library": "lucide"
-                    },
-                    "wDXFJ/zMNkR": {
-                      "content": "Stop"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 194,
+                  "y": 2,
+                  "width": 72,
+                  "height": 32,
+                  "component": "Gameplane/Button/Outline",
+                  "componentId": "1:770",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Stop"]
                 },
                 {
-                  "id": "CaKHq",
-                  "type": "ref",
-                  "ref": "J3iWV8",
+                  "id": "1:773",
                   "name": "Btn More",
+                  "type": "INSTANCE",
+                  "x": 274,
+                  "y": 0,
                   "width": 36,
                   "height": 36,
-                  "descendants": {
-                    "xjGeb": {
-                      "width": 20,
-                      "height": 20,
-                      "icon": "ellipsis",
-                      "library": "lucide",
-                      "fill": "$foreground/foreground"
-                    }
-                  }
+                  "component": "Button/Outline/Icon/MD",
+                  "componentId": "1:774",
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border-2"}
                 }
               ]
             }
-          }
+          ]
         },
         {
-          "id": "EL832",
-          "type": "ref",
-          "ref": "I9kvlZ",
+          "id": "1:775",
           "name": "Tabs Bar",
-          "width": "fill_container",
-          "padding": [
-            0,
-            24
-          ],
-          "descendants": {
-            "Wp6q1": {
-              "fill": "#00000000"
-            },
-            "Wp6q1/YUR8N": {
-              "fill": "$muted"
-            },
-            "tEfPq": {
-              "fill": "$segment"
-            },
-            "tEfPq/VcxMI": {
-              "fill": "$foreground/segment"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 172,
+          "width": 1180,
+          "height": 40,
+          "component": "Gameplane/Server Detail Tabs",
+          "componentId": "1:466",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 24, 0, 24],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": [
+            "Overview",
+            "Events",
+            "Console",
+            "Logs",
+            "Files",
+            "Mods",
+            "Modpacks",
+            "Players",
+            "Backups",
+            "Capture",
+            "Settings"
+          ]
         },
         {
-          "type": "frame",
-          "id": "WhMK5",
+          "id": "1:776",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 32,
+          "type": "FRAME",
+          "x": 0,
+          "y": 212,
+          "width": 1180,
+          "height": 688,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [32, 32, 32, 32],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "type": "frame",
-              "id": "JHfpt",
+              "id": "1:777",
               "name": "Terminal",
-              "width": "fill_container",
-              "height": "fill_container",
-              "fill": "#0b0b0d",
-              "cornerRadius": "$radius/2xl",
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "strokeAlignment": "inner",
-              "layout": "vertical",
-              "gap": 12,
-              "justifyContent": "center",
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 32,
+              "y": 32,
+              "width": 1116,
+              "height": 624,
+              "fills": [{"type": "SOLID", "color": "#0B0B0D"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 16,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"cornerRadius": "radius/2xl", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "icon",
-                  "id": "JZrXA",
+                  "id": "1:778",
+                  "name": "icon",
+                  "type": "FRAME",
+                  "x": 538,
+                  "y": 252.5,
                   "width": 40,
                   "height": 40,
-                  "icon": "warning",
-                  "library": "Material Symbols Sharp",
-                  "weight": 400,
-                  "fill": "$danger/soft-foreground"
+                  "variables": {"fills/0/color": "danger/soft-foreground"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 1.67,
+                      "y": 3.33,
+                      "width": 36.67,
+                      "height": 31.67,
+                      "fills": [{"type": "SOLID", "color": "#F87171"}]
+                    }
+                  ]
                 },
                 {
-                  "type": "text",
-                  "id": "rzVSK",
+                  "id": "1:779",
                   "name": "failTitle",
-                  "fill": "$foreground/foreground",
-                  "content": "The server failed to start.",
-                  "textAlign": "center",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 16,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 461.5,
+                  "y": 304.5,
+                  "width": 193,
+                  "height": 21,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "The server failed to start.",
+                  "font": ["Geist", 600, 16],
+                  "align": "CENTER",
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "dNp1F",
+                  "id": "1:780",
                   "name": "failBody",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
+                  "type": "TEXT",
+                  "x": 338,
+                  "y": 337.5,
                   "width": 440,
-                  "content": "No container output was captured. Check the Overview events for image-pull or scheduling errors.",
-                  "textAlign": "center",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 13,
-                  "fontWeight": "normal"
+                  "height": 34,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "No container output was captured. Check the Overview events for image-pull or scheduling errors.",
+                  "font": ["Geist", 400, 13],
+                  "align": "CENTER",
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             }

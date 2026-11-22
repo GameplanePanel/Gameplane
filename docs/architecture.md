@@ -1,8 +1,9 @@
 # Architecture
 
 Gameplane is split across long-lived components — dashboard, API, operator,
-and [optional] audit-syslog-bridge / telemetry-receiver satellites — plus a
-short-lived per-pod agent sidecar.
+and [optional] audit-syslog-bridge / telemetry-receiver / mcp-server / gateway
+satellites — plus per-server workloads: the agent sidecar in every game pod and
+the optional sentinel, tunnel and capture-sidecar.
 
 The default Helm installation runs the panel and operator together. A
 [standalone panel](standalone-panel.md) runs the dashboard and API without local
@@ -11,44 +12,54 @@ The diagram and direct-agent examples below describe the combined installation.
 
 > **For AI Agents & Developers:** This document provides a high-level human-readable overview. For deep technical details, specifications, and boundaries of individual components, read the respective `specs.md` files located in each component directory (e.g., `api/specs.md`, `operator/specs.md`). AI Agents should consult [`agent-architecture.md`](agent-architecture.md) as their primary index.
 
+```mermaid
+flowchart TB
+  browser["Browser<br/>web/ (React, TanStack Router/Query,<br/>xterm.js, Monaco, Tailwind)"]
+  subgraph panel["gameplane namespace"]
+    web["gameplane-web<br/>nginx: SPA + reverse proxy"]
+    api["API (api/)<br/>REST + WebSocket + SSE gateway<br/>local + OIDC auth, RBAC, audit log<br/>SQLite or PostgreSQL [experimental]"]
+    operator["Operator (operator/)<br/>controller-runtime reconcilers"]
+    sats["audit-syslog-bridge,<br/>telemetry-receiver [optional]"]
+    mcp["mcp-server [optional]<br/>read-only, stdio via kubectl exec"]
+  end
+  kube[("Kubernetes API<br/>Gameplane CRDs")]
+  subgraph games["gameplane-games namespace"]
+    sts["StatefulSet + Service + PVC"]
+    pod["Game pod<br/>game container + agent sidecar<br/>(RCON, files, logs, console, heartbeat)"]
+    extras["Per-server extras [optional]<br/>sentinel Deployment, tunnel Deployment,<br/>capture-sidecar ephemeral container"]
+    jobs["restic Jobs<br/>backup, restore, forget"]
+  end
+  browser -- "HTTPS / WSS (same origin)" --> web
+  web -- "proxied API, WS, SSE" --> api
+  api -- "CRD reads and writes" --> kube
+  api -- "mTLS :8090" --> pod
+  operator -- "watch and reconcile" --> kube
+  operator --> sts
+  operator --> extras
+  operator --> jobs
+  sts --> pod
+  pod -- "status.agent heartbeat" --> kube
+  api -. "audit webhook, daily report" .-> sats
+  mcp -. "get / list / watch" .-> kube
 ```
-┌───────────────────────────────────────────────────────┐
-│  Browser (web/)                                       │
-│    React + TanStack Router/Query                      │
-│    xterm.js · Monaco · Tailwind                       │
-└───────────────────────────────────────────────────────┘
-                    │ HTTPS / WSS (same-origin)
-┌───────────────────────────────────────────────────────┐
-│  API (api/)                                           │
-│    REST + WebSocket gateway                           │
-│    Local + OIDC auth · RBAC · audit log               │
-│    SQLite (production) or Postgres [experimental] for user store │
-│    mTLS to agent                                      │
-└───────────────────────────────────────────────────────┘
-                    │
-       ┌────────────┴────────────┐
-       ▼                         ▼
-┌──────────────┐         ┌─────────────────────┐
-│  K8s API     │         │  In-pod agent       │
-│              │         │  (sidecar in every  │
-│  CRD reads   │         │   GameServer pod)   │
-│  CRD writes  │         │  RCON · files       │
-└──────────────┘         │  logs · console     │
-       │                 │  heartbeat          │
-       ▼                 └─────────────────────┘
-┌────────────────────────────────────────────┐
-│  Operator (operator/)                      │
-│    controller-runtime reconcilers          │
-│    GameServer   → StatefulSet+Service+PVC  │
-│    Backup       → Job (restic)             │
-│    BackupSchedule → Backups + retention    │
-│    Restore      → Job (restic restore)     │
-│    GameTemplate → inUseCount bookkeeping   │
-│    Module       → materializes GameTemplate│
-│    ModuleSource → indexes bundle registry  │
-│    Cluster      → remote cluster registry  │
-└────────────────────────────────────────────┘
-```
+
+Remote clusters add a private gateway in front of their agents; see
+[Multi-cluster (federation)](#multi-cluster-federation).
+
+The operator runs one reconciler per CRD:
+
+| CRD | Reconciler output |
+| --- | --- |
+| `GameServer` | StatefulSet, Service, PVC, agent certificates, and the optional sentinel and tunnel Deployments |
+| `Backup` | restic Job (or a CSI `VolumeSnapshot`), snapshot clean-up on delete |
+| `BackupSchedule` | `Backup` objects on a cron, plus retention |
+| `Restore` | restic restore Job, or a new GameServer seeded from a volume snapshot |
+| `GameTemplate` | `inUseCount` bookkeeping |
+| `Module` | an owned `GameTemplate` materialized from a bundle |
+| `ModuleSource` | an index of the bundles in one store |
+| `Cluster` | health of a registered remote cluster |
+| `NetworkCapture` | a capture-sidecar ephemeral container and its PCAPNG output |
+
 
 ## Dashboard component layer
 
@@ -62,7 +73,7 @@ The dashboard (`web/`) builds its UI on **HeroUI** (`@heroui/react`, `@heroui/st
   - *Dialogs, menus & overlays*: `ConfirmDialog`, `ConfirmAdminMappingDialog`, `RoleEditorModal`, `DropdownMenu`, `FilterPopover`, `PageHeader`, `RemovableGroupChip`
   - *Admin dialogs* (`admin/`): `InviteUserDialog`, `EditUserDialog`, `ResetPasswordDialog`
 
-Brand tokens (orange accent, dark-default with light mode supported) map onto HeroUI's semantic token layer — see `specs/done_014-heroui-web-rebuild/contracts/theme-tokens.md` for the mapping and `web/specs.md`'s "HeroUI Component Layer" section for the full component inventory. Design changes still originate in `design.pen` (CLAUDE.md rule 1) before either layer is touched in code.
+Brand tokens (orange accent, dark-default with light mode supported) map onto HeroUI's semantic token layer — see `specs/done_014-heroui-web-rebuild/contracts/theme-tokens.md` for the mapping and `web/specs.md`'s "HeroUI Component Layer" section for the full component inventory. Design changes still originate in `design.fig` (CLAUDE.md rule 1) before either layer is touched in code.
 
 ## Why two control planes?
 
@@ -86,6 +97,55 @@ manage Gameplane with `kubectl apply` — the operator is authoritative.
 5. Agent starts heartbeating → sets `status.agent.lastHeartbeat`
 6. Operator observes heartbeat → sets `status.phase=Running`
 7. Dashboard receives the status update through local SSE or resource polling and re-renders
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant D as Dashboard
+  participant A as API
+  participant K as Kubernetes API
+  participant O as Operator
+  participant P as Game pod (game + agent)
+  U->>D: Start
+  D->>A: POST /servers/foo:start
+  A->>K: patch GameServer spec.suspend=false
+  K-->>O: GameServer changed
+  O->>K: scale StatefulSet to 1
+  K->>P: schedule pod
+  P->>K: agent patches status.agent.lastHeartbeat
+  K-->>O: GameServer status changed
+  O->>K: status.phase=Running (pod Ready, heartbeat fresh)
+  K-->>A: watch event
+  A-->>D: SSE event or poll result
+```
+
+#### GameServer phases
+
+The operator derives `status.phase` again on every reconcile from the object
+and its StatefulSet (`derivePhase` in
+`operator/internal/controller/gameserver_status.go`), so a phase is a
+reading, not a stored state: a recovered server returns from `Failed` to
+`Running` without intervention.
+
+```mermaid
+stateDiagram-v2
+  [*] --> Pending: GameServer created
+  Pending --> Starting: StatefulSet exists
+  Starting --> Running: pod Ready and heartbeat fresh
+  Running --> Starting: pod not Ready or heartbeat stale
+  Starting --> Failed: terminal startup failure
+  Failed --> Running: recovers
+  Running --> Stopping: spec.suspend or idle sleep, pod still Ready
+  Stopping --> Suspended: no ready replica left
+  Suspended --> Starting: resumed or woken
+  Pending --> Failed: invalid spec or workload policy rejection
+```
+
+`Failed` also covers spec errors the reconciler refuses before building a
+workload (for example a restricted workload asking for `Hostport`). The
+`Stopped` value exists in the API type but the current operator never sets
+it; a stopped server reads `Suspended`.
 
 > **What `Running` means.** The phase flips to `Running` once the pod is
 > Ready *and* the agent heartbeat is fresh. That signals the pod and
@@ -119,6 +179,23 @@ the object alone, whether idle time is accruing:
 6. A `wakeWindows` cron tick, or `POST /servers/foo:wake`, clears the marker and
    the pod comes back
 
+```mermaid
+flowchart TD
+  hb["Agent heartbeat"] --> fresh{"Heartbeat fresh and<br/>phase Running?"}
+  fresh -- no --> freeze["Idle clock frozen<br/>(reason on status.idle)"]
+  fresh -- yes --> zero{"playersOnline == 0?"}
+  zero -- "unknown" --> freeze
+  zero -- "more than 0" --> reset["Clear status.idle.emptySince"]
+  zero -- "exactly 0" --> stamp["Stamp status.idle.emptySince"]
+  stamp --> long{"Older than<br/>spec.idle.afterMinutes?"}
+  long -- no --> wait["Keep waiting"]
+  long -- yes --> mark["Write idle-asleep-since annotation"]
+  mark --> soft["softStop: module stop sequence,<br/>wait for not-ready, scale to 0"]
+  soft --> asleep["Phase Suspended,<br/>reason IdleAsleep, PVC kept"]
+  asleep --> wake{"wakeWindows tick,<br/>POST :wake, or sentinel<br/>connection?"}
+  wake -- yes --> clear["Clear marker, pod returns"]
+```
+
 > **Why not `spec.suspend`.** That field is the user's own power switch — the
 > `:start`/`:stop` verbs patch it directly. If the operator wrote it too, an
 > automatic sleep would be indistinguishable from a deliberate stop, and a wake
@@ -145,6 +222,22 @@ the object alone, whether idle time is accruing:
 3. Agent tails the game container's log file and streams each line as a text WS frame
 4. API proxies frames back to the browser; xterm.js renders them
 
+```mermaid
+sequenceDiagram
+  participant B as Browser (xterm.js)
+  participant A as API
+  participant G as Agent sidecar :8090
+  participant F as Game log file
+  B->>A: WS /ws/servers/foo/logs
+  A->>A: verify session and RBAC
+  A->>G: wss /logs/tail (mTLS)
+  loop each new line
+    F-->>G: tail
+    G-->>A: text frame
+    A-->>B: text frame
+  end
+```
+
 The Logs tab can also stream the game container's stdout directly via the
 Kubernetes pod-log API (`/ws/servers/foo/logs/pod`, no agent mTLS needed).
 This is the default source and surfaces download/config output during
@@ -156,7 +249,32 @@ startup, before the game's own log file exists.
 2. API creates the Backup CRD
 3. Operator creates a Job running `restic backup /data` against the PVC
 4. Job completes; operator mirrors Job status into Backup.status
-5. (Agent, during the Job, optionally issues an RCON `save-all` to quiesce)
+5. With `spec.quiesce`, the operator first calls the agent's `/quiesce`
+   endpoint, which runs the module's save and auto-save-off commands, and
+   calls it again to unquiesce once the Backup is terminal
+
+```mermaid
+sequenceDiagram
+  participant D as Dashboard
+  participant A as API
+  participant O as Operator
+  participant G as Agent
+  participant J as restic Job
+  participant R as restic repository
+  D->>A: POST /backups (inline spec)
+  A->>O: create Backup CR
+  opt spec.quiesce
+    O->>G: quiesce (save, auto-save off)
+  end
+  O->>J: create Job, mount PVC
+  J->>R: restic backup /data
+  J-->>O: Job complete
+  O->>O: read snapshot id from Job pod logs
+  O->>O: Backup.status.snapshotID, phase Succeeded
+  opt quiesced
+    O->>G: unquiesce (retried until it lands)
+  end
+```
 
 A `Backup` is only usable once its `status.snapshotID` has been read out of
 the restic Job's pod logs — a backup with no snapshot id cannot be restored,
@@ -183,6 +301,24 @@ snapshot per deleted Backup. The same path serves every way a Backup can go:
 `kubectl delete`, the dashboard/API, a `BackupSchedule`'s retention trim, a
 `concurrencyPolicy: Replace` schedule dropping an in-flight Backup, and
 garbage collection of a deleted GameServer's auto-schedule.
+
+```mermaid
+flowchart TD
+  del["Backup deleted"] --> uq{"Quiesced and not<br/>yet released?"}
+  uq -- yes --> unq["Send unquiesce first"] --> vs
+  uq -- no --> vs{"volume-snapshot Backup<br/>or no repoRef?"}
+  vs -- yes --> gc["No finalizer: VolumeSnapshot is<br/>garbage-collected by owner ref"]
+  vs -- no --> idq{"Failed, or no<br/>status.snapshotID?"}
+  idq -- yes --> rel["Release finalizer at once"]
+  idq -- no --> run{"Own backup Job<br/>still running?"}
+  run -- yes --> kill["Delete Job, await pods"] --> idq
+  run -- no --> rs{"Non-terminal Restore<br/>uses this Backup?"}
+  rs -- yes --> waitr["Wait"] --> rs
+  rs -- no --> forget["Job &lt;backup&gt;-forget:<br/>restic forget id --prune"]
+  forget --> ok{"Succeeded within<br/>45 minute cap?"}
+  ok -- yes --> done["SnapshotForgotten=True,<br/>release finalizer"]
+  ok -- "no, or Secret or<br/>namespace gone" --> ab["SnapshotForgetAbandoned warning,<br/>release finalizer"]
+```
 
 - **Finalizer.** Every Backup that has a `repoRef` and is not a
   `volume-snapshot` Backup carries `gameplane.local/backup-snapshot-finalizer`
@@ -245,6 +381,25 @@ garbage collection of a deleted GameServer's auto-schedule.
    requeue the restore instead of failing it. The restored server must reach Running phase within 10 minutes;
    if it is still starting after that, the restore fails with a deadline message.
 
+```mermaid
+flowchart TD
+  req["POST /restores"] --> cr["Restore CR"]
+  cr --> src{"Source Backup present<br/>and not Failed?"}
+  src -- no --> fail["Restore Failed"]
+  src -- "yes, no snapshotID yet" --> pend["Pending, requeue 15s"] --> src
+  src -- "yes, snapshotID set" --> pin["Pin snapshotID into Restore.status"]
+  pin --> strat{"Backup strategy"}
+  strat -- "restic snapshot" --> susp["Suspend target GameServer"]
+  susp --> job["restic restore --target / --delete Job"]
+  job --> resume["Resume GameServer"]
+  strat -- "volume snapshot" --> own{"Original server owns every<br/>referenced Secret and ConfigMap?"}
+  own -- no --> fail
+  own -- yes --> newgs["Create new GameServer from CSI snapshot,<br/>copy owned Secrets and ConfigMaps"]
+  newgs --> ready{"Running within<br/>10 minutes?"}
+  ready -- yes --> ok["Restore Succeeded"]
+  ready -- no --> fail
+```
+
 A Restore to an existing server (restic-snapshot strategy) requires the target
 suspended for the Job's duration — the PVC cannot be overwritten while the game
 is live. Volume-snapshot Restores skip the existing server and provision a fresh
@@ -292,6 +447,27 @@ can be loaded from anywhere:
   commands at runtime — new games get full feature support without
   agent code changes.
 
+```mermaid
+flowchart LR
+  author["Module author<br/>gp-module init / validate / package"] --> store
+  subgraph store["Module stores"]
+    oci["OCI registry"]
+    git["git repository"]
+    http["HTTP archive"]
+    local["local directory"]
+    upload["upload ConfigMaps"]
+  end
+  store --> ms["ModuleSource controller<br/>modsrc.Fetcher indexes,<br/>status.modules + digests"]
+  ms --> catalog["Dashboard catalog<br/>(API /modules)"]
+  catalog -- install --> mod["Module CR"]
+  mod --> mc["Module controller<br/>pulls bundle"]
+  mc --> gt["GameTemplate<br/>(managed-by=Module)"]
+  mc --> loc["&lt;template&gt;-locales ConfigMap"]
+  kubectl["kubectl apply"] --> gt
+  gt --> gs["GameServer"]
+  gs --> agent["Agent sidecar<br/>GAMEPLANE_CAPABILITIES"]
+```
+
 The API's `/modules` surface (catalog merge, install, source CRUD,
 bundle upload) only reads and writes these CRs/ConfigMaps; the
 operator owns all reconciliation, so the dashboard and kubectl always
@@ -319,6 +495,31 @@ Kubernetes clients keyed by cluster ID and dispatches requests via a
 `?cluster=` URL parameter. Combined installations have a built-in `local`
 cluster targeting the same cluster as the API. Standalone panels have no local
 workload client and start with an empty registry.
+
+```mermaid
+flowchart LR
+  browser["Browser"] --> api
+  subgraph central["Central panel (combined or standalone)"]
+    api["API<br/>client pool keyed by cluster,<br/>?cluster= selector, /fleet/* fan-out"]
+    reg[("Registry<br/>Cluster CRs + kubeconfig Secrets,<br/>or SQL in standalone")]
+    api --- reg
+  end
+  subgraph local["local cluster (combined mode only)"]
+    lop["Operator"]
+    lagent["Agents"]
+  end
+  subgraph remote["Registered remote cluster"]
+    rkube["Kubernetes API"]
+    rop["Operator"]
+    gw["Gateway [optional]"]
+    ragent["Agents"]
+    rop --> rkube
+    gw -- "agent mTLS,<br/>UID-bound routes" --> ragent
+  end
+  api -- "direct mTLS" --> lagent
+  api -- "kubeconfig: CRDs, pod logs, attach" --> rkube
+  api -- "central mTLS peer:<br/>RCON, files, logs, players" --> gw
+```
 
 **Cluster registration and health:**
 
@@ -398,6 +599,22 @@ the target. See [registration and permissions](install.md#rbac-and-permissions).
 
 ## Security boundaries
 
+```mermaid
+flowchart LR
+  B["Browser"] -- "HTTPS, session cookie + CSRF,<br/>local or OIDC login" --> API
+  API -- "mTLS, operator-managed CA" --> AG["Local agent"]
+  API -- "dedicated mTLS, enrolled URI SAN" --> GW["Remote gateway"]
+  GW -- "agent mTLS, UID-bound routes" --> RAG["Remote agent"]
+  AG -- "ServiceAccount: own GameServer status" --> K["Kubernetes API"]
+  OP["Operator"] -- "ClusterRole reads,<br/>namespaced Role writes" --> K
+  OP -- "netguard IsAllowed" --> SRC["Module sources"]
+  AG -- "netguard IsPublic" --> DL["Mod downloads"]
+  AG -- "gameaction checks" --> GAME["Game console (RCON)"]
+  API -- "gameaction checks, pod attach" --> GAME
+  API -- "HTTP JSON webhook" --> SB["audit-syslog-bridge"] --> SYS["Syslog collector"]
+  API -- "daily report" --> TR["telemetry-receiver"]
+```
+
 - **Browser → API**: HTTPS, session cookie + CSRF header, OIDC or local login.
 - **API → local Agent**: mTLS; client cert signed by operator-managed CA mounted into API pod.
 - **API → remote Gateway**: dedicated mTLS trust and an exact enrolled central
@@ -448,8 +665,8 @@ the target. See [registration and permissions](install.md#rbac-and-permissions).
   matching a BPF filter to PCAPNG output, exposed via mTLS on port `:9091`.
   Opt-in per GameServer via `spec.capture.enabled` and admin-only (`captures:manage`
   permission). Disabled by default; enabled cluster-wide via `capture.enabled`
-  Helm value. See `capture-sidecar/`.
-- **mcp-server [optional]**: a standalone, strictly read-only MCP server —
+  Helm value. See the [`GameplanePanel/capture-sidecar`](https://github.com/GameplanePanel/capture-sidecar) repo (the `capture-sidecar/` submodule).
+- **mcp-server [optional]**: a standalone, strictly read-only MCP server (submodule `GameplanePanel/mcp`) —
   its tool handlers only ever hold a `*kube.Client` (`mcp-server/internal/kube`),
   whose sole exported methods are List/Get-shaped; the underlying typed/
   dynamic Kubernetes clientsets are unexported fields in that package, so
@@ -459,6 +676,6 @@ the target. See [registration and permissions](install.md#rbac-and-permissions).
   `kube-system`), and pod logs can surface secrets an app logs at startup.
   Talks directly to the Kubernetes API (not through the API server), gated
   via `mcpServer.enabled` and reachable only via `kubectl exec` (stdio
-  transport, no network port). See `mcp-server/README.md`.
+  transport, no network port). See the [`GameplanePanel/mcp` README](https://github.com/GameplanePanel/mcp/blob/main/README.md) (the `mcp-server/` submodule).
 
 See `docs/security.md` for the threat model.

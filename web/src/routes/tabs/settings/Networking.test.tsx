@@ -136,6 +136,23 @@ describe("NetworkingSection", () => {
     expect(lastCall.spec.networking.sourceRanges).toEqual(["203.0.113.0/24"]);
   });
 
+  it("preserves an existing loadBalancerClass when editing another field", () => {
+    const draft = {
+      ...baseDraft,
+      spec: {
+        ...baseDraft.spec,
+        networking: { expose: "LoadBalancer" as const, loadBalancerClass: "example.com/games" },
+      },
+    };
+    const onChange = vi.fn();
+    renderWithQuery(<NetworkingSection draft={draft} onChange={onChange} />);
+    fireEvent.change(screen.getByPlaceholderText("mc.example.com"), {
+      target: { value: "mc.example.com" },
+    });
+    const lastCall = onChange.mock.calls.at(-1)![0];
+    expect(lastCall.spec.networking.loadBalancerClass).toBe("example.com/games");
+  });
+
   describe("AddressAssignment (T044, T047, T109)", () => {
     it("displays and edits address pool and address fields", () => {
       const onChange = vi.fn();
@@ -472,6 +489,15 @@ describe("NetworkingSection", () => {
 
       expect(screen.getByText("172.18.255.203")).toBeInTheDocument();
       expect(screen.getByText("from pool 'pool-us-west'")).toBeInTheDocument();
+    });
+
+    it("shows the player address and assigned NodePort in the current assignment", () => {
+      const draft = makeServer({
+        spec: { networking: { expose: "NodePort" } },
+        status: { endpoints: [{ name: "game", host: "play.example.net", serviceAddress: "10.96.0.12", port: 31742 }] },
+      });
+      renderWithQuery(<NetworkingSection draft={draft} onChange={() => {}} />);
+      expect(screen.getByText("play.example.net:31742")).toBeInTheDocument();
     });
 
     it("preserves addressPool when editing hostname (round-trip test T047)", () => {

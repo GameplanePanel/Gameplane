@@ -69,7 +69,7 @@ AREA_BY_DIR = {
 TRANSLATION_PREFIX = "i18n/locales/"
 
 AREA_BY_FILE = {
-    "design.pen": "area: web",
+    "design.fig": "area: web",
     "docs/module-authoring.md": "area: modules",
 }
 

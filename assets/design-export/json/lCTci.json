@@ -1,97 +1,157 @@
 {
-  "type": "frame",
-  "id": "lCTci",
+  "file": "lCTci",
+  "id": "1:10508",
+  "name": "Screen/Mobile — Theme Settings · Language",
+  "type": "FRAME",
   "x": 3280,
   "y": 75632,
-  "name": "Screen/Mobile — Theme Settings · Language",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 390,
   "height": 972,
-  "fill": "$background/background",
-  "layout": "vertical",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "IVqV8",
-      "type": "ref",
-      "ref": "fGbVF",
+      "id": "1:10509",
       "name": "Mobile TopBar",
-      "width": "fill_container",
-      "descendants": {
-        "WOloN": {
-          "content": "Settings"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64,
+      "component": "Gameplane/Mobile TopBar",
+      "componentId": "1:1782",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 16, 0, 16],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Settings", "AD"]
     },
     {
-      "type": "frame",
-      "id": "p8758s",
+      "id": "1:10510",
       "name": "Body",
-      "width": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
-      "gap": 16,
-      "padding": 16,
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 390,
+      "height": 914,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "gBeWz",
-          "type": "ref",
-          "ref": "xCDF7",
+          "id": "1:10511",
           "name": "Page Header",
-          "width": "fill_container",
-          "descendants": {
-            "fLVEl": {
-              "width": "fill_container"
-            },
-            "spCmk": {
-              "content": "Theme & Appearance",
-              "fontSize": 20
-            },
-            "VbHwU": {
-              "content": "Personal theme presets, colors, custom CSS, and theme portability.",
-              "textGrowth": "fixed-width",
-              "width": "fill_container"
-            },
-            "TgdLz": {
-              "enabled": false
-            }
-          }
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 16,
+          "width": 358,
+          "height": 66,
+          "component": "Gameplane/Page Header",
+          "componentId": "1:3282",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "texts": ["Theme & Appearance", "Personal theme presets, colors, custom CSS, and theme portability."]
         },
         {
-          "id": "ngv6t",
-          "type": "ref",
-          "ref": "Mp7Ep",
+          "id": "1:10512",
           "name": "Settings Nav",
-          "width": "fill_container",
-          "descendants": {
-            "eIjoV": {
-              "fill": "#00000000"
-            },
-            "XuGUZ": {
-              "fill": "$muted"
-            },
-            "DpMnt": {
-              "fill": "$muted"
-            },
-            "vbQ98": {
-              "fill": "$surface/secondary"
-            },
-            "dY0be": {
-              "fill": "$foreground/foreground"
-            },
-            "qeqG6": {
-              "fill": "$foreground/foreground"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 98,
+          "width": 358,
+          "height": 356,
+          "component": "Gameplane/Admin Settings Nav",
+          "componentId": "1:3419",
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 2,
+            "padding": [8, 0, 8, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "texts": [
+            "General",
+            "Theme",
+            "Authentication",
+            "Module sources",
+            "Mod registries",
+            "Notifications",
+            "Telemetry",
+            "Updates",
+            "About"
+          ]
         },
         {
-          "id": "SUO59",
-          "type": "ref",
-          "ref": "Ii9Hy",
+          "id": "1:10513",
           "name": "Language Card",
-          "width": "fill_container"
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 470,
+          "width": 358,
+          "height": 428,
+          "component": "Gameplane/Language Card",
+          "componentId": "1:7402",
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 12,
+            "padding": [16, 16, 16, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
+          "texts": [
+            "Language",
+            "Choose the language of the dashboard. Your choice is saved to your account and follows you to every browser and device.",
+            "Automatic (browser language)",
+            "English",
+            "100% translated",
+            "Français",
+            "100% translated",
+            "Deutsch",
+            "86% translated",
+            "Text that has not been translated yet is shown in English."
+          ]
         }
       ]
     }

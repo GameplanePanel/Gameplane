@@ -1,388 +1,638 @@
 {
-  "type": "frame",
-  "id": "N13Xud",
+  "file": "N13Xud",
+  "id": "1:151",
+  "name": "Screen/App Loading",
+  "type": "FRAME",
   "x": 0,
   "y": 11522,
-  "name": "Screen/App Loading",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "type": "frame",
-      "id": "JoeVM",
+      "id": "1:152",
       "name": "Sidebar Skeleton",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
       "width": 260,
-      "height": "fill_container",
-      "fill": "$surface/secondary",
-      "stroke": "$border/border",
-      "strokeWidth": {
-        "right": 1
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
       },
-      "strokeAlignment": "inner",
-      "strokeLinejoin": "round",
-      "layout": "vertical",
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
       "children": [
         {
-          "type": "frame",
-          "id": "Zzwlx",
+          "id": "1:153",
           "name": "brand",
-          "width": "fill_container",
-          "gap": 8,
-          "padding": [
-            16,
-            20
-          ],
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 260,
+          "height": 69,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [16, 20, 16, 20],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "H1Cp30",
+              "id": "1:154",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 20,
+              "y": 18.5,
               "width": 32,
               "height": 32,
-              "fill": "$accent/soft",
+              "fills": [{"type": "SOLID", "color": "#2C1926"}],
               "cornerRadius": 6,
-              "justifyContent": "center",
-              "alignItems": "center",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "variables": {"fills/0/color": "accent/soft"},
               "children": [
                 {
-                  "type": "icon",
-                  "id": "IIqgB",
+                  "id": "1:155",
+                  "name": "icon",
+                  "type": "FRAME",
+                  "x": 8,
+                  "y": 8,
                   "width": 16,
                   "height": 16,
-                  "icon": "shield-check",
-                  "library": "lucide",
-                  "fill": "$accent/accent"
+                  "variables": {"fills/0/color": "accent/accent"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 2.67,
+                      "y": 1.34,
+                      "width": 10.67,
+                      "height": 13.33,
+                      "strokes": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "strokeWeight": 1.33
+                    },
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 6,
+                      "y": 6.67,
+                      "width": 4,
+                      "height": 2.67,
+                      "strokes": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "strokeWeight": 1.33
+                    }
+                  ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "K2X0y4",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 4,
+              "id": "1:156",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 60,
+              "y": 16,
+              "width": 180,
+              "height": 37,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 4,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutGrow": 1,
               "children": [
                 {
-                  "type": "text",
-                  "id": "y567U",
-                  "fill": "$foreground/foreground",
-                  "content": "gameplane",
-                  "fontFamily": "$typography/font-mono",
-                  "fontSize": 16,
-                  "fontWeight": "600"
+                  "id": "1:157",
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 87,
+                  "height": 21,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "gameplane",
+                  "font": ["JetBrains Mono", 600, 16],
+                  "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "rectangle",
-                  "cornerRadius": 4,
-                  "id": "NxULt",
+                  "id": "1:158",
                   "name": "skClusterLine",
-                  "fill": "$default/default",
+                  "type": "RECTANGLE",
+                  "x": 0,
+                  "y": 25,
                   "width": 80,
-                  "height": 12
+                  "height": 12,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 4,
+                  "variables": {"fills/0/color": "default/default"}
                 }
               ]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "Wr6j5",
+          "id": "1:159",
           "name": "nav",
-          "width": "fill_container",
-          "height": "fill_container",
-          "layout": "vertical",
-          "gap": 2,
-          "padding": [
-            8,
-            12
-          ],
+          "type": "FRAME",
+          "x": 0,
+          "y": 69,
+          "width": 260,
+          "height": 775,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 2,
+            "padding": [8, 12, 8, 12],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "v6Cw9",
-              "fill": "$muted",
-              "content": "GENERAL",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 10,
-              "fontWeight": "600",
-              "letterSpacing": 1.5
+              "id": "1:160",
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 56,
+              "height": 13,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "GENERAL",
+              "font": ["Geist", 600, 10],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "type": "frame",
-              "id": "S9vqmm",
-              "width": "fill_container",
-              "gap": 12,
-              "padding": [
-                8,
-                12
-              ],
-              "alignItems": "center",
+              "id": "1:161",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 12,
+              "y": 23,
+              "width": 236,
+              "height": 34,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "rectangle",
-                  "cornerRadius": 4,
-                  "id": "m78EF",
-                  "fill": "$default/default",
+                  "id": "1:162",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 12,
+                  "y": 8,
                   "width": 18,
-                  "height": 18
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 4,
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "rectangle",
+                  "id": "1:163",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 42,
+                  "y": 11,
+                  "width": 182,
+                  "height": 12,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
                   "cornerRadius": 4,
-                  "id": "r4kdW",
-                  "fill": "$default/default",
-                  "width": "fill_container",
-                  "height": 12
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "default/default"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "gSKb4",
-              "width": "fill_container",
-              "gap": 12,
-              "padding": [
-                8,
-                12
-              ],
-              "alignItems": "center",
+              "id": "1:164",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 12,
+              "y": 59,
+              "width": 236,
+              "height": 34,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "rectangle",
-                  "cornerRadius": 4,
-                  "id": "SuFOs",
-                  "fill": "$default/default",
+                  "id": "1:165",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 12,
+                  "y": 8,
                   "width": 18,
-                  "height": 18
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 4,
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "rectangle",
+                  "id": "1:166",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 42,
+                  "y": 11,
+                  "width": 182,
+                  "height": 12,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
                   "cornerRadius": 4,
-                  "id": "D1gfU",
-                  "fill": "$default/default",
-                  "width": "fill_container",
-                  "height": 12
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "default/default"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "ZtGLm",
-              "width": "fill_container",
-              "gap": 12,
-              "padding": [
-                8,
-                12
-              ],
-              "alignItems": "center",
+              "id": "1:167",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 12,
+              "y": 95,
+              "width": 236,
+              "height": 34,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "rectangle",
-                  "cornerRadius": 4,
-                  "id": "IeHIR",
-                  "fill": "$default/default",
+                  "id": "1:168",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 12,
+                  "y": 8,
                   "width": 18,
-                  "height": 18
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 4,
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "rectangle",
+                  "id": "1:169",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 42,
+                  "y": 11,
+                  "width": 182,
+                  "height": 12,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
                   "cornerRadius": 4,
-                  "id": "ctV0c",
-                  "fill": "$default/default",
-                  "width": "fill_container",
-                  "height": 12
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "default/default"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "P4RdA",
-              "width": "fill_container",
-              "gap": 12,
-              "padding": [
-                8,
-                12
-              ],
-              "alignItems": "center",
+              "id": "1:170",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 12,
+              "y": 131,
+              "width": 236,
+              "height": 34,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "rectangle",
-                  "cornerRadius": 4,
-                  "id": "nS8pi",
-                  "fill": "$default/default",
+                  "id": "1:171",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 12,
+                  "y": 8,
                   "width": 18,
-                  "height": 18
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 4,
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "rectangle",
+                  "id": "1:172",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 42,
+                  "y": 11,
+                  "width": 182,
+                  "height": 12,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
                   "cornerRadius": 4,
-                  "id": "wxXnl",
-                  "fill": "$default/default",
-                  "width": "fill_container",
-                  "height": 12
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "default/default"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "l261C",
-              "width": "fill_container",
-              "height": 12
+              "id": "1:173",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 12,
+              "y": 167,
+              "width": 236,
+              "height": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH"
             },
             {
-              "type": "text",
-              "id": "RO8jj",
-              "fill": "$muted",
-              "content": "ADMIN",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 10,
-              "fontWeight": "600",
-              "letterSpacing": 1.5
+              "id": "1:174",
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 181,
+              "width": 40,
+              "height": 13,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "ADMIN",
+              "font": ["Geist", 600, 10],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "type": "frame",
-              "id": "q2DPBB",
-              "width": "fill_container",
-              "gap": 12,
-              "padding": [
-                8,
-                12
-              ],
-              "alignItems": "center",
+              "id": "1:175",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 12,
+              "y": 196,
+              "width": 236,
+              "height": 34,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "rectangle",
-                  "cornerRadius": 4,
-                  "id": "lCbYz",
-                  "fill": "$default/default",
+                  "id": "1:176",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 12,
+                  "y": 8,
                   "width": 18,
-                  "height": 18
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 4,
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "rectangle",
+                  "id": "1:177",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 42,
+                  "y": 11,
+                  "width": 182,
+                  "height": 12,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
                   "cornerRadius": 4,
-                  "id": "fuytw",
-                  "fill": "$default/default",
-                  "width": "fill_container",
-                  "height": 12
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "default/default"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "kV4Je",
-              "width": "fill_container",
-              "gap": 12,
-              "padding": [
-                8,
-                12
-              ],
-              "alignItems": "center",
+              "id": "1:178",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 12,
+              "y": 232,
+              "width": 236,
+              "height": 34,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "rectangle",
-                  "cornerRadius": 4,
-                  "id": "kN5xA",
-                  "fill": "$default/default",
+                  "id": "1:179",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 12,
+                  "y": 8,
                   "width": 18,
-                  "height": 18
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 4,
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "rectangle",
+                  "id": "1:180",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 42,
+                  "y": 11,
+                  "width": 182,
+                  "height": 12,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
                   "cornerRadius": 4,
-                  "id": "c5Sw03",
-                  "fill": "$default/default",
-                  "width": "fill_container",
-                  "height": 12
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "default/default"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "mMGIx",
-              "width": "fill_container",
-              "gap": 12,
-              "padding": [
-                8,
-                12
-              ],
-              "alignItems": "center",
+              "id": "1:181",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 12,
+              "y": 268,
+              "width": 236,
+              "height": 34,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "rectangle",
-                  "cornerRadius": 4,
-                  "id": "S9pxt",
-                  "fill": "$default/default",
+                  "id": "1:182",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 12,
+                  "y": 8,
                   "width": 18,
-                  "height": 18
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 4,
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "rectangle",
+                  "id": "1:183",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 42,
+                  "y": 11,
+                  "width": 182,
+                  "height": 12,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
                   "cornerRadius": 4,
-                  "id": "J4MPS6",
-                  "fill": "$default/default",
-                  "width": "fill_container",
-                  "height": 12
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "default/default"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "mr1tI",
-              "width": "fill_container",
-              "height": "fill_container"
+              "id": "1:184",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 12,
+              "y": 304,
+              "width": 236,
+              "height": 463,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH"
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "qqYen",
+          "id": "1:185",
           "name": "profileSkeleton",
-          "width": "fill_container",
-          "stroke": "$border/border",
-          "strokeWidth": {
-            "top": 1
+          "type": "FRAME",
+          "x": 0,
+          "y": 844,
+          "width": 260,
+          "height": 56,
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [12, 12, 12, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
           },
-          "strokeAlignment": "inner",
-          "strokeLinejoin": "round",
-          "gap": 12,
-          "padding": 12,
-          "alignItems": "center",
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"strokes/0/color": "border/border"},
           "children": [
             {
-              "type": "ellipse",
-              "id": "b1m6Ox",
-              "fill": "$default/default",
+              "id": "1:186",
+              "name": "ellipse",
+              "type": "ELLIPSE",
+              "x": 12,
+              "y": 12,
               "width": 32,
-              "height": 32
+              "height": 32,
+              "fills": [{"type": "SOLID", "color": "#232128"}],
+              "variables": {"fills/0/color": "default/default"}
             },
             {
-              "type": "frame",
-              "id": "ksrQ9",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 4,
+              "id": "1:187",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 56,
+              "y": 16,
+              "width": 192,
+              "height": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 4,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutGrow": 1,
               "children": [
                 {
-                  "type": "rectangle",
+                  "id": "1:188",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 192,
+                  "height": 12,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
                   "cornerRadius": 4,
-                  "id": "o7aNQG",
-                  "fill": "$default/default",
-                  "width": "fill_container",
-                  "height": 12
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "rectangle",
-                  "cornerRadius": 4,
-                  "id": "b3yK5",
-                  "fill": "$default/default",
+                  "id": "1:189",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 0,
+                  "y": 16,
                   "width": 64,
-                  "height": 8
+                  "height": 8,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 4,
+                  "variables": {"fills/0/color": "default/default"}
                 }
               ]
             }
@@ -391,448 +641,679 @@
       ]
     },
     {
-      "type": "frame",
-      "id": "zi90B",
+      "id": "1:190",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "type": "frame",
-          "id": "glrsG",
+          "id": "1:191",
           "name": "Topbar Skeleton",
-          "width": "fill_container",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
           "height": 56,
-          "fill": "$surface/surface",
-          "stroke": "$border/border",
-          "strokeWidth": {
-            "bottom": 1
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 16,
+            "padding": [0, 24, 0, 24],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
           },
-          "strokeAlignment": "inner",
-          "strokeLinejoin": "round",
-          "gap": 16,
-          "padding": [
-            0,
-            24
-          ],
-          "justifyContent": "space_between",
-          "alignItems": "center",
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "type": "rectangle",
-              "cornerRadius": 4,
-              "id": "dsmqZ",
+              "id": "1:192",
               "name": "skCrumb",
-              "fill": "$default/default",
+              "type": "RECTANGLE",
+              "x": 24,
+              "y": 22,
               "width": 80,
-              "height": 12
+              "height": 12,
+              "fills": [{"type": "SOLID", "color": "#232128"}],
+              "cornerRadius": 4,
+              "variables": {"fills/0/color": "default/default"}
             },
             {
-              "type": "frame",
-              "id": "v24BaR",
-              "gap": 12,
-              "alignItems": "center",
+              "id": "1:193",
+              "name": "frame",
+              "type": "FRAME",
+              "x": 736,
+              "y": 10,
+              "width": 420,
+              "height": 36,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
               "children": [
                 {
-                  "type": "rectangle",
-                  "cornerRadius": 6,
-                  "id": "SPTBl",
-                  "fill": "$default/default",
+                  "id": "1:194",
+                  "name": "rectangle",
+                  "type": "RECTANGLE",
+                  "x": 0,
+                  "y": 0,
                   "width": 288,
-                  "height": 36
+                  "height": 36,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 6,
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "ellipse",
-                  "id": "Kr6HY",
-                  "fill": "$default/default",
+                  "id": "1:195",
+                  "name": "ellipse",
+                  "type": "ELLIPSE",
+                  "x": 300,
+                  "y": 2,
                   "width": 32,
-                  "height": 32
+                  "height": 32,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "ellipse",
-                  "id": "AR7K9",
-                  "fill": "$default/default",
+                  "id": "1:196",
+                  "name": "ellipse",
+                  "type": "ELLIPSE",
+                  "x": 344,
+                  "y": 2,
                   "width": 32,
-                  "height": 32
+                  "height": 32,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "variables": {"fills/0/color": "default/default"}
                 },
                 {
-                  "type": "ellipse",
-                  "id": "S7YVs",
-                  "fill": "$default/default",
+                  "id": "1:197",
+                  "name": "ellipse",
+                  "type": "ELLIPSE",
+                  "x": 388,
+                  "y": 2,
                   "width": 32,
-                  "height": 32
+                  "height": 32,
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "variables": {"fills/0/color": "default/default"}
                 }
               ]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "gN9uZ",
+          "id": "1:198",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 56,
+          "width": 1180,
+          "height": 844,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "type": "rectangle",
-              "cornerRadius": 4,
-              "id": "qE07w",
+              "id": "1:199",
               "name": "skTitle",
-              "fill": "$default/default",
+              "type": "RECTANGLE",
+              "x": 24,
+              "y": 24,
               "width": 192,
-              "height": 16
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#232128"}],
+              "cornerRadius": 4,
+              "variables": {"fills/0/color": "default/default"}
             },
             {
-              "type": "frame",
-              "id": "hTsOM",
+              "id": "1:200",
               "name": "skStats",
-              "width": "fill_container",
-              "gap": 16,
+              "type": "FRAME",
+              "x": 24,
+              "y": 64,
+              "width": 1132,
+              "height": 76,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 16,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "NdWNt",
-                  "width": "fill_container",
-                  "fill": "$surface/surface",
+                  "id": "1:201",
+                  "name": "frame",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 271,
+                  "height": 76,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
                   "cornerRadius": 6,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "layout": "vertical",
-                  "gap": 8,
-                  "padding": 16,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "S5a1W",
-                      "fill": "$default/default",
+                      "id": "1:202",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 16,
                       "width": 96,
-                      "height": 12
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     },
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "vNfJD",
-                      "fill": "$default/default",
+                      "id": "1:203",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 36,
                       "width": 48,
-                      "height": 24
+                      "height": 24,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "C9Kvj1",
-                  "width": "fill_container",
-                  "fill": "$surface/surface",
+                  "id": "1:204",
+                  "name": "frame",
+                  "type": "FRAME",
+                  "x": 287,
+                  "y": 0,
+                  "width": 271,
+                  "height": 76,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
                   "cornerRadius": 6,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "layout": "vertical",
-                  "gap": 8,
-                  "padding": 16,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "d1ZU7k",
-                      "fill": "$default/default",
+                      "id": "1:205",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 16,
                       "width": 96,
-                      "height": 12
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     },
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "uPzV1",
-                      "fill": "$default/default",
+                      "id": "1:206",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 36,
                       "width": 48,
-                      "height": 24
+                      "height": 24,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "lGluD",
-                  "width": "fill_container",
-                  "fill": "$surface/surface",
+                  "id": "1:207",
+                  "name": "frame",
+                  "type": "FRAME",
+                  "x": 574,
+                  "y": 0,
+                  "width": 271,
+                  "height": 76,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
                   "cornerRadius": 6,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "layout": "vertical",
-                  "gap": 8,
-                  "padding": 16,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "LSFyY",
-                      "fill": "$default/default",
+                      "id": "1:208",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 16,
                       "width": 96,
-                      "height": 12
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     },
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "L6foA",
-                      "fill": "$default/default",
+                      "id": "1:209",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 36,
                       "width": 48,
-                      "height": 24
+                      "height": 24,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "iWPTK",
-                  "width": "fill_container",
-                  "fill": "$surface/surface",
+                  "id": "1:210",
+                  "name": "frame",
+                  "type": "FRAME",
+                  "x": 861,
+                  "y": 0,
+                  "width": 271,
+                  "height": 76,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
                   "cornerRadius": 6,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "layout": "vertical",
-                  "gap": 8,
-                  "padding": 16,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "lQ6TO",
-                      "fill": "$default/default",
+                      "id": "1:211",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 16,
                       "width": 96,
-                      "height": 12
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     },
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "Wy4sM",
-                      "fill": "$default/default",
+                      "id": "1:212",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 36,
                       "width": 48,
-                      "height": 24
+                      "height": 24,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     }
                   ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "FNGvt",
+              "id": "1:213",
               "name": "skTable",
-              "width": "fill_container",
+              "type": "FRAME",
+              "x": 24,
+              "y": 164,
+              "width": 1132,
+              "height": 216,
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
               "cornerRadius": 6,
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "strokeAlignment": "inner",
-              "layout": "vertical",
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "frame",
-                  "id": "BocQd",
-                  "width": "fill_container",
-                  "stroke": "$border/border",
-                  "strokeWidth": {
-                    "bottom": 1
+                  "id": "1:214",
+                  "name": "frame",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 1132,
+                  "height": 36,
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 16,
+                    "padding": [12, 16, 12, 16],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
                   },
-                  "strokeAlignment": "inner",
-                  "strokeLinejoin": "round",
-                  "gap": 16,
-                  "padding": [
-                    12,
-                    16
-                  ],
-                  "alignItems": "center",
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "rectangle",
+                      "id": "1:215",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 12,
+                      "width": 1004,
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
                       "cornerRadius": 4,
-                      "id": "j3FWf7",
-                      "fill": "$default/default",
-                      "width": "fill_container",
-                      "height": 12
+                      "layoutGrow": 1,
+                      "variables": {"fills/0/color": "default/default"}
                     },
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "eaOuV",
-                      "fill": "$default/default",
+                      "id": "1:216",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 1036,
+                      "y": 12,
                       "width": 80,
-                      "height": 12
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "wjrq3",
-                  "width": "fill_container",
-                  "stroke": "$border/border",
-                  "strokeWidth": {
-                    "bottom": 1
+                  "id": "1:217",
+                  "name": "frame",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 36,
+                  "width": 1132,
+                  "height": 36,
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 16,
+                    "padding": [12, 16, 12, 16],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
                   },
-                  "strokeAlignment": "inner",
-                  "strokeLinejoin": "round",
-                  "gap": 16,
-                  "padding": [
-                    12,
-                    16
-                  ],
-                  "alignItems": "center",
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "rectangle",
+                      "id": "1:218",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 12,
+                      "width": 1004,
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
                       "cornerRadius": 4,
-                      "id": "W1rNDH",
-                      "fill": "$default/default",
-                      "width": "fill_container",
-                      "height": 12
+                      "layoutGrow": 1,
+                      "variables": {"fills/0/color": "default/default"}
                     },
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "t6zq6",
-                      "fill": "$default/default",
+                      "id": "1:219",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 1036,
+                      "y": 12,
                       "width": 80,
-                      "height": 12
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "k8SdBd",
-                  "width": "fill_container",
-                  "stroke": "$border/border",
-                  "strokeWidth": {
-                    "bottom": 1
+                  "id": "1:220",
+                  "name": "frame",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 72,
+                  "width": 1132,
+                  "height": 36,
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 16,
+                    "padding": [12, 16, 12, 16],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
                   },
-                  "strokeAlignment": "inner",
-                  "strokeLinejoin": "round",
-                  "gap": 16,
-                  "padding": [
-                    12,
-                    16
-                  ],
-                  "alignItems": "center",
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "rectangle",
+                      "id": "1:221",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 12,
+                      "width": 1004,
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
                       "cornerRadius": 4,
-                      "id": "Gmzjc",
-                      "fill": "$default/default",
-                      "width": "fill_container",
-                      "height": 12
+                      "layoutGrow": 1,
+                      "variables": {"fills/0/color": "default/default"}
                     },
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "zMds8",
-                      "fill": "$default/default",
+                      "id": "1:222",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 1036,
+                      "y": 12,
                       "width": 80,
-                      "height": 12
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "VWwbx",
-                  "width": "fill_container",
-                  "stroke": "$border/border",
-                  "strokeWidth": {
-                    "bottom": 1
+                  "id": "1:223",
+                  "name": "frame",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 108,
+                  "width": 1132,
+                  "height": 36,
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 16,
+                    "padding": [12, 16, 12, 16],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
                   },
-                  "strokeAlignment": "inner",
-                  "strokeLinejoin": "round",
-                  "gap": 16,
-                  "padding": [
-                    12,
-                    16
-                  ],
-                  "alignItems": "center",
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "rectangle",
+                      "id": "1:224",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 12,
+                      "width": 1004,
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
                       "cornerRadius": 4,
-                      "id": "RS7PD",
-                      "fill": "$default/default",
-                      "width": "fill_container",
-                      "height": 12
+                      "layoutGrow": 1,
+                      "variables": {"fills/0/color": "default/default"}
                     },
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "c7nTA",
-                      "fill": "$default/default",
+                      "id": "1:225",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 1036,
+                      "y": 12,
                       "width": 80,
-                      "height": 12
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "EB5Iw",
-                  "width": "fill_container",
-                  "stroke": "$border/border",
-                  "strokeWidth": {
-                    "bottom": 1
+                  "id": "1:226",
+                  "name": "frame",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 144,
+                  "width": 1132,
+                  "height": 36,
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 16,
+                    "padding": [12, 16, 12, 16],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
                   },
-                  "strokeAlignment": "inner",
-                  "strokeLinejoin": "round",
-                  "gap": 16,
-                  "padding": [
-                    12,
-                    16
-                  ],
-                  "alignItems": "center",
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "rectangle",
+                      "id": "1:227",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 12,
+                      "width": 1004,
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
                       "cornerRadius": 4,
-                      "id": "eS4Dq",
-                      "fill": "$default/default",
-                      "width": "fill_container",
-                      "height": 12
+                      "layoutGrow": 1,
+                      "variables": {"fills/0/color": "default/default"}
                     },
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "LJB3U",
-                      "fill": "$default/default",
+                      "id": "1:228",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 1036,
+                      "y": 12,
                       "width": 80,
-                      "height": 12
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "j8Bvt",
-                  "width": "fill_container",
-                  "gap": 16,
-                  "padding": [
-                    12,
-                    16
-                  ],
-                  "alignItems": "center",
+                  "id": "1:229",
+                  "name": "frame",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 180,
+                  "width": 1132,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 16,
+                    "padding": [12, 16, 12, 16],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "rectangle",
+                      "id": "1:230",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 16,
+                      "y": 12,
+                      "width": 1004,
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
                       "cornerRadius": 4,
-                      "id": "HPjTX",
-                      "fill": "$default/default",
-                      "width": "fill_container",
-                      "height": 12
+                      "layoutGrow": 1,
+                      "variables": {"fills/0/color": "default/default"}
                     },
                     {
-                      "type": "rectangle",
-                      "cornerRadius": 4,
-                      "id": "qmz67",
-                      "fill": "$default/default",
+                      "id": "1:231",
+                      "name": "rectangle",
+                      "type": "RECTANGLE",
+                      "x": 1036,
+                      "y": 12,
                       "width": 80,
-                      "height": 12
+                      "height": 12,
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 4,
+                      "variables": {"fills/0/color": "default/default"}
                     }
                   ]
                 }

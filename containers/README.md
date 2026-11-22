@@ -131,7 +131,7 @@ To pin an image in a module:
 1. **Checks for a sentinel file** (e.g., the game binary). If it exists and `STEAM_SKIP_IF_INSTALLED=true`, the install is skipped.
 2. **Runs SteamCMD** with `+force_install_dir`, `+login anonymous`, `+app_update APPID`, and optional `validate`.
 3. **Verifies success** by checking that the sentinel file now exists. SteamCMD can exit 0 even on CDN failures, so we don't trust its exit code alone.
-4. **Retries on transient failure** (CDN blips, timeouts) up to `STEAM_RETRY_COUNT` times (default 3) with exponential backoff.
+4. **Retries on transient failure** (CDN blips, timeouts) up to `STEAM_RETRY_COUNT` times (default 3), waiting `STEAM_RETRY_DELAY` seconds (default 5) between attempts.
 5. **Fails loudly** if the sentinel file is missing after all retries, rather than leaving a corrupted container in a silent restart loop.
 
 ### Environment Variables
@@ -189,7 +189,7 @@ spec:
 
 Additionally, set `spec.security.fsGroup` (matching or compatible with the image UID) to ensure PersistentVolume mounts are writable by the non-root server process. Consider `allowPrivilegeEscalation: false` to prevent the container from gaining additional capabilities at runtime.
 
-When using `runAsUser`, the `$HOME` environment variable must also be set — either baked into the image or declared in the template's `spec.env`. Our SteamCMD base (`ENV HOME=/home/gameserver`, line 112 of the Dockerfile) provides this automatically, so derived game images inherit it. If building a new game image that does not inherit from this base, ensure `HOME` is set; SteamCMD and other build toolkits rely on it (Rule 3: `rule_runasuser_requires_home` in `modules/validate.py` lines 654-693).
+When using `runAsUser`, the `$HOME` environment variable must also be set — either baked into the image or declared in the template's `spec.env`. Our SteamCMD base (`ENV HOME=/home/gameserver`, line 117 of the Dockerfile) provides this automatically, so derived game images inherit it. If building a new game image that does not inherit from this base, ensure `HOME` is set; SteamCMD and other build toolkits rely on it (Rule 3: `rule_runasuser_requires_home` in `modules/validate.py` lines 654-693).
 
 ### Data Persistence
 
@@ -212,10 +212,10 @@ For manual testing:
 
 ```bash
 # Build the base image locally (context is the image's directory)
-docker build -t gameplane-steamcmd-base:latest -f Dockerfile containers/common/steamcmd
+docker build -t gameplane-steamcmd-base:latest -f containers/common/steamcmd/Dockerfile containers/common/steamcmd
 
 # Build a game image (context is the image's directory)
-docker build -t my-game:latest -f Dockerfile containers/games/my-game
+docker build -t my-game:latest -f containers/games/my-game/Dockerfile containers/games/my-game
 
 # Run locally (requires a mounted volume for persistence)
 docker run -it \

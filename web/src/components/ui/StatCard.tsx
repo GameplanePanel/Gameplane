@@ -50,7 +50,7 @@ export function StatCard({
           </span>
         )}
       </div>
-      <div className="pt-2 font-mono text-2xl font-bold text-foreground">
+      <div className="pt-2 font-sans text-2xl font-bold text-foreground">
         {value}
       </div>
       {sub && (

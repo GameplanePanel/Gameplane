@@ -170,6 +170,7 @@ func ValidateFiles(dirName string, files map[string][]byte, opts ValidateOptions
 			findings = append(findings, validateConfigSchemaRules(node)...)
 			findings = append(findings, validateSecurityRisky(node)...)
 			findings = append(findings, validateSecurityOwnershipCheck(node)...)
+			findings = append(findings, validatePlayerQuery(node)...)
 		}
 	}
 

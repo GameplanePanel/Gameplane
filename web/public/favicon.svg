@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient (HeroUI Dark Tokens) -->
+    <radialGradient id="iconBg" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#1C1A20" />
+      <stop offset="60%" stop-color="#17151A" />
+      <stop offset="100%" stop-color="#121114" />
+    </radialGradient>
+
+    <!-- Port Wing Gradient (Accent Magenta) -->
+    <linearGradient id="iconWingLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#232128" />
+      <stop offset="40%" stop-color="#331525" />
+      <stop offset="100%" stop-color="#FF4FA3" />
+    </linearGradient>
+
+    <!-- Starboard Wing Gradient (Sleep Violet) -->
+    <linearGradient id="iconWingRight" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#232128" />
+      <stop offset="40%" stop-color="#251833" />
+      <stop offset="100%" stop-color="#A78BFA" />
+    </linearGradient>
+
+    <!-- Spine Shading -->
+    <linearGradient id="iconSpine" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#EDE9F0" />
+      <stop offset="100%" stop-color="#2C2932" />
+    </linearGradient>
+
+    <!-- Tricolor Thruster Flames (Blue, White, Red) -->
+    <linearGradient id="iconBlueFlame" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+    </linearGradient>
+
+    <linearGradient id="iconWhiteFlame" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#EDE9F0" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#64748b" stop-opacity="0" />
+    </linearGradient>
+
+    <linearGradient id="iconRedFlame" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#f87171" />
+      <stop offset="50%" stop-color="#dc2626" />
+      <stop offset="100%" stop-color="#991b1b" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Compact Glow Filter -->
+    <filter id="iconGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- App Icon Base Tile (Theme Border & Fill) -->
+  <rect width="128" height="128" rx="28" fill="url(#iconBg)" stroke="#2C2932" stroke-width="2" />
+
+  <!-- Backdrop Orbital Ring (Subtle control-plane nod) -->
+  <circle cx="64" cy="56" r="42" fill="none" stroke="#9E98A6" stroke-width="1.2" stroke-dasharray="3 4" opacity="0.25" />
+
+  <!-- Tricolor Thruster Plumes -->
+  <polygon points="52,78 55,108 59,78" fill="url(#iconBlueFlame)" filter="url(#iconGlow)" />
+  <polygon points="69,78 73,108 76,78" fill="url(#iconRedFlame)" filter="url(#iconGlow)" />
+  <polygon points="61,80 64,116 67,80" fill="url(#iconWhiteFlame)" filter="url(#iconGlow)" />
+
+  <!-- Left Wing (Port / Accent Pink) -->
+  <polygon points="64,16 16,70 34,86 54,80 64,76" fill="url(#iconWingLeft)" stroke="#FF4FA3" stroke-width="2.5" stroke-linejoin="round" />
+
+  <!-- Right Wing (Starboard / Violet) -->
+  <polygon points="64,16 112,70 94,86 74,80 64,76" fill="url(#iconWingRight)" stroke="#A78BFA" stroke-width="2.5" stroke-linejoin="round" />
+
+  <!-- Inner Stealth Facets -->
+  <polygon points="64,16 46,60 64,76" fill="#141317" opacity="0.6" />
+  <polygon points="64,16 82,60 64,76" fill="#2C2932" opacity="0.6" />
+
+  <!-- Center Spine Line -->
+  <line x1="64" y1="16" x2="64" y2="76" stroke="url(#iconSpine)" stroke-width="2.5" stroke-linecap="round" />
+
+  <!-- Cockpit Diamond -->
+  <g transform="translate(64, 48)">
+    <polygon points="0,-14 9,2 0,10 -9,2" fill="#331525" stroke="#FF4FA3" stroke-width="2" />
+    <polygon points="0,-8 5,1 0,6 -5,1" fill="#ffffff" filter="url(#iconGlow)" />
+  </g>
+
+  <!-- Wingtip Beacons -->
+  <circle cx="16" cy="70" r="3" fill="#FF4FA3" filter="url(#iconGlow)" />
+  <circle cx="112" cy="70" r="3" fill="#A78BFA" filter="url(#iconGlow)" />
+</svg>

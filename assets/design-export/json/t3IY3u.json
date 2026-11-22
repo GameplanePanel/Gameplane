@@ -1,289 +1,644 @@
 {
-  "id": "t3IY3u",
-  "type": "ref",
-  "reusable": true,
-  "ref": "x3beP",
+  "file": "t3IY3u",
+  "id": "1:10302",
   "name": "Gameplane/Dialog/Edit User",
+  "type": "FRAME",
   "x": 160,
   "y": 6274,
-  "effect": {
-    "type": "shadow",
-    "shadowType": "outer",
-    "color": "#00000000"
+  "width": 480,
+  "height": 558,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 0, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
   },
-  "theme": {},
-  "context": "Default Edit User state: local grant scope; remote clusters are selectable. All namespaces is disabled for local grants.",
-  "descendants": {
-    "E7Whx": {
-      "content": "Edit user"
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 68,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "Edit user",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
-    "qzcst": {
-      "enabled": true,
-      "content": "operator-01"
-    },
-    "Nht52": {
-      "type": "frame",
-      "id": "Kpqa4",
-      "name": "mBody",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 12,
-      "padding": [
-        16,
-        0,
-        0,
-        0
-      ],
+    {
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 440,
+      "height": 25,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "frame",
-          "id": "LOCNS",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 4,
+          "width": 440,
+          "height": 21,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutGrow": 1,
+          "text": "operator-01",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "id": "1:10303",
+      "name": "mBody",
+      "type": "FRAME",
+      "x": 20,
+      "y": 69,
+      "width": 440,
+      "height": 417,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 12,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:10304",
+          "name": "frame",
+          "type": "FRAME",
+          "x": 0,
+          "y": 16,
+          "width": 440,
+          "height": 58,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "QTLgc",
-              "fill": "$foreground/foreground",
-              "content": "Display name",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "500"
+              "id": "1:10305",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 76,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Display name",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "t3NhbD",
-              "type": "ref",
-              "ref": "D0cDM",
+              "id": "1:10306",
               "name": "Input",
-              "width": "fill_container",
-              "descendants": {
-                "PJERm": {
-                  "content": "Server Operator",
-                  "fill": "$foreground/foreground"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["Server Operator"]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "HzjxM",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "id": "1:10307",
+          "name": "frame",
+          "type": "FRAME",
+          "x": 0,
+          "y": 86,
+          "width": 440,
+          "height": 58,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "MmWht",
-              "fill": "$foreground/foreground",
-              "content": "Email",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "500"
+              "id": "1:10308",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 31,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Email",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "u76vDz",
-              "type": "ref",
-              "ref": "D0cDM",
+              "id": "1:10309",
               "name": "Input",
-              "width": "fill_container",
-              "descendants": {
-                "PJERm": {
-                  "content": "operator@gameplane-demo.local",
-                  "fill": "$foreground/foreground"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["operator@gameplane-demo.local"]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "XijpL",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "id": "1:10310",
+          "name": "frame",
+          "type": "FRAME",
+          "x": 0,
+          "y": 156,
+          "width": 440,
+          "height": 58,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "PhLYl",
-              "fill": "$foreground/foreground",
-              "content": "Primary role (cluster-wide)",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "500"
+              "id": "1:10311",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 149,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Primary role (cluster-wide)",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "I2Shpp",
-              "type": "ref",
-              "ref": "AT7ya",
+              "id": "1:10312",
               "name": "Select",
-              "width": "fill_container",
-              "descendants": {
-                "cFsFk": {
-                  "content": "operator"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Select",
+              "componentId": "1:311",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["operator"]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "uwKhS",
+          "id": "1:10313",
           "name": "Grants Divider",
-          "width": "fill_container",
+          "type": "FRAME",
+          "x": 0,
+          "y": 226,
+          "width": 440,
           "height": 1,
-          "fill": "$border/border"
+          "fills": [{"type": "SOLID", "color": "#EFC3D6"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "border/border"}
         },
         {
-          "type": "frame",
-          "id": "gEXCo",
+          "id": "1:10314",
           "name": "Namespace Grants",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 8,
+          "type": "FRAME",
+          "x": 0,
+          "y": 239,
+          "width": 440,
+          "height": 178,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "VqyMf",
+              "id": "1:10315",
               "name": "Section Label",
-              "fill": "$muted",
-              "content": "CLUSTER & NAMESPACE GRANTS",
-              "lineHeight": 1.2727272727,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 11,
-              "fontWeight": "600",
-              "letterSpacing": 0.55
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 191,
+              "height": 14,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "CLUSTER & NAMESPACE GRANTS",
+              "font": ["Geist", 600, 11],
+              "lineHeight": {"value": 127.27272510528564, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "type": "text",
-              "id": "fon58",
+              "id": "1:10316",
               "name": "Grant scope explanation",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "The primary role above manages local access. Additional grants apply only to their named cluster and namespace.",
-              "lineHeight": 1.3333333333,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 22,
+              "width": 440,
+              "height": 32,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "The primary role above manages local access. Additional grants apply only to their named cluster and namespace.",
+              "font": ["Geist", 400, 12],
+              "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "type": "frame",
-              "id": "zNtGC",
+              "id": "1:10317",
               "name": "Cluster and role",
-              "width": "fill_container",
-              "gap": 8,
+              "type": "FRAME",
+              "x": 0,
+              "y": 62,
+              "width": 440,
+              "height": 36,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "Y7ZQU",
-                  "type": "ref",
-                  "ref": "AT7ya",
+                  "id": "1:10318",
                   "name": "Grant cluster",
-                  "width": "fill_container",
-                  "descendants": {
-                    "cFsFk": {
-                      "content": "Local cluster"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 216,
+                  "height": 36,
+                  "component": "Gameplane/Select",
+                  "componentId": "1:311",
+                  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+                  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "field/background",
+                    "strokes/0/color": "field/border"
+                  },
+                  "texts": ["Local cluster"]
                 },
                 {
-                  "id": "Co5v8",
-                  "type": "ref",
-                  "ref": "AT7ya",
+                  "id": "1:10319",
                   "name": "Grant Role Select",
-                  "width": "fill_container",
+                  "type": "INSTANCE",
+                  "x": 224,
+                  "y": 0,
+                  "width": 216,
                   "height": 36,
-                  "descendants": {
-                    "cFsFk": {
-                      "content": "operator"
-                    }
-                  }
+                  "component": "Gameplane/Select",
+                  "componentId": "1:311",
+                  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+                  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "field/background",
+                    "strokes/0/color": "field/border"
+                  },
+                  "texts": ["operator"]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "afhD0",
+              "id": "1:10320",
               "name": "Add Grant Row",
-              "width": "fill_container",
-              "gap": 8,
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 0,
+              "y": 106,
+              "width": 440,
+              "height": 32,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "L5IzVL",
-                  "type": "ref",
-                  "ref": "D0cDM",
+                  "id": "1:10321",
                   "name": "Grant Namespace Input",
-                  "width": "fill_container",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 224,
                   "height": 32,
-                  "descendants": {
-                    "PJERm": {
-                      "content": "namespace"
-                    }
-                  }
+                  "component": "Gameplane/Input",
+                  "componentId": "1:706",
+                  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+                  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "field/background",
+                    "strokes/0/color": "field/border"
+                  },
+                  "texts": ["namespace"]
                 },
                 {
-                  "type": "frame",
-                  "id": "jLdrI",
+                  "id": "1:10322",
                   "name": "All namespaces button",
-                  "opacity": 0.5,
+                  "type": "FRAME",
+                  "x": 232,
+                  "y": 0,
+                  "width": 136,
                   "height": 32,
-                  "padding": [
-                    0,
-                    16
-                  ],
-                  "justifyContent": "center",
-                  "alignItems": "center",
+                  "opacity": 0.5,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
                   "children": [
                     {
-                      "type": "text",
-                      "id": "I6LAd",
+                      "id": "1:10323",
                       "name": "All namespaces label",
-                      "fill": "$foreground/foreground",
-                      "content": "All namespaces",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "500"
+                      "type": "TEXT",
+                      "x": 16,
+                      "y": 7,
+                      "width": 104,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                      "text": "All namespaces",
+                      "font": ["Geist", 500, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     }
                   ]
                 },
                 {
-                  "id": "s5pUg",
-                  "type": "ref",
-                  "ref": "J09iP",
+                  "id": "1:10324",
                   "name": "Add Grant Button",
+                  "type": "INSTANCE",
+                  "x": 376,
+                  "y": 0,
+                  "width": 64,
+                  "height": 32,
                   "opacity": 0.5,
-                  "descendants": {
-                    "eWkIT/WtPjS": {
-                      "enabled": false
-                    },
-                    "eWkIT/r4VbAi": {
-                      "content": "Add"
-                    }
-                  }
+                  "component": "Gameplane/Button/Small/Ghost",
+                  "componentId": "1:1124",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Add"]
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "k9DBxb",
+              "id": "1:10325",
               "name": "Remote inventory grant guidance",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "For remote node inventory, create a role in the Roles tab with “View nodes, version, and storage”, then grant it to all namespaces on that cluster.",
-              "lineHeight": 1.3333333333,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 146,
+              "width": 440,
+              "height": 32,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "For remote node inventory, create a role in the Roles tab with “View nodes, version, and storage”, then grant it to all namespaces on that cluster.",
+              "font": ["Geist", 400, 12],
+              "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         }
       ]
     },
-    "TZ7Ef": {
-      "content": "Save changes"
+    {
+      "name": "mFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 486,
+      "width": 440,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 265,
+          "y": 20,
+          "width": 64,
+          "height": 32,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 40,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "btnPrimary",
+          "type": "FRAME",
+          "x": 337,
+          "y": 20,
+          "width": 103,
+          "height": 32,
+          "opacity": 0.5,
+          "fills": [{"type": "SOLID", "color": "#DB2777"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "accent/accent"},
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 79,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "text": "Save changes",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/foreground"}
+            }
+          ]
+        }
+      ]
     }
-  }
+  ]
 }

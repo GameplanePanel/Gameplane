@@ -10,7 +10,8 @@ import { ServerActionsCard } from "@/components/server/ServerActionsCard";
 import { ServerStatusCard } from "@/components/server/ServerStatusCard";
 import { ServerSleepCard } from "@/components/server/ServerSleepCard";
 import { EventList } from "@/components/server/EventList";
-import { formatBytes } from "@/lib/utils";
+import { formatBytes, ignoreRejection } from "@/lib/utils";
+import { assignmentAddress, connectionAddress } from "@/lib/connectionAddress";
 import { mapServerEvent, type NormalizedServerEvent } from "@/lib/events";
 import { playerRows } from "@/lib/players";
 import { useOptionalIntl } from "@/lib/i18n/format";
@@ -99,6 +100,9 @@ export function OverviewTab({
       : 0;
   const endpoints = status.endpoints ?? [];
   const primary = endpoints[0];
+  const expose = gs.spec.networking?.expose;
+  const externalAddress = assignmentAddress(primary, expose);
+  const tunnelAddress = primary?.tunnelProvider ? connectionAddress(primary) : undefined;
   // The operator prepends tunnel endpoints ahead of the cluster-native ones
   // (see gameserver_status.go), so when a tunnel is active `endpoints[0]` is
   // the tunnel endpoint — the cluster address is the first entry after it
@@ -206,15 +210,14 @@ export function OverviewTab({
                   per design (EZFW0) this row doesn't appear at all otherwise. */}
               {primary?.tunnelProvider && (
                 <EndpointRow label={intl.formatMessage({ id: "web.routes.tabs.overview.tunnel", defaultMessage: "Tunnel", description: "Overview tab: label of the tunnel address row, shown only when a tunnel endpoint exists" })}>
-                  {primary.host ? (
+                  {tunnelAddress ? (
                     <>
                       <div className="flex min-w-0 flex-1 items-center gap-2">
                         <span
                           className="truncate font-mono text-foreground"
-                          title={primary.host + (primary.port !== undefined ? intl.formatMessage({ id: "web.routes.tabs.overview.host_port_suffix", defaultMessage: ":{port}", description: "Overview: port shown after the host of an endpoint; {port} is the port number" }, { port: primary.port }) : "")}
+                          title={tunnelAddress}
                         >
-                          {primary.host}
-                          {primary.port !== undefined ? intl.formatMessage({ id: "web.routes.tabs.overview.host_port_suffix", defaultMessage: ":{port}", description: "Overview: port shown after the host of an endpoint; {port} is the port number" }, { port: primary.port }) : ""}
+                          {tunnelAddress}
                         </span>
                         {primary.private && (
                           <span className="shrink-0 rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-medium text-warning">{intl.formatMessage({ id: "web.routes.tabs.overview.tailnet_only", defaultMessage: "Tailnet only", description: "Overview tab: warning badge beside a tunnel address meaning it is reachable only inside the tailnet; keep it short" })}</span>
@@ -222,7 +225,7 @@ export function OverviewTab({
                       </div>
                       <button
                         className="rounded p-1 text-muted hover:bg-border hover:text-foreground"
-                        onClick={() => navigator.clipboard?.writeText(primary.host)}
+                        onClick={() => ignoreRejection(navigator.clipboard?.writeText(tunnelAddress))}
                         title={intl.formatMessage({ id: "web.routes.tabs.overview.copy", defaultMessage: "Copy", description: "Overview tab: icon-only button tooltip that copies the address to the clipboard; keep it short" })}
                       >
                         <Copy className="h-3.5 w-3.5" />
@@ -236,21 +239,18 @@ export function OverviewTab({
                 </EndpointRow>
               )}
 
-              {/* External Address row — bare host, no port; a "pool: <name>"
-                  annotation underneath when the address was allocated from a
-                  pool (EZFW0: "Address 172.18.255.203" / "pool: pool-us-west"). */}
-              <EndpointRow label={intl.formatMessage({ id: "web.routes.tabs.overview.external_address", defaultMessage: "External Address", description: "Overview tab: label of the row with the public address of the server, shown without a port" })}>
-                {primary?.host ? (
+              <EndpointRow label={intl.formatMessage({ id: "web.routes.tabs.overview.external_address", defaultMessage: "External Address", description: "Overview tab: label of the row with the public address of the server" })}>
+                {externalAddress ? (
                   <>
                     <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate font-mono text-foreground" title={primary.host}>{primary.host}</span>
-                      {primary.pool && (
+                      <span className="truncate font-mono text-foreground" title={externalAddress}>{externalAddress}</span>
+                      {primary?.pool && (
                         <span className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.pool_pool", defaultMessage: "pool: {pool}", description: "Overview: load balancer address pool line; {pool} is the pool name" }, { pool: primary.pool })}</span>
                       )}
                     </div>
                     <button
                       className="rounded p-1 text-muted hover:bg-border hover:text-foreground"
-                      onClick={() => navigator.clipboard?.writeText(primary.host)}
+                      onClick={() => ignoreRejection(navigator.clipboard?.writeText(externalAddress))}
                       title={intl.formatMessage({ id: "web.routes.tabs.overview.copy", defaultMessage: "Copy", description: "Overview tab: icon-only button tooltip that copies the address to the clipboard; keep it short" })}
                     >
                       <Copy className="h-3.5 w-3.5" />
@@ -267,7 +267,7 @@ export function OverviewTab({
                   External Address's own host/port under a second label would
                   just repeat it, and there is no separate cluster-internal
                   service address in status to fall back to yet. */}
-              {clusterEndpoint && clusterEndpoint !== primary && clusterEndpoint.host && (
+              {clusterEndpoint && clusterEndpoint !== primary && assignmentAddress(clusterEndpoint, expose) && (
                 <div className="space-y-2">
                   <div className="px-1 text-xs font-medium text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.cluster_address", defaultMessage: "Cluster Address", description: "Overview tab: small heading above the cluster-internal address group, shown when it differs from the external address" })}</div>
                   <EndpointRow label={intl.formatMessage({ id: "web.routes.tabs.overview.host", defaultMessage: "Host", description: "Overview tab: label of the host name row in an address group" })}>

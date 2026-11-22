@@ -146,9 +146,16 @@ func (h *configHandler) put(w http.ResponseWriter, req *http.Request) {
 	}
 	if section == "auth" {
 		auditEvents = h.detectAuthAuditEvents(req.Context(), canon)
-	}
-
-	if section == "telemetry" {
+		if err := h.saveAuth(req.Context(), canon); err != nil {
+			var m *httperr.Message
+			if errors.As(err, &m) {
+				httperr.WriteMessage(w, req, m)
+				return
+			}
+			httperr.Write(w, req, err)
+			return
+		}
+	} else if section == "telemetry" {
 		// The telemetry section's post-save hook runs in the same
 		// transaction as the config write (see saveTelemetry).
 		if err := h.saveTelemetry(req.Context(), canon); err != nil {
@@ -256,8 +263,9 @@ func (h *configHandler) resetRoleMapping(w http.ResponseWriter, req *http.Reques
 			c.HelmOverride.RoleMappings = nil
 		}
 
-		// If helmOverride is now empty, remove it.
-		if c.HelmOverride.RoleMappings == nil {
+		// If helmOverride is now empty, remove it. Its roleRules and
+		// defaultRole (spec 034) keep it alive.
+		if c.HelmOverride.RoleMappings == nil && c.HelmOverride.RoleRules == nil && c.HelmOverride.DefaultRole == nil {
 			c.HelmOverride = nil
 		}
 	}
@@ -406,6 +414,90 @@ func formatGroupsForAudit(groups *[]string) string {
 	return strings.Join(*groups, ",")
 }
 
+// saveAuth checks the auth section's role names and writes it in one
+// user-management transaction, the one role deletion uses for its "named by
+// an SSO rule" check (roles.go del). A role deleted between the check and the
+// write would otherwise leave a saved rule that refuses its users at sign-in.
+func (h *configHandler) saveAuth(ctx context.Context, canon json.RawMessage) error {
+	tx, err := h.db.BeginUserManagement(ctx)
+	if err != nil {
+		return fmt.Errorf("begin auth config save: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	// Role names are open-ended (any role, OD-7), so whether each rule and
+	// fallback names an existing role is checked against the database here,
+	// after the pure validator (research R-5).
+	if err := h.checkAuthRoles(ctx, tx, canon); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`INSERT INTO config(key, value, updated_at)
+		 VALUES (?, ?, ?)
+		 ON CONFLICT(key) DO UPDATE SET
+		     value      = excluded.value,
+		     updated_at = excluded.updated_at`,
+		"auth", string(canon), db.NowTimestamp(),
+	); err != nil {
+		return fmt.Errorf("write auth config: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit auth config: %w", err)
+	}
+	return nil
+}
+
+// checkAuthRoles refuses an auth section whose role rules or fallbacks name a
+// role that does not exist (FR-007, OD-2): every provider's and the Helm
+// override's roleRules roles, and every defaultRole other than "" (viewer)
+// and "deny". validateAuth stays a pure function of the body; this is the
+// part that needs the database (research R-5). The refusal is a 400
+// server.config.auth_role_unknown naming the role.
+func (h *configHandler) checkAuthRoles(ctx context.Context, q db.Reader, canon json.RawMessage) error {
+	var c authCfg
+	if err := json.Unmarshal(canon, &c); err != nil {
+		return fmt.Errorf("decode auth config: %w", err)
+	}
+	var names []string
+	addRules := func(rules *[]authRoleRule) {
+		if rules == nil {
+			return
+		}
+		for _, r := range *rules {
+			names = append(names, r.Role)
+		}
+	}
+	addFallback := func(role string) {
+		if role != "" && role != "deny" {
+			names = append(names, role)
+		}
+	}
+	for _, p := range c.Providers {
+		addRules(p.RoleRules)
+		addFallback(p.DefaultRole)
+	}
+	if ov := c.HelmOverride; ov != nil {
+		addRules(ov.RoleRules)
+		if ov.DefaultRole != nil {
+			addFallback(*ov.DefaultRole)
+		}
+	}
+	checked := map[string]bool{}
+	for _, name := range names {
+		if checked[name] {
+			continue
+		}
+		checked[name] = true
+		ok, err := (db.Roles{Reader: q}).RoleExists(ctx, name)
+		if err != nil {
+			return fmt.Errorf("check role %q: %w", name, err)
+		}
+		if !ok {
+			return messages.New("server.config.auth_role_unknown", map[string]any{"role": name})
+		}
+	}
+	return nil
+}
+
 // buildInstallTimeSettings constructs the read-only installTimeSettings
 // response section from Helm-seeded values. Returns nil if there is nothing
 // to report (no gameDataStorageClass and no helmPolicy configured).
@@ -441,6 +533,12 @@ func (h *configHandler) buildInstallTimeSettings() json.RawMessage {
 				"operator": h.helmPolicy.RoleMappings.Operator,
 				"viewer":   h.helmPolicy.RoleMappings.Viewer,
 			}
+		}
+		// roleRules is the same seed as one ordered list (spec 034). It is
+		// present whenever mapping is on, from either the new or old flags;
+		// roleMappings stays for one release so older dashboards still render.
+		if rules := h.helmPolicy.EffectiveRules(); rules != nil {
+			oidcHelm["roleRules"] = rules
 		}
 		settings["oidcHelmProvider"] = oidcHelm
 	}
@@ -505,13 +603,24 @@ type authRoleMappings struct {
 	Viewer   []string `json:"viewer,omitempty"`
 }
 
-// authHelmOverride carries the optional per-role override lists for the
-// synthetic Helm-configured OIDC provider. Each role's list (if present, even
-// as []) replaces the Helm-seeded list for that role; nil/absent means the
-// Helm-seeded list stands. Pointers to slices preserve the empty-list-vs-nil
-// distinction for provenance signaling.
+// authRoleRule mirrors auth.RoleRule: one IdP group mapped to one role.
+type authRoleRule struct {
+	Group string `json:"group"`
+	Role  string `json:"role"`
+}
+
+// authHelmOverride carries the dashboard's override of the synthetic
+// Helm-configured OIDC provider's role policy. RoleRules (if present, even as
+// []) replaces the whole Helm rule list, and DefaultRole (if present)
+// replaces the Helm fallback (OD-3). RoleMappings is the old per-role form:
+// each role's list (if present, even as []) replaces the Helm-seeded list for
+// that role; nil/absent means the Helm-seeded list stands. RoleRules and
+// RoleMappings cannot both be set (OD-1). Pointers preserve the
+// absent-vs-empty distinction.
 type authHelmOverride struct {
 	RoleMappings *authRoleMappingsPtr `json:"roleMappings,omitempty"`
+	RoleRules    *[]authRoleRule      `json:"roleRules,omitempty"`
+	DefaultRole  *string              `json:"defaultRole,omitempty"`
 }
 
 // authRoleMappingsPtr parallels authRoleMappings but uses pointers to slices
@@ -535,9 +644,12 @@ type authProvider struct {
 	ClientID  string `json:"clientID,omitempty"`
 	ConfigRef string `json:"configRef,omitempty"` // K8s Secret name
 	// Group→role mapping (non-local kinds only; mirrors auth.Provider).
+	// RoleRules is the ordered rule list (spec 034); RoleMappings the old
+	// per-role form. A provider sets at most one of them (OD-1).
 	Scopes       []string          `json:"scopes,omitempty"`
 	GroupsClaim  string            `json:"groupsClaim,omitempty"`
 	RoleMappings *authRoleMappings `json:"roleMappings,omitempty"`
+	RoleRules    *[]authRoleRule   `json:"roleRules,omitempty"`
 	DefaultRole  string            `json:"defaultRole,omitempty"`
 }
 
@@ -548,7 +660,52 @@ type authCfg struct {
 
 var validAuthKinds = map[string]bool{"local": true, "oidc": true, "google": true, "github": true}
 
-var validDefaultRoles = map[string]bool{"": true, "viewer": true, "operator": true, "admin": true, "deny": true}
+// validateRoleRules trims each rule's group and role in place and refuses a
+// blank one. field names the list in errors, e.g. "providers[0].roleRules".
+// Whether each role exists is checked on save (checkAuthRoles).
+func validateRoleRules(field string, rules *[]authRoleRule) error {
+	if rules == nil {
+		return nil
+	}
+	for j := range *rules {
+		r := &(*rules)[j]
+		r.Group = strings.TrimSpace(r.Group)
+		r.Role = strings.TrimSpace(r.Role)
+		if r.Group == "" {
+			return fmt.Errorf("%s[%d].group must not be blank", field, j)
+		}
+		if r.Role == "" {
+			return fmt.Errorf("%s[%d].role must not be blank", field, j)
+		}
+	}
+	return nil
+}
+
+// validateHelmOverride checks helmOverride: not both roleRules and
+// roleMappings (OD-1), clean group lists and rules, and a defaultRole that
+// is "" (viewer), "deny" or a non-blank role name, trimmed in place.
+func validateHelmOverride(ov *authHelmOverride) error {
+	if ov == nil {
+		return nil
+	}
+	if ov.RoleRules != nil && ov.RoleMappings != nil {
+		return messages.New("server.config.auth_both_mapping_forms", nil)
+	}
+	if err := validateHelmRoleMapping(ov.RoleMappings); err != nil {
+		return err
+	}
+	if err := validateRoleRules("helmOverride.roleRules", ov.RoleRules); err != nil {
+		return err
+	}
+	if ov.DefaultRole != nil && *ov.DefaultRole != "" {
+		role := strings.TrimSpace(*ov.DefaultRole)
+		if role == "" {
+			return fmt.Errorf("helmOverride.defaultRole must not be blank")
+		}
+		ov.DefaultRole = &role
+	}
+	return nil
+}
 
 // validateHelmRoleMapping checks the role mappings in helmOverride.roleMappings,
 // trimming whitespace from each group string in place. Reuses the same validation
@@ -583,10 +740,13 @@ func validateHelmRoleMapping(ov *authRoleMappingsPtr) error {
 // these fields.
 func validateProviderMapping(i int, p *authProvider) error {
 	if p.Kind == "local" {
-		if len(p.Scopes) > 0 || p.GroupsClaim != "" || p.RoleMappings != nil || p.DefaultRole != "" {
-			return fmt.Errorf("providers[%d]: scopes, groupsClaim, roleMappings, and defaultRole are not valid for the local provider", i)
+		if len(p.Scopes) > 0 || p.GroupsClaim != "" || p.RoleMappings != nil || p.RoleRules != nil || p.DefaultRole != "" {
+			return fmt.Errorf("providers[%d]: scopes, groupsClaim, roleMappings, roleRules, and defaultRole are not valid for the local provider", i)
 		}
 		return nil
+	}
+	if p.RoleMappings != nil && p.RoleRules != nil {
+		return messages.New("server.config.auth_both_mapping_forms", nil)
 	}
 	for j, s := range p.Scopes {
 		s = strings.TrimSpace(s)
@@ -605,11 +765,20 @@ func validateProviderMapping(i int, p *authProvider) error {
 		}
 		p.GroupsClaim = claim
 	}
-	if !validDefaultRoles[p.DefaultRole] {
-		return fmt.Errorf("providers[%d].defaultRole must be one of viewer|operator|admin|deny", i)
+	// defaultRole is "" (viewer), "deny", or any role name (OD-7); whether
+	// the role exists is checked on save (checkAuthRoles).
+	if p.DefaultRole != "" {
+		role := strings.TrimSpace(p.DefaultRole)
+		if role == "" {
+			return fmt.Errorf("providers[%d].defaultRole must not be blank", i)
+		}
+		p.DefaultRole = role
 	}
-	if p.DefaultRole != "" && p.RoleMappings == nil {
-		return fmt.Errorf("providers[%d].defaultRole requires roleMappings", i)
+	if p.DefaultRole != "" && p.RoleMappings == nil && p.RoleRules == nil {
+		return fmt.Errorf("providers[%d].defaultRole requires roleMappings or roleRules", i)
+	}
+	if err := validateRoleRules(fmt.Sprintf("providers[%d].roleRules", i), p.RoleRules); err != nil {
+		return err
 	}
 	if p.RoleMappings != nil {
 		for role, groups := range map[string][]string{
@@ -692,11 +861,9 @@ func validateAuth(helmOIDCPresent bool) func([]byte) (json.RawMessage, error) {
 		if !anyEnabled {
 			return nil, fmt.Errorf("at least one identity provider must stay enabled")
 		}
-		// Validate helmOverride.roleMappings if present.
-		if c.HelmOverride != nil && c.HelmOverride.RoleMappings != nil {
-			if err := validateHelmRoleMapping(c.HelmOverride.RoleMappings); err != nil {
-				return nil, err
-			}
+		// Validate helmOverride (rules, fallback, old per-role lists).
+		if err := validateHelmOverride(c.HelmOverride); err != nil {
+			return nil, err
 		}
 		return json.Marshal(c)
 	}

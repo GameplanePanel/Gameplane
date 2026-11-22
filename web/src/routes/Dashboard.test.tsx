@@ -150,6 +150,68 @@ describe("DashboardPage", () => {
     expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(2);
   });
 
+  it("labels game-data pool capacity in GiB while retaining provisioned storage", async () => {
+    server.use(
+      http.get("/cluster/stats", () => HttpResponse.json({
+        ...makeClusterStats({ usedStorageBytes: 20 * 1024 ** 3, totalStorageBytes: 320 * 1024 ** 3 }),
+        storageCapacitySource: "openebs-lvm",
+      })),
+    );
+    renderWithQuery(<DashboardPage />);
+    const card = (await screen.findByText("Storage provisioned")).parentElement?.parentElement;
+    expect(card).toBeInstanceOf(HTMLElement);
+    const storageCard = within(card as HTMLElement);
+    expect(await storageCard.findByText("20 GiB")).toBeInTheDocument();
+    expect(storageCard.getByText("of 320 GiB game-data capacity")).toBeInTheDocument();
+  });
+
+  it("describes mixed pool and system storage as combined capacity", async () => {
+    server.use(http.get("/fleet/inventory", () => HttpResponse.json({
+      items: [
+        { cluster: "chicago", name: "Chicago", view: makeClusterView(), stats: {
+          ...makeClusterStats({ usedStorageBytes: 20 * 1024 ** 3, totalStorageBytes: 320 * 1024 ** 3 }),
+          storageCapacitySource: "openebs-lvm",
+        } },
+        { cluster: "legacy", name: "Legacy", view: makeClusterView(), stats:
+          makeClusterStats({ usedStorageBytes: 10 * 1024 ** 3, totalStorageBytes: 100 * 1024 ** 3 }) },
+      ],
+      partial: false, issues: [], totalReturned: 2,
+    })));
+    renderWithQuery(<DashboardPage />);
+    const card = (await screen.findByText("Storage provisioned")).parentElement?.parentElement;
+    expect(card).toBeInstanceOf(HTMLElement);
+    const storageCard = within(card as HTMLElement);
+    expect(await storageCard.findByText("30 GiB")).toBeInTheDocument();
+    expect(storageCard.getByText("of 420 GiB combined capacity")).toBeInTheDocument();
+  });
+
+  it("keeps failed pool inventory unavailable instead of showing a system capacity fallback", async () => {
+    server.use(http.get("/cluster/stats", () => new HttpResponse(null, { status: 503 })));
+    renderWithQuery(<DashboardPage />);
+    await screen.findByText("Storage provisioned");
+    expect(screen.getAllByText("inventory unavailable").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/of .* (system storage|game-data capacity)/)).not.toBeInTheDocument();
+  });
+
+  it("retains partial inventory while labeling the capacity that was returned", async () => {
+    server.use(http.get("/fleet/inventory", () => HttpResponse.json({
+      items: [{
+        cluster: "chicago", name: "Chicago", view: makeClusterView(),
+        stats: { ...makeClusterStats({ usedStorageBytes: 20 * 1024 ** 3, totalStorageBytes: 320 * 1024 ** 3 }), storageCapacitySource: "openebs-lvm" },
+      }],
+      partial: true,
+      issues: [{ cluster: "unavailable", code: "unavailable", message: "Inventory unavailable." }],
+      totalReturned: 1,
+    })));
+    renderWithQuery(<DashboardPage />);
+    const card = (await screen.findByText("Storage provisioned")).parentElement?.parentElement;
+    expect(card).toBeInstanceOf(HTMLElement);
+    const storageCard = within(card as HTMLElement);
+    expect(await storageCard.findByText("20 GiB")).toBeInTheDocument();
+    expect(storageCard.getByText("of 320 GiB game-data capacity")).toBeInTheDocument();
+    expect(screen.getByText("returned inventory cores")).toBeInTheDocument();
+  });
+
   // Regression: usedStorageBytes/totalStorageBytes are provisioned-vs-physical,
   // not used-vs-total — a networked-storage cluster can legitimately read
   // >100%, which must present as an explicit overcommit state, not a broken

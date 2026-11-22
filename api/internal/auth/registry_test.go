@@ -384,7 +384,7 @@ func TestRegistry_DashboardProviderAuditsRoleAssignment(t *testing.T) {
 	if len(rec.reasons) != 1 {
 		t.Fatalf("audit events = %d (%v), want 1", len(rec.reasons), rec.reasons)
 	}
-	if want := "oidc role assigned: provider=corp matched=corp-admins from=new_user to=admin"; rec.reasons[0] != want {
+	if want := "oidc role decision: provider=corp rule=1 group=corp-admins role=admin source=new result=applied"; rec.reasons[0] != want {
 		t.Fatalf("audit reason = %q, want %q", rec.reasons[0], want)
 	}
 }

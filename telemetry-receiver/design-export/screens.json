@@ -1,0 +1,44 @@
+[
+  {
+    "file": "HBYBE",
+    "figId": "1:925",
+    "name": "Receiver / Login",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "a7wUpP",
+    "figId": "1:939",
+    "name": "Receiver / Login — refused",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "y49Ie",
+    "figId": "1:954",
+    "name": "Telemetry components",
+    "width": 812,
+    "height": 177
+  },
+  {
+    "file": "i0xK1E",
+    "figId": "1:964",
+    "name": "Receiver / Overview",
+    "width": 1440,
+    "height": 5655
+  },
+  {
+    "file": "Z079vK",
+    "figId": "1:1757",
+    "name": "Receiver / Overview — empty",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "jy9Rn",
+    "figId": "1:1784",
+    "name": "Receiver / Extended — none in range",
+    "width": 1440,
+    "height": 164
+  }
+]

@@ -151,6 +151,8 @@ func main() {
 		gameIngressFromCIDR              cidrListFlag
 		probeIngressPolicy               bool
 		probeIngressFromCIDR             cidrListFlag
+		portPoolFlags                    cidrListFlag
+		portPoolTemplateFlags            cidrListFlag
 		gameDataStorageClass             string
 		captureEnabled                   bool
 		restrictedWorkloads              bool
@@ -304,6 +306,12 @@ func main() {
 	flag.BoolVar(&probeIngressPolicy, "probe-ingress-policy", false,
 		"Reconcile a per-GameServer NetworkPolicy admitting kubelet probes to the game container's "+
 			"probe ports only. When false, the operator ensures the policy is absent.")
+	flag.Var(&portPoolFlags, "port-pool",
+		"A port pool, <pool>=<first>-<last>: a range of Service ports on one shared endpoint, such as a "+
+			"relay or port-forwarding edge, that its servers share without collisions. Repeatable.")
+	flag.Var(&portPoolTemplateFlags, "port-pool-template",
+		"<template>=<pool>: the template's servers get Service ports from the pool, a contiguous block "+
+			"each. Repeatable; a template draws from at most one pool.")
 	flag.Var(&probeIngressFromCIDR, "probe-ingress-from-cidr",
 		"Kubelet source CIDR admitted by the probe NetworkPolicy. Repeatable. Defaults to "+
 			"10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 and 169.254.0.0/16 when not supplied.")
@@ -441,6 +449,11 @@ func main() {
 		setupLog.Error(err, "invalid --address-manager value")
 		os.Exit(1)
 	}
+	portPools, err := controller.ParsePortPools(portPoolFlags, portPoolTemplateFlags)
+	if err != nil {
+		setupLog.Error(err, "invalid --port-pool value")
+		os.Exit(1)
+	}
 
 	// Games are meant to be publicly reachable, so an unset
 	// --game-ingress-from-cidr defaults to wide-open rather than an empty
@@ -545,6 +558,7 @@ func main() {
 			Clientset: kubernetes.NewForConfigOrDie(mgr.GetConfig()),
 		},
 		AddressManager:              addressManager,
+		PortPools:                   portPools,
 		MetalLBNamespace:            metalLBNamespace,
 		GameIngressPolicyEnabled:    gameIngressPolicy,
 		GameIngressFromCIDRs:        gameIngressFromCIDR,

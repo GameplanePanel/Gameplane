@@ -1,933 +1,1542 @@
 {
-  "type": "frame",
-  "id": "IdbiB",
+  "file": "IdbiB",
+  "id": "1:6899",
+  "name": "Screen/Dialog/Build Module — Step 1 (Preset & Metadata)",
+  "type": "FRAME",
   "x": 0,
   "y": 58400,
-  "name": "Screen/Dialog/Build Module — Step 1 (Preset & Metadata)",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 800,
-  "fill": "$surface/surface",
+  "height": 977,
+  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+  "strokeWeight": 1,
   "cornerRadius": 16,
-  "stroke": "$border/border",
-  "strokeWidth": 1,
-  "strokeAlignment": "inner",
-  "layout": "vertical",
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
   "children": [
     {
-      "type": "frame",
-      "id": "O6g2j",
+      "id": "1:6900",
       "name": "ModalHeader",
-      "width": "fill_container",
-      "stroke": "$border/border",
-      "strokeWidth": {
-        "bottom": 1
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 800,
+      "height": 83,
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [20, 28, 20, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
       },
-      "padding": [
-        20,
-        28
-      ],
-      "justifyContent": "space_between",
-      "alignItems": "center",
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "type": "frame",
-          "id": "sAUqX",
+          "id": "1:6901",
           "name": "TitleGroup",
-          "layout": "vertical",
-          "gap": 4,
+          "type": "FRAME",
+          "x": 28,
+          "y": 20,
+          "width": 179,
+          "height": 43,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 4,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "type": "text",
-              "id": "MTmdN",
+              "id": "1:6902",
               "name": "Title",
-              "fill": "$foreground/foreground",
-              "content": "Create game module",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 18,
-              "fontWeight": "600"
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 179,
+              "height": 23,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Create game module",
+              "font": ["Geist", 600, 18],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "type": "text",
-              "id": "SwcaM",
+              "id": "1:6903",
               "name": "Subtitle",
-              "fill": "$muted",
-              "content": "Step 1 of 3 · Preset & Metadata",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 27,
+              "width": 168,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Step 1 of 3 · Preset & Metadata",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "type": "icon",
-          "id": "fw7nv",
+          "id": "1:6904",
           "name": "CloseIcon",
+          "type": "FRAME",
+          "x": 754,
+          "y": 32.5,
           "width": 18,
           "height": 18,
-          "icon": "x",
-          "library": "lucide",
-          "fill": "$muted"
+          "variables": {"fills/0/color": "muted"},
+          "children": [
+            {
+              "name": "path",
+              "type": "VECTOR",
+              "x": 4.5,
+              "y": 4.5,
+              "width": 9,
+              "height": 9,
+              "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+              "strokeWeight": 1.5
+            }
+          ]
         }
       ]
     },
     {
-      "type": "frame",
-      "id": "gefmT",
+      "id": "1:6905",
       "name": "Stepper",
-      "width": "fill_container",
-      "stroke": "$border/border",
-      "strokeWidth": {
-        "bottom": 1
+      "type": "FRAME",
+      "x": 0,
+      "y": 83,
+      "width": 800,
+      "height": 44,
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [12, 28, 12, 28],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
       },
-      "gap": 12,
-      "padding": [
-        12,
-        28
-      ],
-      "alignItems": "center",
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "type": "frame",
-          "id": "ofkt5",
+          "id": "1:6906",
           "name": "Step1_Active",
-          "gap": 8,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 28,
+          "y": 12,
+          "width": 141,
+          "height": 20,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "type": "frame",
-              "id": "AULFJ",
+              "id": "1:6907",
               "name": "Badge",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
               "width": 20,
               "height": 20,
-              "fill": "$accent/accent",
+              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
               "cornerRadius": 999,
-              "justifyContent": "center",
-              "alignItems": "center",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "variables": {"fills/0/color": "accent/accent"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "S3bJzL",
+                  "id": "1:6908",
                   "name": "Num",
-                  "fill": "#ffffff",
-                  "content": "1",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 7.5,
+                  "y": 3,
+                  "width": 5,
+                  "height": 14,
+                  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+                  "text": "1",
+                  "font": ["Geist", 600, 11],
+                  "variables": {"fontFamily": "typography/font-sans"}
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "Fyehw",
+              "id": "1:6909",
               "name": "Label",
-              "fill": "$foreground/foreground",
-              "content": "Preset & Metadata",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 13,
-              "fontWeight": "500"
+              "type": "TEXT",
+              "x": 28,
+              "y": 1.5,
+              "width": 113,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Preset & Metadata",
+              "font": ["Geist", 500, 13],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             }
           ]
         },
         {
-          "type": "text",
-          "id": "c2sVlx",
+          "id": "1:6910",
           "name": "Sep1",
-          "fill": "$muted",
-          "content": "·",
-          "fontFamily": "Inter",
-          "fontSize": 13,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 181,
+          "y": 14,
+          "width": 4,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "text": "·",
+          "font": ["Inter", 400, 13],
+          "variables": {"fills/0/color": "muted"}
         },
         {
-          "type": "frame",
-          "id": "cxgug",
+          "id": "1:6911",
           "name": "Step2_Inactive",
-          "gap": 8,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 197,
+          "y": 12,
+          "width": 133,
+          "height": 20,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "type": "frame",
-              "id": "rIpp2",
+              "id": "1:6912",
               "name": "Badge",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
               "width": 20,
               "height": 20,
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
               "cornerRadius": 999,
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "justifyContent": "center",
-              "alignItems": "center",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "L5JDN",
+                  "id": "1:6913",
                   "name": "Num",
-                  "fill": "$muted",
-                  "content": "2",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 6.5,
+                  "y": 3,
+                  "width": 7,
+                  "height": 14,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "2",
+                  "font": ["Geist", 400, 11],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "r5AWd",
+              "id": "1:6914",
               "name": "Label",
-              "fill": "$muted",
-              "content": "Container & Ports",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 13,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 28,
+              "y": 1.5,
+              "width": 105,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Container & Ports",
+              "font": ["Geist", 400, 13],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "type": "text",
-          "id": "j3lfU",
+          "id": "1:6915",
           "name": "Sep2",
-          "fill": "$muted",
-          "content": "·",
-          "fontFamily": "Inter",
-          "fontSize": 13,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 342,
+          "y": 14,
+          "width": 4,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "text": "·",
+          "font": ["Inter", 400, 13],
+          "variables": {"fills/0/color": "muted"}
         },
         {
-          "type": "frame",
-          "id": "h0SnL4",
+          "id": "1:6916",
           "name": "Step3_Inactive",
-          "gap": 8,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 358,
+          "y": 12,
+          "width": 125,
+          "height": 20,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "type": "frame",
-              "id": "x4bwK",
+              "id": "1:6917",
               "name": "Badge",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
               "width": 20,
               "height": 20,
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
               "cornerRadius": 999,
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "justifyContent": "center",
-              "alignItems": "center",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "zslcb",
+                  "id": "1:6918",
                   "name": "Num",
-                  "fill": "$muted",
-                  "content": "3",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 6.5,
+                  "y": 3,
+                  "width": 7,
+                  "height": 14,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "3",
+                  "font": ["Geist", 400, 11],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "P18h8j",
+              "id": "1:6919",
               "name": "Label",
-              "fill": "$muted",
-              "content": "Review & Export",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 13,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 28,
+              "y": 1.5,
+              "width": 97,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Review & Export",
+              "font": ["Geist", 400, 13],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         }
       ]
     },
     {
-      "type": "frame",
-      "id": "jWsIn",
+      "id": "1:6920",
       "name": "Body",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 20,
-      "padding": [
-        24,
-        28
-      ],
+      "type": "FRAME",
+      "x": 0,
+      "y": 127,
+      "width": 800,
+      "height": 782,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 20,
+        "padding": [24, 28, 24, 28],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "text",
-          "id": "qmvrF",
+          "id": "1:6921",
           "name": "ArchetypeLabel",
-          "fill": "$foreground/foreground",
-          "content": "Archetype preset",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 13,
-          "fontWeight": "500"
+          "type": "TEXT",
+          "x": 28,
+          "y": 24,
+          "width": 105,
+          "height": 17,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "text": "Archetype preset",
+          "font": ["Geist", 500, 13],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "type": "frame",
-          "id": "iQAoV",
+          "id": "1:6922",
           "name": "ArchetypesRow",
-          "width": "fill_container",
-          "gap": 12,
+          "type": "FRAME",
+          "x": 28,
+          "y": 61,
+          "width": 744,
+          "height": 84,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "rS3t7",
+              "id": "1:6923",
               "name": "Archetype_SteamCMD_Selected",
-              "width": "fill_container",
-              "fill": "$surface-alt",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 240,
+              "height": 84,
+              "fills": [{"type": "SOLID", "color": "#2E2A27"}],
+              "strokes": [{"type": "SOLID", "color": "#FF4FA3"}],
+              "strokeWeight": 2,
               "cornerRadius": 8,
-              "stroke": "$accent/accent",
-              "strokeWidth": 2,
-              "layout": "vertical",
-              "gap": 6,
-              "padding": 14,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [14, 14, 14, 14],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "variables": {"fills/0/color": "surface-alt", "strokes/0/color": "accent/accent"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "esz5O",
+                  "id": "1:6924",
                   "name": "Title",
-                  "fill": "$foreground/foreground",
-                  "content": "SteamCMD Dedicated",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 14,
+                  "y": 14,
+                  "width": 148,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "SteamCMD Dedicated",
+                  "font": ["Geist", 600, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "v4vb0",
+                  "id": "1:6925",
                   "name": "Desc",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Automated updates & Steam login for Steamworks games",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 14,
+                  "y": 38,
+                  "width": 212,
+                  "height": 32,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Automated updates & Steam login for Steamworks games",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "cWSRM",
+              "id": "1:6926",
               "name": "Archetype_Java",
-              "width": "fill_container",
-              "fill": "$surface/surface",
+              "type": "FRAME",
+              "x": 252,
+              "y": 0,
+              "width": 240,
+              "height": 84,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
               "cornerRadius": 8,
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "layout": "vertical",
-              "gap": 6,
-              "padding": 14,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [14, 14, 14, 14],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "md3RH",
+                  "id": "1:6927",
                   "name": "Title",
-                  "fill": "$foreground/foreground",
-                  "content": "Java Server",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 14,
+                  "y": 14,
+                  "width": 81,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Java Server",
+                  "font": ["Geist", 600, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "CNfSh",
+                  "id": "1:6928",
                   "name": "Desc",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Minecraft / Paper with heap calculation & JVM flags",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 14,
+                  "y": 38,
+                  "width": 212,
+                  "height": 32,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Minecraft / Paper with heap calculation & JVM flags",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "s7jVev",
+              "id": "1:6929",
               "name": "Archetype_Generic",
-              "width": "fill_container",
-              "fill": "$surface/surface",
+              "type": "FRAME",
+              "x": 504,
+              "y": 0,
+              "width": 240,
+              "height": 84,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
               "cornerRadius": 8,
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "layout": "vertical",
-              "gap": 6,
-              "padding": 14,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [14, 14, 14, 14],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "BPkm3",
+                  "id": "1:6930",
                   "name": "Title",
-                  "fill": "$foreground/foreground",
-                  "content": "Generic Container",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 14,
+                  "y": 14,
+                  "width": 122,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Generic Container",
+                  "font": ["Geist", 600, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "jOLHy",
+                  "id": "1:6931",
                   "name": "Desc",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Custom binaries, scripts, or container images",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 14,
+                  "y": 38,
+                  "width": 212,
+                  "height": 32,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Custom binaries, scripts, or container images",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "PNAPI",
+          "id": "1:6932",
           "name": "ArchetypeConfigSection",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 10,
+          "type": "FRAME",
+          "x": 28,
+          "y": 165,
+          "width": 744,
+          "height": 167,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 10,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "z8JSxe",
+              "id": "1:6933",
               "name": "ArchetypeConfigHeaderRow",
-              "gap": 8,
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 279,
+              "height": 17,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
               "children": [
                 {
-                  "type": "text",
-                  "id": "RX6fy",
+                  "id": "1:6934",
                   "name": "ArchetypeConfigLabel",
-                  "fill": "$foreground/foreground",
-                  "content": "Archetype configuration",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 13,
-                  "fontWeight": "500"
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 147,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Archetype configuration",
+                  "font": ["Geist", 500, 13],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "A9Rvax",
-                  "type": "ref",
-                  "ref": "KmZnF",
+                  "id": "1:6935",
                   "name": "ArchetypeConfigChip",
-                  "descendants": {
-                    "xZ9ah": {
-                      "content": "SteamCMD Dedicated"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 155,
+                  "y": 0,
+                  "width": 124,
+                  "height": 17,
+                  "component": "Chip/Soft/Default/SM",
+                  "componentId": "1:1002",
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 16,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 2,
+                    "padding": [2, 4, 2, 4],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+                  "texts": ["SteamCMD Dedicated"]
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "lYuFW",
+              "id": "1:6936",
               "name": "ArchetypeConfigHint",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "These fields come from the SteamCMD Dedicated archetype’s config schema — they change automatically when you pick a different preset.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 27,
+              "width": 744,
+              "height": 32,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "These fields come from the SteamCMD Dedicated archetype’s config schema — they change automatically when you pick a different preset.",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "type": "frame",
-              "id": "wcBG9",
+              "id": "1:6937",
               "name": "ArchetypeFieldsRow",
-              "width": "fill_container",
-              "gap": 16,
+              "type": "FRAME",
+              "x": 0,
+              "y": 69,
+              "width": 744,
+              "height": 98,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 16,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "sdhRd",
-                  "type": "ref",
-                  "ref": "vgtIb",
+                  "id": "1:6938",
                   "name": "MaxPlayersField",
-                  "width": "fill_container",
-                  "descendants": {
-                    "PRTe4": {
-                      "content": "Maximum Players"
-                    },
-                    "u3HAwb": {
-                      "content": "16"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 237.33,
+                  "height": 58,
+                  "component": "NumberField/Primary",
+                  "componentId": "1:5980",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "texts": ["Maximum Players", "16"]
                 },
                 {
-                  "id": "bmigy",
-                  "type": "ref",
-                  "ref": "aRqX6",
+                  "id": "1:6939",
                   "name": "ServerPasswordField",
-                  "width": "fill_container",
-                  "descendants": {
-                    "ANxU1": {
-                      "content": "Server Password"
-                    },
-                    "hokJ3": {
-                      "content": "Optional"
-                    },
-                    "OiyAM": {
-                      "width": "fill_container"
-                    },
-                    "wolxN": {
-                      "content": "Password required for players to join the server.",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 253.33,
+                  "y": 0,
+                  "width": 237.33,
+                  "height": 98,
+                  "component": "Input/Primary",
+                  "componentId": "1:1082",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "texts": ["Server Password", "Optional", "Password required for players to join the server."]
                 },
                 {
-                  "id": "IQiop",
-                  "type": "ref",
-                  "ref": "aRqX6",
+                  "id": "1:6940",
                   "name": "SteamAppIdField",
-                  "width": "fill_container",
-                  "descendants": {
-                    "ANxU1": {
-                      "content": "Steam Application ID"
-                    },
-                    "hokJ3": {
-                      "content": "0"
-                    },
-                    "OiyAM": {
-                      "width": "fill_container"
-                    },
-                    "wolxN": {
-                      "content": "From archetype defaults — the Steam app id used to download the game.",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 506.67,
+                  "y": 0,
+                  "width": 237.33,
+                  "height": 98,
+                  "component": "Input/Primary",
+                  "componentId": "1:1082",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "texts": [
+                    "Steam Application ID",
+                    "0",
+                    "From archetype defaults — the Steam app id used to download the game."
+                  ]
                 }
               ]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "aj9xL",
+          "id": "1:6941",
           "name": "FormFields",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 16,
+          "type": "FRAME",
+          "x": 28,
+          "y": 352,
+          "width": 744,
+          "height": 406,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 16,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "k3jDl",
+              "id": "1:6942",
               "name": "NameFieldGroup",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 6,
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 744,
+              "height": 61,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "Fk8mC",
+                  "id": "1:6943",
                   "name": "NameLabelRow",
-                  "width": "fill_container",
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 744,
+                  "height": 17,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "text",
-                      "id": "jgd0Y",
+                      "id": "1:6944",
                       "name": "Label",
-                      "fill": "$foreground/foreground",
-                      "content": "Module Name",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "500"
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 85,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Module Name",
+                      "font": ["Geist", 500, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "type": "text",
-                      "id": "l86N4",
+                      "id": "1:6945",
                       "name": "DNSBadge",
-                      "fill": "$success/success",
-                      "content": "✓ Valid DNS-1123 label",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 11,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 628,
+                      "y": 1.5,
+                      "width": 116,
+                      "height": 14,
+                      "fills": [{"type": "SOLID", "color": "#21C45D"}],
+                      "text": "✓ Valid DNS-1123 label",
+                      "font": ["Geist", 400, 11],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "success/success"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "x3YK4",
+                  "id": "1:6946",
                   "name": "InputBox",
-                  "width": "fill_container",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 23,
+                  "width": 744,
                   "height": 38,
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
                   "cornerRadius": 6,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "padding": [
-                    0,
-                    12
-                  ],
-                  "justifyContent": "center",
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 12, 0, 12],
+                    "primary": "CENTER",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "text",
-                      "id": "H0q9n",
+                      "id": "1:6947",
                       "name": "Val",
-                      "fill": "$foreground/foreground",
-                      "content": "cs2-competitive",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 323.5,
+                      "y": 0,
+                      "width": 97,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "cs2-competitive",
+                      "font": ["Geist", 400, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     }
                   ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "AocTa",
+              "id": "1:6948",
               "name": "DisplayNameGroup",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 6,
+              "type": "FRAME",
+              "x": 0,
+              "y": 77,
+              "width": 744,
+              "height": 61,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "text",
-                  "id": "U5tS0",
+                  "id": "1:6949",
                   "name": "Label",
-                  "fill": "$foreground/foreground",
-                  "content": "Display Name",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 13,
-                  "fontWeight": "500"
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 84,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Display Name",
+                  "font": ["Geist", 500, 13],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "frame",
-                  "id": "N4WlJ",
+                  "id": "1:6950",
                   "name": "InputBox",
-                  "width": "fill_container",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 23,
+                  "width": 744,
                   "height": 38,
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
                   "cornerRadius": 6,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "padding": [
-                    0,
-                    12
-                  ],
-                  "justifyContent": "center",
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 12, 0, 12],
+                    "primary": "CENTER",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "text",
-                      "id": "dlBkd",
+                      "id": "1:6951",
                       "name": "Val",
-                      "fill": "$foreground/foreground",
-                      "content": "Counter-Strike 2 Competitive",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 285,
+                      "y": 0,
+                      "width": 174,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Counter-Strike 2 Competitive",
+                      "font": ["Geist", 400, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     }
                   ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "qCc04",
+              "id": "1:6952",
               "name": "SummaryGroup",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 6,
+              "type": "FRAME",
+              "x": 0,
+              "y": 154,
+              "width": 744,
+              "height": 61,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "text",
-                  "id": "Vm1PF",
+                  "id": "1:6953",
                   "name": "Label",
-                  "fill": "$foreground/foreground",
-                  "content": "Summary",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 13,
-                  "fontWeight": "500"
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 59,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Summary",
+                  "font": ["Geist", 500, 13],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "frame",
-                  "id": "RcRpH",
+                  "id": "1:6954",
                   "name": "InputBox",
-                  "width": "fill_container",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 23,
+                  "width": 744,
                   "height": 38,
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
                   "cornerRadius": 6,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "padding": [
-                    0,
-                    12
-                  ],
-                  "justifyContent": "center",
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 12, 0, 12],
+                    "primary": "CENTER",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "text",
-                      "id": "M0uxLC",
+                      "id": "1:6955",
                       "name": "Val",
-                      "fill": "$foreground/foreground",
-                      "content": "High tickrate dedicated server for Counter-Strike 2",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 221.5,
+                      "y": 0,
+                      "width": 301,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "High tickrate dedicated server for Counter-Strike 2",
+                      "font": ["Geist", 400, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     }
                   ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "j7AaDL",
+              "id": "1:6956",
               "name": "CategoriesGroup",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 8,
+              "type": "FRAME",
+              "x": 0,
+              "y": 231,
+              "width": 744,
+              "height": 175,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "J9oKE",
+                  "id": "1:6957",
                   "name": "CategoriesLabelRow",
-                  "width": "fill_container",
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 744,
+                  "height": 17,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "text",
-                      "id": "wpaOe",
+                      "id": "1:6958",
                       "name": "Label",
-                      "fill": "$foreground/foreground",
-                      "content": "Categories",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "500"
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 66,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Categories",
+                      "font": ["Geist", 500, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "type": "text",
-                      "id": "UUp07",
+                      "id": "1:6959",
                       "name": "RecommendedHint",
-                      "fill": "$muted",
-                      "content": "Recommended",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 11,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 668,
+                      "y": 1.5,
+                      "width": 76,
+                      "height": 14,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Recommended",
+                      "font": ["Geist", 400, 11],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "QV9u4",
+                  "id": "1:6960",
                   "name": "ChipsRow",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 8,
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 25,
+                  "width": 744,
+                  "height": 100,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "c3DZqO",
+                      "id": "1:6961",
                       "name": "ChipsRow_Line1",
-                      "gap": 8,
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 707,
+                      "height": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "id": "r8z3Qb",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6962",
                           "name": "Chip_Shooter",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "Shooter"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 64,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["Shooter"]
                         },
                         {
-                          "id": "cosnZ",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6963",
                           "name": "Chip_Sandbox",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "Sandbox"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 72,
+                          "y": 0,
+                          "width": 69,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["Sandbox"]
                         },
                         {
-                          "id": "dEwLO",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6964",
                           "name": "Chip_Survival",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "Survival"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 149,
+                          "y": 0,
+                          "width": 64,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["Survival"]
                         },
                         {
-                          "id": "OcbNA",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6965",
                           "name": "Chip_Simulation",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "Simulation"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 221,
+                          "y": 0,
+                          "width": 79,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["Simulation"]
                         },
                         {
-                          "id": "UypEU",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6966",
                           "name": "Chip_Building",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "Building"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 308,
+                          "y": 0,
+                          "width": 65,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["Building"]
                         },
                         {
-                          "id": "X8C1BR",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6967",
                           "name": "Chip_Adventure",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "Adventure"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 381,
+                          "y": 0,
+                          "width": 77,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["Adventure"]
                         },
                         {
-                          "id": "MxPzW",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6968",
                           "name": "Chip_Horror",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "Horror"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 466,
+                          "y": 0,
+                          "width": 55,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["Horror"]
                         },
                         {
-                          "id": "N5SSIS",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6969",
                           "name": "Chip_Coop_Unselected",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "Co-op"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 529,
+                          "y": 0,
+                          "width": 55,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["Co-op"]
                         },
                         {
-                          "id": "RuF9t",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6970",
                           "name": "Chip_PvP",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "PvP"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 592,
+                          "y": 0,
+                          "width": 42,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["PvP"]
                         },
                         {
-                          "id": "lp3k0",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6971",
                           "name": "Chip_Modded",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "Modded"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 642,
+                          "y": 0,
+                          "width": 65,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["Modded"]
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "ytYZ9",
+                      "id": "1:6972",
                       "name": "ChipsRow_Line2",
-                      "gap": 8,
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 32,
+                      "width": 66,
+                      "height": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "id": "Otz7j",
-                          "type": "ref",
-                          "ref": "Xjvn1",
+                          "id": "1:6973",
                           "name": "Chip_Creative",
-                          "descendants": {
-                            "goLBy": {
-                              "content": "Creative"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 66,
+                          "height": 24,
+                          "component": "Gameplane/Tag",
+                          "componentId": "1:1142",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 999,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [4, 10, 4, 10],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"strokes/0/color": "border/border"},
+                          "texts": ["Creative"]
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "h32jQ",
+                      "id": "1:6974",
                       "name": "CustomTagInput",
-                      "width": "fill_container",
-                      "gap": 8,
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 64,
+                      "width": 744,
+                      "height": 36,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "dLTDJ",
-                          "type": "ref",
-                          "ref": "D0cDM",
+                          "id": "1:6975",
                           "name": "Custom Tag Input",
-                          "width": "fill_container",
-                          "descendants": {
-                            "PJERm": {
-                              "content": "Add custom tag..."
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 649,
+                          "height": 36,
+                          "component": "Gameplane/Input",
+                          "componentId": "1:706",
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                          "cornerRadius": 12,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [8, 12, 8, 12],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "variables": {
+                            "cornerRadius": "radius/xl",
+                            "fills/0/color": "field/background",
+                            "strokes/0/color": "field/border"
+                          },
+                          "texts": ["Add custom tag..."]
                         },
                         {
-                          "id": "P2UGd9",
-                          "type": "ref",
-                          "ref": "z9ShNE",
+                          "id": "1:6976",
                           "name": "Add Tag Button",
-                          "descendants": {
-                            "IVgQ8/U1xvSo": {
-                              "content": "Add tag"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 657,
+                          "y": 2,
+                          "width": 87,
+                          "height": 32,
+                          "component": "Gameplane/Button/Small/Default",
+                          "componentId": "1:709",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "texts": ["Add tag"]
                         }
                       ]
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "ske5F",
+                  "id": "1:6977",
                   "name": "SelectedTagsSection",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 8,
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 133,
+                  "width": 744,
+                  "height": 42,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "text",
-                      "id": "D3xiW9",
+                      "id": "1:6978",
                       "name": "SelectedTagsHeading",
-                      "fill": "$foreground/foreground",
-                      "content": "Selected Tags",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "500"
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 86,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Selected Tags",
+                      "font": ["Geist", 500, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "type": "frame",
-                      "id": "r28zp",
+                      "id": "1:6979",
                       "name": "SelectedTagsRow",
-                      "width": "fill_container",
-                      "gap": 8,
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 25,
+                      "width": 744,
+                      "height": 17,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "qJqTu",
-                          "type": "ref",
-                          "ref": "YAWC6",
+                          "id": "1:6980",
                           "name": "Chip_Custom_Selected",
-                          "descendants": {
-                            "HP3d4": {
-                              "content": "speedrun ×"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 69,
+                          "height": 17,
+                          "component": "Chip/Primary/Accent/SM",
+                          "componentId": "1:981",
+                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                          "cornerRadius": 16,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 2,
+                            "padding": [2, 4, 2, 4],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "accent/accent"},
+                          "texts": ["speedrun ×"]
                         }
                       ]
                     }
@@ -940,65 +1549,113 @@
       ]
     },
     {
-      "type": "frame",
-      "id": "ldDLZ",
+      "id": "1:6981",
       "name": "ModalFooter",
-      "width": "fill_container",
-      "stroke": "$border/border",
-      "strokeWidth": {
-        "top": 1
+      "type": "FRAME",
+      "x": 0,
+      "y": 909,
+      "width": 800,
+      "height": 68,
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [16, 28, 16, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
       },
-      "padding": [
-        16,
-        28
-      ],
-      "justifyContent": "space_between",
-      "alignItems": "center",
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "type": "text",
-          "id": "SWPz6",
+          "id": "1:6982",
           "name": "Hint",
-          "fill": "$muted",
-          "content": "Step 1 of 3",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 12,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 28,
+          "y": 26,
+          "width": 58,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "text": "Step 1 of 3",
+          "font": ["Geist", 400, 12],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "type": "frame",
-          "id": "e1vw86",
+          "id": "1:6983",
           "name": "ButtonsRow",
-          "gap": 12,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 451,
+          "y": 16,
+          "width": 321,
+          "height": 36,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "id": "g3fbG",
-              "type": "ref",
-              "ref": "FIB65",
+              "id": "1:6984",
               "name": "CancelButton",
-              "descendants": {
-                "K8d1zg": {
-                  "enabled": false
-                },
-                "zMNkR": {
-                  "content": "Cancel"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 2,
+              "width": 67,
+              "height": 32,
+              "component": "Button/Outline/SM",
+              "componentId": "1:633",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 5,
+                "padding": [8, 12, 8, 12],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/3",
+                "paddingLeft": "spacing/3",
+                "strokes/0/color": "border-2"
+              },
+              "texts": ["Cancel"]
             },
             {
-              "id": "NoPoH",
-              "type": "ref",
-              "ref": "cb4rt",
+              "id": "1:6985",
               "name": "NextButton",
-              "descendants": {
-                "Xpn7K": {
-                  "enabled": false
-                },
-                "U6q13B": {
-                  "content": "Continue to Container & Ports →"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 79,
+              "y": 0,
+              "width": 242,
+              "height": 36,
+              "component": "Button/Primary/MD",
+              "componentId": "1:1094",
+              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [8, 16, 8, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "itemSpacing": "spacing/2",
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "fills/0/color": "accent/accent"
+              },
+              "texts": ["Continue to Container & Ports →"]
             }
           ]
         }

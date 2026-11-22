@@ -48,6 +48,18 @@ var serverEntries = []Entry{
 		Status:      http.StatusNotFound,
 	},
 	{
+		ID:          "server.config.auth_both_mapping_forms",
+		English:     "a provider cannot set both roleMappings and roleRules",
+		Description: "API error from the admin config API when an auth provider sets both the old roleMappings and the new roleRules (config.go:validateAuth).",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.config.auth_role_unknown",
+		English:     "role {role} does not exist",
+		Description: "API error from the admin config API when an SSO role rule or fallback names a role that does not exist (config.go). {role} is the role name.",
+		Status:      http.StatusBadRequest,
+	},
+	{
 		ID:          "server.config.read_body",
 		English:     "read body",
 		Description: "API error from the admin config API (config.go:put).",
@@ -118,6 +130,12 @@ var serverEntries = []Entry{
 		English:     "built-in roles cannot be deleted",
 		Description: "API error from the roles API (roles.go:del).",
 		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.roles.in_use_by_sso",
+		English:     "role is used by the SSO sign-in rules of provider {provider}",
+		Description: "API error from the roles API when the role is a target or fallback of an SSO provider's sign-in rules (roles.go:del). {provider} is the provider name, or helm.",
+		Status:      http.StatusConflict,
 	},
 	{
 		ID:          "server.roles.invalid_role_name",
@@ -357,6 +375,24 @@ var serverEntries = []Entry{
 		ID:          "server.users.remote_role_scope_limited",
 		English:     "remote cluster-wide roles may grant only cluster:read and namespaced permissions",
 		Description: "API error from the users API (users.go:addBinding).",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.users.role_source_invalid",
+		English:     "roleSource must be sso",
+		Description: "API error from the users API when roleSource has a value other than sso (users.go:patch).",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.users.role_source_not_sso",
+		English:     "user does not sign in with SSO",
+		Description: "API error from the users API when returning a user with no SSO link to SSO control (users.go:patch).",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.users.role_source_with_role",
+		English:     "roleSource and role cannot be set together",
+		Description: "API error from the users API when one request sets both roleSource and role (users.go:patch).",
 		Status:      http.StatusBadRequest,
 	},
 	{

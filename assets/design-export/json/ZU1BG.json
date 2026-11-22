@@ -1,507 +1,1066 @@
 {
-  "type": "frame",
-  "id": "ZU1BG",
+  "file": "ZU1BG",
+  "id": "1:7696",
+  "name": "Create Server — Step 4 Network · Tunnel enabled, provider selected",
+  "type": "FRAME",
   "x": 6560,
   "y": 21275,
-  "name": "Create Server — Step 4 Network · Tunnel enabled, provider selected",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 1170,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "bQ3do",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:7697",
       "name": "Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 1170,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "I4WNc",
+      "id": "1:7698",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 1170,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "e7XAim",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:7699",
           "name": "TopBar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "New"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "New", "Search servers…", "AD"]
         }
       ]
     },
     {
-      "type": "frame",
-      "id": "c2jmBo",
-      "layoutPosition": "absolute",
+      "id": "1:7700",
+      "name": "ModalContainer",
+      "type": "FRAME",
       "x": 0,
       "y": 0,
-      "name": "ModalContainer",
       "width": 1440,
       "height": 1170,
-      "fill": "#000000B3",
-      "layout": "vertical",
-      "justifyContent": "center",
-      "alignItems": "center",
+      "fills": [{"type": "SOLID", "color": "#000000B3", "opacity": 0.7}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "absolute": true,
       "children": [
         {
-          "type": "frame",
-          "id": "Y8KXTH",
+          "id": "1:7701",
           "name": "Modal",
-          "clip": true,
+          "type": "FRAME",
+          "x": 240,
+          "y": 50,
           "width": 960,
           "height": 1070,
-          "fill": "$surface/surface",
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "effects": [{"type": "DROP_SHADOW", "radius": 60, "visible": true}],
           "cornerRadius": 12,
-          "stroke": "$border/border",
-          "strokeWidth": 1,
-          "strokeAlignment": "inner",
-          "effect": {
-            "type": "shadow",
-            "shadowType": "outer",
-            "color": "#00000080",
-            "offset": {
-              "x": 0,
-              "y": 24
-            },
-            "blur": 60
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
           },
-          "layout": "vertical",
+          "clips": true,
+          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "QP02z",
-              "type": "ref",
-              "ref": "opmcF",
+              "id": "1:7702",
               "name": "Header",
-              "width": "fill_container",
-              "descendants": {
-                "gcM6g": {
-                  "content": "Step 4 of 5 · Network"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 0,
+              "width": 960,
+              "height": 83,
+              "component": "Gameplane/Wizard Modal Header",
+              "componentId": "1:1889",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [20, 28, 20, 28],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "texts": ["New game server", "Step 4 of 5 · Network"]
             },
             {
-              "id": "HisYn",
-              "type": "ref",
-              "ref": "oROhg",
+              "id": "1:7703",
               "name": "Stepper",
-              "width": "fill_container",
-              "descendants": {
-                "F3Au7j": {
-                  "fill": "$success/soft",
-                  "stroke": "$success/success",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "BIQca",
-                      "name": "CheckIcon",
-                      "width": 12,
-                      "height": 12,
-                      "icon": "check",
-                      "library": "lucide",
-                      "fill": "$success/soft-foreground"
-                    }
-                  ]
-                },
-                "bSERJ": {
-                  "fill": "$muted",
-                  "fontWeight": "normal"
-                },
-                "xpeFZ": {
-                  "fill": "$success/soft",
-                  "stroke": "$success/success",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "Mboeo",
-                      "name": "CheckIcon",
-                      "width": 12,
-                      "height": 12,
-                      "icon": "check",
-                      "library": "lucide",
-                      "fill": "$success/soft-foreground"
-                    }
-                  ]
-                },
-                "xzVlE": {
-                  "fill": "$success/soft",
-                  "stroke": "$success/success",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "gMn6W",
-                      "name": "CheckIcon",
-                      "width": 12,
-                      "height": 12,
-                      "icon": "check",
-                      "library": "lucide",
-                      "fill": "$success/soft-foreground"
-                    }
-                  ]
-                },
-                "MntgG": {
-                  "fill": "$accent/soft",
-                  "stroke": "$accent/accent"
-                },
-                "AWo7q": {
-                  "fill": "$accent/accent"
-                },
-                "z2BJtl": {
-                  "fill": "$foreground/foreground",
-                  "fontWeight": "500"
-                }
-              }
-            },
-            {
-              "type": "frame",
-              "id": "WCTaA",
-              "name": "Body",
-              "width": "fill_container",
-              "height": "fill_container",
-              "gap": 12,
-              "padding": 24,
+              "type": "FRAME",
+              "x": 0,
+              "y": 83,
+              "width": 960,
+              "height": 44,
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [12, 24, 12, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "frame",
-                  "id": "nkbZj",
-                  "name": "StepBody",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 16,
+                  "name": "step_Template",
+                  "type": "FRAME",
+                  "x": 24,
+                  "y": 12,
+                  "width": 79,
+                  "height": 20,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
                   "children": [
                     {
-                      "id": "v9nRu8",
-                      "type": "ref",
-                      "ref": "P6el1o",
-                      "name": "Expose",
-                      "width": "fill_container"
-                    },
-                    {
-                      "id": "ueQDV",
-                      "type": "ref",
-                      "ref": "aOvvm",
-                      "name": "Checkbox Enable Tunnel",
-                      "descendants": {
-                        "rKaQI": {
-                          "content": "Enable tunnel"
-                        }
-                      }
-                    },
-                    {
-                      "id": "L3AQuf",
-                      "type": "ref",
-                      "ref": "mhMaM",
-                      "name": "Field Hostname",
-                      "width": "fill_container",
-                      "descendants": {
-                        "peFYu": {
-                          "content": "Hostname (optional)",
-                          "fill": "$muted",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
-                        },
-                        "RflGC": {
-                          "fill": "$surface/secondary",
-                          "stroke": "$border/border",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "height": 36
-                        },
-                        "O0VQ2": {
-                          "content": "mc.example.dev",
-                          "fill": "$field/placeholder"
-                        },
-                        "kl54d": {
-                          "opacity": 0,
-                          "height": 0
-                        }
-                      }
-                    },
-                    {
-                      "id": "HusIK",
-                      "type": "ref",
-                      "ref": "BHT29",
-                      "name": "PortOverrides",
-                      "width": "fill_container"
-                    },
-                    {
-                      "id": "V5Bj9t",
-                      "type": "ref",
-                      "ref": "LCQU3",
-                      "name": "Field IP allow-list",
-                      "width": "fill_container",
-                      "descendants": {
-                        "it5w4": {
-                          "content": "IP allow-list (CIDRs, optional)",
-                          "fill": "$muted",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
-                        },
-                        "DzfNP": {
-                          "fill": "$surface/secondary",
-                          "stroke": "$border/border",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "height": 72
-                        },
-                        "usWsj": {
-                          "content": "203.0.113.0/24\n10.0.0.0/8",
-                          "fill": "$field/placeholder",
-                          "fontFamily": "$typography/font-mono",
-                          "lineHeight": 1.4
-                        },
-                        "Z9i98U": {
-                          "opacity": 0,
-                          "height": 0
-                        }
-                      }
-                    },
-                    {
-                      "type": "frame",
-                      "id": "BYTNK",
-                      "name": "LoadBalancerAddress",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 6,
+                      "name": "frame",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 20,
+                      "height": 20,
+                      "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
+                      "strokes": [{"type": "SOLID", "color": "#21C45D"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 999,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"fills/0/color": "success/soft", "strokes/0/color": "success/success"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "B5bZmn",
+                          "id": "1:7704",
+                          "name": "CheckIcon",
+                          "type": "FRAME",
+                          "x": 4,
+                          "y": 4,
+                          "width": 12,
+                          "height": 12,
+                          "variables": {"fills/0/color": "success/soft-foreground"},
+                          "children": [
+                            {
+                              "name": "path",
+                              "type": "VECTOR",
+                              "x": 2,
+                              "y": 3,
+                              "width": 8,
+                              "height": 5.5,
+                              "strokes": [{"type": "SOLID", "color": "#17C964"}],
+                              "strokeWeight": 1
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "StepLabel",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 2,
+                      "width": 51,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Template",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Sep",
+                  "type": "TEXT",
+                  "x": 111,
+                  "y": 14,
+                  "width": 3,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "·",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "step_Version",
+                  "type": "FRAME",
+                  "x": 122,
+                  "y": 12,
+                  "width": 69,
+                  "height": 20,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "frame",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 20,
+                      "height": 20,
+                      "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
+                      "strokes": [{"type": "SOLID", "color": "#21C45D"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 999,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"fills/0/color": "success/soft", "strokes/0/color": "success/success"},
+                      "children": [
+                        {
+                          "id": "1:7705",
+                          "name": "CheckIcon",
+                          "type": "FRAME",
+                          "x": 4,
+                          "y": 4,
+                          "width": 12,
+                          "height": 12,
+                          "variables": {"fills/0/color": "success/soft-foreground"},
+                          "children": [
+                            {
+                              "name": "path",
+                              "type": "VECTOR",
+                              "x": 2,
+                              "y": 3,
+                              "width": 8,
+                              "height": 5.5,
+                              "strokes": [{"type": "SOLID", "color": "#17C964"}],
+                              "strokeWeight": 1
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "StepLabel",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 2,
+                      "width": 41,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Version",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Sep",
+                  "type": "TEXT",
+                  "x": 199,
+                  "y": 14,
+                  "width": 3,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "·",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "step_Configure",
+                  "type": "FRAME",
+                  "x": 210,
+                  "y": 12,
+                  "width": 82,
+                  "height": 20,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "frame",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 20,
+                      "height": 20,
+                      "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
+                      "strokes": [{"type": "SOLID", "color": "#21C45D"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 999,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"fills/0/color": "success/soft", "strokes/0/color": "success/success"},
+                      "children": [
+                        {
+                          "id": "1:7706",
+                          "name": "CheckIcon",
+                          "type": "FRAME",
+                          "x": 4,
+                          "y": 4,
+                          "width": 12,
+                          "height": 12,
+                          "variables": {"fills/0/color": "success/soft-foreground"},
+                          "children": [
+                            {
+                              "name": "path",
+                              "type": "VECTOR",
+                              "x": 2,
+                              "y": 3,
+                              "width": 8,
+                              "height": 5.5,
+                              "strokes": [{"type": "SOLID", "color": "#17C964"}],
+                              "strokeWeight": 1
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "StepLabel",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 2,
+                      "width": 54,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Configure",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Sep",
+                  "type": "TEXT",
+                  "x": 300,
+                  "y": 14,
+                  "width": 3,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "·",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "step_Network",
+                  "type": "FRAME",
+                  "x": 311,
+                  "y": 12,
+                  "width": 77,
+                  "height": 20,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "frame",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 20,
+                      "height": 20,
+                      "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                      "strokes": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 999,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"fills/0/color": "accent/soft", "strokes/0/color": "accent/accent"},
+                      "children": [
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 7,
+                          "y": 3.5,
+                          "width": 6,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                          "text": "4",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "accent/accent"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "StepLabel",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 2,
+                      "width": 49,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Network",
+                      "font": ["Geist", 500, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Sep",
+                  "type": "TEXT",
+                  "x": 396,
+                  "y": 14,
+                  "width": 3,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "·",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "step_Review",
+                  "type": "FRAME",
+                  "x": 407,
+                  "y": 12,
+                  "width": 68,
+                  "height": 20,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "frame",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 20,
+                      "height": 20,
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 999,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"strokes/0/color": "border/border"},
+                      "children": [
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 7,
+                          "y": 3.5,
+                          "width": 6,
+                          "height": 13,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "5",
+                          "font": ["JetBrains Mono", 400, 10],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "StepLabel",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 2,
+                      "width": 40,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Review",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1:7707",
+              "name": "Body",
+              "type": "FRAME",
+              "x": 0,
+              "y": 127,
+              "width": 960,
+              "height": 875,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [24, 24, 24, 24],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:7708",
+                  "name": "StepBody",
+                  "type": "FRAME",
+                  "x": 24,
+                  "y": 24,
+                  "width": 627,
+                  "height": 842,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 16,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "id": "1:7709",
+                      "name": "Expose",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 627,
+                      "height": 85,
+                      "component": "Gameplane/Expose Setting",
+                      "componentId": "1:2224",
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "texts": [
+                        "Expose",
+                        "ClusterIP",
+                        "Internal to cluster only.",
+                        "NodePort",
+                        "Reach via any node's IP.",
+                        "LoadBalancer",
+                        "Provisions an external LB."
+                      ]
+                    },
+                    {
+                      "id": "1:7710",
+                      "name": "Checkbox Enable Tunnel",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 101,
+                      "width": 115,
+                      "height": 18,
+                      "component": "Checkbox/Unchecked",
+                      "componentId": "1:2237",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "texts": ["Enable tunnel"]
+                    },
+                    {
+                      "id": "1:7711",
+                      "name": "Field Hostname",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 135,
+                      "width": 627,
+                      "height": 60,
+                      "component": "Input/Secondary",
+                      "componentId": "1:2112",
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "texts": ["Hostname (optional)", "mc.example.dev", "We'll never share your email."]
+                    },
+                    {
+                      "id": "1:7712",
+                      "name": "PortOverrides",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 211,
+                      "width": 627,
+                      "height": 165,
+                      "component": "Gameplane/Port Overrides",
+                      "componentId": "1:2242",
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 6,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "texts": [
+                        "Port overrides (optional)",
+                        "Port name",
+                        "Service port",
+                        "NodePort",
+                        "Email",
+                        "game",
+                        "We'll never share your email.",
+                        "Email",
+                        "25565",
+                        "We'll never share your email.",
+                        "Email",
+                        "31565",
+                        "We'll never share your email.",
+                        "Add port override",
+                        "Pin a NodePort or override the Service port for a named template port."
+                      ]
+                    },
+                    {
+                      "id": "1:7713",
+                      "name": "Field IP allow-list",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 392,
+                      "width": 627,
+                      "height": 96,
+                      "component": "Textarea/Secondary",
+                      "componentId": "1:2119",
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "texts": ["IP allow-list (CIDRs, optional)", "203.0.113.0/24\n10.0.0.0/8", "Max 500 characters."]
+                    },
+                    {
+                      "id": "1:7714",
+                      "name": "LoadBalancerAddress",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 504,
+                      "width": 627,
+                      "height": 338,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 6,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "id": "1:7715",
                           "name": "Label",
-                          "fill": "$muted",
-                          "content": "Load balancer address (optional)",
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 179,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Load balancer address (optional)",
+                          "font": ["Geist", 400, 12],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "type": "frame",
-                          "id": "O8IY1a",
+                          "id": "1:7716",
                           "name": "ColHeader",
-                          "width": "fill_container",
-                          "gap": 8,
-                          "alignItems": "center",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 22,
+                          "width": 627,
+                          "height": 16,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "type": "text",
-                              "id": "WjwoU",
+                              "id": "1:7717",
                               "name": "Col",
-                              "fill": "$muted",
-                              "textGrowth": "fixed-width",
-                              "width": "fill_container",
-                              "content": "Address pool",
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 309.5,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "layoutGrow": 1,
+                              "text": "Address pool",
+                              "font": ["Geist", 400, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "type": "text",
-                              "id": "QBw0A",
+                              "id": "1:7718",
                               "name": "Col",
-                              "fill": "$muted",
-                              "textGrowth": "fixed-width",
-                              "width": "fill_container",
-                              "content": "Requested address",
-                              "fontFamily": "$typography/font-sans",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
+                              "type": "TEXT",
+                              "x": 317.5,
+                              "y": 0,
+                              "width": 309.5,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "layoutGrow": 1,
+                              "text": "Requested address",
+                              "font": ["Geist", 400, 12],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             }
                           ]
                         },
                         {
-                          "type": "frame",
-                          "id": "scufD",
+                          "id": "1:7719",
                           "name": "Row",
-                          "width": "fill_container",
-                          "gap": 8,
-                          "alignItems": "center",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 44,
+                          "width": 627,
+                          "height": 62,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "N82BwR",
-                              "type": "ref",
-                              "ref": "aRqX6",
+                              "id": "1:7720",
                               "name": "Field",
-                              "width": "fill_container",
-                              "descendants": {
-                                "ANxU1": {
-                                  "opacity": 0,
-                                  "height": 0
-                                },
-                                "K5pqlT": {
-                                  "height": 36
-                                },
-                                "hokJ3": {
-                                  "content": "pool-us-west",
-                                  "fill": "$field/placeholder"
-                                },
-                                "OiyAM": {
-                                  "opacity": 0,
-                                  "height": 0
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
+                              "width": 309.5,
+                              "height": 62,
+                              "component": "Input/Primary",
+                              "componentId": "1:1082",
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 4,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "texts": ["Email", "pool-us-west", "We'll never share your email."]
                             },
                             {
-                              "id": "aWg3u",
-                              "type": "ref",
-                              "ref": "aRqX6",
+                              "id": "1:7721",
                               "name": "Field",
-                              "width": "fill_container",
-                              "descendants": {
-                                "ANxU1": {
-                                  "opacity": 0,
-                                  "height": 0
-                                },
-                                "K5pqlT": {
-                                  "height": 36
-                                },
-                                "hokJ3": {
-                                  "content": "203.0.113.50",
-                                  "fill": "$field/placeholder"
-                                },
-                                "OiyAM": {
-                                  "opacity": 0,
-                                  "height": 0
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 317.5,
+                              "y": 0,
+                              "width": 309.5,
+                              "height": 62,
+                              "component": "Input/Primary",
+                              "componentId": "1:1082",
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 4,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutGrow": 1,
+                              "texts": ["Email", "203.0.113.50", "We'll never share your email."]
                             }
                           ]
                         },
                         {
-                          "type": "text",
-                          "id": "G7wgoS",
+                          "id": "1:7722",
                           "name": "Helper",
-                          "fill": "$muted",
-                          "textGrowth": "fixed-width",
-                          "width": "fill_container",
-                          "content": "Name of a load-balancer address pool configured by your cluster admin, plus an optional specific address to request. Applies only when Expose is set to LoadBalancer — ignored otherwise.",
-                          "lineHeight": 1.4,
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 112,
+                          "width": 627,
+                          "height": 30,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Name of a load-balancer address pool configured by your cluster admin, plus an optional specific address to request. Applies only when Expose is set to LoadBalancer — ignored otherwise.",
+                          "font": ["Geist", 400, 11],
+                          "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "GVrYq",
-                          "type": "ref",
-                          "ref": "Llzos",
+                          "id": "1:7723",
                           "name": "Alert Address preference ignored",
-                          "width": "fill_container",
-                          "fill": "$warning/soft",
-                          "stroke": "$warning/soft-foreground",
-                          "strokeWidth": 1,
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 148,
+                          "width": 627,
+                          "height": 92,
+                          "component": "Alert/Warning",
+                          "componentId": "1:2268",
+                          "fills": [{"type": "SOLID", "color": "#F7B75026", "opacity": 0.15}],
+                          "strokes": [{"type": "SOLID", "color": "#F7B750"}],
+                          "strokeWeight": 1,
+                          "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
                           "cornerRadius": 8,
-                          "padding": [
-                            16,
-                            20
-                          ],
-                          "descendants": {
-                            "sINBP": {
-                              "icon": "megaphone"
-                            },
-                            "BXuYr": {
-                              "content": "Address preference ignored"
-                            },
-                            "JmFhb": {
-                              "content": "Expose is set to NodePort. Address pool and requested address only take effect when Expose (above) is set to LoadBalancer."
-                            },
-                            "c0FRXZ": {
-                              "opacity": 0,
-                              "height": 0
-                            }
-                          }
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 16,
+                            "padding": [16, 20, 16, 20],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"fills/0/color": "warning/soft", "strokes/0/color": "warning/soft-foreground"},
+                          "texts": [
+                            "Address preference ignored",
+                            "Expose is set to NodePort. Address pool and requested address only take effect when Expose (above) is set to LoadBalancer.",
+                            "Manage storage"
+                          ]
                         },
                         {
-                          "id": "zrQdI",
-                          "type": "ref",
-                          "ref": "Llzos",
+                          "id": "1:7724",
                           "name": "Alert No address manager configured",
-                          "width": "fill_container",
-                          "fill": "$warning/soft",
-                          "stroke": "$warning/soft-foreground",
-                          "strokeWidth": 1,
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 246,
+                          "width": 627,
+                          "height": 92,
+                          "component": "Alert/Warning",
+                          "componentId": "1:2268",
+                          "fills": [{"type": "SOLID", "color": "#F7B75026", "opacity": 0.15}],
+                          "strokes": [{"type": "SOLID", "color": "#F7B750"}],
+                          "strokeWeight": 1,
+                          "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
                           "cornerRadius": 8,
-                          "padding": [
-                            16,
-                            20
-                          ],
-                          "descendants": {
-                            "sINBP": {
-                              "icon": "megaphone"
-                            },
-                            "BXuYr": {
-                              "content": "No address manager configured"
-                            },
-                            "JmFhb": {
-                              "content": "This cluster has no MetalLB or Cilium address manager. Your pool and address preference will be saved but never applied."
-                            },
-                            "c0FRXZ": {
-                              "opacity": 0,
-                              "height": 0
-                            }
-                          }
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 16,
+                            "padding": [16, 20, 16, 20],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"fills/0/color": "warning/soft", "strokes/0/color": "warning/soft-foreground"},
+                          "texts": [
+                            "No address manager configured",
+                            "This cluster has no MetalLB or Cilium address manager. Your pool and address preference will be saved but never applied.",
+                            "Manage storage"
+                          ]
                         }
                       ]
                     }
                   ]
                 },
                 {
-                  "id": "pnrgN",
-                  "type": "ref",
-                  "ref": "E9qpx",
+                  "id": "1:7725",
                   "name": "Preview",
-                  "height": "fill_container"
+                  "type": "INSTANCE",
+                  "x": 663,
+                  "y": 24,
+                  "width": 273,
+                  "height": 827,
+                  "component": "Gameplane/Create Server Preview",
+                  "componentId": "1:2279",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 8,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "clips": true,
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "texts": [
+                    "Minecraft (Java Edition)",
+                    "Template: minecraft-java",
+                    "apiVersion: gameplane.local/v1alpha1",
+                    "kind: GameServer",
+                    "metadata:",
+                    "  name: mc-survival",
+                    "spec:",
+                    "  template: minecraft-java",
+                    "  version: fabric-1.21.4",
+                    "  resources:",
+                    "    cpu: 2000m",
+                    "    memory: 6Gi",
+                    "  network:",
+                    "    expose: NodePort",
+                    "    ports:",
+                    "      game: 31565",
+                    "  config: {...}",
+                    "Memory tip — factor in mod/plugin overhead; Minecraft Vanilla uses ~1.5 GB at 4 players."
+                  ]
                 }
               ]
             },
             {
-              "id": "D2Lejv",
-              "type": "ref",
-              "ref": "IoDHI",
+              "id": "1:7726",
               "name": "Footer",
-              "width": "fill_container",
-              "descendants": {
-                "q4aClI": {
-                  "name": "BackBtn"
-                },
-                "q4aClI/bevQZ": {
-                  "enabled": true,
-                  "icon": "arrow-left"
-                },
-                "q4aClI/ezEy1": {
-                  "content": "Back"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 1002,
+              "width": 960,
+              "height": 68,
+              "component": "Gameplane/Wizard Modal Footer",
+              "componentId": "1:2019",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 28, 16, 28],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
+              "texts": ["Docs: Creating game servers", "Back", "Continue to Version"]
             }
           ]
         }

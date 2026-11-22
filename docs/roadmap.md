@@ -2,7 +2,7 @@
 
 ## Current release
 
-- **Version:** `v0.4.0` (pre-v1), released 2026-11-10. See the [changelog](../CHANGELOG.md).
+- **Version:** `v0.4.3` (pre-v1), released 2026-11-21. See the [changelog](../CHANGELOG.md).
 - **Status as of 2026-11-10:** The CRDs, operator, API, agent, and dashboard are
   feature-complete for the v1 scope and stabilized for external testing, but the
   project is not yet recommended for unattended production. This page tracks what
@@ -16,7 +16,7 @@ discovered along the way gets added.
 
 ## Shipped releases
 
-### Shipped in v0.4.0
+### Shipped in v0.4.0 <!-- doc-versions: historical -->
 
 - Independent central panel: Docker Compose runs the API and dashboard without a host Kubernetes cluster; a standalone Helm profile runs without the central operator or workloads ([changelog](../CHANGELOG.md)).
 - Credential maintenance: standalone key custody, offline `rotate-panel-key`, `PUT /clusters/{name}/kubeconfig`, and `PUT`/`DELETE /clusters/{name}/gateway` ([changelog](../CHANGELOG.md)).
@@ -229,7 +229,7 @@ current cluster state and *propose* fixes — strictly read-only, no writes.
 A new optional component [optional] (distroless Docker image, Helm toggle) exposing only
 `List` / `Get` / `Watch` over the Gameplane CRDs plus Pods, Events, and pod logs.
 "Propose a fix" returns suggested YAML or `kubectl` invocations as text — no
-create/update/delete/patch tool exists. See [`mcp-server/README.md`](../mcp-server/README.md).
+create/update/delete/patch tool exists. See [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/main/README.md).
 
 #### Module signing: active for official bundles (ECDSA P-256, Rekor-logged) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
 
@@ -268,9 +268,9 @@ opt-out), and a monthly workflow refreshes the pins. Authoring rules live in
 Status as of 2026-11-11. Task counts come from each spec's `tasks.md`.
 
 - **Spec 002, Nuclear Option module and load-balancer IP pool override** (`specs/002-nuclear-option-ip-pool/`): 136 of 143 tasks done. Blocked: the server does not bind UDP 7777, so no join client can be built until a real-client packet capture documents the handshake (maintainer decision, 2026-10-11). Unblocked by: that packet capture. The join test, its bucket and the coverage row wait on it.
-- **Spec 009, code scanning remediation and Dependabot** (`specs/009-remediate-security-dependabot/`): 80 of 82 tasks done. Blocked: TypeScript 7 is blocked because the `@typescript-eslint` peer range stops before TypeScript 7, and ESLint 10 is blocked because `eslint-plugin-react` does not accept `^10`. Unblocked by: a `@typescript-eslint` release that accepts TypeScript 7 (then T055/T056 and PR #272), and an `eslint-plugin-react` release that accepts `^10` (then PR #386, and #387 if open).
+- **Spec 009, code scanning remediation and Dependabot** (`specs/done_009-remediate-security-dependabot/`): done. All 82 tasks complete; TypeScript 7 landed in PR #902 (superseding PR #272), then archived.
 - **Spec 013, expand test coverage** (`specs/done_013-expand-test-coverage/`): done. All 62 tasks complete; archived.
-- **Spec 019, app localization and community language packs** (`specs/019-localization-language-packs/`): shipped in v0.4.0 (PR #668 is on `master`). 102 of 105 tasks done. Open: T080, the French Reviewers group and reviewer rules; T103, the quickstart run against a `make dev-up` cluster; T105, the archive to `done_019` after every task is complete or withdrawn and the PR is merged.
+- **Spec 019, app localization and community language packs** (`specs/019-localization-language-packs/`): shipped in v0.4.0 (PR #668 is on `master`). 102 of 105 tasks done. Open: T080, the French Reviewers group and reviewer rules; T103, the quickstart run against a `make dev-up` cluster; T105, the archive to `done_019` after every task is complete or withdrawn and the PR is merged. <!-- doc-versions: historical -->
 - **Spec 021, edit game configuration from server Settings** (`specs/done_021-settings-game-config/`): done. All 24 tasks complete; merged in PR #568 and PR #652, then archived.
 - **Spec 022, default telemetry destination, extended telemetry and telemetry dashboard** (`specs/done_022-default-telemetry-dashboard/`): done. All 126 tasks complete, including the 2026-10-14 version-trend amendment (Phase 11 of its `tasks.md`); archived.
 - **Spec 023, change-based test selection** (`specs/023-change-based-test-selection/`): 51 of 52 tasks done. The open task is T052, which measures median runner-minutes after 30 merged PRs. No blocker is named.

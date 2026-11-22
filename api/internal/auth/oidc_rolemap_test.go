@@ -108,7 +108,8 @@ func TestComputeRole(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			role, deny := computeRole(tc.groups, tc.pol)
+			d := decideRole(tc.groups, tc.pol)
+			role, deny := d.Role, d.Deny
 			if role != tc.role || deny != tc.deny {
 				t.Fatalf("got (%q, %v) want (%q, %v)", role, deny, tc.role, tc.deny)
 			}
@@ -485,7 +486,7 @@ func TestGetMatchedGroup(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := getMatchedGroup(tc.groups, tc.pol)
+			got := decideRole(tc.groups, tc.pol).MatchedGroup()
 			if got != tc.want {
 				t.Fatalf("got %q want %q", got, tc.want)
 			}
@@ -836,14 +837,17 @@ func TestHandleCallback_FirstLoginAuditEventEmitted(t *testing.T) {
 	if !strings.Contains(reason, "provider=helm") {
 		t.Fatalf("reason=%q missing provider=helm", reason)
 	}
-	if !strings.Contains(reason, "from=new_user") {
-		t.Fatalf("reason=%q missing from=new_user", reason)
+	if !strings.Contains(reason, "source=new") {
+		t.Fatalf("reason=%q missing source=new", reason)
 	}
-	if !strings.Contains(reason, "to=admin") {
-		t.Fatalf("reason=%q missing to=admin", reason)
+	if !strings.Contains(reason, "role=admin") {
+		t.Fatalf("reason=%q missing role=admin", reason)
 	}
-	if !strings.Contains(reason, "matched=gp-admins") {
-		t.Fatalf("reason=%q missing matched=gp-admins", reason)
+	if !strings.Contains(reason, "group=gp-admins") {
+		t.Fatalf("reason=%q missing group=gp-admins", reason)
+	}
+	if !strings.Contains(reason, "result=applied") {
+		t.Fatalf("reason=%q missing result=applied", reason)
 	}
 }
 
@@ -897,14 +901,17 @@ func TestHandleCallback_ReLoginAuditEventEmitted(t *testing.T) {
 	if !strings.Contains(reason, "provider=helm") {
 		t.Fatalf("reason=%q missing provider=helm", reason)
 	}
-	if !strings.Contains(reason, "from=viewer") {
-		t.Fatalf("reason=%q missing from=viewer", reason)
+	if !strings.Contains(reason, "source=sso") {
+		t.Fatalf("reason=%q missing source=sso", reason)
 	}
-	if !strings.Contains(reason, "to=operator") {
-		t.Fatalf("reason=%q missing to=operator", reason)
+	if !strings.Contains(reason, "role=operator") {
+		t.Fatalf("reason=%q missing role=operator", reason)
 	}
-	if !strings.Contains(reason, "matched=gp-ops") {
-		t.Fatalf("reason=%q missing matched=gp-ops", reason)
+	if !strings.Contains(reason, "group=gp-ops") {
+		t.Fatalf("reason=%q missing group=gp-ops", reason)
+	}
+	if !strings.Contains(reason, "result=applied") {
+		t.Fatalf("reason=%q missing result=applied", reason)
 	}
 }
 
@@ -1057,7 +1064,8 @@ func TestEffectiveHelmPolicy_MostPrivilegedWins(t *testing.T) {
 	// Even though viewer is overridden, admin (from seed) is higher privilege
 	// and should win when computeRole runs on the merged policy.
 	groups := []string{"override-viewer", "seeded-admins"}
-	role, deny := computeRole(groups, effectivePolicy)
+	d := decideRole(groups, effectivePolicy)
+	role, deny := d.Role, d.Deny
 
 	if role != "admin" || deny {
 		t.Fatalf("got (%q, %v) want (admin, false): most-privileged must win", role, deny)
@@ -1082,11 +1090,13 @@ func TestEffectiveHelmPolicy_SC008_ByteIdenticalWithNilOverride(t *testing.T) {
 	groups := []string{"admins", "ops", "viewers"}
 
 	// Direct call on base.
-	directRole, directDeny := computeRole(groups, basePolicy)
+	direct := decideRole(groups, basePolicy)
+	directRole, directDeny := direct.Role, direct.Deny
 
 	// Call through effectiveHelmPolicy with nil override.
 	effectivePolicy := effectiveHelmPolicy(basePolicy, nil)
-	effectiveRole, effectiveDeny := computeRole(groups, effectivePolicy)
+	effective := decideRole(groups, effectivePolicy)
+	effectiveRole, effectiveDeny := effective.Role, effective.Deny
 
 	if directRole != effectiveRole || directDeny != effectiveDeny {
 		t.Fatalf("direct=(%q,%v) effective=(%q,%v), must be identical",
@@ -1253,7 +1263,7 @@ func TestHandleCallback_HelmOverrideMappingsReEvaluateWithoutHelmMappings(t *tes
 	}
 
 	// Login 2: the group is gone at the IdP, but the user is the install's
-	// only user-manager, so the demotion is skipped and not audited.
+	// only user-manager, so the demotion is skipped and audited as guard_last_manager.
 	idp.groups = []string{"unmapped"}
 	idp.nonce = "nonce-ovr-2"
 	if rr := callbackViaIDP(t, o, sessions, "nonce-ovr-2"); rr.Code != http.StatusFound {
@@ -1262,8 +1272,8 @@ func TestHandleCallback_HelmOverrideMappingsReEvaluateWithoutHelmMappings(t *tes
 	if role, binding := roleOf("login 2"); role != "admin" || binding != "admin" {
 		t.Fatalf("login 2: role=%q binding=%q, last user-manager must keep admin", role, binding)
 	}
-	if len(rec.reasons) != 1 {
-		t.Fatalf("login 2: audit events = %d (%v), want still 1", len(rec.reasons), rec.reasons)
+	if len(rec.reasons) != 2 {
+		t.Fatalf("login 2: audit events = %d (%v), want 2", len(rec.reasons), rec.reasons)
 	}
 
 	// Login 3: another user-manager exists now, so the re-evaluation
@@ -1276,11 +1286,11 @@ func TestHandleCallback_HelmOverrideMappingsReEvaluateWithoutHelmMappings(t *tes
 	if role, binding := roleOf("login 3"); role != "viewer" || binding != "viewer" {
 		t.Fatalf("login 3: role=%q binding=%q, want viewer/viewer", role, binding)
 	}
-	if len(rec.reasons) != 2 {
-		t.Fatalf("login 3: audit events = %d (%v), want 2", len(rec.reasons), rec.reasons)
+	if len(rec.reasons) != 3 {
+		t.Fatalf("login 3: audit events = %d (%v), want 3", len(rec.reasons), rec.reasons)
 	}
-	if want := "oidc role assigned: provider=helm matched=none from=admin to=viewer"; rec.reasons[1] != want {
-		t.Fatalf("login 3: audit reason = %q, want %q", rec.reasons[1], want)
+	if want := "oidc role decision: provider=helm rule=default group=- role=viewer source=sso result=applied"; rec.reasons[2] != want {
+		t.Fatalf("login 3: audit reason = %q, want %q", rec.reasons[2], want)
 	}
 }
 
@@ -1342,21 +1352,22 @@ func TestHandleCallback_AuditEventRecordsCorrectPath(t *testing.T) {
 		t.Fatalf("audit reasons=%v, want 1", rec.reasons)
 	}
 
-	// The emitRoleAssignmentAudit helper is called from the closure in HandleCallbackAt,
-	// which has access to req.URL.Path. By calling emitRoleAssignmentAudit directly with
+	// The emitRoleDecisionAudit helper is called from the closure in HandleCallbackAt,
+	// which has access to req.URL.Path. By calling emitRoleDecisionAudit directly with
 	// the desired path, we can verify the path is correctly used.
 	user := &User{ID: 1, Username: "testuser", Role: "admin"}
-	outcome := &RoleAssignmentOutcome{
+	outcome := &RoleDecisionOutcome{
 		PreviousRole: "new_user",
 		NewRole:      "admin",
 		Applied:      true,
 		MatchedGroup: "gp-admins",
+		Result:       "applied",
 	}
 
-	// Test emitRoleAssignmentAudit directly with a per-provider path.
+	// Test emitRoleDecisionAudit directly with a per-provider path.
 	rec2 := &auditWriteRecorder{}
 	o.AttachAuditWriteSyncFunc(rec2.write)
-	o.emitRoleAssignmentAudit(context.Background(), user, perProviderPath, "testuser@example.com", outcome)
+	o.emitRoleDecisionAudit(context.Background(), user, perProviderPath, "testuser@example.com", outcome)
 
 	if len(rec2.paths) != 1 {
 		t.Fatalf("direct call paths=%v, want 1", rec2.paths)
@@ -1369,7 +1380,7 @@ func TestHandleCallback_AuditEventRecordsCorrectPath(t *testing.T) {
 	legacyPath := "/auth/oidc/callback"
 	rec3 := &auditWriteRecorder{}
 	o.AttachAuditWriteSyncFunc(rec3.write)
-	o.emitRoleAssignmentAudit(context.Background(), user, legacyPath, "testuser@example.com", outcome)
+	o.emitRoleDecisionAudit(context.Background(), user, legacyPath, "testuser@example.com", outcome)
 
 	if len(rec3.paths) != 1 {
 		t.Fatalf("legacy paths=%v, want 1", rec3.paths)

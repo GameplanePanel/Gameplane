@@ -254,7 +254,8 @@ func dirNames(fd int) ([]string, error) {
 	return names, nil
 }
 
-// listDir returns the visible (non-dot) entries of the directory comps.
+// listDir returns visible (non-dot) entries, directories first and then files,
+// with each group sorted by name.
 func (h *handler) listDir(comps []string) ([]Entry, error) {
 	rootFD, err := openRoot(h.root)
 	if err != nil {
@@ -298,6 +299,15 @@ func (h *handler) listDir(comps []string) ([]Entry, error) {
 			ModTime: time.Unix(st.Mtim.Unix()).UTC().Format(time.RFC3339),
 		})
 	}
+	slices.SortStableFunc(out, func(a, b Entry) int {
+		if a.Dir == b.Dir {
+			return 0 // dirNames already sorted each group by name.
+		}
+		if a.Dir {
+			return -1
+		}
+		return 1
+	})
 	return out, nil
 }
 

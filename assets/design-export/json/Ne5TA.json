@@ -1,151 +1,279 @@
 {
-  "type": "frame",
-  "id": "Ne5TA",
+  "file": "Ne5TA",
+  "id": "1:8895",
+  "name": "Screen/Not Found",
+  "type": "FRAME",
   "x": 0,
   "y": 92828,
-  "name": "Screen/Not Found",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "egHcu",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:8896",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "eZfFp",
+      "id": "1:8897",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "g1Myc",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:8898",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "Page not found"
-            },
-            "Gb27k": {
-              "fontFamily": "$typography/font-sans"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Page not found", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "A8R99",
+          "id": "1:8899",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "padding": 32,
-          "justifyContent": "center",
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "padding": [32, 32, 32, 32],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "type": "frame",
-              "id": "LwXy3",
+              "id": "1:8900",
               "name": "Empty State",
+              "type": "FRAME",
+              "x": 380,
+              "y": 332,
               "width": 420,
-              "layout": "vertical",
-              "gap": 12,
-              "alignItems": "center",
+              "height": 172,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
               "children": [
                 {
-                  "type": "frame",
-                  "id": "h6XmMz",
+                  "id": "1:8901",
                   "name": "Icon Badge",
+                  "type": "FRAME",
+                  "x": 186,
+                  "y": 0,
                   "width": 48,
                   "height": 48,
-                  "fill": "$border/border",
+                  "fills": [{"type": "SOLID", "color": "#2C2932"}],
                   "cornerRadius": 24,
-                  "justifyContent": "center",
-                  "alignItems": "center",
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "icon",
-                      "id": "KGews",
+                      "id": "1:8902",
                       "name": "Icon",
+                      "type": "FRAME",
+                      "x": 12,
+                      "y": 12,
                       "width": 24,
                       "height": 24,
-                      "icon": "compass",
-                      "library": "lucide",
-                      "fill": "$muted"
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2,
+                          "y": 2,
+                          "width": 20,
+                          "height": 20,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 2
+                        },
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 7.76,
+                          "y": 7.76,
+                          "width": 8.48,
+                          "height": 8.48,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 2
+                        }
+                      ]
                     }
                   ]
                 },
                 {
-                  "type": "text",
-                  "id": "afaSA",
+                  "id": "1:8903",
                   "name": "Title",
-                  "fill": "$foreground/foreground",
-                  "content": "Page not found",
-                  "textAlign": "center",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 20,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 137,
+                  "y": 60,
+                  "width": 146,
+                  "height": 26,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Page not found",
+                  "font": ["Geist", 600, 20],
+                  "align": "CENTER",
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "zJ7I0",
+                  "id": "1:8904",
                   "name": "Body Text",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "The page you're looking for doesn't exist or has moved.",
-                  "textAlign": "center",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 98,
+                  "width": 420,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "The page you're looking for doesn't exist or has moved.",
+                  "font": ["Geist", 400, 14],
+                  "align": "CENTER",
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "type": "frame",
-                  "id": "X2HZCC",
+                  "id": "1:8905",
                   "name": "Button Wrap",
-                  "padding": [
-                    8,
-                    0,
-                    0,
-                    0
-                  ],
+                  "type": "FRAME",
+                  "x": 139.5,
+                  "y": 128,
+                  "width": 141,
+                  "height": 44,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [8, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
                   "children": [
                     {
-                      "id": "fQ53H",
-                      "type": "ref",
-                      "ref": "cb4rt",
+                      "id": "1:8906",
                       "name": "Btn Go to dashboard",
-                      "descendants": {
-                        "Xpn7K": {
-                          "enabled": false
-                        },
-                        "U6q13B": {
-                          "content": "Go to dashboard"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 8,
+                      "width": 141,
+                      "height": 36,
+                      "component": "Button/Primary/MD",
+                      "componentId": "1:1094",
+                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "fills/0/color": "accent/accent"
+                      },
+                      "texts": ["Go to dashboard"]
                     }
                   ]
                 }

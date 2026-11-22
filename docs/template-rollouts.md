@@ -29,6 +29,25 @@ Pin `Module.spec.version` before upgrading and enable staging before a later
 catalog change. A pre-upgrade backup, restore or wipe already in progress finishes
 before baseline initialization. A new server gets its pin before first startup.
 
+An installed update reaches a running server only through this admission path:
+
+```mermaid
+flowchart TD
+    A["Module install changes the shared GameTemplate"] --> B["Desired digest in status.templateRevision"]
+    B --> C{"Rollout policy"}
+    C -->|Automatic| E["Admit"]
+    C -->|OnRequest| D{"requestedRevision equals desired digest?"}
+    D -->|No| H["Held: effective pin unchanged"]
+    D -->|Yes| F{"cancel-template-rollout annotation set to this digest?"}
+    F -->|Yes| H
+    F -->|No| E
+    E --> G["Wait for any backup, restore or wipe owner"]
+    G --> I["Graceful stop through the previous effective template"]
+    I --> J["Old Pod gone, switch effective pin"]
+    J --> K["Create replacement Pod"]
+    K --> L["Owner released, running revision observed"]
+```
+
 Inspect the three digests:
 
 ```sh

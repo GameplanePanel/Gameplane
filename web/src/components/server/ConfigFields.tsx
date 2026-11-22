@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from "react";
 import { Button, Input } from "@heroui/react";
+import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { CONFIG_REDACTED_MARKER, type ConfigField } from "@/lib/validation";
@@ -26,7 +27,9 @@ export const REMOVING_PASSWORD_NOTE = "Removed when you save. Undo to keep the s
 export const UNSET_OPTION_LABEL = "Select…";
 export const UNCHANGED_OPTION_LABEL = "Unchanged";
 
-const SELECT_BASE = "h-9 w-full rounded-md border border-border bg-surface px-3 text-sm";
+// Gameplane/Select (AT7ya): 36px, 12px corners, field fill and border, a
+// lucide chevron instead of the browser's native arrow.
+const SELECT_BASE = "h-9 w-full appearance-none rounded-[12px] border border-[var(--field-border)] bg-[var(--field-background)] pl-3 pr-9 text-sm";
 
 export interface ConfigFieldInputProps {
   field: ConfigField;
@@ -89,21 +92,24 @@ export function ConfigFieldInput({
     // enum member.
     const current = stored ? "" : (value ?? field.default ?? "");
     control = (
-      <select
-        {...common}
-        className={cn(SELECT_BASE, invalid && "border-danger", disabled && "opacity-60")}
-        value={current}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {current === "" && (
-          <option value="">{stored ? intl.formatMessage({ id: "web.components.server.config_fields.option_unchanged", defaultMessage: "Unchanged", description: "Config fields: option label of an empty select whose stored value is kept as unchanged" }) : intl.formatMessage({ id: "web.components.server.config_fields.option_select", defaultMessage: "Select…", description: "Config fields: option label of an empty select with no value and no default, shown until a value is picked" })}</option>
-        )}
-        {field.enum?.map((v) => (
-          <option key={v} value={v}>
-            {text(moduleIds.configOption(field.name, v), v)}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          {...common}
+          className={cn(SELECT_BASE, invalid && "border-danger", disabled && "opacity-60")}
+          value={current}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          {current === "" && (
+            <option value="">{stored ? intl.formatMessage({ id: "web.components.server.config_fields.option_unchanged", defaultMessage: "Unchanged", description: "Config fields: option label of an empty select whose stored value is kept as unchanged" }) : intl.formatMessage({ id: "web.components.server.config_fields.option_select", defaultMessage: "Select…", description: "Config fields: option label of an empty select with no value and no default, shown until a value is picked" })}</option>
+          )}
+          {field.enum?.map((v) => (
+            <option key={v} value={v}>
+              {text(moduleIds.configOption(field.name, v), v)}
+            </option>
+          ))}
+        </select>
+        <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+      </div>
     );
   } else if (field.type === "bool") {
     // An optional bool with no value/default reads "false" (unset is valid). A
@@ -111,18 +117,21 @@ export function ConfigFieldInput({
     // disabled until a real value is chosen (and choosing "false" fires onChange).
     const current = stored ? "" : (value ?? field.default ?? (field.required ? "" : "false"));
     control = (
-      <select
-        {...common}
-        className={cn(SELECT_BASE, invalid && "border-danger", disabled && "opacity-60")}
-        value={current}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {current === "" && (
-          <option value="">{stored ? intl.formatMessage({ id: "web.components.server.config_fields.option_unchanged", defaultMessage: "Unchanged", description: "Config fields: option label of an empty select whose stored value is kept as unchanged" }) : intl.formatMessage({ id: "web.components.server.config_fields.option_select", defaultMessage: "Select…", description: "Config fields: option label of an empty select with no value and no default, shown until a value is picked" })}</option>
-        )}
-        <option value="true">{intl.formatMessage({ id: "web.components.server.config_fields.true", defaultMessage: "true", description: "Config fields: dropdown option meaning the setting is on, the value true; keep it short" })}</option>
-        <option value="false">{intl.formatMessage({ id: "web.components.server.config_fields.false", defaultMessage: "false", description: "Config fields: dropdown option meaning the setting is off, the value false; keep it short" })}</option>
-      </select>
+      <div className="relative">
+        <select
+          {...common}
+          className={cn(SELECT_BASE, invalid && "border-danger", disabled && "opacity-60")}
+          value={current}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          {current === "" && (
+            <option value="">{stored ? intl.formatMessage({ id: "web.components.server.config_fields.option_unchanged", defaultMessage: "Unchanged", description: "Config fields: option label of an empty select whose stored value is kept as unchanged" }) : intl.formatMessage({ id: "web.components.server.config_fields.option_select", defaultMessage: "Select…", description: "Config fields: option label of an empty select with no value and no default, shown until a value is picked" })}</option>
+          )}
+          <option value="true">{intl.formatMessage({ id: "web.components.server.config_fields.true", defaultMessage: "true", description: "Config fields: dropdown option meaning the setting is on, the value true; keep it short" })}</option>
+          <option value="false">{intl.formatMessage({ id: "web.components.server.config_fields.false", defaultMessage: "false", description: "Config fields: dropdown option meaning the setting is off, the value false; keep it short" })}</option>
+        </select>
+        <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+      </div>
     );
   } else {
     const shown = stored || removing ? "" : (value ?? field.default ?? "");

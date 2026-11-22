@@ -1,317 +1,504 @@
 {
-  "type": "frame",
-  "id": "Z079vK",
-  "x": 8327.959083557127,
-  "y": 1020.8789062499995,
+  "file": "Z079vK",
+  "id": "1:1757",
   "name": "Receiver / Overview — empty",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
+  "type": "FRAME",
+  "x": 8327.96,
+  "y": 1020.88,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
-  "layout": "vertical",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "type": "frame",
-      "id": "eJ6OT",
+      "id": "1:1758",
       "name": "Top bar",
-      "width": "fill_container",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
       "height": 64,
-      "stroke": "$border",
-      "strokeWidth": {
-        "bottom": 1
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 40, 0, 40],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
       },
-      "strokeAlignment": "inner",
-      "padding": [
-        0,
-        40
-      ],
-      "justifyContent": "space_between",
-      "alignItems": "center",
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border"},
       "children": [
         {
-          "type": "frame",
-          "id": "fLKfk",
+          "id": "1:1759",
           "name": "Brand",
-          "gap": 10,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 40,
+          "y": 20,
+          "width": 371,
+          "height": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 10,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
+            {"id": "1:1760", "name": "Logo", "type": "RECTANGLE", "x": 0, "y": 0, "width": 24, "height": 24},
             {
-              "type": "rectangle",
-              "id": "Oy7L3",
-              "name": "Logo",
-              "fill": {
-                "type": "image",
-                "enabled": true,
-                "url": "../website/design-assets/gameplane-icon.png",
-                "mode": "contain"
-              },
-              "width": 24,
-              "height": 24
-            },
-            {
-              "type": "text",
-              "id": "k0J6XW",
+              "id": "1:1761",
               "name": "Wordmark",
-              "fill": "$foreground/foreground",
-              "content": "gameplane",
-              "fontFamily": "$typography/font-mono",
-              "fontSize": 15,
-              "fontWeight": "600"
+              "type": "TEXT",
+              "x": 34,
+              "y": 2,
+              "width": 82,
+              "height": 20,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "gameplane",
+              "font": ["JetBrains Mono", 600, 15],
+              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
             },
             {
-              "type": "text",
-              "id": "W2GPI",
+              "id": "1:1762",
               "name": "Slash",
-              "fill": "$foreground/muted",
-              "content": "/",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 15,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 126,
+              "y": 2,
+              "width": 8,
+              "height": 20,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "/",
+              "font": ["Geist", 400, 15],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
             },
             {
-              "type": "text",
-              "id": "FgVOn",
+              "id": "1:1763",
               "name": "Product",
-              "fill": "$foreground/foreground",
-              "content": "Telemetry",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 15,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 144,
+              "y": 2,
+              "width": 68,
+              "height": 20,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Telemetry",
+              "font": ["Geist", 400, 15],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "th45R",
-              "type": "ref",
-              "ref": "Q401P",
+              "id": "1:1764",
               "name": "Approx chip",
-              "descendants": {
-                "wH6ey": {
-                  "content": "Approximate · self-reported"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 222,
+              "y": 3,
+              "width": 149,
+              "height": 18,
+              "component": "Chip/Soft/Accent/SM",
+              "componentId": "1:284",
+              "fills": [{"type": "SOLID", "color": "#331525"}],
+              "cornerRadius": 16,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 2,
+                "padding": [2, 4, 2, 4],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "accent/soft"},
+              "texts": ["Approximate · self-reported"]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "YA8Cg",
+          "id": "1:1765",
           "name": "Session",
-          "gap": 16,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 1221,
+          "y": 16,
+          "width": 179,
+          "height": 32,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 16,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "type": "text",
-              "id": "L19QW",
+              "id": "1:1766",
               "name": "As of",
-              "fill": "$foreground/muted",
-              "content": "No data yet",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 13,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 7.5,
+              "width": 69,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "No data yet",
+              "font": ["Geist", 400, 13],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
             },
             {
-              "id": "R6ROEM",
-              "type": "ref",
-              "ref": "bCpKh",
+              "id": "1:1767",
               "name": "Sign out",
-              "descendants": {
-                "Watg8": {
-                  "icon": "log-out"
-                },
-                "U8ICg": {
-                  "content": "Sign out"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 85,
+              "y": 0,
+              "width": 94,
+              "height": 32,
+              "component": "Button/Outline/SM",
+              "componentId": "1:141",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 5,
+                "padding": [8, 12, 8, 12],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/3",
+                "paddingLeft": "spacing/3",
+                "strokes/0/color": "border"
+              },
+              "texts": ["Sign out"]
             }
           ]
         }
       ]
     },
     {
-      "type": "frame",
-      "id": "W1xXA",
+      "id": "1:1768",
       "name": "Content",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 32,
-      "padding": [
-        32,
-        40,
-        48,
-        40
-      ],
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 1440,
+      "height": 652,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 32,
+        "padding": [32, 40, 48, 40],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "frame",
-          "id": "Y9ifbZ",
+          "id": "1:1769",
           "name": "Title row",
-          "width": "fill_container",
-          "justifyContent": "space_between",
-          "alignItems": "end",
+          "type": "FRAME",
+          "x": 40,
+          "y": 32,
+          "width": 1360,
+          "height": 120,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "SPACE_BETWEEN",
+            "counter": "MAX",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "N3wvSC",
+              "id": "1:1770",
               "name": "Title block",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
               "width": 760,
-              "layout": "vertical",
-              "gap": 8,
+              "height": 120,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
               "children": [
                 {
-                  "type": "text",
-                  "id": "m2ly0",
+                  "id": "1:1771",
                   "name": "Eyebrow",
-                  "fill": "$accent/accent",
-                  "content": "PROVIDER OVERVIEW",
-                  "fontFamily": "$typography/font-mono",
-                  "fontSize": 12,
-                  "fontWeight": "normal",
-                  "letterSpacing": 1.5
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 147,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "text": "PROVIDER OVERVIEW",
+                  "font": ["JetBrains Mono", 400, 12],
+                  "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "accent/accent"}
                 },
                 {
-                  "type": "text",
-                  "id": "uw4PM",
+                  "id": "1:1772",
                   "name": "Title",
-                  "fill": "$foreground/foreground",
-                  "content": "Usage across reporting installs",
-                  "fontFamily": "$typography/font-mono",
-                  "fontSize": 32,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 24,
+                  "width": 596,
+                  "height": 42,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Usage across reporting installs",
+                  "font": ["JetBrains Mono", 600, 32],
+                  "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "ZiECk",
+                  "id": "1:1773",
                   "name": "Subtitle",
-                  "fill": "$foreground/muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Daily aggregates from self-reported, anonymous reports. Every figure is approximate: installs choose to report, and nothing is verified beyond the report signature.",
-                  "lineHeight": 1.5,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 15,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 74,
+                  "width": 760,
+                  "height": 46,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Daily aggregates from self-reported, anonymous reports. Every figure is approximate: installs choose to report, and nothing is verified beyond the report signature.",
+                  "font": ["Geist", 400, 15],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
                 }
               ]
             },
             {
-              "id": "Iz2y7",
-              "type": "ref",
-              "ref": "sklNL",
+              "id": "1:1774",
               "name": "Range",
+              "type": "FRAME",
+              "x": 1015,
+              "y": 80,
+              "width": 345,
+              "height": 40,
+              "fills": [{"type": "SOLID", "color": "#232128"}],
+              "cornerRadius": 20,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [4, 4, 4, 4],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"fills/0/color": "default/default"},
               "children": [
                 {
-                  "id": "hnl8m",
-                  "type": "ref",
-                  "ref": "nO0GM",
+                  "id": "1:1775",
                   "name": "7 days",
-                  "descendants": {
-                    "x5KZZd": {
-                      "content": "7 days"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 4,
+                  "y": 4,
+                  "width": 74,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:341",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["7 days"]
                 },
                 {
-                  "id": "LUA0n",
-                  "type": "ref",
-                  "ref": "iEQse",
+                  "id": "1:1776",
                   "name": "30 days",
-                  "descendants": {
-                    "BtgBT": {
-                      "content": "30 days"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 78,
+                  "y": 4,
+                  "width": 85,
+                  "height": 32,
+                  "component": "Tab/Active",
+                  "componentId": "1:339",
+                  "fills": [{"type": "SOLID", "color": "#1D1B22"}],
+                  "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                  "texts": ["30 days"]
                 },
                 {
-                  "id": "g25lA",
-                  "type": "ref",
-                  "ref": "nO0GM",
+                  "id": "1:1777",
                   "name": "90 days",
-                  "descendants": {
-                    "x5KZZd": {
-                      "content": "90 days"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 163,
+                  "y": 4,
+                  "width": 85,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:341",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["90 days"]
                 },
                 {
-                  "id": "Y3uyQw",
-                  "type": "ref",
-                  "ref": "nO0GM",
+                  "id": "1:1778",
                   "name": "365 days",
-                  "descendants": {
-                    "x5KZZd": {
-                      "content": "365 days"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 248,
+                  "y": 4,
+                  "width": 93,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:341",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["365 days"]
                 }
               ]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "A1PwG",
+          "id": "1:1779",
           "name": "Empty state",
-          "width": "fill_container",
+          "type": "FRAME",
+          "x": 40,
+          "y": 184,
+          "width": 1360,
           "height": 420,
-          "fill": "$surface/surface",
-          "cornerRadius": "$radius/3xl",
-          "stroke": "$border",
-          "strokeWidth": 1,
-          "strokeAlignment": "inner",
-          "layout": "vertical",
-          "gap": 12,
-          "padding": 40,
-          "justifyContent": "center",
-          "alignItems": "center",
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 12,
+            "padding": [40, 40, 40, 40],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface", "strokes/0/color": "border"},
           "children": [
             {
-              "type": "frame",
-              "id": "q5cEEN",
+              "id": "1:1780",
               "name": "Icon wrap",
+              "type": "FRAME",
+              "x": 656,
+              "y": 129.5,
               "width": 48,
               "height": 48,
-              "fill": "$accent/soft",
+              "fills": [{"type": "SOLID", "color": "#331525"}],
               "cornerRadius": 12,
-              "justifyContent": "center",
-              "alignItems": "center",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "variables": {"fills/0/color": "accent/soft"},
               "children": [
                 {
-                  "type": "icon",
-                  "id": "iSRaQ",
+                  "id": "1:1781",
                   "name": "Icon",
+                  "type": "FRAME",
+                  "x": 13,
+                  "y": 13,
                   "width": 22,
                   "height": 22,
-                  "icon": "inbox",
-                  "library": "lucide",
-                  "fill": "$accent/accent"
+                  "variables": {"fills/0/color": "accent/accent"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 1.83,
+                      "y": 11,
+                      "width": 18.33,
+                      "height": 2.75,
+                      "strokes": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "strokeWeight": 1.83
+                    },
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 1.83,
+                      "y": 3.67,
+                      "width": 18.33,
+                      "height": 14.67,
+                      "strokes": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "strokeWeight": 1.83
+                    }
+                  ]
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "T5Kr4b",
+              "id": "1:1782",
               "name": "Title",
-              "fill": "$foreground/foreground",
-              "content": "No reports yet",
-              "fontFamily": "$typography/font-mono",
-              "fontSize": 20,
-              "fontWeight": "600"
+              "type": "TEXT",
+              "x": 596,
+              "y": 189.5,
+              "width": 168,
+              "height": 26,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "No reports yet",
+              "font": ["JetBrains Mono", 600, 20],
+              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
             },
             {
-              "type": "text",
-              "id": "JJM29",
+              "id": "1:1783",
               "name": "Body",
-              "fill": "$foreground/muted",
-              "textGrowth": "fixed-width",
+              "type": "TEXT",
+              "x": 420,
+              "y": 227.5,
               "width": 520,
-              "content": "Figures appear as soon as this receiver accepts a report; today's figures are in progress and update as reports arrive. Installs send to POST /ingest on the public port; nothing is shown until there is data, so no chart is drawn from zeros.",
-              "lineHeight": 1.5,
-              "textAlign": "center",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 14,
-              "fontWeight": "normal"
+              "height": 63,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Figures appear as soon as this receiver accepts a report; today's figures are in progress and update as reports arrive. Installs send to POST /ingest on the public port; nothing is shown until there is data, so no chart is drawn from zeros.",
+              "font": ["Geist", 400, 14],
+              "lineHeight": {"value": 150, "unit": "PERCENT"},
+              "align": "CENTER",
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
             }
           ]
         }

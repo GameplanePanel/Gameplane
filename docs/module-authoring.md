@@ -10,6 +10,20 @@ registry by creating a `ModuleSource` resource; users install a module by
 creating (or clicking Install on) a `Module` resource, which the operator
 materializes into an in-cluster `GameTemplate`.
 
+A module travels from authoring to a running server through these stages:
+
+```mermaid
+flowchart LR
+    A["Author module.yaml, template.yaml, README.md"] --> B["gp-module validate and preview"]
+    B --> C["gp-module package or modules/build.sh (oras push)"]
+    C --> D["OCI registry"]
+    D --> E["ModuleSource catalog (status.modules)"]
+    E --> F["Module CR (spec.source, spec.name, spec.version)"]
+    F --> G["Operator pulls, verifies signature, checks digest pin and operator version"]
+    G --> H["GameTemplate owned by the Module"]
+    H --> I["GameServer (spec.templateRef)"]
+```
+
 ## Quickstart: Authoring with `gp-module` CLI & Web Builder
 
 For a validated wake proxy, add `sentinelIsolation: true` under the template's
@@ -75,7 +89,7 @@ bin/gp-module preview modules/minecraft-java \
 
 ### 4. Packaging and Distribution (`package`)
 
-Enforce asset size limits (icon $\le$ 512 KiB, bundle $\le$ 1 MiB) and export to `.tar.gz` or push directly to an OCI registry:
+Check asset sizes (icon $\le$ 512 KiB, uncompressed bundle $\le$ 1 MiB; larger files produce a warning, not an error) and export to `.tar.gz` or push directly to an OCI registry:
 
 ```sh
 # Package into a local tar.gz bundle
@@ -94,7 +108,7 @@ In the Gameplane web dashboard:
 1. Navigate to **Modules** in the main navigation.
 2. Click **"Create module"** in the top-right header actions.
 3. Follow the 3-step modal wizard:
-   - **Step 1 (Preset & Metadata)**: Choose an archetype card (`SteamCMD Dedicated`, `Java Server`, or `Generic Container`), enter the module name (validated live against DNS-1123 standards), and select category chips.
+   - **Step 1 (Preset & Metadata)**: Choose an archetype card (`SteamCMD Dedicated Server`, `Java Application Server`, or `Generic Container Server`), enter the module name (validated live against DNS-1123 standards), and select category chips.
    - **Step 2 (Container & Ports)**: Configure container image (with digest pinning verification), dynamic port mappings (TCP/UDP, advertise flag), and storage volume size and mount path.
    - **Step 3 (Review & Export)**: View generated files across tabs (`module.yaml`, `template.yaml`, `README.md`) with live syntax editing, monitor instant offline validation results, simulate memory limit scaling, and either download the `.tar.gz` archive or install directly into your cluster's upload source.
 
@@ -268,7 +282,7 @@ Then:
 
 ```sh
 # push every bundle in modules/ to a registry
-make modules-push REGISTRY=ghcr.io/gameplanepanel/gameplane-modules
+make modules-push MODULE_REGISTRY=ghcr.io/gameplanepanel/gameplane-modules
 
 # push a single module to a local kind registry
 modules/build.sh push --registry localhost:5001 --name minecraft-java
@@ -402,7 +416,19 @@ this as a clear "still in use by N servers" message.
 If a `Module` fails to upgrade (pull error, bad signature, incompatible
 operator), the previously-installed `GameTemplate` keeps running unchanged;
 `status.previousVersion` records the last-known-good to roll back to by
-re-pinning `spec.version`.
+re-pinning `spec.version`. A `Module` moves between these phases:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: WaitingForCatalog or NoVersionAvailable
+    Pending --> Pulling: catalog entry and version found
+    Pulling --> Ready: bundle verified and GameTemplate applied
+    Pending --> Failed: SourceNotFound, SourceConfig, VerifyConfig, VersionUnavailable
+    Ready --> Failed: SourceNotFound, SourceConfig, VerifyConfig, VersionUnavailable
+    Pulling --> Failed: PullFailed, SignatureInvalid, DigestMismatch, IncompatibleOperator, ApplyTemplate
+    Failed --> Pulling: spec change (retries at the same generation stay Failed)
+    Ready --> Pulling: spec.version or spec.digest changed
+```
 
 ### Verifying and pinning bundles
 
@@ -1311,7 +1337,7 @@ capabilities:
   group `names`.
 - `list` lets games with no moderation capability still report the
   online player list. `command` is the console command that prints the
-  players (e.g., `/players online` on Factorio, `ShowPlayers` on Palworld).
+  players (e.g., `/players online` on Factorio).
   `entryRegex` optionally extracts one player name per match (first
   capture group, or whole match if no group); multiline mode (`^` / `$`
   per line). When omitted, a built-in parser is used. This is useful for
@@ -1332,6 +1358,42 @@ capabilities:
   From `modules/palworld/template.yaml` (note: Palworld uses the REST
   admin API `protocol: palworld`, not RCON, so the players list is
   fetched via the REST endpoint, not a console command).
+- `query` reads the online player count from a server query protocol
+  instead of the console, for games whose console can't list players, or
+  that have none. `protocol: a2s` is Valve's Steam server query (A2S_INFO),
+  which most Steam dedicated servers answer; `port` is the UDP query port,
+  which must be declared in `spec.ports`. The agent sends the query inside
+  the pod, so the port needn't be advertised. The count drives the
+  dashboard's player count and [idle sleep](architecture.md#sleep-an-idle-server):
+  a server with no player count never sleeps. Bots aren't counted. The
+  Players tab's list and moderation still use the console.
+
+  Illustrative, modelled on Valheim (no RCON; it answers
+  A2S on the game port plus one):
+
+  ```yaml
+  capabilities:
+    players:
+      query:
+        protocol: a2s
+        port: 2457
+  ```
+
+  When `query` is set, it is the only source of the count: the console's
+  `list` isn't used for it, even as a fallback. The agent needs a reply
+  in Valve's single-packet A2S_INFO format: the `FF FF FF FF` header, `I`
+  (0x49), the protocol byte, the server name, map, folder and game as
+  NUL-terminated strings, the two-byte app ID, then one byte each for
+  players, max players and bots. Anything after the bots byte is ignored.
+  A server that first answers with a challenge (`FF FF FF FF`, `A`, four
+  bytes) is asked again with the challenge, up to twice. Split replies
+  (`FE FF FF FF`, sent when a reply doesn't fit one UDP packet) aren't
+  supported; A2S_INFO replies fit in one packet for the games that use
+  this, but a server whose reply is split reports no count. So does one
+  that doesn't answer within two seconds, or answers in another format:
+  its count is unknown, not 0, and it doesn't sleep. Check a new module
+  by watching `status.agent.playersOnline` while a player joins and
+  leaves.
 - The operator uses the verified agent endpoint for live backups. For
   `minecraft-java`, declare the sequence above. The agent checks the English
   vanilla response to each command, including the already-on and already-off
@@ -1343,8 +1405,8 @@ capabilities:
   restarts): the operator issues the sequence — over RCON when the
   template has it, otherwise over a stdin pod-attach for `consoleMode:
   pty` — and waits for the server to exit on its own, so a SIGTERM never
-  interrupts an in-progress world save (`["Save", "Shutdown 1"]` on
-  Palworld, `["stop"]` on Minecraft, `["save", "exit"]` for a
+  interrupts an in-progress world save (`["save", "shutdown 1"]` on
+  Palworld, `["stop"]` on Minecraft, `["exit"]` for a
   stdin-driven game like Terraria). Omit it for games that save on
   SIGTERM, or for games with neither RCON nor `consoleMode: pty` — there,
   declaring it has no effect since the operator has no transport to run

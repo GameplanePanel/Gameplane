@@ -83,6 +83,8 @@ gp-module/
 └── .testcoverage.yml             # 80% coverage threshold gate
 ```
 
+- Check that `capabilities.players.query.port` is one of the template's declared UDP ports (`validatePlayerQuery`); the CRD bounds the port's range but can't see `spec.ports`, so a query aimed at a TCP port or an undeclared one is an `ERROR` (rule `template-schema-violation`) rather than a server that silently never reports a count.
+
 ## Key Invariants
 
 1. **Strictly Offline First.** Scaffolding, validation, and preview operations NEVER make outbound network calls or require a running Kubernetes cluster.

@@ -1,15 +1,39 @@
 import { describe, it, expect, vi } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
+import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
-import { renderWithQuery } from "@/test/render";
+import { type ReactElement } from "react";
+import { renderWithQuery as renderWithQueryClient } from "@/test/render";
+import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import { BackupsSection } from "./Backups";
 import { makeServer, makeDestination } from "@/test/factories";
 
 const baseDraft = makeServer();
 
+function renderWithQuery(ui: ReactElement, permissions = ["destinations:read"]) {
+  return renderWithQueryClient(
+    <ResourceTargetProvider target={{ cluster: "east", namespace: "games", name: "alpha" }} access={{ canWrite: true, canControl: false, canConsole: false, canDelete: false, isOwner: false, isCollaborator: false, permissions }}>
+      {ui}
+    </ResourceTargetProvider>,
+  );
+}
+
 describe("BackupsSection", () => {
+  it("shows denied access without fetching destinations or claiming they are unconfigured", async () => {
+    let requests = 0;
+    server.use(http.get("/backup-destinations", () => {
+      requests++;
+      return HttpResponse.json({ items: [makeDestination()] });
+    }));
+    const { client } = renderWithQuery(<BackupsSection draft={baseDraft} onChange={() => {}} />, []);
+    expect(screen.getByText("You do not have permission to view backup destinations in this cluster and namespace.")).toBeInTheDocument();
+    expect(screen.queryByText(/Configure a backup destination first/)).not.toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: /Enable scheduled backups/i })).toBeDisabled();
+    await act(() => client.invalidateQueries());
+    expect(requests).toBe(0);
+  });
+
   it("renders with backupPolicy disabled by default", () => {
     renderWithQuery(
       <BackupsSection draft={baseDraft} onChange={() => {}} />,
@@ -31,6 +55,7 @@ describe("BackupsSection", () => {
       <BackupsSection draft={baseDraft} onChange={onChange} />,
     );
     const sw = screen.getByRole("switch", { name: /Enable scheduled backups/i });
+    await waitFor(() => expect(sw).toBeEnabled());
     await userEvent.click(sw);
 
     expect(onChange).toHaveBeenCalledWith(
@@ -63,6 +88,7 @@ describe("BackupsSection", () => {
       <BackupsSection draft={draftWithPolicy} onChange={onChange} />,
     );
     const sw = screen.getByRole("switch", { name: /Enable scheduled backups/i });
+    await waitFor(() => expect(sw).toBeEnabled());
     await userEvent.click(sw);
 
     expect(onChange).toHaveBeenCalledWith(
@@ -210,6 +236,7 @@ describe("BackupsSection", () => {
       <BackupsSection draft={baseDraft} onChange={onChange} />,
     );
     const sw = screen.getByRole("switch", { name: /Enable scheduled backups/i });
+    await waitFor(() => expect(sw).toBeEnabled());
     await userEvent.click(sw);
 
     const lastCall = onChange.mock.calls.at(-1)![0];

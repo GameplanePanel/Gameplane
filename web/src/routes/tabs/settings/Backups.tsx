@@ -10,6 +10,7 @@ import {
   Switch,
 } from "@heroui/react";
 import { RetentionFields, buildRetention, type RetentionForm } from "@/components/backups/RetentionFields";
+import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { useBackupDestinations } from "@/lib/destinations";
 import type { InlineBackupPolicy } from "@/types";
 import { cn } from "@/lib/utils";
@@ -20,7 +21,7 @@ import { useOptionalIntl } from "@/lib/i18n/format";
 export function BackupsSection({ draft, onChange }: SectionProps) {
   const intl = useOptionalIntl();
   const policy = draft.spec.backupPolicy;
-  const { data: destinations = [] } = useBackupDestinations();
+  const { data: destinations = [], error: destinationError, isSuccess: destinationsLoaded } = useBackupDestinations();
   const [destPopoverOpen, setDestPopoverOpen] = useState(false);
 
   const setPolicy = (next: InlineBackupPolicy | undefined) => {
@@ -52,6 +53,7 @@ export function BackupsSection({ draft, onChange }: SectionProps) {
 
   return (
     <div className="space-y-6">
+      {destinationError && <ErrorBanner err={destinationError} />}
       <Field
         label={intl.formatMessage({ id: "web.routes.tabs.settings.backups.enable_scheduled_backups", defaultMessage: "Enable scheduled backups", description: "Settings backups section: label of the switch that turns scheduled backups on or off; the same text is its accessible name" })}
         hint={intl.formatMessage({ id: "web.routes.tabs.settings.backups.automatically_create_backups_on_a_cron", defaultMessage: "Automatically create backups on a cron schedule. The operator manages the BackupSchedule CR.", description: "Settings backups section: hint under the scheduled backups switch saying backups are created on a cron schedule and the operator manages the schedule resource" })}
@@ -88,7 +90,7 @@ export function BackupsSection({ draft, onChange }: SectionProps) {
               : intl.formatMessage({ id: "web.routes.tabs.settings.backups.disabled", defaultMessage: "Disabled", description: "Backups: status label next to the scheduled backups switch when off" })}
           </span>
         </div>
-        {!policy && destinations.length === 0 && (
+        {!policy && destinationsLoaded && destinations.length === 0 && (
           <div className="pt-1 text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.backups.configure_a_backup_destination_first", defaultMessage: "Configure a backup destination first.", description: "Settings backups section: note shown when no backup destination exists yet, so scheduled backups cannot be set up" })}</div>
         )}
       </Field>

@@ -1398,9 +1398,30 @@ spec:
                       RFC 1123 hostname: dotted labels of 1-63 alphanumeric characters
                       or hyphens, no leading/trailing hyphen, at most 253 characters
                       total. The operator does not create the DNS record itself.
+                      NodePort servers advertise this name with the assigned node port.
+                      LoadBalancer servers advertise it once the load balancer has an address.
                     maxLength: 253
                     pattern: ^([a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)(\.[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)*$
                     type: string
+                  loadBalancerClass:
+                    description: |-
+                      LoadBalancerClass selects the load-balancer implementation for the
+                      fronting Service (service.spec.loadBalancerClass), for a cluster that
+                      runs more than one, or a custom one for game traffic. It only takes
+                      effect when Expose=LoadBalancer. Kubernetes doesn't allow changing a
+                      Service's class, so when this changes the operator replaces the
+                      Service, which gets a new cluster IP and, usually, a new external
+                      address. Unset leaves the Service's class as it is. The value is a
+                      Kubernetes qualified name: an optional DNS-subdomain prefix and a
+                      slash, then a name of at most 63 characters. The prefix is at most 253
+                      characters, so the whole value is at most 317.
+                    maxLength: 317
+                    pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?[A-Za-z0-9]([-A-Za-z0-9_.]{0,61}[A-Za-z0-9])?$
+                    type: string
+                    x-kubernetes-validations:
+                    - message: the loadBalancerClass prefix must be at most 253 characters
+                      rule: '!self.contains(''/'') || self.split(''/'')[0].size()
+                        <= 253'
                   portOverrides:
                     description: |-
                       PortOverrides lets the user pin a specific NodePort or override
@@ -2681,6 +2702,9 @@ spec:
                     associated with a named template port.
                   properties:
                     host:
+                      description: |-
+                        Host is the connection hostname or IP. For NodePort it is the game
+                        hostname or a serving node's external IP, or empty while neither is known.
                       type: string
                     name:
                       type: string
@@ -2703,6 +2727,14 @@ spec:
                     protocol:
                       description: Protocol defines network protocols supported for
                         things like container ports.
+                      type: string
+                    serviceAddress:
+                      description: |-
+                        ServiceAddress is the address the backing Service was assigned (its
+                        load-balancer IP or hostname, or its cluster IP while none is
+                        published), kept apart from Host so an advertised hostname doesn't
+                        hide which address a server holds. Reconciler-owned; empty on tunnel
+                        endpoints and on status written by an operator that predates it.
                       type: string
                     tunnelProvider:
                       description: |-
@@ -3009,6 +3041,9 @@ spec:
                     associated with a named template port.
                   properties:
                     host:
+                      description: |-
+                        Host is the connection hostname or IP. For NodePort it is the game
+                        hostname or a serving node's external IP, or empty while neither is known.
                       type: string
                     name:
                       type: string
@@ -3031,6 +3066,14 @@ spec:
                     protocol:
                       description: Protocol defines network protocols supported for
                         things like container ports.
+                      type: string
+                    serviceAddress:
+                      description: |-
+                        ServiceAddress is the address the backing Service was assigned (its
+                        load-balancer IP or hostname, or its cluster IP while none is
+                        published), kept apart from Host so an advertised hostname doesn't
+                        hide which address a server holds. Reconciler-owned; empty on tunnel
+                        endpoints and on status written by an operator that predates it.
                       type: string
                     tunnelProvider:
                       description: |-

@@ -57,7 +57,7 @@ const (
 // MinPasswordLen is the floor enforced anywhere a user picks or resets a
 // password — HTTP user CRUD, password reset, and the bootstrap-admin CLI.
 // Short enough to not block legitimate use, long enough that argon2id
-// makes brute force impractical. Matches the design.pen reset-modal copy.
+// makes brute force impractical. Matches the design.fig reset-modal copy.
 const MinPasswordLen = 12
 
 // dummyHash is a valid argon2id hash of a random password nobody knows.
