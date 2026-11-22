@@ -9,4 +9,4 @@
 - [x] Expose metadata and update operations documentation.
 - [x] Add CI Kind multi-volume round-trip fixture.
 - [x] Generate CRDs/deepcopy and compile production.
-- [ ] Independent review and CI verification (root orchestrator).
+- [X] Independent review and CI verification (root orchestrator). (done 2026-11-22: PR #861 merged 2026-11-10)

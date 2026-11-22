@@ -902,7 +902,7 @@ success. Failed/cancelled writes stay suspended. Orphan stopped backups recover
 autonomously through the GameServer owner; unknown provenance remains fenced.
 RecoveryIntervention is removed only after cleanup has durably released lifecycle
 ownership and its compatibility guards; unresolved owners retain the condition.
-See [the recovery contract](../specs/033-stopped-multivolume-recovery/contracts/recovery.md)
+See [the recovery contract](../specs/done_033-stopped-multivolume-recovery/contracts/recovery.md)
 and [operator operations](../docs/operator-operations.md) for defaults and failures.
 
 ### Restic parent selection and accounting

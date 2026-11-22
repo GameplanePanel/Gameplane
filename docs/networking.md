@@ -400,7 +400,7 @@ ports. Keep forwarding them until you move those servers. New servers, and
 servers that need new ports, for example for a template update, are given
 ports from the smaller range. Removing a template from its pool returns its servers
 to the template's ports. The full rules, including template revisions and
-recovery, are in [spec 036](../specs/036-port-pools/spec.md).
+recovery, are in [spec 036](../specs/done_036-port-pools/spec.md).
 
 ## Related
 
