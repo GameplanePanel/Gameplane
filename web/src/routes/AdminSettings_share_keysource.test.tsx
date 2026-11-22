@@ -33,6 +33,7 @@ describe("AdminSettings CurseForge share key source", () => {
     const registryRow = (await screen.findByText("CurseForge")).closest("li");
     expect(registryRow).not.toBeNull();
     expect(within(registryRow as HTMLElement).getByText("From startup flag")).toBeInTheDocument();
+    expect(within(registryRow as HTMLElement).queryByText("Configured")).not.toBeInTheDocument();
     expect(within(registryRow as HTMLElement).getByText("Set by the --curseforge-api-key startup flag")).toBeInTheDocument();
     expect(screen.getByRole("switch", { name: /Share the CurseForge key with game servers/i })).toBeDisabled();
   });

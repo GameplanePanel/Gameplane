@@ -35,7 +35,6 @@ import {
   Description,
   TextField,
   Alert,
-  Chip,
 } from "@heroui/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -1034,6 +1033,7 @@ function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
         {keyedRegistryProviders.map(({ provider, label, icon: Icon }) => {
           const entry = entryFor(provider);
           const configured = Boolean(entry);
+          const fromFlag = provider === "curseforge" && curseForgeFromFlag;
           return (
             <Fragment key={provider}>
             <li className="flex flex-wrap items-center gap-3 py-3">
@@ -1043,9 +1043,6 @@ function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
               <div className="min-w-28 flex-1">
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   <span>{label}</span>
-                  {provider === "curseforge" && curseForgeFromFlag && (
-                    <Chip size="sm" variant="soft" color="accent">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_from_flag", defaultMessage: "From startup flag", description: "Admin settings: badge shown next to the CurseForge registry name when the key comes from the --curseforge-api-key startup flag" })}</Chip>
-                  )}
                 </div>
                 <div className="truncate text-xs text-muted">
                   {provider === "curseforge" && curseForgeFromFlag ? intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_flag_set", defaultMessage: "Set by the --curseforge-api-key startup flag", description: "Admin settings: CurseForge registry description when the key comes from the --curseforge-api-key startup flag" }) : configured ? intl.formatMessage({ id: "web.routes.admin_settings.active_in_mods_browser", defaultMessage: "Active in the Mods browser", description: "Admin settings: registry status when a key is configured and the provider shows in the Mods browser" }) : intl.formatMessage({ id: "web.routes.admin_settings.hidden_from_mods_browser", defaultMessage: "Hidden from the Mods browser", description: "Admin settings: registry status when no key is configured and the provider is hidden from the Mods browser" })}
@@ -1054,11 +1051,11 @@ function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
               <span
                 className={cn(
                   "flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs",
-                  configured ? "bg-primary/15 text-primary" : "bg-muted/15 text-muted",
+                  fromFlag ? "bg-accent/15 text-accent" : configured ? "bg-primary/15 text-primary" : "bg-muted/15 text-muted",
                 )}
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                {configured ? intl.formatMessage({ id: "web.routes.admin_settings.configured", defaultMessage: "Configured", description: "Admin settings: badge on a mod registry whose API key is set" }) : intl.formatMessage({ id: "web.routes.admin_settings.not_configured", defaultMessage: "Not configured", description: "Admin settings: badge on a mod registry whose API key is not set" })}
+                {fromFlag ? intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_from_flag", defaultMessage: "From startup flag", description: "Admin settings: badge shown next to the CurseForge registry name when the key comes from the --curseforge-api-key startup flag" }) : configured ? intl.formatMessage({ id: "web.routes.admin_settings.configured", defaultMessage: "Configured", description: "Admin settings: badge on a mod registry whose API key is set" }) : intl.formatMessage({ id: "web.routes.admin_settings.not_configured", defaultMessage: "Not configured", description: "Admin settings: badge on a mod registry whose API key is not set" })}
               </span>
               {editing?.provider !== provider && (
                 configured ? (
