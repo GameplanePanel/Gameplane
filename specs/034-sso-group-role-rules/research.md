@@ -45,7 +45,7 @@ why. Code references are to master after PR #929.
 ## R-4: Where the role source lives
 
 - **Decision**: one column `users.role_source TEXT NOT NULL DEFAULT 'manual'` with values
-  `sso`, `sso_pending` and `manual`, added by `020_user_role_source.sql`, which also sets
+  `sso`, `sso_pending` and `manual`, added by `022_user_role_source.sql`, which also sets
   `sso` for every user with a row in `oidc_links` (OD-4).
 - **Rationale**: the source belongs to the user's primary role, which is already a column
   on `users` (`001_init.sql`) mirrored into the cluster-wide binding by

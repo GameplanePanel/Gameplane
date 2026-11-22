@@ -654,7 +654,7 @@ describe("AdminSettingsPage", () => {
     expect(within(helmCard!).getByText("teams")).toBeInTheDocument();
     // Scope "viewer" to the default role display, since it appears in both
     // the default role and the viewer role mapping; use within() to disambiguate
-    const defaultRoleLabel = within(helmCard!).getByText("Default role");
+    const defaultRoleLabel = within(helmCard!).getByText("Fallback role");
     const defaultRoleContainer = defaultRoleLabel.closest<HTMLElement>("div");
     expect(within(defaultRoleContainer!).getByText("viewer")).toBeInTheDocument();
     // Scope "gameplane-admins" to the Helm-seeded card to distinguish it from the
@@ -687,12 +687,10 @@ describe("AdminSettingsPage", () => {
     );
     renderWithQuery(<AdminSettingsPage />);
     await userEvent.click(screen.getByRole("button", { name: /Authentication/i }));
-    expect(await screen.findByText("No OIDC role mappings yet")).toBeInTheDocument();
+    const heading = await screen.findByText("Helm-seeded OIDC provider");
+    const helmCard = heading.closest<HTMLElement>('[data-slot="card"]')!;
     expect(
-      screen.getByText(/Two ways to change that/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/add mappings in Role mapping overrides below/),
+      within(helmCard).getByText("No rules. SSO users get viewer and their role is never changed at sign-in."),
     ).toBeInTheDocument();
   });
 
@@ -725,7 +723,7 @@ describe("AdminSettingsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: /Authentication/i }));
     expect(await screen.findByText("Helm-configured admin mapping")).toBeInTheDocument();
     expect(
-      screen.getByText(/The group\(s\) on the Admin row above were mapped to admin via Helm values/),
+      screen.getByText(/^Rule 1 above grants admin through Helm values/),
     ).toBeInTheDocument();
   });
 
@@ -790,7 +788,7 @@ describe("AdminSettingsPage", () => {
   });
 
   // T027: Save action calls PUT with helmOverride.roleMappings
-  it("T027: role mapping override save calls PUT /admin/config/auth with helmOverride.roleMappings", async () => {
+  it("T027: role rule override save calls PUT /admin/config/auth with helmOverride.roleRules", async () => {
     let capturedBody: unknown = null;
     const saveHandler = vi.fn(async ({ request }) => {
       capturedBody = await request.json();
@@ -824,36 +822,36 @@ describe("AdminSettingsPage", () => {
     renderWithQuery(<AdminSettingsPage />);
     await userEvent.click(screen.getByRole("button", { name: /Authentication/i }));
 
-    // Wait for the role mapping card to render, then add a group.
-    // Find the Admin role section by its accessible group label
-    const adminRoleSection = await screen.findByRole("group", { name: /admin role mapping/i });
-    const adminInput = within(adminRoleSection).getByPlaceholderText("Add IdP group name…");
-    await userEvent.type(adminInput, "new-admin-group");
+    // Open the override card and add a rule: group + admin role.
+    await userEvent.click(await screen.findByRole("button", { name: "Override" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add rule" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Rule 1 group" }), "new-admin-group");
+    await userEvent.click(screen.getByRole("button", { name: /Rule 1 role/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "admin" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save role rules" }));
 
-    // Find the add button within the admin role's section
-    const adminAddBtn = within(adminRoleSection).getByRole("button", { name: "Add group" });
-    await userEvent.click(adminAddBtn);
-
-    // Find and click the confirmation button in the dialog
-    const confirmBtn = await screen.findByRole("button", { name: /Map to admin role/ });
-    await userEvent.click(confirmBtn);
-
-    // Now click Save role mappings
-    await userEvent.click(screen.getByRole("button", { name: /Save role mappings/ }));
+    // Saving a rule that newly grants admin opens the confirmation dialog.
+    await userEvent.click(await screen.findByRole("button", { name: /Map to admin role/ }));
     await waitFor(() => expect(saveHandler).toHaveBeenCalled());
 
     expect(capturedBody).toBeDefined();
     if (!capturedBody) throw new Error("capturedBody is null");
     const configBody = capturedBody as Record<string, unknown>;
     expect(configBody.helmOverride).toBeDefined();
-    const helmOverride = configBody.helmOverride as Record<string, unknown> | undefined;
-    expect(helmOverride?.roleMappings).toBeDefined();
-    const roleMappings = helmOverride?.roleMappings as Record<string, string[]> | undefined;
-    expect(roleMappings?.admin).toContain("new-admin-group");
+    const helmOverride = configBody.helmOverride as
+      | { roleMappings?: unknown; roleRules?: unknown }
+      | undefined;
+    expect(helmOverride?.roleMappings).toBeUndefined();
+    expect(helmOverride?.roleRules).toContainEqual({ group: "new-admin-group", role: "admin" });
   });
 
-  // T027: Reset action calls DELETE /admin/config/auth/role-mappings/{role}
-  it("T027: reset role mapping calls DELETE /admin/config/auth/role-mappings/{role}", async () => {
+  // T027: Reset to Helm default drops the override; the next save writes it
+  it("T027: Reset to Helm default removes the whole override on the next save", async () => {
+    let capturedBody: unknown = null;
+    const saveHandler = vi.fn(async ({ request }) => {
+      capturedBody = await request.json();
+      return new HttpResponse(null, { status: 204 });
+    });
     const resetHandler = vi.fn(() => new HttpResponse(null, { status: 204 }));
     server.use(
       http.get("/admin/config", () =>
@@ -883,18 +881,18 @@ describe("AdminSettingsPage", () => {
         HttpResponse.json({ providers: [] }),
       ),
       http.delete("/admin/config/auth/role-mappings/operator", resetHandler),
+      http.put("/admin/config/auth", saveHandler),
     );
     renderWithQuery(<AdminSettingsPage />);
     await userEvent.click(screen.getByRole("button", { name: /Authentication/i }));
 
-    // Find the Reset button — since only operator has an override, there should be exactly one
-    const resetButtons = await screen.findAllByRole("button", { name: /Reset to Helm default/ });
-    expect(resetButtons).toHaveLength(1); // Only operator override
-    await userEvent.click(resetButtons[0]);
-
-    await waitFor(() => expect(resetHandler).toHaveBeenCalled());
-    // The handler is registered only at .../role-mappings/operator, so msw
-    // invoking it is itself proof the DELETE targeted the operator role.
+    // Reset removes the whole override in the draft; the next section save writes it.
+    await userEvent.click(await screen.findByRole("button", { name: "Reset to Helm default" }));
+    expect(await screen.findByText("From Helm values")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /^Save changes$/i }));
+    await waitFor(() => expect(saveHandler).toHaveBeenCalled());
+    expect((capturedBody as { helmOverride?: unknown }).helmOverride).toBeUndefined();
+    expect(resetHandler).not.toHaveBeenCalled();
   });
 
   // T027: Empty-list override [] is treated as override, not absent
@@ -936,28 +934,21 @@ describe("AdminSettingsPage", () => {
     const provenanceText = await screen.findByText("Overridden in dashboard");
     expect(provenanceText).toBeInTheDocument();
 
-    // Empty state text should appear (viewer shows the empty state)
+    // The effective rule list is empty: the empty-state line shows.
     expect(
-      screen.getByText(/No groups mapped — nobody signs in as viewer via OIDC/),
-    ).toBeInTheDocument();
+      screen.getAllByText("No rules. SSO users get viewer and their role is never changed at sign-in.").length,
+    ).toBeGreaterThan(0);
+    // `viewer: []` replaces the Helm viewer groups: the effective list has no gameplane-members rule.
+    expect(screen.queryByRole("textbox", { name: "Rule 1 group" })).not.toBeInTheDocument();
 
     // Most importantly: Reset button MUST appear (only shows when override exists)
     // This distinguishes [] (override exists) from undefined (no override, use Helm)
-    const resetButtons = await screen.findAllByRole("button", { name: /Reset to Helm default/ });
-    // Viewer should have a reset button since it has an override. The role
-    // label renders as literal lowercase "viewer" text — "capitalize" in its
-    // className is a CSS text-transform only, it doesn't change textContent —
-    // so match case-insensitively rather than against "Viewer".
-    const viewerResetBtn = resetButtons.find((btn) => {
-      const parent = btn.closest<HTMLElement>("div");
-      return parent?.textContent?.toLowerCase().includes("viewer");
-    });
-    expect(viewerResetBtn).toBeDefined();
+    expect(screen.getByRole("button", { name: "Reset to Helm default" })).toBeInTheDocument();
   });
 
   // T027: Displayed provenance updates after reset
   it("T027: provenance updates from 'Overridden in dashboard' to 'From Helm values' after reset", async () => {
-    let configState: Record<string, unknown> = {
+    const configState: Record<string, unknown> = {
       auth: {
         providers: [
           { name: "Local accounts", kind: "local", enabled: true },
@@ -979,36 +970,11 @@ describe("AdminSettingsPage", () => {
       },
     };
 
-    const resetHandler = vi.fn(() => new HttpResponse(null, { status: 204 }));
     server.use(
       http.get("/admin/config", () => HttpResponse.json(configState)),
       http.get("/auth/providers", () =>
         HttpResponse.json({ providers: [] }),
       ),
-      http.delete("/admin/config/auth/role-mappings/admin", async () => {
-        // Simulate server clearing the override
-        configState = {
-          auth: {
-            providers: [
-              { name: "Local accounts", kind: "local", enabled: true },
-            ],
-            helmOverride: {
-              roleMappings: {}, // Override cleared for admin
-            },
-          },
-          installTimeSettings: {
-            oidcHelmProvider: {
-              groupsClaim: "groups",
-              defaultRole: "viewer",
-              roleMappings: {
-                admin: ["helm-admins"],
-              },
-            },
-          },
-        };
-        resetHandler();
-        return new HttpResponse(null, { status: 204 });
-      }),
     );
     renderWithQuery(<AdminSettingsPage />);
     await userEvent.click(screen.getByRole("button", { name: /Authentication/i }));
@@ -1018,16 +984,11 @@ describe("AdminSettingsPage", () => {
       await screen.findByText(/Overridden in dashboard/),
     ).toBeInTheDocument();
 
-    // Click reset
-    const resetBtn = screen.getByRole("button", { name: /Reset to Helm default/ });
-    await userEvent.click(resetBtn);
-
-    // After reset, the mutation should have been called
-    await waitFor(() => {
-      expect(resetHandler).toHaveBeenCalled();
-    });
-    // Note: Full provenance update would require config refetch which the component
-    // may trigger via query invalidation. The critical part is that reset was called.
+    // Reset edits the draft, so the provenance flips at once.
+    await userEvent.click(screen.getByRole("button", { name: "Reset to Helm default" }));
+    expect(await screen.findByText("From Helm values")).toBeInTheDocument();
+    expect(screen.queryByText("Overridden in dashboard")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Override" })).toBeInTheDocument();
   });
 
   // T031: Admin warning appears with exact copy and confirmation required
@@ -1060,14 +1021,13 @@ describe("AdminSettingsPage", () => {
     renderWithQuery(<AdminSettingsPage />);
     await userEvent.click(screen.getByRole("button", { name: /Authentication/i }));
 
-    // Find the Admin role section by its accessible group label
-    const adminRoleSection = await screen.findByRole("group", { name: /admin role mapping/i });
-    const adminInput = within(adminRoleSection).getByPlaceholderText("Add IdP group name…");
-    await userEvent.type(adminInput, "new-admin");
-
-    // Find the add button within the admin role's section
-    const adminAddBtn = within(adminRoleSection).getByRole("button", { name: "Add group" });
-    await userEvent.click(adminAddBtn);
+    // Add a rule that grants admin, then save the override.
+    await userEvent.click(await screen.findByRole("button", { name: "Override" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add rule" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Rule 1 group" }), "new-admin");
+    await userEvent.click(screen.getByRole("button", { name: /Rule 1 role/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "admin" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save role rules" }));
 
     // Dialog should appear with exact warning text. The three sentences render
     // as one flowing paragraph (a single text node), so a plain exact-match
@@ -1119,38 +1079,25 @@ describe("AdminSettingsPage", () => {
     renderWithQuery(<AdminSettingsPage />);
     await userEvent.click(screen.getByRole("button", { name: /Authentication/i }));
 
-    // Find the Admin role section by its accessible group label
-    const adminRoleSection = await screen.findByRole("group", { name: /admin role mapping/i });
-    const adminInput = within(adminRoleSection).getByPlaceholderText("Add IdP group name…");
-    await userEvent.type(adminInput, "test-admin");
-
-    // Find the add button within the admin role's section
-    const adminAddBtn = within(adminRoleSection).getByRole("button", { name: "Add group" });
-    await userEvent.click(adminAddBtn);
+    // Add a rule that grants admin, then save: the confirmation opens on save.
+    await userEvent.click(await screen.findByRole("button", { name: "Override" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add rule" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Rule 1 group" }), "test-admin");
+    await userEvent.click(screen.getByRole("button", { name: /Rule 1 role/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "admin" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save role rules" }));
 
     // Dialog appears with confirmation button
-    const confirmBtn = await screen.findByRole("button", { name: /Map to admin role/ });
-    expect(confirmBtn).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Map to admin role/ })).toBeInTheDocument();
 
-    // Close dialog by pressing Escape (standard dialog behavior)
+    // Close dialog by pressing Escape (standard dialog behavior): cancels the save.
     await userEvent.keyboard("{Escape}");
-
-    // After closing, the input should be cleared (per handleConfirmAdminMapping
-    // close). Scope the query to the admin section: all three role sections
-    // carry an input with this placeholder, so an unscoped getBy* matches
-    // three elements and throws -- which inside waitFor only ever surfaces as
-    // a 5s test timeout.
-    await waitFor(() => {
-      const section = screen.getByRole("group", { name: /admin role mapping/i });
-      expect(within(section).getByPlaceholderText("Add IdP group name…")).toHaveValue("");
-    });
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: /Map to admin role/ })).not.toBeInTheDocument(),
+    );
 
     // Verify save was not called
     expect(saveHandler).not.toHaveBeenCalled();
-
-    // Verify the group was NOT added by checking it doesn't appear in the UI
-    // (if it were added, it would show as a chip or in the list)
-    expect(screen.queryByText("test-admin")).not.toBeInTheDocument();
   });
 
   // T031: Exact warning copy from design spec
@@ -1182,14 +1129,13 @@ describe("AdminSettingsPage", () => {
     renderWithQuery(<AdminSettingsPage />);
     await userEvent.click(screen.getByRole("button", { name: /Authentication/i }));
 
-    // Find the Admin role section by its accessible group label
-    const adminRoleSection = await screen.findByRole("group", { name: /admin role mapping/i });
-    const adminInput = within(adminRoleSection).getByPlaceholderText("Add IdP group name…");
-    await userEvent.type(adminInput, "security-team");
-
-    // Find the add button within the admin role's section
-    const adminAddBtn = within(adminRoleSection).getByRole("button", { name: "Add group" });
-    await userEvent.click(adminAddBtn);
+    // Add a rule that grants admin, then save: the confirmation opens on save.
+    await userEvent.click(await screen.findByRole("button", { name: "Override" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add rule" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Rule 1 group" }), "security-team");
+    await userEvent.click(screen.getByRole("button", { name: /Rule 1 role/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "admin" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save role rules" }));
 
     // Exact copy from design spec (FR-015)
     const exactWarning = "Mapping users to the admin role grants full cluster control. Ensure the mapped group contains only authorized personnel. Anyone in these groups gets full admin access from their next login.";
@@ -1198,61 +1144,6 @@ describe("AdminSettingsPage", () => {
     expect(allText).toContain("Ensure the mapped group contains only authorized personnel");
     expect(allText).toContain("Anyone in these groups gets full admin access from their next login");
     expect(allText).toContain(exactWarning);
-  });
-
-  // AdminGroupsInlineWarning: inline banner in AddProviderForm
-  it("shows AdminGroupsInlineWarning banner when admin groups are entered", async () => {
-    server.use(
-      http.get("/admin/config", () =>
-        HttpResponse.json({
-          auth: {
-            providers: [
-              { name: "Local accounts", kind: "local", enabled: true },
-            ],
-          },
-          general: { instanceName: "", externalURL: "https://example.com", defaultNamespace: "" },
-        }),
-      ),
-      http.get("/auth/providers", () =>
-        HttpResponse.json({ providers: [] }),
-      ),
-    );
-    renderWithQuery(<AdminSettingsPage />);
-    await userEvent.click(screen.getByRole("button", { name: /Authentication/i }));
-
-    // Find the Add provider button and click it
-    const addBtn = await screen.findByRole("button", { name: "Add provider" });
-    await userEvent.click(addBtn);
-
-    // Initially, the warning banner should not be visible
-    expect(
-      screen.queryByText(/Full admin access/),
-    ).not.toBeInTheDocument();
-
-    // Fill in admin groups
-    const adminInput = await screen.findByLabelText("Admin groups");
-    await userEvent.type(adminInput, "admin-group");
-
-    // Now the warning banner should appear
-    expect(
-      await screen.findByText(/Full admin access/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Groups added here will be mapped to the admin role/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/You'll be asked to confirm before this is saved/),
-    ).toBeInTheDocument();
-
-    // Clear the admin groups input
-    await userEvent.clear(adminInput);
-
-    // The warning banner should disappear
-    await waitFor(() => {
-      expect(
-        screen.queryByText(/Full admin access/),
-      ).not.toBeInTheDocument();
-    });
   });
 
   // T050: Admin mapping warning in provider editor
@@ -1292,9 +1183,11 @@ describe("AdminSettingsPage", () => {
     const clientSecretInput = screen.getByLabelText("Client secret");
     await userEvent.type(clientSecretInput, "test-secret");
 
-    // Fill in admin groups
-    const adminInput = screen.getByLabelText("Admin groups");
-    await userEvent.type(adminInput, "admin-group");
+    // Add a rule that grants admin
+    await userEvent.click(screen.getByRole("button", { name: "Add rule" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Rule 1 group" }), "admin-group");
+    await userEvent.click(screen.getByRole("button", { name: /Rule 1 role/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "admin" }));
 
     // Click Add provider button (the one in the form)
     const submitBtn = screen.getByRole("button", { name: "Add provider" });
@@ -1361,9 +1254,11 @@ describe("AdminSettingsPage", () => {
     const clientSecretInput = screen.getByLabelText("Client secret");
     await userEvent.type(clientSecretInput, "test-secret");
 
-    // Fill in admin groups
-    const adminInput = screen.getByLabelText("Admin groups");
-    await userEvent.type(adminInput, "admin-group");
+    // Add a rule that grants admin
+    await userEvent.click(screen.getByRole("button", { name: "Add rule" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Rule 1 group" }), "admin-group");
+    await userEvent.click(screen.getByRole("button", { name: /Rule 1 role/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "admin" }));
 
     // Click Add provider button
     const submitBtn = screen.getByRole("button", { name: "Add provider" });
@@ -1428,9 +1323,11 @@ describe("AdminSettingsPage", () => {
     const clientSecretInput = screen.getByLabelText("Client secret");
     await userEvent.type(clientSecretInput, "test-secret");
 
-    // Fill in admin groups
-    const adminInput = screen.getByLabelText("Admin groups");
-    await userEvent.type(adminInput, "admin-group");
+    // Add a rule that grants admin
+    await userEvent.click(screen.getByRole("button", { name: "Add rule" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Rule 1 group" }), "admin-group");
+    await userEvent.click(screen.getByRole("button", { name: /Rule 1 role/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "admin" }));
 
     // Click Add provider button
     const submitBtn = screen.getByRole("button", { name: "Add provider" });
@@ -1505,7 +1402,7 @@ describe("AdminSettingsPage draft and managed Secret lifecycle", () => {
     expect(saved?.helmOverride).toBeUndefined();
   });
 
-  it("reports a failed role mapping reset and keeps the override in the draft", async () => {
+  it("reports a failed save after a reset and keeps the reset in the draft", async () => {
     server.use(
       http.get("/admin/config", () =>
         HttpResponse.json({
@@ -1517,16 +1414,17 @@ describe("AdminSettingsPage draft and managed Secret lifecycle", () => {
         }),
       ),
       http.get("/auth/providers", () => HttpResponse.json({ providers: [] })),
-      http.delete("/admin/config/auth/role-mappings/admin", () =>
-        HttpResponse.text("reset refused", { status: 500 }),
-      ),
     );
     renderWithQuery(<AdminSettingsPage />);
     await userEvent.click(screen.getByRole("button", { name: /Authentication/i }));
-    await userEvent.click(await screen.findByRole("button", { name: /Reset to Helm default/ }));
+    server.use(http.put("/admin/config/auth", () => HttpResponse.text("save refused", { status: 500 })));
+    await userEvent.click(await screen.findByRole("button", { name: "Reset to Helm default" }));
+    await userEvent.click(screen.getByRole("button", { name: /^Save changes$/i }));
 
-    expect(await screen.findByText("reset refused")).toBeInTheDocument();
-    expect(screen.getByText("Overridden in dashboard")).toBeInTheDocument();
+    expect(await screen.findByText("save refused")).toBeInTheDocument();
+    // The reset stays in the draft so the user can retry.
+    expect(screen.getByText("From Helm values")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Save changes$/i })).toBeEnabled();
   });
 
   it("keeps a removed sink's Secret until the removal is saved", async () => {

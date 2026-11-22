@@ -155,3 +155,43 @@ func (r Roles) UserManagerCountExcludingRole(ctx context.Context, role string) (
 	}
 	return n, nil
 }
+
+// Role sources (spec 034): where a user's role came from.
+const (
+	RoleSourceSSO        = "sso"         // sign-in applies the SSO rule result
+	RoleSourceSSOPending = "sso_pending" // returned to SSO control; next sign-in applies the rules
+	RoleSourceManual     = "manual"      // set by hand; sign-in never changes it
+)
+
+// ValidRoleSource reports whether s is one of the three role sources.
+func ValidRoleSource(s string) bool {
+	switch s {
+	case RoleSourceSSO, RoleSourceSSOPending, RoleSourceManual:
+		return true
+	}
+	return false
+}
+
+// RoleSource returns the user's stored role source.
+func (s *Store) RoleSource(ctx context.Context, userID int64) (string, error) {
+	var src string
+	if err := s.DB.QueryRowContext(ctx, `SELECT role_source FROM users WHERE id = ?`, userID).Scan(&src); err != nil {
+		return "", fmt.Errorf("read role source: %w", err)
+	}
+	return src, nil
+}
+
+// SetRoleSource stores the user's role source. Pass ex to run inside a
+// transaction, or nil to use the store's connection.
+func (s *Store) SetRoleSource(ctx context.Context, ex Execer, userID int64, source string) error {
+	if !ValidRoleSource(source) {
+		return fmt.Errorf("set role source: invalid value %q", source)
+	}
+	if ex == nil {
+		ex = s.DB
+	}
+	if _, err := ex.ExecContext(ctx, `UPDATE users SET role_source = ? WHERE id = ?`, source, userID); err != nil {
+		return fmt.Errorf("set role source: %w", err)
+	}
+	return nil
+}

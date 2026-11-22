@@ -56,6 +56,54 @@ type RoleMappings struct {
 	Viewer   []string `json:"viewer,omitempty"`
 }
 
+// RoleRule maps one IdP group to one role (spec 034). Rules form an
+// ordered list: the first rule whose group the user is in decides.
+type RoleRule struct {
+	Group string `json:"group"`
+	Role  string `json:"role"`
+}
+
+// rulesFromMappings converts the old per-role keys into rules: every admin
+// group, then every operator group, then every viewer group (research R-2),
+// which reproduces the old admin > operator > viewer precedence. nil in,
+// nil out.
+func rulesFromMappings(m *RoleMappings) []RoleRule {
+	if m == nil {
+		return nil
+	}
+	rules := make([]RoleRule, 0, len(m.Admin)+len(m.Operator)+len(m.Viewer))
+	for _, g := range m.Admin {
+		rules = append(rules, RoleRule{Group: g, Role: "admin"})
+	}
+	for _, g := range m.Operator {
+		rules = append(rules, RoleRule{Group: g, Role: "operator"})
+	}
+	for _, g := range m.Viewer {
+		rules = append(rules, RoleRule{Group: g, Role: "viewer"})
+	}
+	return rules
+}
+
+// HelmOverride is the dashboard's override of the Helm provider's role
+// policy: the "helmOverride" object of the auth config row. RoleRules, when
+// set (even empty), replaces the whole Helm rule list and DefaultRole, when
+// set, replaces the Helm fallback (OD-3). RoleMappings is the old per-role
+// form, merged per role as before spec 034. effectiveHelmOverridePolicy
+// applies it.
+type HelmOverride struct {
+	RoleMappings *RoleMappings `json:"roleMappings,omitempty"`
+	RoleRules    *[]RoleRule   `json:"roleRules,omitempty"`
+	DefaultRole  *string       `json:"defaultRole,omitempty"`
+}
+
+// derefRules returns the rule list; nil or empty both mean mapping off.
+func derefRules(r *[]RoleRule) []RoleRule {
+	if r == nil {
+		return nil
+	}
+	return *r
+}
+
 // Provider is one entry of the admin-managed auth config, as consumers
 // (login page, routes) see it.
 type Provider struct {
@@ -76,8 +124,10 @@ type Provider struct {
 	// mapping entirely: new users get viewer and roles are never touched
 	// again.
 	RoleMappings *RoleMappings `json:"roleMappings,omitempty"`
-	// DefaultRole applies when RoleMappings is set but no group matches:
-	// ""|viewer|operator|admin|deny ("" = viewer; deny refuses the login).
+	// RoleRules is the ordered group→role list (spec 034). It replaces
+	// RoleMappings; a provider may not set both. nil = not set.
+	RoleRules *[]RoleRule `json:"roleRules,omitempty"`
+	// DefaultRole applies when mapping is on but no rule matches: any role name, "" = viewer, deny refuses the login.
 	DefaultRole string `json:"defaultRole,omitempty"`
 }
 
@@ -98,6 +148,18 @@ func (p Provider) Label() string {
 // implementation reads labelled Secrets from the credentials namespace;
 // tests substitute a map.
 type SecretReader func(ctx context.Context, name string) (map[string][]byte, error)
+
+// policy returns the ProviderPolicy this provider's sign-ins decide with:
+// RoleRules when set, else the old RoleMappings (see ProviderPolicy).
+func (p Provider) policy() *ProviderPolicy {
+	return &ProviderPolicy{
+		Scopes:       p.Scopes,
+		GroupsClaim:  p.GroupsClaim,
+		RoleMappings: p.RoleMappings,
+		Rules:        derefRules(p.RoleRules),
+		DefaultRole:  p.DefaultRole,
+	}
+}
 
 // NewK8sSecretReader reads Secrets from ns, refusing any not labelled
 // ProviderSecretLabel=true.
@@ -165,10 +227,10 @@ func NewRegistry(store *db.Store, secrets SecretReader, legacy *OIDC, legacyLabe
 	// The legacy provider needs the store for account linking; wiring it
 	// here also fixes the Helm-flag path, whose callback previously ran
 	// with no store attached and 500'd on every login. Also attach the
-	// helm role overrides function so it can be read on every login (SC-007).
+	// helmOverride reader so it is read on every login (SC-007).
 	if legacy != nil {
 		legacy.AttachStore(store)
-		legacy.AttachHelmRoleOverridesFunc(reg.HelmRoleOverrides)
+		legacy.attachHelmOverrideReader(reg.helmPolicyOverride)
 	}
 	return reg
 }
@@ -215,33 +277,50 @@ func (r *Registry) snapshot(ctx context.Context) ([]Provider, [sha256.Size]byte,
 	return cfg.Providers, sha256.Sum256([]byte(raw)), nil
 }
 
-// HelmRoleOverrides returns the current helmOverride.roleMappings from the
-// "auth" config row, if present. It parses the row to extract the optional
-// per-role override lists that the login path uses to compute the effective
-// Helm policy. An unavailable or malformed PostgreSQL row aborts the callback.
-func (r *Registry) HelmRoleOverrides(ctx context.Context) (*RoleMappings, error) {
+// HelmPolicyOverride returns the helmOverride object of the "auth" config
+// row, which the Helm provider's sign-ins apply on top of the Helm-seeded
+// policy. Returns nil if the auth row is missing, unreadable, malformed, or
+// carries no helmOverride; sign-ins use helmPolicyOverride, which fails
+// closed on PostgreSQL instead.
+func (r *Registry) HelmPolicyOverride(ctx context.Context) *HelmOverride {
+	ov, _ := r.helmPolicyOverride(ctx)
+	return ov
+}
+
+// helmPolicyOverride is HelmPolicyOverride reporting why the row could not
+// be used. An unavailable or malformed PostgreSQL row is an error, so the
+// sign-in callback aborts instead of dropping the dashboard's restrictions;
+// SQLite keeps the fail-open nil.
+func (r *Registry) helmPolicyOverride(ctx context.Context) (*HelmOverride, error) {
 	raw, ok, err := r.store.ConfigValue(ctx, "auth")
 	if err != nil && r.store.Driver == "postgres" {
-		return nil, err
+		return nil, fmt.Errorf("read auth config: %w", err)
 	}
 	if !ok {
 		return nil, nil
 	}
 	var cfg struct {
-		HelmOverride *struct {
-			RoleMappings *RoleMappings `json:"roleMappings"`
-		} `json:"helmOverride"`
+		HelmOverride *HelmOverride `json:"helmOverride"`
 	}
 	if err := json.Unmarshal([]byte(raw), &cfg); err != nil {
 		if r.store.Driver == "postgres" {
-			return nil, err
+			return nil, fmt.Errorf("parse auth config: %w", err)
 		}
 		return nil, nil
 	}
-	if cfg.HelmOverride == nil || cfg.HelmOverride.RoleMappings == nil {
-		return nil, nil
+	return cfg.HelmOverride, nil
+}
+
+// HelmRoleOverrides returns the current helmOverride.roleMappings (the old
+// per-role form) from the "auth" config row, or nil if the auth row is
+// missing or carries no helmOverride.roleMappings. An unavailable or
+// malformed PostgreSQL row is an error (see helmPolicyOverride).
+func (r *Registry) HelmRoleOverrides(ctx context.Context) (*RoleMappings, error) {
+	ov, err := r.helmPolicyOverride(ctx)
+	if err != nil || ov == nil {
+		return nil, err
 	}
-	return cfg.HelmOverride.RoleMappings, nil
+	return ov.RoleMappings, nil
 }
 
 // Enabled lists the providers the login page may offer: enabled DB
@@ -391,12 +470,7 @@ func (r *Registry) providerInputs(ctx context.Context, p Provider) (providerInpu
 }
 
 func (r *Registry) build(ctx context.Context, p Provider, input providerInputs) (*OIDC, error) {
-	o, err := NewOIDCWithPolicy(ctx, p.Issuer, p.ClientID, input.secret, input.redirect, &ProviderPolicy{
-		Scopes:       p.Scopes,
-		GroupsClaim:  p.GroupsClaim,
-		RoleMappings: p.RoleMappings,
-		DefaultRole:  p.DefaultRole,
-	})
+	o, err := NewOIDCWithPolicy(ctx, p.Issuer, p.ClientID, input.secret, input.redirect, p.policy())
 	if err != nil {
 		return nil, fmt.Errorf("provider %q: discover issuer: %w", p.Name, err)
 	}
