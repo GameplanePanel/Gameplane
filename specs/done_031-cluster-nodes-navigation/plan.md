@@ -83,5 +83,5 @@ Files: `web/src/router/tree.tsx`, `web/src/components/AppLayout.tsx`, `web/src/c
 - [x] Update canonical fleet desktop/mobile and cluster Nodes designs, export touched nodes, and save through Pen.
 - [x] Reuse the shared FilterPopover with draft Cluster/Status fields and an applied-filter count; match Backups search sizing and preserve fixed cluster scope.
 - [x] Update behavioral assertions for Apply/Clear/dismissal and browser navigation; compile locally and inspect the running demo.
-- [ ] Validate the follow-up suites through CI.
-- [ ] Sign and push the follow-up on the existing feature branch and refresh its local Docker preview.
+- [X] Validate the follow-up suites through CI. (done 2026-11-22: follow-up landed in PR #859, merged 2026-11-10; Nodes uses FilterPopover in web/src/components/nodes/NodeInventory.tsx)
+- [X] Sign and push the follow-up on the existing feature branch and refresh its local Docker preview. (done 2026-11-22: follow-up landed in PR #859, merged 2026-11-10; Nodes uses FilterPopover in web/src/components/nodes/NodeInventory.tsx)

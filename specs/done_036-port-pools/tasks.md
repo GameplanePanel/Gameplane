@@ -22,6 +22,6 @@
 - [X] T012 Regression tests for those rules, and E2E
   `TestGameServer_PortPoolServingAllocation` (kind pool `e2e-pool-serving`);
   `contextcheck` fixes in `port_pool_e2e_test.go`.
-- [ ] T009 CI: unit, envtest, E2E, lint and coverage; runtime verification
-  is deferred to CI by repository policy.
-- [ ] T010 Maintainer review of the design (spec.md) and the PR.
+- [X] T009 CI: unit, envtest, E2E, lint and coverage; runtime verification
+  is deferred to CI by repository policy. (done 2026-11-22: PR #1001 merged 2026-11-19)
+- [X] T010 Maintainer review of the design (spec.md) and the PR. (done 2026-11-22: PR #1001 merged 2026-11-19)
