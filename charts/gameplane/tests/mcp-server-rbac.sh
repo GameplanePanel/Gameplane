@@ -61,6 +61,9 @@ assert catalog_rules[0]['apiGroups']==['gameplane.local'], catalog_rules
 role_ns=sorted(ns for bkind, ns, rkind, rname in bound
                if bkind=='RoleBinding' and rkind=='Role' and rname=='gameplane-mcp-server-read')
 assert role_ns==sorted(EXPECTED_NS), role_ns
+# Every RoleBinding for the SA, whatever role it names, stays inside the scope.
+stray=[(ns, rname) for bkind, ns, rkind, rname in bound if bkind=='RoleBinding' and ns not in EXPECTED_NS]
+assert not stray, stray
 for ns in EXPECTED_NS:
     rules_for('Role','gameplane-mcp-server-read',ns)
 
