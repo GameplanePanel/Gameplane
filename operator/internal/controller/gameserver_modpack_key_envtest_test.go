@@ -90,6 +90,9 @@ func mutateManagedCFKey(t *testing.T, ns string, mut func(sec *corev1.Secret)) {
 		if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: ns, Name: curseforgeManagedName}, &sec); err != nil {
 			return err
 		}
+		if sec.Annotations == nil {
+			sec.Annotations = map[string]string{}
+		}
 		mut(&sec)
 		return k8sClient.Update(context.Background(), &sec)
 	}); err != nil {
