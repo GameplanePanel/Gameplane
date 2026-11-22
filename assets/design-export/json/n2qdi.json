@@ -1,6 +1,6 @@
 {
   "file": "n2qdi",
-  "id": "1:9325",
+  "id": "1:9241",
   "name": "Screen/Standalone — Clusters (Empty)",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9326",
+      "id": "1:9242",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:9327",
+      "id": "1:9243",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:9328",
+          "id": "1:9244",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Clusters", "Search servers…", "AD"]
         },
         {
-          "id": "1:9329",
+          "id": "1:9245",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -128,7 +128,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9330",
+              "id": "1:9246",
               "name": "Clusters header",
               "type": "FRAME",
               "x": 24,
@@ -190,7 +190,7 @@
                   ]
                 },
                 {
-                  "id": "1:9331",
+                  "id": "1:9247",
                   "name": "Page actions",
                   "type": "FRAME",
                   "x": 995,
@@ -207,7 +207,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:9332",
+                      "id": "1:9248",
                       "name": "Register cluster",
                       "type": "INSTANCE",
                       "x": 0,
@@ -240,7 +240,7 @@
               ]
             },
             {
-              "id": "1:9333",
+              "id": "1:9249",
               "name": "No registered clusters",
               "type": "FRAME",
               "x": 24,
@@ -261,7 +261,7 @@
               "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
               "children": [
                 {
-                  "id": "1:9334",
+                  "id": "1:9250",
                   "name": "Empty title",
                   "type": "TEXT",
                   "x": 24,
@@ -276,7 +276,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:9335",
+                  "id": "1:9251",
                   "name": "Empty description",
                   "type": "TEXT",
                   "x": 24,

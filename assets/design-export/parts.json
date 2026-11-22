@@ -8,42 +8,42 @@
   },
   {
     "file": "CqaSq",
-    "figId": "1:10269",
+    "figId": "1:10185",
     "name": "Gameplane/Role Editor Modal",
     "width": 480,
     "height": 513
   },
   {
     "file": "DMnEi",
-    "figId": "1:10325",
+    "figId": "1:10241",
     "name": "Gameplane/Dialog/Add Module Source",
     "width": 480,
     "height": 885
   },
   {
     "file": "E9EEv0",
-    "figId": "1:10360",
+    "figId": "1:10276",
     "name": "Gameplane/Dialog/Restore Backup",
     "width": 480,
     "height": 389
   },
   {
     "file": "Kp48V",
-    "figId": "1:10453",
+    "figId": "1:10369",
     "name": "Gameplane/Dialog/Confirm Admin Mapping",
     "width": 440,
     "height": 320
   },
   {
     "file": "MaoHP",
-    "figId": "1:10410",
+    "figId": "1:10326",
     "name": "Gameplane/Dialog/Reset Password",
     "width": 480,
     "height": 215
   },
   {
     "file": "NLDDv",
-    "figId": "1:10369",
+    "figId": "1:10285",
     "name": "Gameplane/Dialog/Invite User",
     "width": 480,
     "height": 516
@@ -64,14 +64,14 @@
   },
   {
     "file": "S7SCDc",
-    "figId": "1:10448",
+    "figId": "1:10364",
     "name": "Gameplane/Dialog/Revoke Share Link",
     "width": 440,
     "height": 190
   },
   {
     "file": "VM7ro",
-    "figId": "1:10435",
+    "figId": "1:10351",
     "name": "Gameplane/Dialog/Share Link Created",
     "width": 480,
     "height": 344
@@ -85,35 +85,35 @@
   },
   {
     "file": "atqRh",
-    "figId": "1:10422",
+    "figId": "1:10338",
     "name": "Gameplane/Dialog/Create Share Link",
     "width": 480,
     "height": 302
   },
   {
     "file": "bHJy6",
-    "figId": "1:10506",
+    "figId": "1:10422",
     "name": "Gameplane/Backup Volume Coverage — Recorded",
     "width": 400,
     "height": 442
   },
   {
     "file": "m1hP1j",
-    "figId": "1:10164",
+    "figId": "1:10080",
     "name": "Integrity Banner (Broken)",
     "width": 1132,
     "height": 64
   },
   {
     "file": "t3IY3u",
-    "figId": "1:10386",
+    "figId": "1:10302",
     "name": "Gameplane/Dialog/Edit User",
     "width": 480,
     "height": 558
   },
   {
     "file": "uw0dB",
-    "figId": "1:10158",
+    "figId": "1:10074",
     "name": "Gameplane/Removable Group Chip/Secondary",
     "width": 77,
     "height": 23
@@ -127,7 +127,7 @@
   },
   {
     "file": "zhLZN",
-    "figId": "1:10195",
+    "figId": "1:10111",
     "name": "Gameplane/Backup Detail Drawer",
     "width": 440,
     "height": 760

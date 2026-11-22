@@ -1,6 +1,6 @@
 {
   "file": "lCTci",
-  "id": "1:10592",
+  "id": "1:10508",
   "name": "Screen/Mobile — Theme Settings · Language",
   "type": "FRAME",
   "x": 3280,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:10593",
+      "id": "1:10509",
       "name": "Mobile TopBar",
       "type": "INSTANCE",
       "x": 0,
@@ -44,7 +44,7 @@
       "texts": ["Settings", "AD"]
     },
     {
-      "id": "1:10594",
+      "id": "1:10510",
       "name": "Body",
       "type": "FRAME",
       "x": 0,
@@ -64,7 +64,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:10595",
+          "id": "1:10511",
           "name": "Page Header",
           "type": "INSTANCE",
           "x": 16,
@@ -87,7 +87,7 @@
           "texts": ["Theme & Appearance", "Personal theme presets, colors, custom CSS, and theme portability."]
         },
         {
-          "id": "1:10596",
+          "id": "1:10512",
           "name": "Settings Nav",
           "type": "INSTANCE",
           "x": 16,
@@ -118,7 +118,7 @@
           ]
         },
         {
-          "id": "1:10597",
+          "id": "1:10513",
           "name": "Language Card",
           "type": "INSTANCE",
           "x": 16,
@@ -126,7 +126,7 @@
           "width": 358,
           "height": 428,
           "component": "Gameplane/Language Card",
-          "componentId": "1:7486",
+          "componentId": "1:7402",
           "fills": [{"type": "SOLID", "color": "#1C1A20"}],
           "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
           "cornerRadius": 24,

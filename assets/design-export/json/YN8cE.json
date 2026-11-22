@@ -1,6 +1,6 @@
 {
   "file": "YN8cE",
-  "id": "1:10049",
+  "id": "1:9965",
   "name": "Screen/Server Detail — Settings · Game configuration (New password typed)",
   "type": "FRAME",
   "x": 8200,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:10050",
+      "id": "1:9966",
       "name": "Restored ref",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:10051",
+      "id": "1:9967",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:10052",
+          "id": "1:9968",
           "name": "Restored ref",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:10053",
+          "id": "1:9969",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:10054",
+              "id": "1:9970",
               "name": "Detail Header",
               "type": "INSTANCE",
               "x": 24,
@@ -161,7 +161,7 @@
               ]
             },
             {
-              "id": "1:10055",
+              "id": "1:9971",
               "name": "Tabs Bar",
               "type": "INSTANCE",
               "x": 24,
@@ -198,7 +198,7 @@
               ]
             },
             {
-              "id": "1:10056",
+              "id": "1:9972",
               "name": "Settings Content",
               "type": "FRAME",
               "x": 24,
@@ -217,7 +217,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:10057",
+                  "id": "1:9973",
                   "name": "Settings Sub Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -256,7 +256,7 @@
                   ]
                 },
                 {
-                  "id": "1:10058",
+                  "id": "1:9974",
                   "name": "Settings Panel Wrap",
                   "type": "FRAME",
                   "x": 224,
@@ -275,7 +275,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:10059",
+                      "id": "1:9975",
                       "name": "Settings Form",
                       "type": "FRAME",
                       "x": 0,
@@ -294,7 +294,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:10060",
+                          "id": "1:9976",
                           "name": "Form Body",
                           "type": "FRAME",
                           "x": 0,
@@ -313,7 +313,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:10061",
+                              "id": "1:9977",
                               "name": "Section Header",
                               "type": "FRAME",
                               "x": 24,
@@ -331,7 +331,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10062",
+                                  "id": "1:9978",
                                   "name": "Section Title",
                                   "type": "TEXT",
                                   "x": 0,
@@ -344,7 +344,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:10063",
+                                  "id": "1:9979",
                                   "name": "Section Description",
                                   "type": "TEXT",
                                   "x": 0,
@@ -359,7 +359,7 @@
                               ]
                             },
                             {
-                              "id": "1:10064",
+                              "id": "1:9980",
                               "name": "Restart Alert",
                               "type": "INSTANCE",
                               "x": 24,
@@ -367,7 +367,7 @@
                               "width": 860,
                               "height": 48,
                               "component": "Alert/Warning Simple",
-                              "componentId": "1:5629",
+                              "componentId": "1:5543",
                               "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                               "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
                               "cornerRadius": 24,
@@ -384,7 +384,7 @@
                               "texts": ["Saving changes restarts the server so they apply."]
                             },
                             {
-                              "id": "1:10065",
+                              "id": "1:9981",
                               "name": "Field World name",
                               "type": "FRAME",
                               "x": 24,
@@ -402,7 +402,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10066",
+                                  "id": "1:9982",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -419,7 +419,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:10067",
+                                      "id": "1:9983",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -434,7 +434,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10068",
+                                  "id": "1:9984",
                                   "name": "ctrl",
                                   "type": "FRAME",
                                   "x": 216,
@@ -452,7 +452,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10069",
+                                      "id": "1:9985",
                                       "name": "Input",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -487,7 +487,7 @@
                               ]
                             },
                             {
-                              "id": "1:10070",
+                              "id": "1:9986",
                               "name": "Field Difficulty",
                               "type": "FRAME",
                               "x": 24,
@@ -505,7 +505,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10071",
+                                  "id": "1:9987",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -522,7 +522,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:10072",
+                                      "id": "1:9988",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -537,7 +537,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10073",
+                                  "id": "1:9989",
                                   "name": "ctrl",
                                   "type": "FRAME",
                                   "x": 216,
@@ -555,7 +555,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10074",
+                                      "id": "1:9990",
                                       "name": "Select",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -590,7 +590,7 @@
                               ]
                             },
                             {
-                              "id": "1:10075",
+                              "id": "1:9991",
                               "name": "Field Max players",
                               "type": "FRAME",
                               "x": 24,
@@ -608,7 +608,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10076",
+                                  "id": "1:9992",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -625,7 +625,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:10077",
+                                      "id": "1:9993",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -640,7 +640,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10078",
+                                  "id": "1:9994",
                                   "name": "ctrl",
                                   "type": "FRAME",
                                   "x": 216,
@@ -658,7 +658,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10079",
+                                      "id": "1:9995",
                                       "name": "Input",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -693,7 +693,7 @@
                               ]
                             },
                             {
-                              "id": "1:10080",
+                              "id": "1:9996",
                               "name": "Field PvP",
                               "type": "FRAME",
                               "x": 24,
@@ -711,7 +711,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10081",
+                                  "id": "1:9997",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -728,7 +728,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:10082",
+                                      "id": "1:9998",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -743,7 +743,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10083",
+                                  "id": "1:9999",
                                   "name": "ctrl",
                                   "type": "FRAME",
                                   "x": 216,
@@ -761,7 +761,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10084",
+                                      "id": "1:10000",
                                       "name": "Select",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -796,7 +796,7 @@
                               ]
                             },
                             {
-                              "id": "1:10085",
+                              "id": "1:10001",
                               "name": "Field Server password",
                               "type": "FRAME",
                               "x": 24,
@@ -814,7 +814,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10086",
+                                  "id": "1:10002",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -831,7 +831,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:10087",
+                                      "id": "1:10003",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -846,7 +846,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10088",
+                                  "id": "1:10004",
                                   "name": "ctrl",
                                   "type": "FRAME",
                                   "x": 216,
@@ -864,7 +864,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10089",
+                                      "id": "1:10005",
                                       "name": "Input row",
                                       "type": "FRAME",
                                       "x": 0,
@@ -882,7 +882,7 @@
                                       "layoutAlignSelf": "STRETCH",
                                       "children": [
                                         {
-                                          "id": "1:10090",
+                                          "id": "1:10006",
                                           "name": "Input",
                                           "type": "INSTANCE",
                                           "x": 0,
@@ -915,7 +915,7 @@
                                       ]
                                     },
                                     {
-                                      "id": "1:10091",
+                                      "id": "1:10007",
                                       "name": "Helper",
                                       "type": "TEXT",
                                       "x": 0,
@@ -932,7 +932,7 @@
                               ]
                             },
                             {
-                              "id": "1:10092",
+                              "id": "1:10008",
                               "name": "Field MOTD",
                               "type": "FRAME",
                               "x": 24,
@@ -950,7 +950,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10093",
+                                  "id": "1:10009",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -967,7 +967,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:10094",
+                                      "id": "1:10010",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -982,7 +982,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10095",
+                                  "id": "1:10011",
                                   "name": "ctrl",
                                   "type": "FRAME",
                                   "x": 216,
@@ -1000,7 +1000,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10096",
+                                      "id": "1:10012",
                                       "name": "Input",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -1031,7 +1031,7 @@
                                       "texts": ["Welcome to Gameplane"]
                                     },
                                     {
-                                      "id": "1:10097",
+                                      "id": "1:10013",
                                       "name": "Helper",
                                       "type": "TEXT",
                                       "x": 0,
@@ -1050,7 +1050,7 @@
                           ]
                         },
                         {
-                          "id": "1:10098",
+                          "id": "1:10014",
                           "name": "Form Footer",
                           "type": "FRAME",
                           "x": 0,
@@ -1071,7 +1071,7 @@
                           "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "1:10099",
+                              "id": "1:10015",
                               "name": "Btn Discard",
                               "type": "INSTANCE",
                               "x": 681,
@@ -1092,7 +1092,7 @@
                               "texts": ["Discard"]
                             },
                             {
-                              "id": "1:10100",
+                              "id": "1:10016",
                               "name": "Btn Save Changes",
                               "type": "INSTANCE",
                               "x": 779,

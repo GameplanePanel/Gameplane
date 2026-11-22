@@ -1,6 +1,6 @@
 {
   "file": "akr4I",
-  "id": "1:8197",
+  "id": "1:8113",
   "name": "Screen/Server Detail — Capture (No access)",
   "type": "FRAME",
   "x": 9840,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8198",
+      "id": "1:8114",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:8199",
+      "id": "1:8115",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:8200",
+          "id": "1:8116",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:8201",
+          "id": "1:8117",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:8202",
+              "id": "1:8118",
               "name": "Detail Header",
               "type": "INSTANCE",
               "x": 24,
@@ -161,7 +161,7 @@
               ]
             },
             {
-              "id": "1:8203",
+              "id": "1:8119",
               "name": "Tabs Bar",
               "type": "INSTANCE",
               "x": 24,
@@ -198,7 +198,7 @@
               ]
             },
             {
-              "id": "1:8204",
+              "id": "1:8120",
               "name": "Capture Content",
               "type": "FRAME",
               "x": 24,
@@ -219,7 +219,7 @@
               "variables": {"fills/0/color": "background/background"},
               "children": [
                 {
-                  "id": "1:8205",
+                  "id": "1:8121",
                   "name": "No Access Card",
                   "type": "FRAME",
                   "x": 326,
@@ -241,7 +241,7 @@
                   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "id": "1:8206",
+                      "id": "1:8122",
                       "name": "Icon Wrap",
                       "type": "FRAME",
                       "x": 212,
@@ -260,7 +260,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:8207",
+                          "id": "1:8123",
                           "name": "Lock Icon",
                           "type": "FRAME",
                           "x": 14,
@@ -294,7 +294,7 @@
                       ]
                     },
                     {
-                      "id": "1:8208",
+                      "id": "1:8124",
                       "name": "Status",
                       "type": "TEXT",
                       "x": 32,
@@ -309,7 +309,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:8209",
+                      "id": "1:8125",
                       "name": "Info",
                       "type": "TEXT",
                       "x": 32,
@@ -325,7 +325,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:8210",
+                      "id": "1:8126",
                       "name": "Btn Row",
                       "type": "FRAME",
                       "x": 161.5,
@@ -343,7 +343,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:8211",
+                          "id": "1:8127",
                           "name": "Btn Enable Capture",
                           "type": "INSTANCE",
                           "x": 0,
@@ -374,7 +374,7 @@
                       ]
                     },
                     {
-                      "id": "1:8212",
+                      "id": "1:8128",
                       "name": "Cluster Disabled Error",
                       "type": "INSTANCE",
                       "x": 1404,
@@ -405,7 +405,7 @@
                       "texts": ["Capture is disabled by cluster configuration."]
                     },
                     {
-                      "id": "1:8213",
+                      "id": "1:8129",
                       "name": "Admin Hint",
                       "type": "TEXT",
                       "x": 32,

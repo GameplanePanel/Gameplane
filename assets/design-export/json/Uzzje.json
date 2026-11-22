@@ -1,6 +1,6 @@
 {
   "file": "Uzzje",
-  "id": "1:9547",
+  "id": "1:9463",
   "name": "Screen/Standalone — Settings · Updates",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9548",
+      "id": "1:9464",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:9549",
+      "id": "1:9465",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:9550",
+          "id": "1:9466",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Settings", "Search servers…", "AD"]
         },
         {
-          "id": "1:9551",
+          "id": "1:9467",
           "name": "Central management notice",
           "type": "FRAME",
           "x": 0,
@@ -131,7 +131,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:9552",
+              "id": "1:9468",
               "name": "Central management scope",
               "type": "TEXT",
               "x": 24,
@@ -148,7 +148,7 @@
           ]
         },
         {
-          "id": "1:9553",
+          "id": "1:9469",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -167,7 +167,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9554",
+              "id": "1:9470",
               "name": "Gameplane/Page Header",
               "type": "INSTANCE",
               "x": 24,
@@ -190,7 +190,7 @@
               "texts": ["Admin settings", "Platform-wide configuration for this Gameplane instance."]
             },
             {
-              "id": "1:9555",
+              "id": "1:9471",
               "name": "Settings Layout",
               "type": "FRAME",
               "x": 24,
@@ -209,7 +209,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9556",
+                  "id": "1:9472",
                   "name": "Settings Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -239,7 +239,7 @@
                   ]
                 },
                 {
-                  "id": "1:9557",
+                  "id": "1:9473",
                   "name": "Updates",
                   "type": "FRAME",
                   "x": 244,
@@ -260,7 +260,7 @@
                   "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "id": "1:9558",
+                      "id": "1:9474",
                       "name": "Section title",
                       "type": "TEXT",
                       "x": 24,
@@ -275,7 +275,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:9559",
+                      "id": "1:9475",
                       "name": "Container upgrade guidance",
                       "type": "TEXT",
                       "x": 24,
@@ -290,7 +290,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:9560",
+                      "id": "1:9476",
                       "name": "Channel",
                       "type": "FRAME",
                       "x": 24,
@@ -308,7 +308,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9561",
+                          "id": "1:9477",
                           "name": "Channel label and hint",
                           "type": "FRAME",
                           "x": 0,
@@ -326,7 +326,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
-                              "id": "1:9562",
+                              "id": "1:9478",
                               "name": "Channel label",
                               "type": "TEXT",
                               "x": 0,
@@ -341,7 +341,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:9563",
+                              "id": "1:9479",
                               "name": "Channel hint",
                               "type": "TEXT",
                               "x": 0,
@@ -358,7 +358,7 @@
                           ]
                         },
                         {
-                          "id": "1:9564",
+                          "id": "1:9480",
                           "name": "Unavailable channel",
                           "type": "TEXT",
                           "x": 831,

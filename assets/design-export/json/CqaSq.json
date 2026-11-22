@@ -1,6 +1,6 @@
 {
   "file": "CqaSq",
-  "id": "1:10269",
+  "id": "1:10185",
   "name": "Gameplane/Role Editor Modal",
   "type": "COMPONENT",
   "x": 1176,
@@ -23,7 +23,7 @@
   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
   "children": [
     {
-      "id": "1:10270",
+      "id": "1:10186",
       "name": "text",
       "type": "TEXT",
       "x": 20,
@@ -36,7 +36,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
     {
-      "id": "1:10271",
+      "id": "1:10187",
       "name": "frame",
       "type": "FRAME",
       "x": 20,
@@ -54,7 +54,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10272",
+          "id": "1:10188",
           "name": "text",
           "type": "TEXT",
           "x": 0,
@@ -70,7 +70,7 @@
       ]
     },
     {
-      "id": "1:10273",
+      "id": "1:10189",
       "name": "reBody",
       "type": "FRAME",
       "x": 20,
@@ -88,7 +88,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10274",
+          "id": "1:10190",
           "name": "fieldDescription",
           "type": "FRAME",
           "x": 0,
@@ -106,7 +106,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10275",
+              "id": "1:10191",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -119,7 +119,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10276",
+              "id": "1:10192",
               "name": "Input",
               "type": "INSTANCE",
               "x": 0,
@@ -152,7 +152,7 @@
           ]
         },
         {
-          "id": "1:10277",
+          "id": "1:10193",
           "name": "permCatalog",
           "type": "FRAME",
           "x": 0,
@@ -175,7 +175,7 @@
           "variables": {"strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:10278",
+              "id": "1:10194",
               "name": "frame",
               "type": "FRAME",
               "x": 12,
@@ -193,7 +193,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:10279",
+                  "id": "1:10195",
                   "name": "text",
                   "type": "TEXT",
                   "x": 0,
@@ -206,7 +206,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:10280",
+                  "id": "1:10196",
                   "name": "frame",
                   "type": "FRAME",
                   "x": 0,
@@ -224,7 +224,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:10281",
+                      "id": "1:10197",
                       "name": "frame",
                       "type": "FRAME",
                       "x": 0,
@@ -242,7 +242,7 @@
                       "layoutGrow": 1,
                       "children": [
                         {
-                          "id": "1:10282",
+                          "id": "1:10198",
                           "name": "Checkbox",
                           "type": "INSTANCE",
                           "x": 0,
@@ -250,7 +250,7 @@
                           "width": 16,
                           "height": 16,
                           "component": "Checkbox/Checked",
-                          "componentId": "1:6134",
+                          "componentId": "1:6050",
                           "layout": {
                             "mode": "HORIZONTAL",
                             "gap": 8,
@@ -261,7 +261,7 @@
                           }
                         },
                         {
-                          "id": "1:10283",
+                          "id": "1:10199",
                           "name": "text",
                           "type": "TEXT",
                           "x": 24,
@@ -274,7 +274,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "id": "1:10284",
+                          "id": "1:10200",
                           "name": "frame",
                           "type": "FRAME",
                           "x": 119,
@@ -293,7 +293,7 @@
                           },
                           "children": [
                             {
-                              "id": "1:10285",
+                              "id": "1:10201",
                               "name": "text",
                               "type": "TEXT",
                               "x": 4,
@@ -310,7 +310,7 @@
                       ]
                     },
                     {
-                      "id": "1:10286",
+                      "id": "1:10202",
                       "name": "frame",
                       "type": "FRAME",
                       "x": 210,
@@ -328,7 +328,7 @@
                       "layoutGrow": 1,
                       "children": [
                         {
-                          "id": "1:10287",
+                          "id": "1:10203",
                           "name": "Checkbox",
                           "type": "INSTANCE",
                           "x": 0,
@@ -336,7 +336,7 @@
                           "width": 16,
                           "height": 16,
                           "component": "Checkbox/Checked",
-                          "componentId": "1:6134",
+                          "componentId": "1:6050",
                           "layout": {
                             "mode": "HORIZONTAL",
                             "gap": 8,
@@ -347,7 +347,7 @@
                           }
                         },
                         {
-                          "id": "1:10288",
+                          "id": "1:10204",
                           "name": "text",
                           "type": "TEXT",
                           "x": 24,
@@ -360,7 +360,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "id": "1:10289",
+                          "id": "1:10205",
                           "name": "frame",
                           "type": "FRAME",
                           "x": 126,
@@ -379,7 +379,7 @@
                           },
                           "children": [
                             {
-                              "id": "1:10290",
+                              "id": "1:10206",
                               "name": "text",
                               "type": "TEXT",
                               "x": 4,
@@ -400,7 +400,7 @@
               ]
             },
             {
-              "id": "1:10291",
+              "id": "1:10207",
               "name": "frame",
               "type": "FRAME",
               "x": 12,
@@ -418,7 +418,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:10292",
+                  "id": "1:10208",
                   "name": "text",
                   "type": "TEXT",
                   "x": 0,
@@ -431,7 +431,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:10293",
+                  "id": "1:10209",
                   "name": "captures-manage-row",
                   "type": "FRAME",
                   "x": 0,
@@ -449,7 +449,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:10294",
+                      "id": "1:10210",
                       "name": "Checkbox",
                       "type": "INSTANCE",
                       "x": 0,
@@ -468,7 +468,7 @@
                       }
                     },
                     {
-                      "id": "1:10295",
+                      "id": "1:10211",
                       "name": "text",
                       "type": "TEXT",
                       "x": 24,
@@ -481,7 +481,7 @@
                       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:10296",
+                      "id": "1:10212",
                       "name": "frame",
                       "type": "FRAME",
                       "x": 141,
@@ -500,7 +500,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:10297",
+                          "id": "1:10213",
                           "name": "text",
                           "type": "TEXT",
                           "x": 4,
@@ -519,7 +519,7 @@
               ]
             },
             {
-              "id": "1:10298",
+              "id": "1:10214",
               "name": "frame",
               "type": "FRAME",
               "x": 12,
@@ -537,7 +537,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:10299",
+                  "id": "1:10215",
                   "name": "text",
                   "type": "TEXT",
                   "x": 0,
@@ -550,7 +550,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:10300",
+                  "id": "1:10216",
                   "name": "frame",
                   "type": "FRAME",
                   "x": 0,
@@ -568,7 +568,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:10301",
+                      "id": "1:10217",
                       "name": "Checkbox",
                       "type": "INSTANCE",
                       "x": 0,
@@ -587,7 +587,7 @@
                       }
                     },
                     {
-                      "id": "1:10302",
+                      "id": "1:10218",
                       "name": "text",
                       "type": "TEXT",
                       "x": 24,
@@ -606,7 +606,7 @@
           ]
         },
         {
-          "id": "1:10303",
+          "id": "1:10219",
           "name": "reFooter",
           "type": "FRAME",
           "x": 0,
@@ -624,7 +624,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10304",
+              "id": "1:10220",
               "name": "Btn Cancel",
               "type": "INSTANCE",
               "x": 261,
@@ -645,7 +645,7 @@
               "texts": ["Cancel"]
             },
             {
-              "id": "1:10305",
+              "id": "1:10221",
               "name": "Btn Save Role",
               "type": "INSTANCE",
               "x": 347,

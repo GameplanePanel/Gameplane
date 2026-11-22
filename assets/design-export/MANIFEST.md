@@ -26,4 +26,4 @@ A screen or part that existed in the old `design.pen` keeps that file's node ID 
 
 ## History
 
-`design.fig` was converted from `design.pen` with OpenPencil on 2026-11-21, after the #1030 design pass. The export made through Pencil MCP before then, and this manifest's earlier log of it, are in git history.
+`design.fig` was converted from `design.pen` with OpenPencil on 2026-11-22, after the #1030 design pass and the spec 034 screens (#1040). The export made through Pencil MCP before then, and this manifest's earlier log of it, are in git history.

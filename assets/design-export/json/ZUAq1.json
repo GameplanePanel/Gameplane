@@ -1,6 +1,6 @@
 {
   "file": "ZUAq1",
-  "id": "1:11357",
+  "id": "1:11273",
   "name": "Screen/Server Detail — Settings · Minecraft JVM heap validation",
   "type": "FRAME",
   "x": 11280,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:11358",
+      "id": "1:11274",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:11359",
+      "id": "1:11275",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:11360",
+          "id": "1:11276",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:11361",
+          "id": "1:11277",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:11362",
+              "id": "1:11278",
               "name": "Detail Header",
               "type": "INSTANCE",
               "x": 24,
@@ -161,7 +161,7 @@
               ]
             },
             {
-              "id": "1:11363",
+              "id": "1:11279",
               "name": "Tabs Bar",
               "type": "INSTANCE",
               "x": 24,
@@ -198,7 +198,7 @@
               ]
             },
             {
-              "id": "1:11364",
+              "id": "1:11280",
               "name": "Settings Content",
               "type": "FRAME",
               "x": 24,
@@ -217,7 +217,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11365",
+                  "id": "1:11281",
                   "name": "Settings Sub Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -256,7 +256,7 @@
                   ]
                 },
                 {
-                  "id": "1:11366",
+                  "id": "1:11282",
                   "name": "Settings Panel Wrap",
                   "type": "FRAME",
                   "x": 224,
@@ -275,7 +275,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:11367",
+                      "id": "1:11283",
                       "name": "Settings Form",
                       "type": "FRAME",
                       "x": 0,
@@ -294,7 +294,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:11368",
+                          "id": "1:11284",
                           "name": "Form Body",
                           "type": "FRAME",
                           "x": 0,
@@ -313,7 +313,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:11369",
+                              "id": "1:11285",
                               "name": "Section Header",
                               "type": "FRAME",
                               "x": 24,
@@ -331,7 +331,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:11370",
+                                  "id": "1:11286",
                                   "name": "Section Title",
                                   "type": "TEXT",
                                   "x": 0,
@@ -344,7 +344,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:11371",
+                                  "id": "1:11287",
                                   "name": "Section Description",
                                   "type": "TEXT",
                                   "x": 0,
@@ -359,7 +359,7 @@
                               ]
                             },
                             {
-                              "id": "1:11372",
+                              "id": "1:11288",
                               "name": "Restart Alert",
                               "type": "INSTANCE",
                               "x": 24,
@@ -367,7 +367,7 @@
                               "width": 860,
                               "height": 48,
                               "component": "Alert/Warning Simple",
-                              "componentId": "1:5629",
+                              "componentId": "1:5543",
                               "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                               "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
                               "cornerRadius": 24,
@@ -384,7 +384,7 @@
                               "texts": ["The server may restart once when it adopts these startup settings."]
                             },
                             {
-                              "id": "1:11373",
+                              "id": "1:11289",
                               "name": "JVM startup settings",
                               "type": "FRAME",
                               "x": 24,
@@ -406,7 +406,7 @@
                               "variables": {"strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:11374",
+                                  "id": "1:11290",
                                   "name": "Startup section title",
                                   "type": "TEXT",
                                   "x": 16,
@@ -419,7 +419,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:11375",
+                                  "id": "1:11291",
                                   "name": "JVM max heap",
                                   "type": "FRAME",
                                   "x": 16,
@@ -437,7 +437,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:11376",
+                                      "id": "1:11292",
                                       "name": "JVM max heap label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -450,7 +450,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:11377",
+                                      "id": "1:11293",
                                       "name": "JVM max heap control",
                                       "type": "INSTANCE",
                                       "x": 196,
@@ -483,7 +483,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:11378",
+                                  "id": "1:11294",
                                   "name": "JVM initial heap",
                                   "type": "FRAME",
                                   "x": 16,
@@ -501,7 +501,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:11379",
+                                      "id": "1:11295",
                                       "name": "JVM initial heap label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -514,7 +514,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:11380",
+                                      "id": "1:11296",
                                       "name": "JVM initial heap control",
                                       "type": "INSTANCE",
                                       "x": 196,
@@ -547,7 +547,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:11381",
+                                  "id": "1:11297",
                                   "name": "Initial heap validation error",
                                   "type": "TEXT",
                                   "x": 16,
@@ -560,7 +560,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/danger"}
                                 },
                                 {
-                                  "id": "1:11382",
+                                  "id": "1:11298",
                                   "name": "Extra JVM options",
                                   "type": "FRAME",
                                   "x": 16,
@@ -578,7 +578,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:11383",
+                                      "id": "1:11299",
                                       "name": "Extra JVM options label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -591,7 +591,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:11384",
+                                      "id": "1:11300",
                                       "name": "Extra JVM options control",
                                       "type": "INSTANCE",
                                       "x": 196,
@@ -624,7 +624,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:11385",
+                                  "id": "1:11301",
                                   "name": "Extra JVM -XX options",
                                   "type": "FRAME",
                                   "x": 16,
@@ -642,7 +642,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:11386",
+                                      "id": "1:11302",
                                       "name": "Extra JVM -XX options label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -655,7 +655,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:11387",
+                                      "id": "1:11303",
                                       "name": "Extra JVM -XX options control",
                                       "type": "INSTANCE",
                                       "x": 196,
@@ -687,7 +687,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:11388",
+                                  "id": "1:11304",
                                   "name": "Use Aikar’s flags",
                                   "type": "FRAME",
                                   "x": 16,
@@ -705,7 +705,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:11389",
+                                      "id": "1:11305",
                                       "name": "Use Aikar’s flags label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -718,7 +718,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:11390",
+                                      "id": "1:11306",
                                       "name": "Use Aikar’s flags control",
                                       "type": "INSTANCE",
                                       "x": 196,
@@ -751,7 +751,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:11391",
+                                  "id": "1:11307",
                                   "name": "Heap argument preview",
                                   "type": "TEXT",
                                   "x": 16,
@@ -768,7 +768,7 @@
                           ]
                         },
                         {
-                          "id": "1:11392",
+                          "id": "1:11308",
                           "name": "Form Footer",
                           "type": "FRAME",
                           "x": 0,
@@ -789,7 +789,7 @@
                           "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "1:11393",
+                              "id": "1:11309",
                               "name": "Btn Discard",
                               "type": "INSTANCE",
                               "x": 681,
@@ -810,7 +810,7 @@
                               "texts": ["Discard"]
                             },
                             {
-                              "id": "1:11394",
+                              "id": "1:11310",
                               "name": "Btn Save Changes",
                               "type": "INSTANCE",
                               "x": 779,

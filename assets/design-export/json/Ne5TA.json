@@ -1,6 +1,6 @@
 {
   "file": "Ne5TA",
-  "id": "1:8979",
+  "id": "1:8895",
   "name": "Screen/Not Found",
   "type": "FRAME",
   "x": 0,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8980",
+      "id": "1:8896",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:8981",
+      "id": "1:8897",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:8982",
+          "id": "1:8898",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Page not found", "Search servers…", "AD"]
         },
         {
-          "id": "1:8983",
+          "id": "1:8899",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:8984",
+              "id": "1:8900",
               "name": "Empty State",
               "type": "FRAME",
               "x": 380,
@@ -147,7 +147,7 @@
               },
               "children": [
                 {
-                  "id": "1:8985",
+                  "id": "1:8901",
                   "name": "Icon Badge",
                   "type": "FRAME",
                   "x": 186,
@@ -167,7 +167,7 @@
                   "variables": {"fills/0/color": "border/border"},
                   "children": [
                     {
-                      "id": "1:8986",
+                      "id": "1:8902",
                       "name": "Icon",
                       "type": "FRAME",
                       "x": 12,
@@ -201,7 +201,7 @@
                   ]
                 },
                 {
-                  "id": "1:8987",
+                  "id": "1:8903",
                   "name": "Title",
                   "type": "TEXT",
                   "x": 137,
@@ -215,7 +215,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:8988",
+                  "id": "1:8904",
                   "name": "Body Text",
                   "type": "TEXT",
                   "x": 0,
@@ -230,7 +230,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:8989",
+                  "id": "1:8905",
                   "name": "Button Wrap",
                   "type": "FRAME",
                   "x": 139.5,
@@ -247,7 +247,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8990",
+                      "id": "1:8906",
                       "name": "Btn Go to dashboard",
                       "type": "INSTANCE",
                       "x": 0,

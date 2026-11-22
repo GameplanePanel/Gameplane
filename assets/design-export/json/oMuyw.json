@@ -1,6 +1,6 @@
 {
   "file": "oMuyw",
-  "id": "1:8759",
+  "id": "1:8675",
   "name": "Gameplane/Dialog/New File (Invalid name)",
   "type": "FRAME",
   "x": 1640,
@@ -74,7 +74,7 @@
       ]
     },
     {
-      "id": "1:8760",
+      "id": "1:8676",
       "name": "mBody",
       "type": "FRAME",
       "x": 20,
@@ -92,7 +92,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:8761",
+          "id": "1:8677",
           "name": "Label",
           "type": "TEXT",
           "x": 0,
@@ -105,7 +105,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:8762",
+          "id": "1:8678",
           "name": "Input",
           "type": "INSTANCE",
           "x": 0,
@@ -136,7 +136,7 @@
           "texts": ["../escape.txt"]
         },
         {
-          "id": "1:8763",
+          "id": "1:8679",
           "name": "Field Error",
           "type": "TEXT",
           "x": 0,

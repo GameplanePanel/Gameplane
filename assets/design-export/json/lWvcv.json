@@ -1,6 +1,6 @@
 {
   "file": "lWvcv",
-  "id": "1:7472",
+  "id": "1:7388",
   "name": "Screen/Theme Settings",
   "type": "FRAME",
   "x": 0,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:7473",
+      "id": "1:7389",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:7474",
+      "id": "1:7390",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:7475",
+          "id": "1:7391",
           "name": "Top Bar",
           "type": "FRAME",
           "x": 0,
@@ -106,7 +106,7 @@
           "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:7476",
+              "id": "1:7392",
               "name": "Breadcrumbs",
               "type": "FRAME",
               "x": 32,
@@ -123,7 +123,7 @@
               },
               "children": [
                 {
-                  "id": "1:7477",
+                  "id": "1:7393",
                   "name": "crumbRoot",
                   "type": "TEXT",
                   "x": 0,
@@ -136,7 +136,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:7478",
+                  "id": "1:7394",
                   "name": "crumbSep",
                   "type": "FRAME",
                   "x": 80,
@@ -158,7 +158,7 @@
                   ]
                 },
                 {
-                  "id": "1:7479",
+                  "id": "1:7395",
                   "name": "crumbPage",
                   "type": "TEXT",
                   "x": 102,
@@ -336,7 +336,7 @@
           ]
         },
         {
-          "id": "1:7480",
+          "id": "1:7396",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -355,7 +355,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:7481",
+              "id": "1:7397",
               "name": "Page Header",
               "type": "INSTANCE",
               "x": 24,
@@ -378,7 +378,7 @@
               "texts": ["Theme & Appearance", "Personal theme presets, colors, custom CSS, and theme portability."]
             },
             {
-              "id": "1:7482",
+              "id": "1:7398",
               "name": "Settings Layout",
               "type": "FRAME",
               "x": 24,
@@ -397,7 +397,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7483",
+                  "id": "1:7399",
                   "name": "Settings Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -427,7 +427,7 @@
                   ]
                 },
                 {
-                  "id": "1:7484",
+                  "id": "1:7400",
                   "name": "Content Column",
                   "type": "FRAME",
                   "x": 244,
@@ -445,7 +445,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:7485",
+                      "id": "1:7401",
                       "name": "Language Card",
                       "type": "INSTANCE",
                       "x": 0,
@@ -453,7 +453,7 @@
                       "width": 888,
                       "height": 372,
                       "component": "Gameplane/Language Card",
-                      "componentId": "1:7486",
+                      "componentId": "1:7402",
                       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                       "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
                       "cornerRadius": 24,
@@ -481,7 +481,7 @@
                       ]
                     },
                     {
-                      "id": "1:7504",
+                      "id": "1:7420",
                       "name": "Card Preset Theme",
                       "type": "FRAME",
                       "x": 0,
@@ -503,7 +503,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:7505",
+                          "id": "1:7421",
                           "name": "Card Header",
                           "type": "INSTANCE",
                           "x": 0,
@@ -524,7 +524,7 @@
                           "texts": ["Preset theme", "Choose the base preset for your dashboard."]
                         },
                         {
-                          "id": "1:7506",
+                          "id": "1:7422",
                           "name": "Card Fields",
                           "type": "FRAME",
                           "x": 0,
@@ -542,7 +542,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7507",
+                              "id": "1:7423",
                               "name": "tsPresetsLabel",
                               "type": "TEXT",
                               "x": 20,
@@ -555,7 +555,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:7508",
+                              "id": "1:7424",
                               "name": "tsPresetRow",
                               "type": "FRAME",
                               "x": 20,
@@ -573,7 +573,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7509",
+                                  "id": "1:7425",
                                   "name": "tsCardPink",
                                   "type": "FRAME",
                                   "x": 0,
@@ -596,7 +596,7 @@
                                   "variables": {"fills/0/color": "field/background", "strokes/0/color": "accent/accent"},
                                   "children": [
                                     {
-                                      "id": "1:7510",
+                                      "id": "1:7426",
                                       "name": "tsCardPink Radio",
                                       "type": "INSTANCE",
                                       "x": 14,
@@ -616,7 +616,7 @@
                                       "texts": ["Modern Pink"]
                                     },
                                     {
-                                      "id": "1:7511",
+                                      "id": "1:7427",
                                       "name": "tsCardPink Swatches",
                                       "type": "FRAME",
                                       "x": 14,
@@ -633,7 +633,7 @@
                                       },
                                       "children": [
                                         {
-                                          "id": "1:7512",
+                                          "id": "1:7428",
                                           "name": "tsCardPink Accent Swatch",
                                           "type": "RECTANGLE",
                                           "x": 0,
@@ -644,7 +644,7 @@
                                           "cornerRadius": 6
                                         },
                                         {
-                                          "id": "1:7513",
+                                          "id": "1:7429",
                                           "name": "tsCardPink Surface Swatch",
                                           "type": "RECTANGLE",
                                           "x": 52,
@@ -660,7 +660,7 @@
                                       ]
                                     },
                                     {
-                                      "id": "1:7514",
+                                      "id": "1:7430",
                                       "name": "tsCardPink Desc",
                                       "type": "TEXT",
                                       "x": 14,
@@ -675,7 +675,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7515",
+                                  "id": "1:7431",
                                   "name": "tsCardLegacy",
                                   "type": "FRAME",
                                   "x": 286.67,
@@ -698,7 +698,7 @@
                                   "variables": {"fills/0/color": "field/background", "strokes/0/color": "border/border"},
                                   "children": [
                                     {
-                                      "id": "1:7516",
+                                      "id": "1:7432",
                                       "name": "tsCardLegacy Radio",
                                       "type": "INSTANCE",
                                       "x": 14,
@@ -718,7 +718,7 @@
                                       "texts": ["Legacy Orange"]
                                     },
                                     {
-                                      "id": "1:7517",
+                                      "id": "1:7433",
                                       "name": "tsCardLegacy Swatches",
                                       "type": "FRAME",
                                       "x": 14,
@@ -735,7 +735,7 @@
                                       },
                                       "children": [
                                         {
-                                          "id": "1:7518",
+                                          "id": "1:7434",
                                           "name": "tsCardLegacy Accent Swatch",
                                           "type": "RECTANGLE",
                                           "x": 0,
@@ -746,7 +746,7 @@
                                           "cornerRadius": 6
                                         },
                                         {
-                                          "id": "1:7519",
+                                          "id": "1:7435",
                                           "name": "tsCardLegacy Surface Swatch",
                                           "type": "RECTANGLE",
                                           "x": 52,
@@ -762,7 +762,7 @@
                                       ]
                                     },
                                     {
-                                      "id": "1:7520",
+                                      "id": "1:7436",
                                       "name": "tsCardLegacy Desc",
                                       "type": "TEXT",
                                       "x": 14,
@@ -777,7 +777,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7521",
+                                  "id": "1:7437",
                                   "name": "tsCardCustom",
                                   "type": "FRAME",
                                   "x": 573.33,
@@ -800,7 +800,7 @@
                                   "variables": {"fills/0/color": "field/background", "strokes/0/color": "border/border"},
                                   "children": [
                                     {
-                                      "id": "1:7522",
+                                      "id": "1:7438",
                                       "name": "tsCardCustom Radio",
                                       "type": "INSTANCE",
                                       "x": 14,
@@ -820,7 +820,7 @@
                                       "texts": ["Custom colors"]
                                     },
                                     {
-                                      "id": "1:7523",
+                                      "id": "1:7439",
                                       "name": "tsCardCustom Swatches",
                                       "type": "FRAME",
                                       "x": 14,
@@ -837,7 +837,7 @@
                                       },
                                       "children": [
                                         {
-                                          "id": "1:7524",
+                                          "id": "1:7440",
                                           "name": "tsCardCustom Accent Swatch",
                                           "type": "FRAME",
                                           "x": 0,
@@ -859,7 +859,7 @@
                                           "variables": {"fills/0/color": "field/background", "strokes/0/color": "border/border"},
                                           "children": [
                                             {
-                                              "id": "1:7525",
+                                              "id": "1:7441",
                                               "name": "tsCardCustom Palette Icon",
                                               "type": "FRAME",
                                               "x": 14,
@@ -927,7 +927,7 @@
                                           ]
                                         },
                                         {
-                                          "id": "1:7526",
+                                          "id": "1:7442",
                                           "name": "tsCardCustom Surface Swatch",
                                           "type": "RECTANGLE",
                                           "x": 52,
@@ -943,7 +943,7 @@
                                       ]
                                     },
                                     {
-                                      "id": "1:7527",
+                                      "id": "1:7443",
                                       "name": "tsCardCustom Desc",
                                       "type": "TEXT",
                                       "x": 14,
@@ -960,7 +960,7 @@
                               ]
                             },
                             {
-                              "id": "1:7528",
+                              "id": "1:7444",
                               "name": "tsRetentionNote",
                               "type": "FRAME",
                               "x": 20,
@@ -978,7 +978,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7529",
+                                  "id": "1:7445",
                                   "name": "tsNoteIcon",
                                   "type": "FRAME",
                                   "x": 0,
@@ -1010,7 +1010,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7530",
+                                  "id": "1:7446",
                                   "name": "tsNoteText",
                                   "type": "TEXT",
                                   "x": 22,
@@ -1029,7 +1029,7 @@
                       ]
                     },
                     {
-                      "id": "1:7531",
+                      "id": "1:7447",
                       "name": "Card Appearance Mode",
                       "type": "FRAME",
                       "x": 0,
@@ -1051,7 +1051,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:7532",
+                          "id": "1:7448",
                           "name": "Card Header",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1072,7 +1072,7 @@
                           "texts": ["Appearance mode", "Light, dark, or follow your system preference."]
                         },
                         {
-                          "id": "1:7533",
+                          "id": "1:7449",
                           "name": "Card Fields",
                           "type": "FRAME",
                           "x": 0,
@@ -1090,7 +1090,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7534",
+                              "id": "1:7450",
                               "name": "tsModeTabs",
                               "type": "FRAME",
                               "x": 20,
@@ -1110,7 +1110,7 @@
                               "variables": {"fills/0/color": "default/default"},
                               "children": [
                                 {
-                                  "id": "1:7535",
+                                  "id": "1:7451",
                                   "name": "tsModeLight",
                                   "type": "INSTANCE",
                                   "x": 4,
@@ -1132,7 +1132,7 @@
                                   "texts": ["Light"]
                                 },
                                 {
-                                  "id": "1:7536",
+                                  "id": "1:7452",
                                   "name": "tsModeDark",
                                   "type": "INSTANCE",
                                   "x": 69,
@@ -1156,7 +1156,7 @@
                                   "texts": ["Dark"]
                                 },
                                 {
-                                  "id": "1:7537",
+                                  "id": "1:7453",
                                   "name": "tsModeSystem",
                                   "type": "INSTANCE",
                                   "x": 133,
@@ -1184,7 +1184,7 @@
                       ]
                     },
                     {
-                      "id": "1:7538",
+                      "id": "1:7454",
                       "name": "Card Custom Colors",
                       "type": "FRAME",
                       "x": 0,
@@ -1206,7 +1206,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:7539",
+                          "id": "1:7455",
                           "name": "Card Header",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1227,7 +1227,7 @@
                           "texts": ["Custom colors", "Accent color and surface tone for the dashboard."]
                         },
                         {
-                          "id": "1:7540",
+                          "id": "1:7456",
                           "name": "Card Fields",
                           "type": "FRAME",
                           "x": 0,
@@ -1245,7 +1245,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7541",
+                              "id": "1:7457",
                               "name": "ccSwatches",
                               "type": "FRAME",
                               "x": 20,
@@ -1263,7 +1263,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:7542",
+                                  "id": "1:7458",
                                   "name": "ccSwatch Blue",
                                   "type": "RECTANGLE",
                                   "x": 0,
@@ -1277,7 +1277,7 @@
                                   "variables": {"strokes/0/color": "border/border"}
                                 },
                                 {
-                                  "id": "1:7543",
+                                  "id": "1:7459",
                                   "name": "ccSwatch Emerald",
                                   "type": "RECTANGLE",
                                   "x": 38,
@@ -1291,7 +1291,7 @@
                                   "variables": {"strokes/0/color": "border/border"}
                                 },
                                 {
-                                  "id": "1:7544",
+                                  "id": "1:7460",
                                   "name": "ccSwatch Purple",
                                   "type": "RECTANGLE",
                                   "x": 76,
@@ -1305,7 +1305,7 @@
                                   "variables": {"strokes/0/color": "border/border"}
                                 },
                                 {
-                                  "id": "1:7545",
+                                  "id": "1:7461",
                                   "name": "ccSwatch Amber",
                                   "type": "RECTANGLE",
                                   "x": 114,
@@ -1319,7 +1319,7 @@
                                   "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:7546",
+                                  "id": "1:7462",
                                   "name": "ccSwatch Cyan",
                                   "type": "RECTANGLE",
                                   "x": 152,
@@ -1333,7 +1333,7 @@
                                   "variables": {"strokes/0/color": "border/border"}
                                 },
                                 {
-                                  "id": "1:7547",
+                                  "id": "1:7463",
                                   "name": "ccSwatch Rose",
                                   "type": "RECTANGLE",
                                   "x": 190,
@@ -1347,7 +1347,7 @@
                                   "variables": {"strokes/0/color": "border/border"}
                                 },
                                 {
-                                  "id": "1:7548",
+                                  "id": "1:7464",
                                   "name": "ccSwatch Orange",
                                   "type": "RECTANGLE",
                                   "x": 228,
@@ -1363,7 +1363,7 @@
                               ]
                             },
                             {
-                              "id": "1:7549",
+                              "id": "1:7465",
                               "name": "ccAccentFreePicker",
                               "type": "FRAME",
                               "x": 20,
@@ -1382,7 +1382,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7550",
+                                  "id": "1:7466",
                                   "name": "Swatch + Icon",
                                   "type": "FRAME",
                                   "x": 0,
@@ -1404,7 +1404,7 @@
                                   "variables": {"strokes/0/color": "border/border"},
                                   "children": [
                                     {
-                                      "id": "1:7551",
+                                      "id": "1:7467",
                                       "name": "Palette Icon",
                                       "type": "FRAME",
                                       "x": 6,
@@ -1472,7 +1472,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7552",
+                                  "id": "1:7468",
                                   "name": "Hex Input",
                                   "type": "INSTANCE",
                                   "x": 36,
@@ -1504,7 +1504,7 @@
                               ]
                             },
                             {
-                              "id": "1:7553",
+                              "id": "1:7469",
                               "name": "ccPreviewRow",
                               "type": "FRAME",
                               "x": 20,
@@ -1522,7 +1522,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:7554",
+                                  "id": "1:7470",
                                   "name": "ccPreviewChip",
                                   "type": "FRAME",
                                   "x": 0,
@@ -1541,7 +1541,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:7555",
+                                      "id": "1:7471",
                                       "name": "ccPreviewChipLabel",
                                       "type": "TEXT",
                                       "x": 12,
@@ -1556,7 +1556,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7556",
+                                  "id": "1:7472",
                                   "name": "ccPreviewMeta",
                                   "type": "TEXT",
                                   "x": 119,
@@ -1572,7 +1572,7 @@
                               ]
                             },
                             {
-                              "id": "1:7557",
+                              "id": "1:7473",
                               "name": "ccSurfaceRow",
                               "type": "FRAME",
                               "x": 20,
@@ -1591,7 +1591,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7558",
+                                  "id": "1:7474",
                                   "name": "ccSurfaceDarkSlate",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -1611,7 +1611,7 @@
                                   "texts": ["Dark Slate"]
                                 },
                                 {
-                                  "id": "1:7559",
+                                  "id": "1:7475",
                                   "name": "ccSurfaceMidnight",
                                   "type": "INSTANCE",
                                   "x": 119,
@@ -1631,7 +1631,7 @@
                                   "texts": ["Midnight"]
                                 },
                                 {
-                                  "id": "1:7560",
+                                  "id": "1:7476",
                                   "name": "ccSurfaceCharcoal",
                                   "type": "INSTANCE",
                                   "x": 228,
@@ -1651,7 +1651,7 @@
                                   "texts": ["Charcoal"]
                                 },
                                 {
-                                  "id": "1:7561",
+                                  "id": "1:7477",
                                   "name": "ccSurfaceCrispLight",
                                   "type": "INSTANCE",
                                   "x": 338,
@@ -1673,7 +1673,7 @@
                               ]
                             },
                             {
-                              "id": "1:7562",
+                              "id": "1:7478",
                               "name": "ccSurfaceFreePicker",
                               "type": "FRAME",
                               "x": 20,
@@ -1692,7 +1692,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7563",
+                                  "id": "1:7479",
                                   "name": "Swatch + Icon",
                                   "type": "FRAME",
                                   "x": 0,
@@ -1714,7 +1714,7 @@
                                   "variables": {"strokes/0/color": "border/border"},
                                   "children": [
                                     {
-                                      "id": "1:7564",
+                                      "id": "1:7480",
                                       "name": "Palette Icon",
                                       "type": "FRAME",
                                       "x": 6,
@@ -1782,7 +1782,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7565",
+                                  "id": "1:7481",
                                   "name": "Hex Input",
                                   "type": "INSTANCE",
                                   "x": 36,
@@ -1818,7 +1818,7 @@
                       ]
                     },
                     {
-                      "id": "1:7566",
+                      "id": "1:7482",
                       "name": "Card Custom CSS",
                       "type": "FRAME",
                       "x": 0,
@@ -1840,7 +1840,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:7567",
+                          "id": "1:7483",
                           "name": "Card Header",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1861,7 +1861,7 @@
                           "texts": ["Custom CSS overlay", "A stylesheet layered on top of the active base theme."]
                         },
                         {
-                          "id": "1:7568",
+                          "id": "1:7484",
                           "name": "Card Fields",
                           "type": "FRAME",
                           "x": 0,
@@ -1879,7 +1879,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7569",
+                              "id": "1:7485",
                               "name": "cssToggleRow",
                               "type": "FRAME",
                               "x": 20,
@@ -1897,7 +1897,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7570",
+                                  "id": "1:7486",
                                   "name": "cssToggle",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -1911,7 +1911,7 @@
                                   "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"}
                                 },
                                 {
-                                  "id": "1:7571",
+                                  "id": "1:7487",
                                   "name": "cssToggleLabel",
                                   "type": "TEXT",
                                   "x": 46,
@@ -1926,7 +1926,7 @@
                               ]
                             },
                             {
-                              "id": "1:7572",
+                              "id": "1:7488",
                               "name": "cssHelper",
                               "type": "TEXT",
                               "x": 20,
@@ -1941,7 +1941,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:7573",
+                              "id": "1:7489",
                               "name": "cssTextarea",
                               "type": "INSTANCE",
                               "x": 20,
@@ -1966,7 +1966,7 @@
                               ]
                             },
                             {
-                              "id": "1:7574",
+                              "id": "1:7490",
                               "name": "cssWarning",
                               "type": "FRAME",
                               "x": 20,
@@ -2063,7 +2063,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7575",
+                                  "id": "1:7491",
                                   "name": "hiddenAction",
                                   "type": "FRAME",
                                   "x": 0,
@@ -2087,7 +2087,7 @@
                       ]
                     },
                     {
-                      "id": "1:7576",
+                      "id": "1:7492",
                       "name": "Card Export Import",
                       "type": "FRAME",
                       "x": 0,
@@ -2109,7 +2109,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:7577",
+                          "id": "1:7493",
                           "name": "Card Header",
                           "type": "INSTANCE",
                           "x": 0,
@@ -2133,7 +2133,7 @@
                           ]
                         },
                         {
-                          "id": "1:7578",
+                          "id": "1:7494",
                           "name": "Card Fields",
                           "type": "FRAME",
                           "x": 0,
@@ -2151,7 +2151,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7579",
+                              "id": "1:7495",
                               "name": "exButtonRow",
                               "type": "FRAME",
                               "x": 20,
@@ -2168,7 +2168,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:7580",
+                                  "id": "1:7496",
                                   "name": "exBtnCopy",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -2191,7 +2191,7 @@
                                   "texts": ["Copy to clipboard"]
                                 },
                                 {
-                                  "id": "1:7581",
+                                  "id": "1:7497",
                                   "name": "exBtnDownload",
                                   "type": "INSTANCE",
                                   "x": 159,
@@ -2216,7 +2216,7 @@
                               ]
                             },
                             {
-                              "id": "1:7582",
+                              "id": "1:7498",
                               "name": "imPasteArea",
                               "type": "INSTANCE",
                               "x": 20,
@@ -2241,7 +2241,7 @@
                               ]
                             },
                             {
-                              "id": "1:7583",
+                              "id": "1:7499",
                               "name": "imFileRow",
                               "type": "FRAME",
                               "x": 20,
@@ -2258,7 +2258,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:7584",
+                                  "id": "1:7500",
                                   "name": "imBtnChooseFile",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -2281,7 +2281,7 @@
                                   "texts": ["Choose file…"]
                                 },
                                 {
-                                  "id": "1:7585",
+                                  "id": "1:7501",
                                   "name": "imFileHint",
                                   "type": "TEXT",
                                   "x": 130,
@@ -2296,7 +2296,7 @@
                               ]
                             },
                             {
-                              "id": "1:7586",
+                              "id": "1:7502",
                               "name": "imPreviewCard",
                               "type": "FRAME",
                               "x": 20,
@@ -2319,7 +2319,7 @@
                               "variables": {"fills/0/color": "field/background", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:7587",
+                                  "id": "1:7503",
                                   "name": "imPreviewTitle",
                                   "type": "TEXT",
                                   "x": 12,
@@ -2332,7 +2332,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:7588",
+                                  "id": "1:7504",
                                   "name": "imPresetRow",
                                   "type": "FRAME",
                                   "x": 12,
@@ -2349,7 +2349,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:7589",
+                                      "id": "1:7505",
                                       "name": "imAccentSwatch",
                                       "type": "RECTANGLE",
                                       "x": 0,
@@ -2360,7 +2360,7 @@
                                       "cornerRadius": 4
                                     },
                                     {
-                                      "id": "1:7590",
+                                      "id": "1:7506",
                                       "name": "imPresetName",
                                       "type": "TEXT",
                                       "x": 24,
@@ -2375,7 +2375,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7591",
+                                  "id": "1:7507",
                                   "name": "imCssSize",
                                   "type": "TEXT",
                                   "x": 12,
@@ -2388,7 +2388,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "1:7592",
+                                  "id": "1:7508",
                                   "name": "imApplyRow",
                                   "type": "FRAME",
                                   "x": 12,
@@ -2406,7 +2406,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:7593",
+                                      "id": "1:7509",
                                       "name": "imBtnApply",
                                       "type": "INSTANCE",
                                       "x": 708,
@@ -2431,7 +2431,7 @@
                               ]
                             },
                             {
-                              "id": "1:7594",
+                              "id": "1:7510",
                               "name": "imScopeNote",
                               "type": "FRAME",
                               "x": 20,
@@ -2449,7 +2449,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7595",
+                                  "id": "1:7511",
                                   "name": "imScopeIcon",
                                   "type": "FRAME",
                                   "x": 0,
@@ -2481,7 +2481,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7596",
+                                  "id": "1:7512",
                                   "name": "imScopeText",
                                   "type": "TEXT",
                                   "x": 22,
@@ -2500,7 +2500,7 @@
                       ]
                     },
                     {
-                      "id": "1:7597",
+                      "id": "1:7513",
                       "name": "tsActionsRow",
                       "type": "FRAME",
                       "x": 0,
@@ -2518,7 +2518,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:7598",
+                          "id": "1:7514",
                           "name": "tsBtnReset",
                           "type": "INSTANCE",
                           "x": 0,
@@ -2539,7 +2539,7 @@
                           "texts": ["Reset to Defaults"]
                         },
                         {
-                          "id": "1:7599",
+                          "id": "1:7515",
                           "name": "tsBtnSave",
                           "type": "INSTANCE",
                           "x": 823,

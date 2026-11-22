@@ -1,6 +1,6 @@
 {
   "file": "oyoTs",
-  "id": "1:6890",
+  "id": "1:6806",
   "name": "Screen/Dashboard Home (Light)",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:6891",
+      "id": "1:6807",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:6892",
+      "id": "1:6808",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:6893",
+          "id": "1:6809",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Dashboard", "Search servers…", "AD"]
         },
         {
-          "id": "1:6894",
+          "id": "1:6810",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:6895",
+              "id": "1:6811",
               "name": "Page Header",
               "type": "FRAME",
               "x": 32,
@@ -208,7 +208,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:6896",
+                      "id": "1:6812",
                       "name": "Create Server Button",
                       "type": "INSTANCE",
                       "x": -5,
@@ -233,7 +233,7 @@
               ]
             },
             {
-              "id": "1:6897",
+              "id": "1:6813",
               "name": "Dashboard location filter",
               "type": "INSTANCE",
               "x": 32,
@@ -263,7 +263,7 @@
               "texts": ["All clusters"]
             },
             {
-              "id": "1:6898",
+              "id": "1:6814",
               "name": "Stats Row",
               "type": "INSTANCE",
               "x": 32,
@@ -300,7 +300,7 @@
               ]
             },
             {
-              "id": "1:6899",
+              "id": "1:6815",
               "name": "Row2",
               "type": "FRAME",
               "x": 32,
@@ -318,7 +318,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:6900",
+                  "id": "1:6816",
                   "name": "Fleet Status Card",
                   "type": "INSTANCE",
                   "x": 0,
@@ -357,7 +357,7 @@
                   ]
                 },
                 {
-                  "id": "1:6901",
+                  "id": "1:6817",
                   "name": "Cluster Resources Card",
                   "type": "INSTANCE",
                   "x": 570,
@@ -408,7 +408,7 @@
               ]
             },
             {
-              "id": "1:6902",
+              "id": "1:6818",
               "name": "Row3",
               "type": "FRAME",
               "x": 32,
@@ -426,7 +426,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:6903",
+                  "id": "1:6819",
                   "name": "Central audit activity",
                   "type": "INSTANCE",
                   "x": 0,
@@ -466,7 +466,7 @@
                   ]
                 },
                 {
-                  "id": "1:6904",
+                  "id": "1:6820",
                   "name": "Recent Backups Card",
                   "type": "INSTANCE",
                   "x": 570,

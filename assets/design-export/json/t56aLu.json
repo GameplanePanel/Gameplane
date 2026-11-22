@@ -1,6 +1,6 @@
 {
   "file": "t56aLu",
-  "id": "1:11119",
+  "id": "1:11035",
   "name": "Screen/Cluster Details — Configuration — Remote",
   "type": "FRAME",
   "x": 18040,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:11120",
+      "id": "1:11036",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:11121",
+      "id": "1:11037",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -82,7 +82,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:11122",
+          "id": "1:11038",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -107,7 +107,7 @@
           "texts": ["gameplane", "Clusters  ›  Remote lab  ›  Configuration", "Search servers…", "AD"]
         },
         {
-          "id": "1:11123",
+          "id": "1:11039",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -126,7 +126,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:11124",
+              "id": "1:11040",
               "name": "Page Header",
               "type": "INSTANCE",
               "x": 24,
@@ -149,7 +149,7 @@
               "texts": ["Remote lab", "remote-lab · Registered workload cluster"]
             },
             {
-              "id": "1:11125",
+              "id": "1:11041",
               "name": "Cluster detail tabs",
               "type": "FRAME",
               "x": 24,
@@ -170,7 +170,7 @@
               "variables": {"strokes/0/color": "separator/separator"},
               "children": [
                 {
-                  "id": "1:11126",
+                  "id": "1:11042",
                   "name": "Overview tab",
                   "type": "INSTANCE",
                   "x": 0,
@@ -192,7 +192,7 @@
                   "texts": ["Overview"]
                 },
                 {
-                  "id": "1:11127",
+                  "id": "1:11043",
                   "name": "Nodes tab",
                   "type": "INSTANCE",
                   "x": 98,
@@ -214,7 +214,7 @@
                   "texts": ["Nodes"]
                 },
                 {
-                  "id": "1:11128",
+                  "id": "1:11044",
                   "name": "Configuration tab",
                   "type": "INSTANCE",
                   "x": 177,
@@ -240,7 +240,7 @@
               ]
             },
             {
-              "id": "1:11129",
+              "id": "1:11045",
               "name": "Access",
               "type": "FRAME",
               "x": 24,
@@ -267,7 +267,7 @@
               },
               "children": [
                 {
-                  "id": "1:11130",
+                  "id": "1:11046",
                   "name": "Access heading",
                   "type": "TEXT",
                   "x": 20,
@@ -282,7 +282,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:11131",
+                  "id": "1:11047",
                   "name": "Access description",
                   "type": "TEXT",
                   "x": 20,
@@ -299,7 +299,7 @@
               ]
             },
             {
-              "id": "1:11132",
+              "id": "1:11048",
               "name": "Storage",
               "type": "FRAME",
               "x": 24,
@@ -326,7 +326,7 @@
               },
               "children": [
                 {
-                  "id": "1:11133",
+                  "id": "1:11049",
                   "name": "Storage heading",
                   "type": "TEXT",
                   "x": 20,
@@ -341,7 +341,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:11134",
+                  "id": "1:11050",
                   "name": "Storage description",
                   "type": "TEXT",
                   "x": 20,
@@ -358,7 +358,7 @@
               ]
             },
             {
-              "id": "1:11135",
+              "id": "1:11051",
               "name": "Backup destinations",
               "type": "FRAME",
               "x": 24,
@@ -385,7 +385,7 @@
               },
               "children": [
                 {
-                  "id": "1:11136",
+                  "id": "1:11052",
                   "name": "Backup destinations heading",
                   "type": "TEXT",
                   "x": 20,
@@ -400,7 +400,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:11137",
+                  "id": "1:11053",
                   "name": "Backup destinations description",
                   "type": "TEXT",
                   "x": 20,
@@ -415,7 +415,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:11138",
+                  "id": "1:11054",
                   "name": "Empty backup destinations",
                   "type": "TEXT",
                   "x": 20,
@@ -430,7 +430,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:11139",
+                  "id": "1:11055",
                   "name": "Add remote backup destination",
                   "type": "INSTANCE",
                   "x": 20,
@@ -461,7 +461,7 @@
               ]
             },
             {
-              "id": "1:11140",
+              "id": "1:11056",
               "name": "Remove cluster",
               "type": "FRAME",
               "x": 24,
@@ -484,7 +484,7 @@
               "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface", "strokes/0/color": "danger/soft"},
               "children": [
                 {
-                  "id": "1:11141",
+                  "id": "1:11057",
                   "name": "Remove cluster heading",
                   "type": "TEXT",
                   "x": 20,
@@ -499,7 +499,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:11142",
+                  "id": "1:11058",
                   "name": "Remove cluster description",
                   "type": "TEXT",
                   "x": 20,
@@ -514,7 +514,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:11143",
+                  "id": "1:11059",
                   "name": "Remove cluster registration",
                   "type": "INSTANCE",
                   "x": 20,
@@ -522,7 +522,7 @@
                   "width": 159,
                   "height": 36,
                   "component": "Button/Danger Soft/MD",
-                  "componentId": "1:5679",
+                  "componentId": "1:5593",
                   "fills": [{"type": "SOLID", "color": "#2E1317"}],
                   "cornerRadius": 24,
                   "layout": {

@@ -1,6 +1,6 @@
 {
   "file": "HVhmb",
-  "id": "1:9430",
+  "id": "1:9346",
   "name": "Legacy/Clusters list — Remove registration — Moved",
   "type": "FRAME",
   "x": 8200,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9431",
+      "id": "1:9347",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:9432",
+      "id": "1:9348",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:9433",
+          "id": "1:9349",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Clusters", "Search servers…", "AD"]
         },
         {
-          "id": "1:9434",
+          "id": "1:9350",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -128,7 +128,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9435",
+              "id": "1:9351",
               "name": "Clusters header",
               "type": "FRAME",
               "x": 24,
@@ -190,7 +190,7 @@
                   ]
                 },
                 {
-                  "id": "1:9436",
+                  "id": "1:9352",
                   "name": "Page actions",
                   "type": "FRAME",
                   "x": 995,
@@ -207,7 +207,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:9437",
+                      "id": "1:9353",
                       "name": "Register cluster",
                       "type": "INSTANCE",
                       "x": 0,
@@ -240,7 +240,7 @@
               ]
             },
             {
-              "id": "1:9438",
+              "id": "1:9354",
               "name": "API status scope",
               "type": "TEXT",
               "x": 24,
@@ -255,7 +255,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:9439",
+              "id": "1:9355",
               "name": "Registered remote clusters",
               "type": "FRAME",
               "x": 24,
@@ -273,7 +273,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9440",
+                  "id": "1:9356",
                   "name": "east cluster",
                   "type": "FRAME",
                   "x": 0,
@@ -294,7 +294,7 @@
                   "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "id": "1:9441",
+                      "id": "1:9357",
                       "name": "Cluster identity",
                       "type": "FRAME",
                       "x": 24,
@@ -312,7 +312,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9442",
+                          "id": "1:9358",
                           "name": "Name and registration",
                           "type": "FRAME",
                           "x": 0,
@@ -330,7 +330,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
-                              "id": "1:9443",
+                              "id": "1:9359",
                               "name": "Cluster display name",
                               "type": "TEXT",
                               "x": 0,
@@ -345,7 +345,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:9444",
+                              "id": "1:9360",
                               "name": "Registration name",
                               "type": "TEXT",
                               "x": 0,
@@ -362,7 +362,7 @@
                           ]
                         },
                         {
-                          "id": "1:9445",
+                          "id": "1:9361",
                           "name": "Selected cluster",
                           "type": "TEXT",
                           "x": 461,
@@ -377,7 +377,7 @@
                       ]
                     },
                     {
-                      "id": "1:9446",
+                      "id": "1:9362",
                       "name": "API connectivity",
                       "type": "TEXT",
                       "x": 24,
@@ -392,7 +392,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "success/success"}
                     },
                     {
-                      "id": "1:9447",
+                      "id": "1:9363",
                       "name": "Last checked",
                       "type": "TEXT",
                       "x": 24,
@@ -407,7 +407,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:9448",
+                      "id": "1:9364",
                       "name": "Cluster actions",
                       "type": "FRAME",
                       "x": 24,
@@ -424,7 +424,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:9449",
+                          "id": "1:9365",
                           "name": "View servers",
                           "type": "INSTANCE",
                           "x": 0,
@@ -453,7 +453,7 @@
                           "texts": ["View servers"]
                         },
                         {
-                          "id": "1:9450",
+                          "id": "1:9366",
                           "name": "View nodes",
                           "type": "INSTANCE",
                           "x": 124,
@@ -483,7 +483,7 @@
                           "texts": ["View nodes"]
                         },
                         {
-                          "id": "1:9451",
+                          "id": "1:9367",
                           "name": "Remove",
                           "type": "INSTANCE",
                           "x": 240,
@@ -517,7 +517,7 @@
                   ]
                 },
                 {
-                  "id": "1:9452",
+                  "id": "1:9368",
                   "name": "west cluster",
                   "type": "FRAME",
                   "x": 574,
@@ -538,7 +538,7 @@
                   "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "id": "1:9453",
+                      "id": "1:9369",
                       "name": "Cluster identity",
                       "type": "FRAME",
                       "x": 24,
@@ -556,7 +556,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9454",
+                          "id": "1:9370",
                           "name": "Name and registration",
                           "type": "FRAME",
                           "x": 0,
@@ -574,7 +574,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
-                              "id": "1:9455",
+                              "id": "1:9371",
                               "name": "Cluster display name",
                               "type": "TEXT",
                               "x": 0,
@@ -589,7 +589,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:9456",
+                              "id": "1:9372",
                               "name": "Registration name",
                               "type": "TEXT",
                               "x": 0,
@@ -608,7 +608,7 @@
                       ]
                     },
                     {
-                      "id": "1:9457",
+                      "id": "1:9373",
                       "name": "API connectivity",
                       "type": "TEXT",
                       "x": 24,
@@ -623,7 +623,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/danger"}
                     },
                     {
-                      "id": "1:9458",
+                      "id": "1:9374",
                       "name": "Last checked",
                       "type": "TEXT",
                       "x": 24,
@@ -638,7 +638,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:9459",
+                      "id": "1:9375",
                       "name": "Cluster actions",
                       "type": "FRAME",
                       "x": 24,
@@ -655,7 +655,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:9460",
+                          "id": "1:9376",
                           "name": "View servers",
                           "type": "INSTANCE",
                           "x": 0,
@@ -684,7 +684,7 @@
                           "texts": ["View servers"]
                         },
                         {
-                          "id": "1:9461",
+                          "id": "1:9377",
                           "name": "View nodes",
                           "type": "INSTANCE",
                           "x": 124,
@@ -714,7 +714,7 @@
                           "texts": ["View nodes"]
                         },
                         {
-                          "id": "1:9462",
+                          "id": "1:9378",
                           "name": "Remove",
                           "type": "INSTANCE",
                           "x": 240,
@@ -754,7 +754,7 @@
       ]
     },
     {
-      "id": "1:9463",
+      "id": "1:9379",
       "name": "Modal backdrop",
       "type": "FRAME",
       "x": 0,
@@ -773,7 +773,7 @@
       "absolute": true,
       "children": [
         {
-          "id": "1:9464",
+          "id": "1:9380",
           "name": "Remove cluster confirmation",
           "type": "FRAME",
           "x": 500,
@@ -829,7 +829,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9465",
+                  "id": "1:9381",
                   "name": "Removal description and error",
                   "type": "FRAME",
                   "x": 0,
@@ -847,7 +847,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:9466",
+                      "id": "1:9382",
                       "name": "Removal description",
                       "type": "TEXT",
                       "x": 0,
@@ -861,7 +861,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:9467",
+                      "id": "1:9383",
                       "name": "Removal request error",
                       "type": "TEXT",
                       "x": 0,

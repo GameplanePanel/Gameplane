@@ -1,6 +1,6 @@
 {
   "file": "w34N9",
-  "id": "1:9897",
+  "id": "1:9813",
   "name": "Screen/Standalone — Dashboard (No workload clusters)",
   "type": "FRAME",
   "x": 8200,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9898",
+      "id": "1:9814",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:9899",
+      "id": "1:9815",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:9900",
+          "id": "1:9816",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Dashboard", "Search servers…", "AD"]
         },
         {
-          "id": "1:9901",
+          "id": "1:9817",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:9902",
+              "id": "1:9818",
               "name": "Page Header",
               "type": "FRAME",
               "x": 32,
@@ -209,7 +209,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:9903",
+                      "id": "1:9819",
                       "name": "Create Server Button",
                       "type": "INSTANCE",
                       "x": -144,
@@ -234,7 +234,7 @@
               ]
             },
             {
-              "id": "1:9904",
+              "id": "1:9820",
               "name": "Dashboard location filter",
               "type": "INSTANCE",
               "x": 32,
@@ -264,7 +264,7 @@
               "texts": ["All clusters"]
             },
             {
-              "id": "1:9905",
+              "id": "1:9821",
               "name": "Stats Row",
               "type": "INSTANCE",
               "x": 32,
@@ -301,7 +301,7 @@
               ]
             },
             {
-              "id": "1:9906",
+              "id": "1:9822",
               "name": "Row2",
               "type": "FRAME",
               "x": 32,
@@ -319,7 +319,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9907",
+                  "id": "1:9823",
                   "name": "Fleet Status Card",
                   "type": "INSTANCE",
                   "x": 0,
@@ -358,7 +358,7 @@
                   ]
                 },
                 {
-                  "id": "1:9908",
+                  "id": "1:9824",
                   "name": "Cluster resources",
                   "type": "FRAME",
                   "x": 570,
@@ -379,7 +379,7 @@
                   "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "id": "1:9909",
+                      "id": "1:9825",
                       "name": "Cluster resources header",
                       "type": "FRAME",
                       "x": 16,
@@ -397,7 +397,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9910",
+                          "id": "1:9826",
                           "name": "Card title",
                           "type": "TEXT",
                           "x": 0,
@@ -410,7 +410,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "id": "1:9911",
+                          "id": "1:9827",
                           "name": "No registered workload location",
                           "type": "TEXT",
                           "x": 503,
@@ -425,7 +425,7 @@
                       ]
                     },
                     {
-                      "id": "1:9912",
+                      "id": "1:9828",
                       "name": "CPU meter",
                       "type": "FRAME",
                       "x": 16,
@@ -443,7 +443,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9913",
+                          "id": "1:9829",
                           "name": "CPU values",
                           "type": "FRAME",
                           "x": 0,
@@ -461,7 +461,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:9914",
+                              "id": "1:9830",
                               "name": "Resource name",
                               "type": "TEXT",
                               "x": 0,
@@ -474,7 +474,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:9915",
+                              "id": "1:9831",
                               "name": "Unavailable reading",
                               "type": "TEXT",
                               "x": 503,
@@ -489,7 +489,7 @@
                           ]
                         },
                         {
-                          "id": "1:9916",
+                          "id": "1:9832",
                           "name": "CPU empty track",
                           "type": "FRAME",
                           "x": 0,
@@ -512,7 +512,7 @@
                       ]
                     },
                     {
-                      "id": "1:9917",
+                      "id": "1:9833",
                       "name": "Memory meter",
                       "type": "FRAME",
                       "x": 16,
@@ -530,7 +530,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9918",
+                          "id": "1:9834",
                           "name": "Memory values",
                           "type": "FRAME",
                           "x": 0,
@@ -548,7 +548,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:9919",
+                              "id": "1:9835",
                               "name": "Resource name",
                               "type": "TEXT",
                               "x": 0,
@@ -561,7 +561,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:9920",
+                              "id": "1:9836",
                               "name": "Unavailable reading",
                               "type": "TEXT",
                               "x": 503,
@@ -576,7 +576,7 @@
                           ]
                         },
                         {
-                          "id": "1:9921",
+                          "id": "1:9837",
                           "name": "Memory empty track",
                           "type": "FRAME",
                           "x": 0,
@@ -599,7 +599,7 @@
                       ]
                     },
                     {
-                      "id": "1:9922",
+                      "id": "1:9838",
                       "name": "Storage meter",
                       "type": "FRAME",
                       "x": 16,
@@ -617,7 +617,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9923",
+                          "id": "1:9839",
                           "name": "Storage values",
                           "type": "FRAME",
                           "x": 0,
@@ -635,7 +635,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:9924",
+                              "id": "1:9840",
                               "name": "Resource name",
                               "type": "TEXT",
                               "x": 0,
@@ -648,7 +648,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:9925",
+                              "id": "1:9841",
                               "name": "Unavailable reading",
                               "type": "TEXT",
                               "x": 503,
@@ -663,7 +663,7 @@
                           ]
                         },
                         {
-                          "id": "1:9926",
+                          "id": "1:9842",
                           "name": "Storage empty track",
                           "type": "FRAME",
                           "x": 0,
@@ -684,7 +684,7 @@
                           "variables": {"fills/0/color": "default/default"}
                         },
                         {
-                          "id": "1:9927",
+                          "id": "1:9843",
                           "name": "Storage availability",
                           "type": "TEXT",
                           "x": 0,
@@ -705,7 +705,7 @@
               ]
             },
             {
-              "id": "1:9928",
+              "id": "1:9844",
               "name": "Row3",
               "type": "FRAME",
               "x": 32,
@@ -723,7 +723,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9929",
+                  "id": "1:9845",
                   "name": "Central audit activity",
                   "type": "FRAME",
                   "x": 0,
@@ -741,7 +741,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:9930",
+                      "id": "1:9846",
                       "name": "Central audit scope",
                       "type": "TEXT",
                       "x": 0,
@@ -754,7 +754,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:9931",
+                      "id": "1:9847",
                       "name": "Recent Activity Card",
                       "type": "FRAME",
                       "x": 0,
@@ -782,7 +782,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:9932",
+                          "id": "1:9848",
                           "name": "Header",
                           "type": "FRAME",
                           "x": 16,
@@ -800,7 +800,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:9933",
+                              "id": "1:9849",
                               "name": "title",
                               "type": "TEXT",
                               "x": 0,
@@ -813,7 +813,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:9934",
+                              "id": "1:9850",
                               "name": "link",
                               "type": "TEXT",
                               "x": 471,
@@ -828,7 +828,7 @@
                           ]
                         },
                         {
-                          "id": "1:9935",
+                          "id": "1:9851",
                           "name": "Empty audit content",
                           "type": "FRAME",
                           "x": 16,
@@ -846,7 +846,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:9936",
+                              "id": "1:9852",
                               "name": "No activity",
                               "type": "TEXT",
                               "x": 199.5,
@@ -865,7 +865,7 @@
                   ]
                 },
                 {
-                  "id": "1:9937",
+                  "id": "1:9853",
                   "name": "Recent Backups Card",
                   "type": "INSTANCE",
                   "x": 570,

@@ -1345,10 +1345,10 @@
                                         {
                                           "name": "path",
                                           "type": "VECTOR",
-                                          "x": 5.83,
-                                          "y": 5.83,
-                                          "width": 7,
-                                          "height": 7,
+                                          "x": 7,
+                                          "y": 7,
+                                          "width": 5.83,
+                                          "height": 5.83,
                                           "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
                                           "strokeWeight": 1.17
                                         }
@@ -1434,10 +1434,10 @@
                                         {
                                           "name": "path",
                                           "type": "VECTOR",
-                                          "x": 5.83,
-                                          "y": 5.83,
-                                          "width": 7,
-                                          "height": 7,
+                                          "x": 7,
+                                          "y": 7,
+                                          "width": 5.83,
+                                          "height": 5.83,
                                           "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
                                           "strokeWeight": 1.17
                                         }

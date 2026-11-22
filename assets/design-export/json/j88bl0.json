@@ -1,6 +1,6 @@
 {
   "file": "j88bl0",
-  "id": "1:7458",
+  "id": "1:7374",
   "name": "Screen/Server Detail — Console (not running – Pod failure)",
   "type": "FRAME",
   "x": 3280,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:7459",
+      "id": "1:7375",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:7460",
+      "id": "1:7376",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:7461",
+          "id": "1:7377",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:7462",
+          "id": "1:7378",
           "name": "Detail Header",
           "type": "INSTANCE",
           "x": 0,
@@ -139,7 +139,7 @@
           ]
         },
         {
-          "id": "1:7463",
+          "id": "1:7379",
           "name": "Tabs Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -176,7 +176,7 @@
           ]
         },
         {
-          "id": "1:7464",
+          "id": "1:7380",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -197,7 +197,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:7465",
+              "id": "1:7381",
               "name": "Console Toolbar",
               "type": "INSTANCE",
               "x": 0,
@@ -221,7 +221,7 @@
               "texts": ["FAILED", "Clear", "Download", "Fullscreen"]
             },
             {
-              "id": "1:7466",
+              "id": "1:7382",
               "name": "Terminal Wrap",
               "type": "FRAME",
               "x": 0,
@@ -240,7 +240,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7467",
+                  "id": "1:7383",
                   "name": "Failure Card",
                   "type": "FRAME",
                   "x": 350,
@@ -262,7 +262,7 @@
                   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "danger/danger"},
                   "children": [
                     {
-                      "id": "1:7468",
+                      "id": "1:7384",
                       "name": "Icon Wrap",
                       "type": "FRAME",
                       "x": 212,
@@ -282,7 +282,7 @@
                       "variables": {"fills/0/color": "danger/soft"},
                       "children": [
                         {
-                          "id": "1:7469",
+                          "id": "1:7385",
                           "name": "Alert Icon",
                           "type": "FRAME",
                           "x": 14,
@@ -306,7 +306,7 @@
                       ]
                     },
                     {
-                      "id": "1:7470",
+                      "id": "1:7386",
                       "name": "Status",
                       "type": "TEXT",
                       "x": 32,
@@ -321,7 +321,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:7471",
+                      "id": "1:7387",
                       "name": "Info",
                       "type": "TEXT",
                       "x": 32,

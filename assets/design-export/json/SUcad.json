@@ -1,6 +1,6 @@
 {
   "file": "SUcad",
-  "id": "1:10598",
+  "id": "1:10514",
   "name": "Screen/Admin Settings — Notifications (Add sink)",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:10599",
+      "id": "1:10515",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:10600",
+      "id": "1:10516",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:10601",
+          "id": "1:10517",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Settings", "Search servers…", "AD"]
         },
         {
-          "id": "1:10602",
+          "id": "1:10518",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -128,7 +128,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10603",
+              "id": "1:10519",
               "name": "Gameplane/Page Header",
               "type": "INSTANCE",
               "x": 24,
@@ -151,7 +151,7 @@
               "texts": ["Admin settings", "Platform-wide configuration for this Gameplane instance."]
             },
             {
-              "id": "1:10604",
+              "id": "1:10520",
               "name": "Settings Layout",
               "type": "FRAME",
               "x": 24,
@@ -170,7 +170,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:10605",
+                  "id": "1:10521",
                   "name": "Settings Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -200,7 +200,7 @@
                   ]
                 },
                 {
-                  "id": "1:10606",
+                  "id": "1:10522",
                   "name": "Settings Panel",
                   "type": "FRAME",
                   "x": 244,
@@ -222,7 +222,7 @@
                   "variables": {"fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "id": "1:10607",
+                      "id": "1:10523",
                       "name": "Card Header",
                       "type": "INSTANCE",
                       "x": 0,
@@ -246,7 +246,7 @@
                       ]
                     },
                     {
-                      "id": "1:10608",
+                      "id": "1:10524",
                       "name": "Card Content",
                       "type": "FRAME",
                       "x": 0,
@@ -264,7 +264,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:10609",
+                          "id": "1:10525",
                           "name": "sinkList",
                           "type": "FRAME",
                           "x": 20,
@@ -282,7 +282,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:10610",
+                              "id": "1:10526",
                               "name": "sinkDiscord",
                               "type": "FRAME",
                               "x": 0,
@@ -303,7 +303,7 @@
                               "variables": {"strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:10611",
+                                  "id": "1:10527",
                                   "name": "iconBox",
                                   "type": "FRAME",
                                   "x": 0,
@@ -323,7 +323,7 @@
                                   "variables": {"fills/0/color": "surface/secondary"},
                                   "children": [
                                     {
-                                      "id": "1:10612",
+                                      "id": "1:10528",
                                       "name": "icon",
                                       "type": "FRAME",
                                       "x": 8,
@@ -347,7 +347,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10613",
+                                  "id": "1:10529",
                                   "name": "frame",
                                   "type": "FRAME",
                                   "x": 44,
@@ -365,7 +365,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10614",
+                                      "id": "1:10530",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -378,7 +378,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:10615",
+                                      "id": "1:10531",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -391,7 +391,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     },
                                     {
-                                      "id": "1:10616",
+                                      "id": "1:10532",
                                       "name": "sinkLangRow",
                                       "type": "FRAME",
                                       "x": 0,
@@ -408,7 +408,7 @@
                                       },
                                       "children": [
                                         {
-                                          "id": "1:10617",
+                                          "id": "1:10533",
                                           "name": "sinkLangLabel",
                                           "type": "TEXT",
                                           "x": 0,
@@ -421,7 +421,7 @@
                                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         },
                                         {
-                                          "id": "1:10618",
+                                          "id": "1:10534",
                                           "name": "sinkLangSelect",
                                           "type": "INSTANCE",
                                           "x": 63,
@@ -455,7 +455,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10619",
+                                  "id": "1:10535",
                                   "name": "eventChips",
                                   "type": "FRAME",
                                   "x": 445,
@@ -472,7 +472,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:10620",
+                                      "id": "1:10536",
                                       "name": "Chip/Soft/Default/SM",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -495,7 +495,7 @@
                                       "texts": ["server.unhealthy"]
                                     },
                                     {
-                                      "id": "1:10621",
+                                      "id": "1:10537",
                                       "name": "Chip/Soft/Default/SM",
                                       "type": "INSTANCE",
                                       "x": 103,
@@ -518,7 +518,7 @@
                                       "texts": ["backup.failed"]
                                     },
                                     {
-                                      "id": "1:10622",
+                                      "id": "1:10538",
                                       "name": "Chip/Soft/Default/SM",
                                       "type": "INSTANCE",
                                       "x": 189,
@@ -543,7 +543,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10623",
+                                  "id": "1:10539",
                                   "name": "btnSendTest",
                                   "type": "INSTANCE",
                                   "x": 668,
@@ -572,7 +572,7 @@
                                   "texts": ["Send test"]
                                 },
                                 {
-                                  "id": "1:10624",
+                                  "id": "1:10540",
                                   "name": "switchOn",
                                   "type": "INSTANCE",
                                   "x": 764,
@@ -586,7 +586,7 @@
                                   "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"}
                                 },
                                 {
-                                  "id": "1:10625",
+                                  "id": "1:10541",
                                   "name": "btnDelete",
                                   "type": "INSTANCE",
                                   "x": 812,
@@ -608,7 +608,7 @@
                               ]
                             },
                             {
-                              "id": "1:10626",
+                              "id": "1:10542",
                               "name": "sinkWebhook",
                               "type": "FRAME",
                               "x": 0,
@@ -626,7 +626,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10627",
+                                  "id": "1:10543",
                                   "name": "iconBox",
                                   "type": "FRAME",
                                   "x": 0,
@@ -646,7 +646,7 @@
                                   "variables": {"fills/0/color": "surface/secondary"},
                                   "children": [
                                     {
-                                      "id": "1:10628",
+                                      "id": "1:10544",
                                       "name": "icon",
                                       "type": "FRAME",
                                       "x": 8,
@@ -690,7 +690,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10629",
+                                  "id": "1:10545",
                                   "name": "frame",
                                   "type": "FRAME",
                                   "x": 44,
@@ -708,7 +708,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10630",
+                                      "id": "1:10546",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -721,7 +721,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:10631",
+                                      "id": "1:10547",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -734,7 +734,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     },
                                     {
-                                      "id": "1:10632",
+                                      "id": "1:10548",
                                       "name": "sinkLangRow",
                                       "type": "FRAME",
                                       "x": 0,
@@ -751,7 +751,7 @@
                                       },
                                       "children": [
                                         {
-                                          "id": "1:10633",
+                                          "id": "1:10549",
                                           "name": "sinkLangLabel",
                                           "type": "TEXT",
                                           "x": 0,
@@ -764,7 +764,7 @@
                                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         },
                                         {
-                                          "id": "1:10634",
+                                          "id": "1:10550",
                                           "name": "sinkLangSelect",
                                           "type": "INSTANCE",
                                           "x": 63,
@@ -798,7 +798,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10635",
+                                  "id": "1:10551",
                                   "name": "needsSecret",
                                   "type": "INSTANCE",
                                   "x": 578,
@@ -821,7 +821,7 @@
                                   "texts": ["Needs secret"]
                                 },
                                 {
-                                  "id": "1:10636",
+                                  "id": "1:10552",
                                   "name": "btnSendTest",
                                   "type": "INSTANCE",
                                   "x": 668,
@@ -851,7 +851,7 @@
                                   "texts": ["Send test"]
                                 },
                                 {
-                                  "id": "1:10637",
+                                  "id": "1:10553",
                                   "name": "switchOff",
                                   "type": "INSTANCE",
                                   "x": 764,
@@ -865,7 +865,7 @@
                                   "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "border/border"}
                                 },
                                 {
-                                  "id": "1:10638",
+                                  "id": "1:10554",
                                   "name": "btnDelete",
                                   "type": "INSTANCE",
                                   "x": 812,
@@ -889,7 +889,7 @@
                           ]
                         },
                         {
-                          "id": "1:10639",
+                          "id": "1:10555",
                           "name": "btnAddSink",
                           "type": "INSTANCE",
                           "x": 170,
@@ -921,7 +921,7 @@
                       ]
                     },
                     {
-                      "id": "1:10640",
+                      "id": "1:10556",
                       "name": "addSinkForm",
                       "type": "FRAME",
                       "x": 0,
@@ -944,7 +944,7 @@
                       "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:10641",
+                          "id": "1:10557",
                           "name": "addSinkTitle",
                           "type": "TEXT",
                           "x": 16,
@@ -957,7 +957,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "id": "1:10642",
+                          "id": "1:10558",
                           "name": "addSinkRow1",
                           "type": "FRAME",
                           "x": 16,
@@ -975,7 +975,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:10643",
+                              "id": "1:10559",
                               "name": "fieldSinkName",
                               "type": "INSTANCE",
                               "x": 0,
@@ -1000,7 +1000,7 @@
                               ]
                             },
                             {
-                              "id": "1:10644",
+                              "id": "1:10560",
                               "name": "fieldSinkKind",
                               "type": "FRAME",
                               "x": 434,
@@ -1018,7 +1018,7 @@
                               "layoutGrow": 1,
                               "children": [
                                 {
-                                  "id": "1:10645",
+                                  "id": "1:10561",
                                   "name": "fieldSinkKind Label",
                                   "type": "TEXT",
                                   "x": 0,
@@ -1031,7 +1031,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:10646",
+                                  "id": "1:10562",
                                   "name": "fieldSinkKind Select",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -1066,7 +1066,7 @@
                           ]
                         },
                         {
-                          "id": "1:10647",
+                          "id": "1:10563",
                           "name": "addSinkRow2",
                           "type": "FRAME",
                           "x": 16,
@@ -1084,7 +1084,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:10648",
+                              "id": "1:10564",
                               "name": "fieldSinkUrl",
                               "type": "INSTANCE",
                               "x": 0,
@@ -1105,7 +1105,7 @@
                               "texts": ["Webhook URL", "https://discord.com/api/webhooks/…"]
                             },
                             {
-                              "id": "1:10649",
+                              "id": "1:10565",
                               "name": "fieldSinkLanguage",
                               "type": "FRAME",
                               "x": 434,
@@ -1123,7 +1123,7 @@
                               "layoutGrow": 1,
                               "children": [
                                 {
-                                  "id": "1:10650",
+                                  "id": "1:10566",
                                   "name": "fieldSinkLanguage Label",
                                   "type": "TEXT",
                                   "x": 0,
@@ -1136,7 +1136,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:10651",
+                                  "id": "1:10567",
                                   "name": "fieldSinkLanguage Select",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -1167,7 +1167,7 @@
                                   "texts": ["Instance default"]
                                 },
                                 {
-                                  "id": "1:10652",
+                                  "id": "1:10568",
                                   "name": "fieldSinkLanguage Hint Wrap",
                                   "type": "FRAME",
                                   "x": 0,
@@ -1185,7 +1185,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:10653",
+                                      "id": "1:10569",
                                       "name": "fieldSinkLanguage Hint",
                                       "type": "TEXT",
                                       "x": 4,
@@ -1205,7 +1205,7 @@
                           ]
                         },
                         {
-                          "id": "1:10654",
+                          "id": "1:10570",
                           "name": "addSinkEvents",
                           "type": "FRAME",
                           "x": 16,
@@ -1223,7 +1223,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:10655",
+                              "id": "1:10571",
                               "name": "addSinkEventsLabel",
                               "type": "TEXT",
                               "x": 0,
@@ -1236,7 +1236,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:10656",
+                              "id": "1:10572",
                               "name": "addSinkEventRow",
                               "type": "FRAME",
                               "x": 0,
@@ -1254,7 +1254,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10657",
+                                  "id": "1:10573",
                                   "name": "eventCell server.unhealthy",
                                   "type": "FRAME",
                                   "x": 0,
@@ -1272,7 +1272,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10658",
+                                      "id": "1:10574",
                                       "name": "event server.unhealthy",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -1280,7 +1280,7 @@
                                       "width": 140,
                                       "height": 16,
                                       "component": "Checkbox/Checked",
-                                      "componentId": "1:6134",
+                                      "componentId": "1:6050",
                                       "layout": {
                                         "mode": "HORIZONTAL",
                                         "gap": 8,
@@ -1294,7 +1294,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10659",
+                                  "id": "1:10575",
                                   "name": "eventCell server.recovered",
                                   "type": "FRAME",
                                   "x": 434,
@@ -1312,7 +1312,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10660",
+                                      "id": "1:10576",
                                       "name": "event server.recovered",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -1320,7 +1320,7 @@
                                       "width": 140,
                                       "height": 16,
                                       "component": "Checkbox/Checked",
-                                      "componentId": "1:6134",
+                                      "componentId": "1:6050",
                                       "layout": {
                                         "mode": "HORIZONTAL",
                                         "gap": 8,
@@ -1336,7 +1336,7 @@
                               ]
                             },
                             {
-                              "id": "1:10661",
+                              "id": "1:10577",
                               "name": "addSinkEventRow",
                               "type": "FRAME",
                               "x": 0,
@@ -1354,7 +1354,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10662",
+                                  "id": "1:10578",
                                   "name": "eventCell backup.failed",
                                   "type": "FRAME",
                                   "x": 0,
@@ -1372,7 +1372,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10663",
+                                      "id": "1:10579",
                                       "name": "event backup.failed",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -1380,7 +1380,7 @@
                                       "width": 118,
                                       "height": 16,
                                       "component": "Checkbox/Checked",
-                                      "componentId": "1:6134",
+                                      "componentId": "1:6050",
                                       "layout": {
                                         "mode": "HORIZONTAL",
                                         "gap": 8,
@@ -1394,7 +1394,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10664",
+                                  "id": "1:10580",
                                   "name": "eventCell backup.succeeded",
                                   "type": "FRAME",
                                   "x": 434,
@@ -1412,7 +1412,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10665",
+                                      "id": "1:10581",
                                       "name": "event backup.succeeded",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -1436,7 +1436,7 @@
                               ]
                             },
                             {
-                              "id": "1:10666",
+                              "id": "1:10582",
                               "name": "addSinkEventRow",
                               "type": "FRAME",
                               "x": 0,
@@ -1454,7 +1454,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10667",
+                                  "id": "1:10583",
                                   "name": "eventCell restore.failed",
                                   "type": "FRAME",
                                   "x": 0,
@@ -1472,7 +1472,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10668",
+                                      "id": "1:10584",
                                       "name": "event restore.failed",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -1480,7 +1480,7 @@
                                       "width": 125,
                                       "height": 16,
                                       "component": "Checkbox/Checked",
-                                      "componentId": "1:6134",
+                                      "componentId": "1:6050",
                                       "layout": {
                                         "mode": "HORIZONTAL",
                                         "gap": 8,
@@ -1494,7 +1494,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10669",
+                                  "id": "1:10585",
                                   "name": "eventCell restore.succeeded",
                                   "type": "FRAME",
                                   "x": 434,
@@ -1512,7 +1512,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10670",
+                                      "id": "1:10586",
                                       "name": "event restore.succeeded",
                                       "type": "INSTANCE",
                                       "x": 0,
@@ -1538,7 +1538,7 @@
                           ]
                         },
                         {
-                          "id": "1:10671",
+                          "id": "1:10587",
                           "name": "addSinkActions",
                           "type": "FRAME",
                           "x": 16,
@@ -1556,7 +1556,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:10672",
+                              "id": "1:10588",
                               "name": "btnCancelAddSink",
                               "type": "INSTANCE",
                               "x": 680,
@@ -1577,7 +1577,7 @@
                               "texts": ["Cancel"]
                             },
                             {
-                              "id": "1:10673",
+                              "id": "1:10589",
                               "name": "btnConfirmAddSink",
                               "type": "INSTANCE",
                               "x": 766,
@@ -1602,7 +1602,7 @@
                       ]
                     },
                     {
-                      "id": "1:10674",
+                      "id": "1:10590",
                       "name": "Card Actions",
                       "type": "FRAME",
                       "x": 0,
@@ -1620,7 +1620,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:10675",
+                          "id": "1:10591",
                           "name": "Btn Save Changes",
                           "type": "INSTANCE",
                           "x": 744,

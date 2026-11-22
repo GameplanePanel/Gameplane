@@ -1,6 +1,6 @@
 {
   "file": "l64bd",
-  "id": "1:9527",
+  "id": "1:9443",
   "name": "Screen/Standalone — Settings · Module sources",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9528",
+      "id": "1:9444",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:9529",
+      "id": "1:9445",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:9530",
+          "id": "1:9446",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Settings", "Search servers…", "AD"]
         },
         {
-          "id": "1:9531",
+          "id": "1:9447",
           "name": "Central management notice",
           "type": "FRAME",
           "x": 0,
@@ -131,7 +131,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:9532",
+              "id": "1:9448",
               "name": "Central management scope",
               "type": "TEXT",
               "x": 24,
@@ -148,7 +148,7 @@
           ]
         },
         {
-          "id": "1:9533",
+          "id": "1:9449",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -167,7 +167,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9534",
+              "id": "1:9450",
               "name": "Gameplane/Page Header",
               "type": "INSTANCE",
               "x": 24,
@@ -190,7 +190,7 @@
               "texts": ["Admin settings", "Platform-wide configuration for this Gameplane instance."]
             },
             {
-              "id": "1:9535",
+              "id": "1:9451",
               "name": "Settings Layout",
               "type": "FRAME",
               "x": 24,
@@ -209,7 +209,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9536",
+                  "id": "1:9452",
                   "name": "Settings Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -239,7 +239,7 @@
                   ]
                 },
                 {
-                  "id": "1:9537",
+                  "id": "1:9453",
                   "name": "Workload target",
                   "type": "FRAME",
                   "x": 244,
@@ -257,7 +257,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:9538",
+                      "id": "1:9454",
                       "name": "Workload cluster selector",
                       "type": "FRAME",
                       "x": 0,
@@ -283,7 +283,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:9539",
+                          "id": "1:9455",
                           "name": "API status",
                           "type": "ELLIPSE",
                           "x": 12,
@@ -294,7 +294,7 @@
                           "variables": {"fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:9540",
+                          "id": "1:9456",
                           "name": "Selector label",
                           "type": "TEXT",
                           "x": 26,
@@ -307,7 +307,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:9541",
+                          "id": "1:9457",
                           "name": "Selected workload cluster",
                           "type": "TEXT",
                           "x": 82,
@@ -320,7 +320,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "id": "1:9542",
+                          "id": "1:9458",
                           "name": "Open cluster choices",
                           "type": "FRAME",
                           "x": 177,
@@ -344,7 +344,7 @@
                       ]
                     },
                     {
-                      "id": "1:9543",
+                      "id": "1:9459",
                       "name": "No workload target",
                       "type": "FRAME",
                       "x": 0,
@@ -365,7 +365,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:9544",
+                          "id": "1:9460",
                           "name": "Selection title",
                           "type": "TEXT",
                           "x": 24,
@@ -380,7 +380,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "id": "1:9545",
+                          "id": "1:9461",
                           "name": "Selection subtitle",
                           "type": "TEXT",
                           "x": 24,
@@ -395,7 +395,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:9546",
+                          "id": "1:9462",
                           "name": "Manage clusters link",
                           "type": "TEXT",
                           "x": 24,

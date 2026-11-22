@@ -1,6 +1,6 @@
 {
   "file": "OecJ5",
-  "id": "1:11088",
+  "id": "1:11004",
   "name": "Screen/Cluster Details — Configuration — Local",
   "type": "FRAME",
   "x": 16400,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:11089",
+      "id": "1:11005",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:11090",
+      "id": "1:11006",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -82,7 +82,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:11091",
+          "id": "1:11007",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -107,7 +107,7 @@
           "texts": ["gameplane", "Clusters  ›  Local  ›  Configuration", "Search servers…", "AD"]
         },
         {
-          "id": "1:11092",
+          "id": "1:11008",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -126,7 +126,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:11093",
+              "id": "1:11009",
               "name": "Page Header",
               "type": "INSTANCE",
               "x": 24,
@@ -149,7 +149,7 @@
               "texts": ["Local", "local · Built-in cluster"]
             },
             {
-              "id": "1:11094",
+              "id": "1:11010",
               "name": "Cluster detail tabs",
               "type": "FRAME",
               "x": 24,
@@ -170,7 +170,7 @@
               "variables": {"strokes/0/color": "separator/separator"},
               "children": [
                 {
-                  "id": "1:11095",
+                  "id": "1:11011",
                   "name": "Overview tab",
                   "type": "INSTANCE",
                   "x": 0,
@@ -192,7 +192,7 @@
                   "texts": ["Overview"]
                 },
                 {
-                  "id": "1:11096",
+                  "id": "1:11012",
                   "name": "Nodes tab",
                   "type": "INSTANCE",
                   "x": 98,
@@ -214,7 +214,7 @@
                   "texts": ["Nodes"]
                 },
                 {
-                  "id": "1:11097",
+                  "id": "1:11013",
                   "name": "Configuration tab",
                   "type": "INSTANCE",
                   "x": 177,
@@ -240,7 +240,7 @@
               ]
             },
             {
-              "id": "1:11098",
+              "id": "1:11014",
               "name": "Access",
               "type": "FRAME",
               "x": 24,
@@ -267,7 +267,7 @@
               },
               "children": [
                 {
-                  "id": "1:11099",
+                  "id": "1:11015",
                   "name": "Access heading",
                   "type": "TEXT",
                   "x": 20,
@@ -282,7 +282,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:11100",
+                  "id": "1:11016",
                   "name": "Access description",
                   "type": "TEXT",
                   "x": 20,
@@ -297,7 +297,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:11101",
+                  "id": "1:11017",
                   "name": "Download kubeconfig",
                   "type": "INSTANCE",
                   "x": 20,
@@ -327,7 +327,7 @@
                   "texts": ["Download kubeconfig"]
                 },
                 {
-                  "id": "1:11102",
+                  "id": "1:11018",
                   "name": "Enrollment link",
                   "type": "TEXT",
                   "x": 20,
@@ -344,7 +344,7 @@
               ]
             },
             {
-              "id": "1:11103",
+              "id": "1:11019",
               "name": "Storage",
               "type": "FRAME",
               "x": 24,
@@ -371,7 +371,7 @@
               },
               "children": [
                 {
-                  "id": "1:11104",
+                  "id": "1:11020",
                   "name": "Storage heading",
                   "type": "TEXT",
                   "x": 20,
@@ -386,7 +386,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:11105",
+                  "id": "1:11021",
                   "name": "Storage description",
                   "type": "TEXT",
                   "x": 20,
@@ -401,7 +401,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:11106",
+                  "id": "1:11022",
                   "name": "Storage class row",
                   "type": "FRAME",
                   "x": 20,
@@ -419,7 +419,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:11107",
+                      "id": "1:11023",
                       "name": "Storage class label",
                       "type": "TEXT",
                       "x": 0,
@@ -434,7 +434,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:11108",
+                      "id": "1:11024",
                       "name": "Storage class value",
                       "type": "TEXT",
                       "x": 1016,
@@ -451,7 +451,7 @@
               ]
             },
             {
-              "id": "1:11109",
+              "id": "1:11025",
               "name": "Backup destinations",
               "type": "FRAME",
               "x": 24,
@@ -478,7 +478,7 @@
               },
               "children": [
                 {
-                  "id": "1:11110",
+                  "id": "1:11026",
                   "name": "Backup destinations heading",
                   "type": "TEXT",
                   "x": 20,
@@ -493,7 +493,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:11111",
+                  "id": "1:11027",
                   "name": "Backup destinations description",
                   "type": "TEXT",
                   "x": 20,
@@ -508,7 +508,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:11112",
+                  "id": "1:11028",
                   "name": "Backup destination row",
                   "type": "FRAME",
                   "x": 20,
@@ -526,7 +526,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:11113",
+                      "id": "1:11029",
                       "name": "Repository details",
                       "type": "FRAME",
                       "x": 0,
@@ -544,7 +544,7 @@
                       "layoutGrow": 1,
                       "children": [
                         {
-                          "id": "1:11114",
+                          "id": "1:11030",
                           "name": "Repository name",
                           "type": "TEXT",
                           "x": 0,
@@ -559,7 +559,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "id": "1:11115",
+                          "id": "1:11031",
                           "name": "Repository URL",
                           "type": "TEXT",
                           "x": 0,
@@ -576,7 +576,7 @@
                       ]
                     },
                     {
-                      "id": "1:11116",
+                      "id": "1:11032",
                       "name": "Delete destination",
                       "type": "INSTANCE",
                       "x": 1016,
@@ -608,7 +608,7 @@
                   ]
                 },
                 {
-                  "id": "1:11117",
+                  "id": "1:11033",
                   "name": "Add backup destination",
                   "type": "INSTANCE",
                   "x": 20,
@@ -639,7 +639,7 @@
               ]
             },
             {
-              "id": "1:11118",
+              "id": "1:11034",
               "name": "Built-in cluster removal",
               "type": "TEXT",
               "x": 24,

@@ -1,6 +1,6 @@
 {
   "file": "RS0KZ",
-  "id": "1:9468",
+  "id": "1:9384",
   "name": "State/Standalone — Cluster selection and request states",
   "type": "FRAME",
   "x": 9840,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9469",
+      "id": "1:9385",
       "name": "Reference title",
       "type": "TEXT",
       "x": 32,
@@ -35,7 +35,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
     {
-      "id": "1:9470",
+      "id": "1:9386",
       "name": "Selection states",
       "type": "FRAME",
       "x": 32,
@@ -53,7 +53,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:9471",
+          "id": "1:9387",
           "name": "Empty dropdown",
           "type": "FRAME",
           "x": 0,
@@ -74,7 +74,7 @@
           "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
           "children": [
             {
-              "id": "1:9472",
+              "id": "1:9388",
               "name": "State title",
               "type": "TEXT",
               "x": 24,
@@ -89,7 +89,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:9473",
+              "id": "1:9389",
               "name": "Workload cluster selector",
               "type": "FRAME",
               "x": 24,
@@ -115,7 +115,7 @@
               },
               "children": [
                 {
-                  "id": "1:9474",
+                  "id": "1:9390",
                   "name": "API status",
                   "type": "ELLIPSE",
                   "x": 12,
@@ -126,7 +126,7 @@
                   "variables": {"fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:9475",
+                  "id": "1:9391",
                   "name": "Selector label",
                   "type": "TEXT",
                   "x": 26,
@@ -139,7 +139,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:9476",
+                  "id": "1:9392",
                   "name": "Selected workload cluster",
                   "type": "TEXT",
                   "x": 82,
@@ -152,7 +152,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:9477",
+                  "id": "1:9393",
                   "name": "Open cluster choices",
                   "type": "FRAME",
                   "x": 177,
@@ -176,7 +176,7 @@
               ]
             },
             {
-              "id": "1:9478",
+              "id": "1:9394",
               "name": "Cluster menu",
               "type": "FRAME",
               "x": 24,
@@ -197,7 +197,7 @@
               "variables": {"fills/0/color": "overlay"},
               "children": [
                 {
-                  "id": "1:9479",
+                  "id": "1:9395",
                   "name": "Empty cluster menu action",
                   "type": "TEXT",
                   "x": 12,
@@ -216,7 +216,7 @@
           ]
         },
         {
-          "id": "1:9480",
+          "id": "1:9396",
           "name": "Registered dropdown",
           "type": "FRAME",
           "x": 700,
@@ -237,7 +237,7 @@
           "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
           "children": [
             {
-              "id": "1:9481",
+              "id": "1:9397",
               "name": "State title",
               "type": "TEXT",
               "x": 24,
@@ -252,7 +252,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:9482",
+              "id": "1:9398",
               "name": "Workload cluster selector",
               "type": "FRAME",
               "x": 24,
@@ -278,7 +278,7 @@
               },
               "children": [
                 {
-                  "id": "1:9483",
+                  "id": "1:9399",
                   "name": "API status",
                   "type": "ELLIPSE",
                   "x": 12,
@@ -289,7 +289,7 @@
                   "variables": {"fills/0/color": "success/success"}
                 },
                 {
-                  "id": "1:9484",
+                  "id": "1:9400",
                   "name": "Selector label",
                   "type": "TEXT",
                   "x": 26,
@@ -302,7 +302,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:9485",
+                  "id": "1:9401",
                   "name": "Selected workload cluster",
                   "type": "TEXT",
                   "x": 82,
@@ -315,7 +315,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:9486",
+                  "id": "1:9402",
                   "name": "Open cluster choices",
                   "type": "FRAME",
                   "x": 189,
@@ -339,7 +339,7 @@
               ]
             },
             {
-              "id": "1:9487",
+              "id": "1:9403",
               "name": "Cluster choices",
               "type": "FRAME",
               "x": 24,
@@ -360,7 +360,7 @@
               "variables": {"fills/0/color": "overlay"},
               "children": [
                 {
-                  "id": "1:9488",
+                  "id": "1:9404",
                   "name": "East option",
                   "type": "TEXT",
                   "x": 12,
@@ -375,7 +375,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:9489",
+                  "id": "1:9405",
                   "name": "West option",
                   "type": "TEXT",
                   "x": 12,
@@ -390,7 +390,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:9490",
+                  "id": "1:9406",
                   "name": "Administration action",
                   "type": "TEXT",
                   "x": 12,
@@ -411,7 +411,7 @@
       ]
     },
     {
-      "id": "1:9491",
+      "id": "1:9407",
       "name": "Loading and failure states",
       "type": "FRAME",
       "x": 32,
@@ -429,7 +429,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:9492",
+          "id": "1:9408",
           "name": "Loading",
           "type": "FRAME",
           "x": 0,
@@ -450,7 +450,7 @@
           "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
           "children": [
             {
-              "id": "1:9493",
+              "id": "1:9409",
               "name": "State title",
               "type": "TEXT",
               "x": 24,
@@ -465,7 +465,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:9494",
+              "id": "1:9410",
               "name": "Status copy",
               "type": "TEXT",
               "x": 24,
@@ -482,7 +482,7 @@
           ]
         },
         {
-          "id": "1:9495",
+          "id": "1:9411",
           "name": "Installation unavailable",
           "type": "FRAME",
           "x": 466.67,
@@ -503,7 +503,7 @@
           "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
           "children": [
             {
-              "id": "1:9496",
+              "id": "1:9412",
               "name": "State title",
               "type": "TEXT",
               "x": 24,
@@ -518,7 +518,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:9497",
+              "id": "1:9413",
               "name": "Status copy",
               "type": "TEXT",
               "x": 24,
@@ -533,7 +533,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:9498",
+              "id": "1:9414",
               "name": "Retry",
               "type": "INSTANCE",
               "x": 24,
@@ -565,7 +565,7 @@
           ]
         },
         {
-          "id": "1:9499",
+          "id": "1:9415",
           "name": "Registry unavailable",
           "type": "FRAME",
           "x": 933.33,
@@ -586,7 +586,7 @@
           "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
           "children": [
             {
-              "id": "1:9500",
+              "id": "1:9416",
               "name": "State title",
               "type": "TEXT",
               "x": 24,
@@ -601,7 +601,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:9501",
+              "id": "1:9417",
               "name": "Status copy",
               "type": "TEXT",
               "x": 24,
@@ -616,7 +616,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:9502",
+              "id": "1:9418",
               "name": "Retry",
               "type": "INSTANCE",
               "x": 24,
@@ -650,7 +650,7 @@
       ]
     },
     {
-      "id": "1:9503",
+      "id": "1:9419",
       "name": "Identity request failure",
       "type": "FRAME",
       "x": 32,
@@ -671,7 +671,7 @@
       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
       "children": [
         {
-          "id": "1:9504",
+          "id": "1:9420",
           "name": "Identity failure message",
           "type": "TEXT",
           "x": 24,
@@ -685,7 +685,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "id": "1:9505",
+          "id": "1:9421",
           "name": "Retry request",
           "type": "INSTANCE",
           "x": 24,
@@ -716,7 +716,7 @@
       ]
     },
     {
-      "id": "1:9506",
+      "id": "1:9422",
       "name": "Scope note",
       "type": "TEXT",
       "x": 32,

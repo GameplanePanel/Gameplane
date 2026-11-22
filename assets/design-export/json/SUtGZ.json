@@ -1,6 +1,6 @@
 {
   "file": "SUtGZ",
-  "id": "1:8607",
+  "id": "1:8523",
   "name": "Screen/Mobile — Remote server Capture",
   "type": "FRAME",
   "x": 12840,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8608",
+      "id": "1:8524",
       "name": "Mobile header",
       "type": "INSTANCE",
       "x": 0,
@@ -44,7 +44,7 @@
       "texts": ["mc-survival", "AD"]
     },
     {
-      "id": "1:8609",
+      "id": "1:8525",
       "name": "Server detail content",
       "type": "FRAME",
       "x": 0,
@@ -62,7 +62,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:8610",
+          "id": "1:8526",
           "name": "Wrapped server header",
           "type": "FRAME",
           "x": 16,
@@ -217,7 +217,7 @@
               ]
             },
             {
-              "id": "1:8611",
+              "id": "1:8527",
               "name": "Wrapped server actions",
               "type": "FRAME",
               "x": 0,
@@ -235,7 +235,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:8612",
+                  "id": "1:8528",
                   "name": "Lifecycle actions",
                   "type": "FRAME",
                   "x": 0,
@@ -252,7 +252,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8613",
+                      "id": "1:8529",
                       "name": "Restart",
                       "type": "INSTANCE",
                       "x": 0,
@@ -282,7 +282,7 @@
                       "texts": ["Restart"]
                     },
                     {
-                      "id": "1:8614",
+                      "id": "1:8530",
                       "name": "Stop",
                       "type": "INSTANCE",
                       "x": 113,
@@ -312,7 +312,7 @@
                       "texts": ["Stop"]
                     },
                     {
-                      "id": "1:8615",
+                      "id": "1:8531",
                       "name": "More",
                       "type": "INSTANCE",
                       "x": 208,
@@ -337,7 +337,7 @@
                   ]
                 },
                 {
-                  "id": "1:8616",
+                  "id": "1:8532",
                   "name": "Open console",
                   "type": "INSTANCE",
                   "x": 0,
@@ -370,7 +370,7 @@
           ]
         },
         {
-          "id": "1:8617",
+          "id": "1:8533",
           "name": "Server tabs — scrolled to Capture",
           "type": "FRAME",
           "x": 16,
@@ -389,7 +389,7 @@
           "clips": true,
           "children": [
             {
-              "id": "1:8618",
+              "id": "1:8534",
               "name": "Backups tab",
               "type": "INSTANCE",
               "x": 0,
@@ -411,7 +411,7 @@
               "texts": ["Backups"]
             },
             {
-              "id": "1:8619",
+              "id": "1:8535",
               "name": "Capture tab",
               "type": "INSTANCE",
               "x": 94,
@@ -435,7 +435,7 @@
               "texts": ["Capture"]
             },
             {
-              "id": "1:8620",
+              "id": "1:8536",
               "name": "Settings tab",
               "type": "INSTANCE",
               "x": 183,
@@ -459,7 +459,7 @@
           ]
         },
         {
-          "id": "1:8621",
+          "id": "1:8537",
           "name": "Capture status",
           "type": "FRAME",
           "x": 16,
@@ -477,7 +477,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:8622",
+              "id": "1:8538",
               "name": "Ready chip",
               "type": "INSTANCE",
               "x": 0,
@@ -500,7 +500,7 @@
               "texts": ["Ready"]
             },
             {
-              "id": "1:8623",
+              "id": "1:8539",
               "name": "Selected site retention",
               "type": "TEXT",
               "x": 0,
@@ -516,7 +516,7 @@
           ]
         },
         {
-          "id": "1:8624",
+          "id": "1:8540",
           "name": "Capture actions",
           "type": "FRAME",
           "x": 16,
@@ -534,7 +534,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:8625",
+              "id": "1:8541",
               "name": "Disable Capture",
               "type": "INSTANCE",
               "x": 0,
@@ -564,7 +564,7 @@
               "texts": ["Disable Capture"]
             },
             {
-              "id": "1:8626",
+              "id": "1:8542",
               "name": "Start Capture",
               "type": "INSTANCE",
               "x": 146,
@@ -595,7 +595,7 @@
           ]
         },
         {
-          "id": "1:8627",
+          "id": "1:8543",
           "name": "Capture privacy warning",
           "type": "INSTANCE",
           "x": 16,
@@ -625,7 +625,7 @@
           ]
         },
         {
-          "id": "1:8628",
+          "id": "1:8544",
           "name": "Capture history heading",
           "type": "TEXT",
           "x": 16,
@@ -638,7 +638,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "id": "1:8629",
+          "id": "1:8545",
           "name": "Empty capture history",
           "type": "FRAME",
           "x": 16,
@@ -659,7 +659,7 @@
           "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
           "children": [
             {
-              "id": "1:8630",
+              "id": "1:8546",
               "name": "Empty history text",
               "type": "TEXT",
               "x": 24,

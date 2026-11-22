@@ -1,6 +1,6 @@
 {
   "file": "E9EEv0",
-  "id": "1:10360",
+  "id": "1:10276",
   "name": "Gameplane/Dialog/Restore Backup",
   "type": "FRAME",
   "x": 3288,
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "id": "1:10361",
+      "id": "1:10277",
       "name": "mBody",
       "type": "FRAME",
       "x": 20,
@@ -91,7 +91,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10362",
+          "id": "1:10278",
           "name": "frame",
           "type": "FRAME",
           "x": 0,
@@ -109,7 +109,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10363",
+              "id": "1:10279",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -123,7 +123,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10364",
+              "id": "1:10280",
               "name": "Input",
               "type": "INSTANCE",
               "x": 0,
@@ -156,7 +156,7 @@
           ]
         },
         {
-          "id": "1:10365",
+          "id": "1:10281",
           "name": "frame",
           "type": "FRAME",
           "x": 0,
@@ -174,7 +174,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10366",
+              "id": "1:10282",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -188,7 +188,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10367",
+              "id": "1:10283",
               "name": "Target server select",
               "type": "INSTANCE",
               "x": 0,
@@ -221,7 +221,7 @@
           ]
         },
         {
-          "id": "1:10368",
+          "id": "1:10284",
           "name": "Restore warning",
           "type": "INSTANCE",
           "x": 0,
@@ -229,7 +229,7 @@
           "width": 440,
           "height": 56,
           "component": "Alert/Danger",
-          "componentId": "1:5614",
+          "componentId": "1:5528",
           "fills": [{"type": "SOLID", "color": "#F8DDE9"}],
           "effects": [{"type": "DROP_SHADOW", "radius": 0, "visible": true}],
           "cornerRadius": 24,

@@ -1,6 +1,6 @@
 {
   "file": "C9bR6",
-  "id": "1:9874",
+  "id": "1:9790",
   "name": "Gameplane/Dialog/Edit user — Standalone (Remote grant)",
   "type": "FRAME",
   "x": 2320,
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "id": "1:9875",
+      "id": "1:9791",
       "name": "User fields and remote grants",
       "type": "FRAME",
       "x": 20,
@@ -91,7 +91,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:9876",
+          "id": "1:9792",
           "name": "Display name field",
           "type": "FRAME",
           "x": 0,
@@ -109,7 +109,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9877",
+              "id": "1:9793",
               "name": "Display name label",
               "type": "TEXT",
               "x": 0,
@@ -124,7 +124,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:9878",
+              "id": "1:9794",
               "name": "Display name value",
               "type": "INSTANCE",
               "x": 0,
@@ -157,7 +157,7 @@
           ]
         },
         {
-          "id": "1:9879",
+          "id": "1:9795",
           "name": "Email field",
           "type": "FRAME",
           "x": 0,
@@ -175,7 +175,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9880",
+              "id": "1:9796",
               "name": "Email label",
               "type": "TEXT",
               "x": 0,
@@ -190,7 +190,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:9881",
+              "id": "1:9797",
               "name": "Email value",
               "type": "INSTANCE",
               "x": 0,
@@ -223,7 +223,7 @@
           ]
         },
         {
-          "id": "1:9882",
+          "id": "1:9798",
           "name": "Primary role (cluster-wide) field",
           "type": "FRAME",
           "x": 0,
@@ -241,7 +241,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9883",
+              "id": "1:9799",
               "name": "Primary role (cluster-wide) label",
               "type": "TEXT",
               "x": 0,
@@ -256,7 +256,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:9884",
+              "id": "1:9800",
               "name": "Primary role (cluster-wide) value",
               "type": "INSTANCE",
               "x": 0,
@@ -289,7 +289,7 @@
           ]
         },
         {
-          "id": "1:9885",
+          "id": "1:9801",
           "name": "Grant separator",
           "type": "FRAME",
           "x": 0,
@@ -309,7 +309,7 @@
           "variables": {"fills/0/color": "border/border"}
         },
         {
-          "id": "1:9886",
+          "id": "1:9802",
           "name": "Grant heading",
           "type": "TEXT",
           "x": 0,
@@ -324,7 +324,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:9887",
+          "id": "1:9803",
           "name": "Grant scope explanation",
           "type": "TEXT",
           "x": 0,
@@ -339,7 +339,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:9888",
+          "id": "1:9804",
           "name": "Primary panel binding",
           "type": "TEXT",
           "x": 0,
@@ -354,7 +354,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:9889",
+          "id": "1:9805",
           "name": "Remote target and role",
           "type": "FRAME",
           "x": 0,
@@ -372,7 +372,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9890",
+              "id": "1:9806",
               "name": "Grant cluster",
               "type": "INSTANCE",
               "x": 0,
@@ -403,7 +403,7 @@
               "texts": ["East production (east)"]
             },
             {
-              "id": "1:9891",
+              "id": "1:9807",
               "name": "Grant role",
               "type": "INSTANCE",
               "x": 224,
@@ -436,7 +436,7 @@
           ]
         },
         {
-          "id": "1:9892",
+          "id": "1:9808",
           "name": "Namespace grant actions",
           "type": "FRAME",
           "x": 0,
@@ -454,7 +454,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9893",
+              "id": "1:9809",
               "name": "Grant namespace",
               "type": "INSTANCE",
               "x": 0,
@@ -485,7 +485,7 @@
               "texts": ["*"]
             },
             {
-              "id": "1:9894",
+              "id": "1:9810",
               "name": "All namespaces",
               "type": "INSTANCE",
               "x": 237,
@@ -515,7 +515,7 @@
               "texts": ["All namespaces"]
             },
             {
-              "id": "1:9895",
+              "id": "1:9811",
               "name": "Add",
               "type": "INSTANCE",
               "x": 381,
@@ -547,7 +547,7 @@
           ]
         },
         {
-          "id": "1:9896",
+          "id": "1:9812",
           "name": "Inventory grant guidance",
           "type": "TEXT",
           "x": 0,

@@ -1,6 +1,6 @@
 {
   "file": "hmPL7",
-  "id": "1:7145",
+  "id": "1:7061",
   "name": "Screen/Dialog/Build Module — Step 3 (Review & Export)",
   "type": "FRAME",
   "x": 2000,
@@ -23,7 +23,7 @@
   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
   "children": [
     {
-      "id": "1:7146",
+      "id": "1:7062",
       "name": "ModalHeader",
       "type": "FRAME",
       "x": 0,
@@ -44,7 +44,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:7147",
+          "id": "1:7063",
           "name": "TitleGroup",
           "type": "FRAME",
           "x": 28,
@@ -61,7 +61,7 @@
           },
           "children": [
             {
-              "id": "1:7148",
+              "id": "1:7064",
               "name": "Title",
               "type": "TEXT",
               "x": 0,
@@ -74,7 +74,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:7149",
+              "id": "1:7065",
               "name": "Subtitle",
               "type": "TEXT",
               "x": 0,
@@ -89,7 +89,7 @@
           ]
         },
         {
-          "id": "1:7150",
+          "id": "1:7066",
           "name": "CloseIcon",
           "type": "FRAME",
           "x": 794,
@@ -113,7 +113,7 @@
       ]
     },
     {
-      "id": "1:7151",
+      "id": "1:7067",
       "name": "Stepper",
       "type": "FRAME",
       "x": 0,
@@ -134,7 +134,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:7152",
+          "id": "1:7068",
           "name": "Step1_Done",
           "type": "FRAME",
           "x": 28,
@@ -151,7 +151,7 @@
           },
           "children": [
             {
-              "id": "1:7153",
+              "id": "1:7069",
               "name": "Badge",
               "type": "FRAME",
               "x": 0,
@@ -173,7 +173,7 @@
               "variables": {"fills/0/color": "surface-alt", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7154",
+                  "id": "1:7070",
                   "name": "Num",
                   "type": "TEXT",
                   "x": 5,
@@ -188,7 +188,7 @@
               ]
             },
             {
-              "id": "1:7155",
+              "id": "1:7071",
               "name": "Label",
               "type": "TEXT",
               "x": 28,
@@ -203,7 +203,7 @@
           ]
         },
         {
-          "id": "1:7156",
+          "id": "1:7072",
           "name": "Sep1",
           "type": "TEXT",
           "x": 178,
@@ -216,7 +216,7 @@
           "variables": {"fills/0/color": "muted"}
         },
         {
-          "id": "1:7157",
+          "id": "1:7073",
           "name": "Step2_Done",
           "type": "FRAME",
           "x": 194,
@@ -233,7 +233,7 @@
           },
           "children": [
             {
-              "id": "1:7158",
+              "id": "1:7074",
               "name": "Badge",
               "type": "FRAME",
               "x": 0,
@@ -255,7 +255,7 @@
               "variables": {"fills/0/color": "surface-alt", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7159",
+                  "id": "1:7075",
                   "name": "Num",
                   "type": "TEXT",
                   "x": 5,
@@ -270,7 +270,7 @@
               ]
             },
             {
-              "id": "1:7160",
+              "id": "1:7076",
               "name": "Label",
               "type": "TEXT",
               "x": 28,
@@ -285,7 +285,7 @@
           ]
         },
         {
-          "id": "1:7161",
+          "id": "1:7077",
           "name": "Sep2",
           "type": "TEXT",
           "x": 339,
@@ -298,7 +298,7 @@
           "variables": {"fills/0/color": "muted"}
         },
         {
-          "id": "1:7162",
+          "id": "1:7078",
           "name": "Step3_Active",
           "type": "FRAME",
           "x": 355,
@@ -315,7 +315,7 @@
           },
           "children": [
             {
-              "id": "1:7163",
+              "id": "1:7079",
               "name": "Badge",
               "type": "FRAME",
               "x": 0,
@@ -335,7 +335,7 @@
               "variables": {"fills/0/color": "accent/accent"},
               "children": [
                 {
-                  "id": "1:7164",
+                  "id": "1:7080",
                   "name": "Num",
                   "type": "TEXT",
                   "x": 6,
@@ -350,7 +350,7 @@
               ]
             },
             {
-              "id": "1:7165",
+              "id": "1:7081",
               "name": "Label",
               "type": "TEXT",
               "x": 28,
@@ -367,7 +367,7 @@
       ]
     },
     {
-      "id": "1:7166",
+      "id": "1:7082",
       "name": "DualPaneBody",
       "type": "FRAME",
       "x": 0,
@@ -385,7 +385,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:7167",
+          "id": "1:7083",
           "name": "LeftPane_CodeViewer",
           "type": "FRAME",
           "x": 28,
@@ -407,7 +407,7 @@
           "variables": {"strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:7168",
+              "id": "1:7084",
               "name": "TabBar",
               "type": "FRAME",
               "x": 0,
@@ -429,7 +429,7 @@
               "variables": {"fills/0/color": "surface-alt", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7169",
+                  "id": "1:7085",
                   "name": "Tab_moduleYaml_Active",
                   "type": "FRAME",
                   "x": 8,
@@ -451,7 +451,7 @@
                   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "id": "1:7170",
+                      "id": "1:7086",
                       "name": "Val",
                       "type": "TEXT",
                       "x": 12,
@@ -466,7 +466,7 @@
                   ]
                 },
                 {
-                  "id": "1:7171",
+                  "id": "1:7087",
                   "name": "Tab_templateYaml",
                   "type": "FRAME",
                   "x": 106,
@@ -483,7 +483,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:7172",
+                      "id": "1:7088",
                       "name": "Val",
                       "type": "TEXT",
                       "x": 12,
@@ -498,7 +498,7 @@
                   ]
                 },
                 {
-                  "id": "1:7173",
+                  "id": "1:7089",
                   "name": "Tab_readmeMd",
                   "type": "FRAME",
                   "x": 210,
@@ -515,7 +515,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:7174",
+                      "id": "1:7090",
                       "name": "Val",
                       "type": "TEXT",
                       "x": 12,
@@ -532,7 +532,7 @@
               ]
             },
             {
-              "id": "1:7175",
+              "id": "1:7091",
               "name": "CodeContentBox",
               "type": "INSTANCE",
               "x": 0,
@@ -569,7 +569,7 @@
           ]
         },
         {
-          "id": "1:7176",
+          "id": "1:7092",
           "name": "RightPane_ValidationAndPreview",
           "type": "FRAME",
           "x": 488,
@@ -587,7 +587,7 @@
           "layoutGrow": 1,
           "children": [
             {
-              "id": "1:7177",
+              "id": "1:7093",
               "name": "ValidationCard",
               "type": "FRAME",
               "x": 0,
@@ -610,7 +610,7 @@
               "variables": {"fills/0/color": "surface-alt", "strokes/0/color": "success/success"},
               "children": [
                 {
-                  "id": "1:7178",
+                  "id": "1:7094",
                   "name": "ValHeader",
                   "type": "FRAME",
                   "x": 14,
@@ -627,7 +627,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:7179",
+                      "id": "1:7095",
                       "name": "CheckIcon",
                       "type": "FRAME",
                       "x": 0,
@@ -659,7 +659,7 @@
                       ]
                     },
                     {
-                      "id": "1:7180",
+                      "id": "1:7096",
                       "name": "Status",
                       "type": "TEXT",
                       "x": 22,
@@ -674,7 +674,7 @@
                   ]
                 },
                 {
-                  "id": "1:7181",
+                  "id": "1:7097",
                   "name": "FindingsSummary",
                   "type": "TEXT",
                   "x": 14,
@@ -690,7 +690,7 @@
               ]
             },
             {
-              "id": "1:7182",
+              "id": "1:7098",
               "name": "PreviewCard",
               "type": "FRAME",
               "x": 0,
@@ -713,7 +713,7 @@
               "variables": {"fills/0/color": "surface-alt", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7183",
+                  "id": "1:7099",
                   "name": "PrevTitle",
                   "type": "TEXT",
                   "x": 14,
@@ -726,7 +726,7 @@
                   "variables": {"fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:7184",
+                  "id": "1:7100",
                   "name": "SliderRow",
                   "type": "FRAME",
                   "x": 14,
@@ -744,7 +744,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7185",
+                      "id": "1:7101",
                       "name": "Lbl",
                       "type": "TEXT",
                       "x": 0,
@@ -757,7 +757,7 @@
                       "variables": {"fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:7186",
+                      "id": "1:7102",
                       "name": "Val",
                       "type": "TEXT",
                       "x": 276,
@@ -772,7 +772,7 @@
                   ]
                 },
                 {
-                  "id": "1:7187",
+                  "id": "1:7103",
                   "name": "MemoryPresetsRow",
                   "type": "FRAME",
                   "x": 14,
@@ -790,7 +790,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7188",
+                      "id": "1:7104",
                       "name": "Preset 2Gi",
                       "type": "INSTANCE",
                       "x": 0,
@@ -815,7 +815,7 @@
                       "texts": ["2Gi"]
                     },
                     {
-                      "id": "1:7189",
+                      "id": "1:7105",
                       "name": "Preset 4Gi",
                       "type": "INSTANCE",
                       "x": 75.5,
@@ -840,7 +840,7 @@
                       "texts": ["4Gi"]
                     },
                     {
-                      "id": "1:7190",
+                      "id": "1:7106",
                       "name": "Preset 8Gi",
                       "type": "INSTANCE",
                       "x": 151,
@@ -865,7 +865,7 @@
                       "texts": ["8Gi"]
                     },
                     {
-                      "id": "1:7191",
+                      "id": "1:7107",
                       "name": "Preset 16Gi",
                       "type": "INSTANCE",
                       "x": 226.5,
@@ -892,7 +892,7 @@
                   ]
                 },
                 {
-                  "id": "1:7192",
+                  "id": "1:7108",
                   "name": "StatsBox",
                   "type": "FRAME",
                   "x": 14,
@@ -913,7 +913,7 @@
                   "variables": {"fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "id": "1:7193",
+                      "id": "1:7109",
                       "name": "Stat1",
                       "type": "TEXT",
                       "x": 8,
@@ -930,7 +930,7 @@
               ]
             },
             {
-              "id": "1:7194",
+              "id": "1:7110",
               "name": "ClusterSourceCard",
               "type": "FRAME",
               "x": 0,
@@ -953,7 +953,7 @@
               "variables": {"fills/0/color": "surface-alt", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7195",
+                  "id": "1:7111",
                   "name": "ClusterSourceLabel",
                   "type": "TEXT",
                   "x": 14,
@@ -966,7 +966,7 @@
                   "variables": {"fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:7196",
+                  "id": "1:7112",
                   "name": "ClusterSourceSelect",
                   "type": "INSTANCE",
                   "x": 14,
@@ -1003,7 +1003,7 @@
       ]
     },
     {
-      "id": "1:7197",
+      "id": "1:7113",
       "name": "ModalFooter",
       "type": "FRAME",
       "x": 0,
@@ -1024,7 +1024,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:7198",
+          "id": "1:7114",
           "name": "BackButton",
           "type": "INSTANCE",
           "x": 28,
@@ -1053,7 +1053,7 @@
           "texts": ["← Back"]
         },
         {
-          "id": "1:7199",
+          "id": "1:7115",
           "name": "ButtonsRow",
           "type": "FRAME",
           "x": 490,
@@ -1070,7 +1070,7 @@
           },
           "children": [
             {
-              "id": "1:7200",
+              "id": "1:7116",
               "name": "DownloadBundleButton",
               "type": "INSTANCE",
               "x": 0,
@@ -1099,7 +1099,7 @@
               "texts": ["Download .tar.gz"]
             },
             {
-              "id": "1:7201",
+              "id": "1:7117",
               "name": "InstallClusterButton",
               "type": "INSTANCE",
               "x": 157,

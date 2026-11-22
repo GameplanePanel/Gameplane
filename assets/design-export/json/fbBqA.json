@@ -1,6 +1,6 @@
 {
   "file": "fbBqA",
-  "id": "1:8524",
+  "id": "1:8440",
   "name": "Screen/Backups — Restores filters open",
   "type": "FRAME",
   "x": 3280,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8525",
+      "id": "1:8441",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:8526",
+      "id": "1:8442",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:8527",
+          "id": "1:8443",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Backups", "Search servers…", "AD"]
         },
         {
-          "id": "1:8528",
+          "id": "1:8444",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:8529",
+              "id": "1:8445",
               "name": "Page Header",
               "type": "FRAME",
               "x": 24,
@@ -192,7 +192,7 @@
                   ]
                 },
                 {
-                  "id": "1:8530",
+                  "id": "1:8446",
                   "name": "phActions",
                   "type": "FRAME",
                   "x": 991,
@@ -209,7 +209,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8531",
+                      "id": "1:8447",
                       "name": "Back Up Now Button",
                       "type": "INSTANCE",
                       "x": 0,
@@ -242,7 +242,7 @@
               ]
             },
             {
-              "id": "1:8532",
+              "id": "1:8448",
               "name": "tabsBar",
               "type": "FRAME",
               "x": 24,
@@ -262,7 +262,7 @@
               "variables": {"fills/0/color": "default/default"},
               "children": [
                 {
-                  "id": "1:8533",
+                  "id": "1:8449",
                   "name": "tabBackups",
                   "type": "INSTANCE",
                   "x": 4,
@@ -286,7 +286,7 @@
                   "texts": ["Backups"]
                 },
                 {
-                  "id": "1:8534",
+                  "id": "1:8450",
                   "name": "tabSchedules",
                   "type": "INSTANCE",
                   "x": 94,
@@ -308,7 +308,7 @@
                   "texts": ["Schedules"]
                 },
                 {
-                  "id": "1:8535",
+                  "id": "1:8451",
                   "name": "tabRestores",
                   "type": "INSTANCE",
                   "x": 195,
@@ -332,7 +332,7 @@
               ]
             },
             {
-              "id": "1:8536",
+              "id": "1:8452",
               "name": "Filter Row",
               "type": "INSTANCE",
               "x": 24,
@@ -353,7 +353,7 @@
               "texts": ["Search by name or server…", "2 of 2 restores", "Filter"]
             },
             {
-              "id": "1:8537",
+              "id": "1:8453",
               "name": "Restores Table",
               "type": "FRAME",
               "x": 24,
@@ -375,7 +375,7 @@
               "variables": {"fills/0/color": "surface/secondary"},
               "children": [
                 {
-                  "id": "1:8538",
+                  "id": "1:8454",
                   "name": "Head Row",
                   "type": "FRAME",
                   "x": 4,
@@ -397,7 +397,7 @@
                   "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "separator/separator"},
                   "children": [
                     {
-                      "id": "1:8539",
+                      "id": "1:8455",
                       "name": "HC NAME",
                       "type": "INSTANCE",
                       "x": 0,
@@ -420,7 +420,7 @@
                       "texts": ["NAME"]
                     },
                     {
-                      "id": "1:8540",
+                      "id": "1:8456",
                       "name": "HC BACKUP",
                       "type": "INSTANCE",
                       "x": 234,
@@ -442,7 +442,7 @@
                       "texts": ["BACKUP"]
                     },
                     {
-                      "id": "1:8541",
+                      "id": "1:8457",
                       "name": "HC TARGET",
                       "type": "INSTANCE",
                       "x": 454,
@@ -464,7 +464,7 @@
                       "texts": ["TARGET"]
                     },
                     {
-                      "id": "1:8542",
+                      "id": "1:8458",
                       "name": "HC PHASE",
                       "type": "INSTANCE",
                       "x": 614,
@@ -486,7 +486,7 @@
                       "texts": ["PHASE"]
                     },
                     {
-                      "id": "1:8543",
+                      "id": "1:8459",
                       "name": "HC COMPLETED",
                       "type": "INSTANCE",
                       "x": 744,
@@ -508,7 +508,7 @@
                       "texts": ["COMPLETED"]
                     },
                     {
-                      "id": "1:8544",
+                      "id": "1:8460",
                       "name": "HC MESSAGE",
                       "type": "INSTANCE",
                       "x": 894,
@@ -532,7 +532,7 @@
                   ]
                 },
                 {
-                  "id": "1:8545",
+                  "id": "1:8461",
                   "name": "Body",
                   "type": "FRAME",
                   "x": 4,
@@ -553,7 +553,7 @@
                   "variables": {"cornerRadius": "radius/2xl"},
                   "children": [
                     {
-                      "id": "1:8546",
+                      "id": "1:8462",
                       "name": "Row 1",
                       "type": "FRAME",
                       "x": 0,
@@ -571,7 +571,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:8547",
+                          "id": "1:8463",
                           "name": "c",
                           "type": "INSTANCE",
                           "x": 0,
@@ -597,7 +597,7 @@
                           "texts": ["restore-mc-survival-4f2a"]
                         },
                         {
-                          "id": "1:8548",
+                          "id": "1:8464",
                           "name": "c",
                           "type": "INSTANCE",
                           "x": 234,
@@ -622,7 +622,7 @@
                           "texts": ["mc-survival-nightly-0712"]
                         },
                         {
-                          "id": "1:8549",
+                          "id": "1:8465",
                           "name": "c",
                           "type": "INSTANCE",
                           "x": 454,
@@ -647,7 +647,7 @@
                           "texts": ["mc-survival"]
                         },
                         {
-                          "id": "1:8550",
+                          "id": "1:8466",
                           "name": "c4",
                           "type": "FRAME",
                           "x": 614,
@@ -669,7 +669,7 @@
                           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:8551",
+                              "id": "1:8467",
                               "name": "phase",
                               "type": "INSTANCE",
                               "x": 16,
@@ -694,7 +694,7 @@
                           ]
                         },
                         {
-                          "id": "1:8552",
+                          "id": "1:8468",
                           "name": "c",
                           "type": "INSTANCE",
                           "x": 744,
@@ -719,7 +719,7 @@
                           "texts": ["3h ago"]
                         },
                         {
-                          "id": "1:8553",
+                          "id": "1:8469",
                           "name": "c",
                           "type": "INSTANCE",
                           "x": 894,
@@ -746,7 +746,7 @@
                       ]
                     },
                     {
-                      "id": "1:8554",
+                      "id": "1:8470",
                       "name": "Row 2",
                       "type": "FRAME",
                       "x": 0,
@@ -764,7 +764,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:8555",
+                          "id": "1:8471",
                           "name": "c",
                           "type": "INSTANCE",
                           "x": 0,
@@ -790,7 +790,7 @@
                           "texts": ["restore-valheim-9b31"]
                         },
                         {
-                          "id": "1:8556",
+                          "id": "1:8472",
                           "name": "c",
                           "type": "INSTANCE",
                           "x": 234,
@@ -815,7 +815,7 @@
                           "texts": ["valheim-daily-0711"]
                         },
                         {
-                          "id": "1:8557",
+                          "id": "1:8473",
                           "name": "c",
                           "type": "INSTANCE",
                           "x": 454,
@@ -840,7 +840,7 @@
                           "texts": ["valheim-prod"]
                         },
                         {
-                          "id": "1:8558",
+                          "id": "1:8474",
                           "name": "c4",
                           "type": "FRAME",
                           "x": 614,
@@ -862,7 +862,7 @@
                           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:8559",
+                              "id": "1:8475",
                               "name": "phase",
                               "type": "INSTANCE",
                               "x": 16,
@@ -887,7 +887,7 @@
                           ]
                         },
                         {
-                          "id": "1:8560",
+                          "id": "1:8476",
                           "name": "c",
                           "type": "INSTANCE",
                           "x": 744,
@@ -912,7 +912,7 @@
                           "texts": ["1d ago"]
                         },
                         {
-                          "id": "1:8561",
+                          "id": "1:8477",
                           "name": "c",
                           "type": "INSTANCE",
                           "x": 894,
@@ -947,7 +947,7 @@
       ]
     },
     {
-      "id": "1:8562",
+      "id": "1:8478",
       "name": "Open filter menu",
       "type": "INSTANCE",
       "x": 1136,
@@ -955,7 +955,7 @@
       "width": 280,
       "height": 268,
       "component": "Gameplane/Backups Filter Popover",
-      "componentId": "1:8419",
+      "componentId": "1:8335",
       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
       "strokeWeight": 1,

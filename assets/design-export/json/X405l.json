@@ -1,6 +1,6 @@
 {
   "file": "X405l",
-  "id": "1:7442",
+  "id": "1:7358",
   "name": "Screen/Server Detail — Console (not running – Stopped/Suspended)",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:7443",
+      "id": "1:7359",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:7444",
+      "id": "1:7360",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:7445",
+          "id": "1:7361",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:7446",
+          "id": "1:7362",
           "name": "Detail Header",
           "type": "INSTANCE",
           "x": 0,
@@ -140,7 +140,7 @@
           ]
         },
         {
-          "id": "1:7447",
+          "id": "1:7363",
           "name": "Tabs Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -177,7 +177,7 @@
           ]
         },
         {
-          "id": "1:7448",
+          "id": "1:7364",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -198,7 +198,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:7449",
+              "id": "1:7365",
               "name": "Console Toolbar",
               "type": "INSTANCE",
               "x": 0,
@@ -222,7 +222,7 @@
               "texts": ["OFFLINE", "Clear", "Download", "Fullscreen"]
             },
             {
-              "id": "1:7450",
+              "id": "1:7366",
               "name": "Terminal Wrap",
               "type": "FRAME",
               "x": 0,
@@ -241,7 +241,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7451",
+                  "id": "1:7367",
                   "name": "Not Running Card",
                   "type": "FRAME",
                   "x": 350,
@@ -263,7 +263,7 @@
                   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "id": "1:7452",
+                      "id": "1:7368",
                       "name": "Icon Wrap",
                       "type": "FRAME",
                       "x": 212,
@@ -282,7 +282,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:7453",
+                          "id": "1:7369",
                           "name": "Pause Icon",
                           "type": "FRAME",
                           "x": 14,
@@ -316,7 +316,7 @@
                       ]
                     },
                     {
-                      "id": "1:7454",
+                      "id": "1:7370",
                       "name": "Status",
                       "type": "TEXT",
                       "x": 32,
@@ -331,7 +331,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:7455",
+                      "id": "1:7371",
                       "name": "Info",
                       "type": "TEXT",
                       "x": 32,
@@ -347,7 +347,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:7456",
+                      "id": "1:7372",
                       "name": "Btn Row",
                       "type": "FRAME",
                       "x": 172,
@@ -364,7 +364,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:7457",
+                          "id": "1:7373",
                           "name": "Btn Start Server",
                           "type": "INSTANCE",
                           "x": 0,

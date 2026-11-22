@@ -1,6 +1,6 @@
 {
   "file": "bHJy6",
-  "id": "1:10506",
+  "id": "1:10422",
   "name": "Gameplane/Backup Volume Coverage — Recorded",
   "type": "COMPONENT",
   "x": 2276,
@@ -19,7 +19,7 @@
   "variables": {"fills/0/color": "surface/surface"},
   "children": [
     {
-      "id": "1:10507",
+      "id": "1:10423",
       "name": "Coverage label",
       "type": "TEXT",
       "x": 0,
@@ -33,7 +33,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
     },
     {
-      "id": "1:10508",
+      "id": "1:10424",
       "name": "Recorded capture manifest",
       "type": "FRAME",
       "x": 0,
@@ -51,7 +51,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10509",
+          "id": "1:10425",
           "name": "Capture recorded at",
           "type": "TEXT",
           "x": 0,
@@ -66,7 +66,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:10510",
+          "id": "1:10426",
           "name": "Coverage scope",
           "type": "TEXT",
           "x": 0,
@@ -81,7 +81,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:10511",
+          "id": "1:10427",
           "name": "Captured volume inventory",
           "type": "FRAME",
           "x": 0,
@@ -99,7 +99,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10512",
+              "id": "1:10428",
               "name": "Volume game-data",
               "type": "FRAME",
               "x": 0,
@@ -121,7 +121,7 @@
               "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:10513",
+                  "id": "1:10429",
                   "name": "Claim name",
                   "type": "TEXT",
                   "x": 9,
@@ -136,7 +136,7 @@
                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10514",
+                  "id": "1:10430",
                   "name": "Coverage result",
                   "type": "TEXT",
                   "x": 9,
@@ -151,7 +151,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10515",
+                  "id": "1:10431",
                   "name": "Volume classification",
                   "type": "TEXT",
                   "x": 9,
@@ -166,7 +166,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:10516",
+                  "id": "1:10432",
                   "name": "Mount path",
                   "type": "TEXT",
                   "x": 9,
@@ -183,7 +183,7 @@
               ]
             },
             {
-              "id": "1:10517",
+              "id": "1:10433",
               "name": "Volume game-extra-install",
               "type": "FRAME",
               "x": 0,
@@ -205,7 +205,7 @@
               "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:10518",
+                  "id": "1:10434",
                   "name": "Claim name",
                   "type": "TEXT",
                   "x": 9,
@@ -220,7 +220,7 @@
                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10519",
+                  "id": "1:10435",
                   "name": "Coverage result",
                   "type": "TEXT",
                   "x": 9,
@@ -235,7 +235,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10520",
+                  "id": "1:10436",
                   "name": "Volume classification",
                   "type": "TEXT",
                   "x": 9,
@@ -250,7 +250,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:10521",
+                  "id": "1:10437",
                   "name": "Mount path",
                   "type": "TEXT",
                   "x": 9,
@@ -267,7 +267,7 @@
               ]
             },
             {
-              "id": "1:10522",
+              "id": "1:10438",
               "name": "Volume game-mods",
               "type": "FRAME",
               "x": 0,
@@ -289,7 +289,7 @@
               "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:10523",
+                  "id": "1:10439",
                   "name": "Claim name",
                   "type": "TEXT",
                   "x": 9,
@@ -304,7 +304,7 @@
                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10524",
+                  "id": "1:10440",
                   "name": "Coverage result",
                   "type": "TEXT",
                   "x": 9,
@@ -319,7 +319,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10525",
+                  "id": "1:10441",
                   "name": "Volume classification",
                   "type": "TEXT",
                   "x": 9,
@@ -334,7 +334,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:10526",
+                  "id": "1:10442",
                   "name": "Mount path",
                   "type": "TEXT",
                   "x": 9,

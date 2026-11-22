@@ -1,6 +1,6 @@
 {
   "file": "o1uEP",
-  "id": "1:11395",
+  "id": "1:11311",
   "name": "Gameplane/Dialog/Create ZIP",
   "type": "FRAME",
   "x": 4240,
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "id": "1:11396",
+      "id": "1:11312",
       "name": "Archive name",
       "type": "FRAME",
       "x": 20,
@@ -91,7 +91,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:11397",
+          "id": "1:11313",
           "name": "text",
           "type": "TEXT",
           "x": 0,
@@ -104,7 +104,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:11398",
+          "id": "1:11314",
           "name": "Archive filename",
           "type": "INSTANCE",
           "x": 0,

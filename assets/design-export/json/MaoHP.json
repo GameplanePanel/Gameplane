@@ -1,6 +1,6 @@
 {
   "file": "MaoHP",
-  "id": "1:10410",
+  "id": "1:10326",
   "name": "Gameplane/Dialog/Reset Password",
   "type": "FRAME",
   "x": 688,
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "id": "1:10411",
+      "id": "1:10327",
       "name": "mBody",
       "type": "FRAME",
       "x": 20,
@@ -91,7 +91,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10412",
+          "id": "1:10328",
           "name": "text",
           "type": "TEXT",
           "x": 0,
@@ -104,7 +104,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "id": "1:10413",
+          "id": "1:10329",
           "name": "Input",
           "type": "INSTANCE",
           "x": 0,

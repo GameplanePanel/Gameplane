@@ -1,6 +1,6 @@
 {
   "file": "J8GzM9",
-  "id": "1:11073",
+  "id": "1:10989",
   "name": "Screen/Cluster Details — Nodes",
   "type": "FRAME",
   "x": 14760,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:11074",
+      "id": "1:10990",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:11075",
+      "id": "1:10991",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -82,7 +82,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:11076",
+          "id": "1:10992",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -107,7 +107,7 @@
           "texts": ["gameplane", "Clusters  ›  Local  ›  Nodes", "Search servers…", "AD"]
         },
         {
-          "id": "1:11077",
+          "id": "1:10993",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -126,7 +126,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:11078",
+              "id": "1:10994",
               "name": "Page Header",
               "type": "FRAME",
               "x": 24,
@@ -188,7 +188,7 @@
                   ]
                 },
                 {
-                  "id": "1:11079",
+                  "id": "1:10995",
                   "name": "Add node",
                   "type": "INSTANCE",
                   "x": 1013,
@@ -219,7 +219,7 @@
               ]
             },
             {
-              "id": "1:11080",
+              "id": "1:10996",
               "name": "Cluster detail tabs",
               "type": "FRAME",
               "x": 24,
@@ -240,7 +240,7 @@
               "variables": {"strokes/0/color": "separator/separator"},
               "children": [
                 {
-                  "id": "1:11081",
+                  "id": "1:10997",
                   "name": "Overview tab",
                   "type": "INSTANCE",
                   "x": 0,
@@ -262,7 +262,7 @@
                   "texts": ["Overview"]
                 },
                 {
-                  "id": "1:11082",
+                  "id": "1:10998",
                   "name": "Nodes tab",
                   "type": "INSTANCE",
                   "x": 98,
@@ -286,7 +286,7 @@
                   "texts": ["Nodes"]
                 },
                 {
-                  "id": "1:11083",
+                  "id": "1:10999",
                   "name": "Configuration tab",
                   "type": "INSTANCE",
                   "x": 177,
@@ -310,7 +310,7 @@
               ]
             },
             {
-              "id": "1:11084",
+              "id": "1:11000",
               "name": "Search and Filters — fixed Local cluster",
               "type": "INSTANCE",
               "x": 24,
@@ -318,7 +318,7 @@
               "width": 1132,
               "height": 36,
               "component": "Gameplane/Nodes Search and Filters Row",
-              "componentId": "1:11038",
+              "componentId": "1:10954",
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 12,
@@ -331,7 +331,7 @@
               "texts": ["Search nodes…", "Cluster: Local", "Filter"]
             },
             {
-              "id": "1:11085",
+              "id": "1:11001",
               "name": "Cluster node total",
               "type": "TEXT",
               "x": 24,
@@ -346,7 +346,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:11086",
+              "id": "1:11002",
               "name": "Shared inventory table scoped to Local",
               "type": "INSTANCE",
               "x": 24,
@@ -354,7 +354,7 @@
               "width": 1132,
               "height": 240,
               "component": "Gameplane/Node Inventory Table",
-              "componentId": "1:10976",
+              "componentId": "1:10892",
               "fills": [{"type": "SOLID", "color": "#17151A"}],
               "cornerRadius": 20,
               "layout": {
@@ -400,7 +400,7 @@
               ]
             },
             {
-              "id": "1:11087",
+              "id": "1:11003",
               "name": "View all nodes",
               "type": "INSTANCE",
               "x": 24,

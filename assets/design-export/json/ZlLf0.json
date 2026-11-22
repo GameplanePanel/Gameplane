@@ -1,6 +1,6 @@
 {
   "file": "ZlLf0",
-  "id": "1:9394",
+  "id": "1:9310",
   "name": "Screen/Standalone — Modules (Permission denied)",
   "type": "FRAME",
   "x": 3280,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9395",
+      "id": "1:9311",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:9396",
+      "id": "1:9312",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:9397",
+          "id": "1:9313",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Modules", "Search servers…", "AD"]
         },
         {
-          "id": "1:9398",
+          "id": "1:9314",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -128,7 +128,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9399",
+              "id": "1:9315",
               "name": "Workload cluster selector",
               "type": "FRAME",
               "x": 24,
@@ -154,7 +154,7 @@
               },
               "children": [
                 {
-                  "id": "1:9400",
+                  "id": "1:9316",
                   "name": "API status",
                   "type": "ELLIPSE",
                   "x": 12,
@@ -165,7 +165,7 @@
                   "variables": {"fills/0/color": "success/success"}
                 },
                 {
-                  "id": "1:9401",
+                  "id": "1:9317",
                   "name": "Selector label",
                   "type": "TEXT",
                   "x": 26,
@@ -178,7 +178,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:9402",
+                  "id": "1:9318",
                   "name": "Selected workload cluster",
                   "type": "TEXT",
                   "x": 82,
@@ -191,7 +191,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:9403",
+                  "id": "1:9319",
                   "name": "Open cluster choices",
                   "type": "FRAME",
                   "x": 189,
@@ -215,7 +215,7 @@
               ]
             },
             {
-              "id": "1:9404",
+              "id": "1:9320",
               "name": "No module access",
               "type": "FRAME",
               "x": 24,
@@ -236,7 +236,7 @@
               "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
               "children": [
                 {
-                  "id": "1:9405",
+                  "id": "1:9321",
                   "name": "Permission error",
                   "type": "TEXT",
                   "x": 24,

@@ -1,6 +1,6 @@
 {
   "file": "VM7ro",
-  "id": "1:10435",
+  "id": "1:10351",
   "name": "Gameplane/Dialog/Share Link Created",
   "type": "FRAME",
   "x": 2720,
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "id": "1:10436",
+      "id": "1:10352",
       "name": "mBody",
       "type": "FRAME",
       "x": 20,
@@ -91,7 +91,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10437",
+          "id": "1:10353",
           "name": "warningBox",
           "type": "FRAME",
           "x": 0,
@@ -114,7 +114,7 @@
           "variables": {"fills/0/color": "warning/10", "strokes/0/color": "warning/warning"},
           "children": [
             {
-              "id": "1:10438",
+              "id": "1:10354",
               "name": "icon",
               "type": "FRAME",
               "x": 14,
@@ -146,7 +146,7 @@
               ]
             },
             {
-              "id": "1:10439",
+              "id": "1:10355",
               "name": "warningContent",
               "type": "FRAME",
               "x": 42,
@@ -164,7 +164,7 @@
               "layoutGrow": 1,
               "children": [
                 {
-                  "id": "1:10440",
+                  "id": "1:10356",
                   "name": "warningTitle",
                   "type": "TEXT",
                   "x": 0,
@@ -178,7 +178,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/warning"}
                 },
                 {
-                  "id": "1:10441",
+                  "id": "1:10357",
                   "name": "warningDesc",
                   "type": "TEXT",
                   "x": 0,
@@ -197,7 +197,7 @@
           ]
         },
         {
-          "id": "1:10442",
+          "id": "1:10358",
           "name": "tokenRow",
           "type": "FRAME",
           "x": 0,
@@ -220,7 +220,7 @@
           "variables": {"fills/0/color": "default/default", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:10443",
+              "id": "1:10359",
               "name": "text",
               "type": "TEXT",
               "x": 14,
@@ -235,7 +235,7 @@
               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10444",
+              "id": "1:10360",
               "name": "icon",
               "type": "FRAME",
               "x": 410,
@@ -271,7 +271,7 @@
       ]
     },
     {
-      "id": "1:10445",
+      "id": "1:10361",
       "name": "mFooter",
       "type": "FRAME",
       "x": 20,
@@ -289,7 +289,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10446",
+          "id": "1:10362",
           "name": "btnCopy",
           "type": "INSTANCE",
           "x": 281,
@@ -318,7 +318,7 @@
           "texts": ["Copy link"]
         },
         {
-          "id": "1:10447",
+          "id": "1:10363",
           "name": "btnPrimary",
           "type": "INSTANCE",
           "x": 388,

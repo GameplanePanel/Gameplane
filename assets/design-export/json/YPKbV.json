@@ -1,6 +1,6 @@
 {
   "file": "YPKbV",
-  "id": "1:8563",
+  "id": "1:8479",
   "name": "Screen/Dashboard — Partial cluster coverage",
   "type": "FRAME",
   "x": 3280,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8564",
+      "id": "1:8480",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:8565",
+      "id": "1:8481",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:8566",
+          "id": "1:8482",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Dashboard", "Search servers…", "AD"]
         },
         {
-          "id": "1:8567",
+          "id": "1:8483",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:8568",
+              "id": "1:8484",
               "name": "Page Header",
               "type": "FRAME",
               "x": 32,
@@ -208,7 +208,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8569",
+                      "id": "1:8485",
                       "name": "Create Server Button",
                       "type": "INSTANCE",
                       "x": -5,
@@ -233,7 +233,7 @@
               ]
             },
             {
-              "id": "1:8570",
+              "id": "1:8486",
               "name": "Dashboard location filter",
               "type": "INSTANCE",
               "x": 32,
@@ -263,7 +263,7 @@
               "texts": ["All clusters"]
             },
             {
-              "id": "1:8571",
+              "id": "1:8487",
               "name": "Partial server coverage",
               "type": "FRAME",
               "x": 32,
@@ -286,7 +286,7 @@
               "variables": {"fills/0/color": "warning/soft", "strokes/0/color": "warning/warning"},
               "children": [
                 {
-                  "id": "1:8572",
+                  "id": "1:8488",
                   "name": "Coverage notice",
                   "type": "TEXT",
                   "x": 12,
@@ -301,7 +301,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:8573",
+                  "id": "1:8489",
                   "name": "Coverage notice",
                   "type": "TEXT",
                   "x": 12,
@@ -318,7 +318,7 @@
               ]
             },
             {
-              "id": "1:8574",
+              "id": "1:8490",
               "name": "Stats Row",
               "type": "INSTANCE",
               "x": 32,
@@ -355,7 +355,7 @@
               ]
             },
             {
-              "id": "1:8575",
+              "id": "1:8491",
               "name": "Row2",
               "type": "FRAME",
               "x": 32,
@@ -373,7 +373,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:8576",
+                  "id": "1:8492",
                   "name": "Fleet Status Card",
                   "type": "INSTANCE",
                   "x": 0,
@@ -412,7 +412,7 @@
                   ]
                 },
                 {
-                  "id": "1:8577",
+                  "id": "1:8493",
                   "name": "Cluster Resources Card",
                   "type": "INSTANCE",
                   "x": 570,
@@ -463,7 +463,7 @@
               ]
             },
             {
-              "id": "1:8578",
+              "id": "1:8494",
               "name": "Row3",
               "type": "FRAME",
               "x": 32,
@@ -481,7 +481,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:8579",
+                  "id": "1:8495",
                   "name": "Central audit activity",
                   "type": "INSTANCE",
                   "x": 0,
@@ -521,7 +521,7 @@
                   ]
                 },
                 {
-                  "id": "1:8580",
+                  "id": "1:8496",
                   "name": "Recent Backups Card",
                   "type": "INSTANCE",
                   "x": 570,

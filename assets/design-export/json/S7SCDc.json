@@ -1,6 +1,6 @@
 {
   "file": "S7SCDc",
-  "id": "1:10448",
+  "id": "1:10364",
   "name": "Gameplane/Dialog/Revoke Share Link",
   "type": "FRAME",
   "x": 3248,
@@ -27,7 +27,7 @@
   },
   "children": [
     {
-      "id": "1:10449",
+      "id": "1:10365",
       "name": "cdTitleRow",
       "type": "FRAME",
       "x": 20,
@@ -45,7 +45,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10450",
+          "id": "1:10366",
           "name": "icon",
           "type": "FRAME",
           "x": 0,
@@ -65,7 +65,7 @@
           "variables": {"fills/0/color": "danger/soft"},
           "children": [
             {
-              "id": "1:10451",
+              "id": "1:10367",
               "name": "icon",
               "type": "FRAME",
               "x": 10,
@@ -99,7 +99,7 @@
           ]
         },
         {
-          "id": "1:10452",
+          "id": "1:10368",
           "name": "cdTitle",
           "type": "TEXT",
           "x": 52,

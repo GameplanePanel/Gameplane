@@ -8,6 +8,7 @@
 //   bun fig-export.ts <gameplane>/design.fig <gameplane>/assets/design-export
 //   bun fig-export.ts <gameplane>/telemetry-receiver/telemetry-dashboard.fig \
 //     <gameplane>/telemetry-receiver/design-export
+//   bun fig-export.ts <gameplane>/website/website.fig <gameplane>/website/website-export
 //
 // A screen is a top-level frame or instance on the document's first page, other than notes,
 // canvas row labels and component boards (EXCLUDED). Files are named after the screen's entry in
@@ -18,7 +19,8 @@
 // <out>/parts.json lists layers below screen level that the browser visual diff
 // (web/scripts/compare-screenshots.mjs) compares against, such as one dialog or one badge. Each
 // entry names its file and the layer's exact name; the layer is exported the same way as a screen,
-// and the script fills in its ID and size. A name that matches no layer, or more than one, stops it.
+// and the script fills in its ID and size. A top-level layer with that name wins; otherwise the name
+// must match exactly one layer outside instances, or the script stops.
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
@@ -241,7 +243,8 @@ if (wanted.length) {
   const layers = ownLayers(page.id).filter((node) => node.type !== 'INSTANCE')
   const parts: ScreenEntry[] = []
   for (const { file: name, name: layerName } of wanted) {
-    const matches = layers.filter((node) => node.name === layerName)
+    const top = graph.getChildren(page.id).filter((node) => node.name === layerName)
+    const matches = top.length === 1 ? top : layers.filter((node) => node.name === layerName)
     if (matches.length !== 1)
       throw new Error(`parts.json: ${matches.length} layers are named ${JSON.stringify(layerName)}`)
     parts.push(await exportNode(matches[0] as SceneNode, name))

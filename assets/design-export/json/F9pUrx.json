@@ -1,6 +1,6 @@
 {
   "file": "F9pUrx",
-  "id": "1:6499",
+  "id": "1:6415",
   "name": "Screen/Servers",
   "type": "FRAME",
   "x": 0,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:6500",
+      "id": "1:6416",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:6501",
+      "id": "1:6417",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:6502",
+          "id": "1:6418",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Servers", "Search servers…", "AD"]
         },
         {
-          "id": "1:6503",
+          "id": "1:6419",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:6504",
+              "id": "1:6420",
               "name": "Page Header",
               "type": "FRAME",
               "x": 24,
@@ -208,7 +208,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:6505",
+                      "id": "1:6421",
                       "name": "Create Server Button",
                       "type": "INSTANCE",
                       "x": -5,
@@ -241,7 +241,7 @@
               ]
             },
             {
-              "id": "1:6506",
+              "id": "1:6422",
               "name": "Stats",
               "type": "INSTANCE",
               "x": 24,
@@ -249,7 +249,7 @@
               "width": 1132,
               "height": 115,
               "component": "Gameplane/Servers Stats Row",
-              "componentId": "1:6174",
+              "componentId": "1:6090",
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 16,
@@ -278,7 +278,7 @@
               ]
             },
             {
-              "id": "1:6507",
+              "id": "1:6423",
               "name": "Controls Row",
               "type": "INSTANCE",
               "x": 24,
@@ -286,7 +286,7 @@
               "width": 1132,
               "height": 40,
               "component": "Gameplane/Servers Controls Row",
-              "componentId": "1:6181",
+              "componentId": "1:6097",
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
@@ -299,7 +299,7 @@
               "texts": ["All", "3", "Running", "1", "Stopped", "2", "Search servers…", "Filter"]
             },
             {
-              "id": "1:6508",
+              "id": "1:6424",
               "name": "Servers Table",
               "type": "FRAME",
               "x": 24,
@@ -321,7 +321,7 @@
               "variables": {"fills/0/color": "surface/secondary"},
               "children": [
                 {
-                  "id": "1:6509",
+                  "id": "1:6425",
                   "name": "Head Row",
                   "type": "FRAME",
                   "x": 4,
@@ -343,7 +343,7 @@
                   "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "separator/separator"},
                   "children": [
                     {
-                      "id": "1:6510",
+                      "id": "1:6426",
                       "name": "Header Row",
                       "type": "FRAME",
                       "x": 0,
@@ -361,7 +361,7 @@
                       "layoutGrow": 1,
                       "children": [
                         {
-                          "id": "1:6511",
+                          "id": "1:6427",
                           "name": "HC NAME",
                           "type": "INSTANCE",
                           "x": 0,
@@ -384,7 +384,7 @@
                           "texts": ["NAME"]
                         },
                         {
-                          "id": "1:6512",
+                          "id": "1:6428",
                           "name": "HC GAME",
                           "type": "INSTANCE",
                           "x": 224,
@@ -406,7 +406,7 @@
                           "texts": ["GAME"]
                         },
                         {
-                          "id": "1:6513",
+                          "id": "1:6429",
                           "name": "HC STATUS",
                           "type": "INSTANCE",
                           "x": 374,
@@ -428,7 +428,7 @@
                           "texts": ["STATUS"]
                         },
                         {
-                          "id": "1:6514",
+                          "id": "1:6430",
                           "name": "HC CPU",
                           "type": "INSTANCE",
                           "x": 494,
@@ -450,7 +450,7 @@
                           "texts": ["CPU"]
                         },
                         {
-                          "id": "1:6515",
+                          "id": "1:6431",
                           "name": "HC MEMORY",
                           "type": "INSTANCE",
                           "x": 584,
@@ -472,7 +472,7 @@
                           "texts": ["MEMORY"]
                         },
                         {
-                          "id": "1:6516",
+                          "id": "1:6432",
                           "name": "HC PLAYERS",
                           "type": "INSTANCE",
                           "x": 694,
@@ -494,7 +494,7 @@
                           "texts": ["PLAYERS"]
                         },
                         {
-                          "id": "1:6517",
+                          "id": "1:6433",
                           "name": "HC NODE",
                           "type": "INSTANCE",
                           "x": 794,
@@ -516,7 +516,7 @@
                           "texts": ["NODE"]
                         },
                         {
-                          "id": "1:6518",
+                          "id": "1:6434",
                           "name": "HC ACTIONS",
                           "type": "INSTANCE",
                           "x": 944,
@@ -542,7 +542,7 @@
                   ]
                 },
                 {
-                  "id": "1:6519",
+                  "id": "1:6435",
                   "name": "Body",
                   "type": "FRAME",
                   "x": 4,
@@ -563,7 +563,7 @@
                   "variables": {"cornerRadius": "radius/2xl"},
                   "children": [
                     {
-                      "id": "1:6520",
+                      "id": "1:6436",
                       "name": "Row mc-survival",
                       "type": "FRAME",
                       "x": 0,
@@ -581,7 +581,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:6521",
+                          "id": "1:6437",
                           "name": "Table Cell",
                           "type": "FRAME",
                           "x": 0,
@@ -604,7 +604,7 @@
                           "variables": {"strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:6522",
+                              "id": "1:6438",
                               "name": "Name Cell",
                               "type": "FRAME",
                               "x": 16,
@@ -621,7 +621,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6523",
+                                  "id": "1:6439",
                                   "name": "Icon",
                                   "type": "FRAME",
                                   "x": 0,
@@ -640,7 +640,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:6524",
+                                      "id": "1:6440",
                                       "name": "Initials",
                                       "type": "TEXT",
                                       "x": 6.5,
@@ -655,7 +655,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:6525",
+                                  "id": "1:6441",
                                   "name": "Text Col",
                                   "type": "FRAME",
                                   "x": 40,
@@ -672,7 +672,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:6526",
+                                      "id": "1:6442",
                                       "name": "Name",
                                       "type": "TEXT",
                                       "x": 0,
@@ -685,7 +685,7 @@
                                       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:6527",
+                                      "id": "1:6443",
                                       "name": "Namespace",
                                       "type": "TEXT",
                                       "x": 0,
@@ -704,7 +704,7 @@
                           ]
                         },
                         {
-                          "id": "1:6528",
+                          "id": "1:6444",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 224,
@@ -729,7 +729,7 @@
                           "texts": ["minecraft-java"]
                         },
                         {
-                          "id": "1:6529",
+                          "id": "1:6445",
                           "name": "Table Cell",
                           "type": "FRAME",
                           "x": 374,
@@ -751,7 +751,7 @@
                           "variables": {"strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:6530",
+                              "id": "1:6446",
                               "name": "Status Wrap",
                               "type": "FRAME",
                               "x": 16,
@@ -768,7 +768,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6531",
+                                  "id": "1:6447",
                                   "name": "dot",
                                   "type": "ELLIPSE",
                                   "x": 0,
@@ -779,7 +779,7 @@
                                   "variables": {"fills/0/color": "success/success"}
                                 },
                                 {
-                                  "id": "1:6532",
+                                  "id": "1:6448",
                                   "name": "Status Chip",
                                   "type": "INSTANCE",
                                   "x": 12,
@@ -806,7 +806,7 @@
                           ]
                         },
                         {
-                          "id": "1:6533",
+                          "id": "1:6449",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 494,
@@ -831,7 +831,7 @@
                           "texts": ["0%"]
                         },
                         {
-                          "id": "1:6534",
+                          "id": "1:6450",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 584,
@@ -856,7 +856,7 @@
                           "texts": ["39%"]
                         },
                         {
-                          "id": "1:6535",
+                          "id": "1:6451",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 694,
@@ -881,7 +881,7 @@
                           "texts": ["0/20"]
                         },
                         {
-                          "id": "1:6536",
+                          "id": "1:6452",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 794,
@@ -906,7 +906,7 @@
                           "texts": ["kubelab-control"]
                         },
                         {
-                          "id": "1:6537",
+                          "id": "1:6453",
                           "name": "Table Cell",
                           "type": "FRAME",
                           "x": 944,
@@ -928,7 +928,7 @@
                           "variables": {"strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:6538",
+                              "id": "1:6454",
                               "name": "Actions",
                               "type": "FRAME",
                               "x": 24,
@@ -945,7 +945,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6539",
+                                  "id": "1:6455",
                                   "name": "play Button",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -966,7 +966,7 @@
                                   }
                                 },
                                 {
-                                  "id": "1:6540",
+                                  "id": "1:6456",
                                   "name": "square Button",
                                   "type": "INSTANCE",
                                   "x": 36,
@@ -986,7 +986,7 @@
                                   }
                                 },
                                 {
-                                  "id": "1:6541",
+                                  "id": "1:6457",
                                   "name": "rotate-cw Button",
                                   "type": "INSTANCE",
                                   "x": 72,
@@ -1006,7 +1006,7 @@
                                   }
                                 },
                                 {
-                                  "id": "1:6542",
+                                  "id": "1:6458",
                                   "name": "ellipsis Button",
                                   "type": "INSTANCE",
                                   "x": 108,
@@ -1032,7 +1032,7 @@
                       ]
                     },
                     {
-                      "id": "1:6543",
+                      "id": "1:6459",
                       "name": "Row mc-test",
                       "type": "FRAME",
                       "x": 0,
@@ -1050,7 +1050,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:6544",
+                          "id": "1:6460",
                           "name": "Table Cell",
                           "type": "FRAME",
                           "x": 0,
@@ -1073,7 +1073,7 @@
                           "variables": {"strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:6545",
+                              "id": "1:6461",
                               "name": "Name Cell",
                               "type": "FRAME",
                               "x": 16,
@@ -1090,7 +1090,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6546",
+                                  "id": "1:6462",
                                   "name": "Icon",
                                   "type": "FRAME",
                                   "x": 0,
@@ -1109,7 +1109,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:6547",
+                                      "id": "1:6463",
                                       "name": "Initials",
                                       "type": "TEXT",
                                       "x": 6.5,
@@ -1124,7 +1124,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:6548",
+                                  "id": "1:6464",
                                   "name": "Text Col",
                                   "type": "FRAME",
                                   "x": 40,
@@ -1141,7 +1141,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:6549",
+                                      "id": "1:6465",
                                       "name": "Name",
                                       "type": "TEXT",
                                       "x": 0,
@@ -1154,7 +1154,7 @@
                                       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:6550",
+                                      "id": "1:6466",
                                       "name": "Namespace",
                                       "type": "TEXT",
                                       "x": 0,
@@ -1173,7 +1173,7 @@
                           ]
                         },
                         {
-                          "id": "1:6551",
+                          "id": "1:6467",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 224,
@@ -1198,7 +1198,7 @@
                           "texts": ["minecraft-java"]
                         },
                         {
-                          "id": "1:6552",
+                          "id": "1:6468",
                           "name": "Table Cell",
                           "type": "FRAME",
                           "x": 374,
@@ -1220,7 +1220,7 @@
                           "variables": {"strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:6553",
+                              "id": "1:6469",
                               "name": "Status Wrap",
                               "type": "FRAME",
                               "x": 16,
@@ -1237,7 +1237,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6554",
+                                  "id": "1:6470",
                                   "name": "dot",
                                   "type": "ELLIPSE",
                                   "x": 0,
@@ -1248,7 +1248,7 @@
                                   "variables": {"fills/0/color": "danger/danger"}
                                 },
                                 {
-                                  "id": "1:6555",
+                                  "id": "1:6471",
                                   "name": "Status Chip",
                                   "type": "INSTANCE",
                                   "x": 12,
@@ -1275,7 +1275,7 @@
                           ]
                         },
                         {
-                          "id": "1:6556",
+                          "id": "1:6472",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 494,
@@ -1300,7 +1300,7 @@
                           "texts": ["0%"]
                         },
                         {
-                          "id": "1:6557",
+                          "id": "1:6473",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 584,
@@ -1325,7 +1325,7 @@
                           "texts": ["0%"]
                         },
                         {
-                          "id": "1:6558",
+                          "id": "1:6474",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 694,
@@ -1350,7 +1350,7 @@
                           "texts": ["—"]
                         },
                         {
-                          "id": "1:6559",
+                          "id": "1:6475",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 794,
@@ -1375,7 +1375,7 @@
                           "texts": ["kubelab-worker-2"]
                         },
                         {
-                          "id": "1:6560",
+                          "id": "1:6476",
                           "name": "Table Cell",
                           "type": "FRAME",
                           "x": 944,
@@ -1397,7 +1397,7 @@
                           "variables": {"strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:6561",
+                              "id": "1:6477",
                               "name": "Actions",
                               "type": "FRAME",
                               "x": 24,
@@ -1414,7 +1414,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6562",
+                                  "id": "1:6478",
                                   "name": "play Button",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -1434,7 +1434,7 @@
                                   }
                                 },
                                 {
-                                  "id": "1:6563",
+                                  "id": "1:6479",
                                   "name": "square Button",
                                   "type": "INSTANCE",
                                   "x": 36,
@@ -1454,7 +1454,7 @@
                                   }
                                 },
                                 {
-                                  "id": "1:6564",
+                                  "id": "1:6480",
                                   "name": "rotate-cw Button",
                                   "type": "INSTANCE",
                                   "x": 72,
@@ -1474,7 +1474,7 @@
                                   }
                                 },
                                 {
-                                  "id": "1:6565",
+                                  "id": "1:6481",
                                   "name": "ellipsis Button",
                                   "type": "INSTANCE",
                                   "x": 108,
@@ -1500,7 +1500,7 @@
                       ]
                     },
                     {
-                      "id": "1:6566",
+                      "id": "1:6482",
                       "name": "Row user-server-test (Asleep)",
                       "type": "FRAME",
                       "x": 0,
@@ -1518,7 +1518,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:6567",
+                          "id": "1:6483",
                           "name": "Table Cell",
                           "type": "FRAME",
                           "x": 0,
@@ -1541,7 +1541,7 @@
                           "variables": {"strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:6568",
+                              "id": "1:6484",
                               "name": "Name Cell",
                               "type": "FRAME",
                               "x": 16,
@@ -1558,7 +1558,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6569",
+                                  "id": "1:6485",
                                   "name": "Icon",
                                   "type": "FRAME",
                                   "x": 0,
@@ -1578,7 +1578,7 @@
                                   "variables": {"fills/0/color": "accent/soft"},
                                   "children": [
                                     {
-                                      "id": "1:6570",
+                                      "id": "1:6486",
                                       "name": "Initials",
                                       "type": "TEXT",
                                       "x": 6.5,
@@ -1593,7 +1593,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:6571",
+                                  "id": "1:6487",
                                   "name": "Text Col",
                                   "type": "FRAME",
                                   "x": 40,
@@ -1610,7 +1610,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:6572",
+                                      "id": "1:6488",
                                       "name": "Name",
                                       "type": "TEXT",
                                       "x": 0,
@@ -1623,7 +1623,7 @@
                                       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:6573",
+                                      "id": "1:6489",
                                       "name": "Namespace",
                                       "type": "TEXT",
                                       "x": 0,
@@ -1642,7 +1642,7 @@
                           ]
                         },
                         {
-                          "id": "1:6574",
+                          "id": "1:6490",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 224,
@@ -1667,7 +1667,7 @@
                           "texts": ["satisfactory"]
                         },
                         {
-                          "id": "1:6575",
+                          "id": "1:6491",
                           "name": "Table Cell",
                           "type": "FRAME",
                           "x": 374,
@@ -1689,7 +1689,7 @@
                           "variables": {"strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:6576",
+                              "id": "1:6492",
                               "name": "Status Wrap",
                               "type": "FRAME",
                               "x": 16,
@@ -1706,7 +1706,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6577",
+                                  "id": "1:6493",
                                   "name": "dot",
                                   "type": "ELLIPSE",
                                   "x": 0,
@@ -1716,7 +1716,7 @@
                                   "fills": [{"type": "SOLID", "color": "#8B5CF6"}]
                                 },
                                 {
-                                  "id": "1:6578",
+                                  "id": "1:6494",
                                   "name": "Status Chip",
                                   "type": "FRAME",
                                   "x": 12,
@@ -1736,7 +1736,7 @@
                                   "variables": {"cornerRadius": "radius/2xl"},
                                   "children": [
                                     {
-                                      "id": "1:6579",
+                                      "id": "1:6495",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 4,
@@ -1754,7 +1754,7 @@
                           ]
                         },
                         {
-                          "id": "1:6580",
+                          "id": "1:6496",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 494,
@@ -1779,7 +1779,7 @@
                           "texts": ["—"]
                         },
                         {
-                          "id": "1:6581",
+                          "id": "1:6497",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 584,
@@ -1804,7 +1804,7 @@
                           "texts": ["—"]
                         },
                         {
-                          "id": "1:6582",
+                          "id": "1:6498",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 694,
@@ -1829,7 +1829,7 @@
                           "texts": ["—"]
                         },
                         {
-                          "id": "1:6583",
+                          "id": "1:6499",
                           "name": "Table Cell",
                           "type": "INSTANCE",
                           "x": 794,
@@ -1854,7 +1854,7 @@
                           "texts": ["—"]
                         },
                         {
-                          "id": "1:6584",
+                          "id": "1:6500",
                           "name": "Table Cell",
                           "type": "FRAME",
                           "x": 944,
@@ -1876,7 +1876,7 @@
                           "variables": {"strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "1:6585",
+                              "id": "1:6501",
                               "name": "Actions",
                               "type": "FRAME",
                               "x": 24,
@@ -1893,7 +1893,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6586",
+                                  "id": "1:6502",
                                   "name": "sunrise Button",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -1913,7 +1913,7 @@
                                   }
                                 },
                                 {
-                                  "id": "1:6587",
+                                  "id": "1:6503",
                                   "name": "square Button",
                                   "type": "INSTANCE",
                                   "x": 36,
@@ -1934,7 +1934,7 @@
                                   }
                                 },
                                 {
-                                  "id": "1:6588",
+                                  "id": "1:6504",
                                   "name": "rotate-cw Button",
                                   "type": "INSTANCE",
                                   "x": 72,
@@ -1955,7 +1955,7 @@
                                   }
                                 },
                                 {
-                                  "id": "1:6589",
+                                  "id": "1:6505",
                                   "name": "ellipsis Button",
                                   "type": "INSTANCE",
                                   "x": 108,

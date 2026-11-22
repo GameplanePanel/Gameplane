@@ -1,6 +1,6 @@
 {
   "file": "m1hP1j",
-  "id": "1:10164",
+  "id": "1:10080",
   "name": "Integrity Banner (Broken)",
   "type": "FRAME",
   "x": 32,
@@ -19,7 +19,7 @@
   "variables": {"fills/0/color": "danger/danger"},
   "children": [
     {
-      "id": "1:10165",
+      "id": "1:10081",
       "name": "Icon",
       "type": "FRAME",
       "x": 16,
@@ -39,7 +39,7 @@
       "variables": {"fills/0/color": "foreground/foreground"},
       "children": [
         {
-          "id": "1:10166",
+          "id": "1:10082",
           "name": "Icon",
           "type": "INSTANCE",
           "x": 6,
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "1:10167",
+      "id": "1:10083",
       "name": "Message",
       "type": "TEXT",
       "x": 60,
@@ -66,7 +66,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/foreground"}
     },
     {
-      "id": "1:10168",
+      "id": "1:10084",
       "name": "Re-check Button",
       "type": "FRAME",
       "x": 455,
@@ -84,7 +84,7 @@
       },
       "children": [
         {
-          "id": "1:10169",
+          "id": "1:10085",
           "name": "Re-check Label",
           "type": "TEXT",
           "x": 12,

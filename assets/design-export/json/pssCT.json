@@ -431,10 +431,10 @@
                                 {
                                   "name": "path",
                                   "type": "VECTOR",
-                                  "x": 6.67,
-                                  "y": 6.67,
-                                  "width": 8,
-                                  "height": 8,
+                                  "x": 8,
+                                  "y": 8,
+                                  "width": 6.67,
+                                  "height": 6.67,
                                   "strokes": [{"type": "SOLID", "color": "#000000"}],
                                   "strokeWeight": 1.33
                                 }

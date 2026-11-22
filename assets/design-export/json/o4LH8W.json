@@ -1,6 +1,6 @@
 {
   "file": "o4LH8W",
-  "id": "1:5438",
+  "id": "1:5352",
   "name": "Screen/Server Detail — Overview (PVC Provisioning Failed)",
   "type": "FRAME",
   "x": 8200,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:5439",
+      "id": "1:5353",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:5440",
+      "id": "1:5354",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:5441",
+          "id": "1:5355",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:5442",
+          "id": "1:5356",
           "name": "Detail Header",
           "type": "FRAME",
           "x": 0,
@@ -177,7 +177,7 @@
                   ]
                 },
                 {
-                  "id": "1:5443",
+                  "id": "1:5357",
                   "name": "srvTitle",
                   "type": "FRAME",
                   "x": 64,
@@ -194,7 +194,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:5444",
+                      "id": "1:5358",
                       "name": "srvNameRow",
                       "type": "FRAME",
                       "x": 0,
@@ -211,7 +211,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:5445",
+                          "id": "1:5359",
                           "name": "srvName",
                           "type": "TEXT",
                           "x": 0,
@@ -224,7 +224,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "id": "1:5446",
+                          "id": "1:5360",
                           "name": "Status Chip",
                           "type": "INSTANCE",
                           "x": 169,
@@ -249,7 +249,7 @@
                       ]
                     },
                     {
-                      "id": "1:5447",
+                      "id": "1:5361",
                       "name": "warningLine",
                       "type": "FRAME",
                       "x": 0,
@@ -266,7 +266,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:5448",
+                          "id": "1:5362",
                           "name": "warnIcon",
                           "type": "FRAME",
                           "x": 0,
@@ -288,7 +288,7 @@
                           ]
                         },
                         {
-                          "id": "1:5449",
+                          "id": "1:5363",
                           "name": "warnText",
                           "type": "TEXT",
                           "x": 20,
@@ -303,7 +303,7 @@
                       ]
                     },
                     {
-                      "id": "1:5450",
+                      "id": "1:5364",
                       "name": "srvSubtitle",
                       "type": "TEXT",
                       "x": 0,
@@ -449,7 +449,7 @@
           ]
         },
         {
-          "id": "1:5451",
+          "id": "1:5365",
           "name": "Tabs Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -486,7 +486,7 @@
           ]
         },
         {
-          "id": "1:5452",
+          "id": "1:5366",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -507,7 +507,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:5453",
+              "id": "1:5367",
               "name": "Storage Provisioning Warning Banner",
               "type": "FRAME",
               "x": 32,
@@ -567,7 +567,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
                     },
                     {
-                      "id": "1:5454",
+                      "id": "1:5368",
                       "name": "contentsBody",
                       "type": "FRAME",
                       "x": 0,
@@ -585,7 +585,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:5455",
+                          "id": "1:5369",
                           "name": "warnMessage",
                           "type": "TEXT",
                           "x": 0,
@@ -600,7 +600,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
                         },
                         {
-                          "id": "1:5456",
+                          "id": "1:5370",
                           "name": "classRow",
                           "type": "FRAME",
                           "x": 0,
@@ -621,7 +621,7 @@
                           "variables": {"fills/0/color": "default/default"},
                           "children": [
                             {
-                              "id": "1:5457",
+                              "id": "1:5371",
                               "name": "classLabel",
                               "type": "TEXT",
                               "x": 12,
@@ -634,7 +634,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
                             },
                             {
-                              "id": "1:5458",
+                              "id": "1:5372",
                               "name": "classValue",
                               "type": "TEXT",
                               "x": 969,
@@ -701,7 +701,7 @@
               ]
             },
             {
-              "id": "1:5459",
+              "id": "1:5373",
               "name": "Overview Columns",
               "type": "FRAME",
               "x": 32,
@@ -719,7 +719,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:5460",
+                  "id": "1:5374",
                   "name": "Left Column",
                   "type": "FRAME",
                   "x": 0,
@@ -737,7 +737,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:5461",
+                      "id": "1:5375",
                       "name": "Metrics Row",
                       "type": "FRAME",
                       "x": 0,
@@ -755,7 +755,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:5462",
+                          "id": "1:5376",
                           "name": "Metric CPU",
                           "type": "FRAME",
                           "x": 0,
@@ -777,7 +777,7 @@
                           "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                           "children": [
                             {
-                              "id": "1:5463",
+                              "id": "1:5377",
                               "name": "Card Content",
                               "type": "FRAME",
                               "x": 0,
@@ -795,7 +795,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:5464",
+                                  "id": "1:5378",
                                   "name": "frame",
                                   "type": "FRAME",
                                   "x": 16,
@@ -813,7 +813,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:5465",
+                                      "id": "1:5379",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -826,7 +826,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     },
                                     {
-                                      "id": "1:5466",
+                                      "id": "1:5380",
                                       "name": "icon",
                                       "type": "FRAME",
                                       "x": 185.33,
@@ -870,7 +870,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:5467",
+                                  "id": "1:5381",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -883,7 +883,7 @@
                                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:5468",
+                                  "id": "1:5382",
                                   "name": "path",
                                   "type": "VECTOR",
                                   "x": 16,
@@ -897,7 +897,7 @@
                                   "variables": {"strokes/0/color": "accent/accent"}
                                 },
                                 {
-                                  "id": "1:5469",
+                                  "id": "1:5383",
                                   "name": "frame",
                                   "type": "FRAME",
                                   "x": 16,
@@ -919,7 +919,7 @@
                                   "variables": {"fills/0/color": "default/default"},
                                   "children": [
                                     {
-                                      "id": "1:5470",
+                                      "id": "1:5384",
                                       "name": "rectangle",
                                       "type": "RECTANGLE",
                                       "x": 0,
@@ -933,7 +933,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:5471",
+                                  "id": "1:5385",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -950,7 +950,7 @@
                           ]
                         },
                         {
-                          "id": "1:5472",
+                          "id": "1:5386",
                           "name": "Metric Memory",
                           "type": "FRAME",
                           "x": 249.33,
@@ -972,7 +972,7 @@
                           "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                           "children": [
                             {
-                              "id": "1:5473",
+                              "id": "1:5387",
                               "name": "Card Content",
                               "type": "FRAME",
                               "x": 0,
@@ -990,7 +990,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:5474",
+                                  "id": "1:5388",
                                   "name": "frame",
                                   "type": "FRAME",
                                   "x": 16,
@@ -1008,7 +1008,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:5475",
+                                      "id": "1:5389",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -1021,7 +1021,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     },
                                     {
-                                      "id": "1:5476",
+                                      "id": "1:5390",
                                       "name": "icon",
                                       "type": "FRAME",
                                       "x": 185.33,
@@ -1055,7 +1055,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:5477",
+                                  "id": "1:5391",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -1068,7 +1068,7 @@
                                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:5478",
+                                  "id": "1:5392",
                                   "name": "path",
                                   "type": "VECTOR",
                                   "x": 16,
@@ -1081,7 +1081,7 @@
                                   "layoutAlignSelf": "STRETCH"
                                 },
                                 {
-                                  "id": "1:5479",
+                                  "id": "1:5393",
                                   "name": "frame",
                                   "type": "FRAME",
                                   "x": 16,
@@ -1103,7 +1103,7 @@
                                   "variables": {"fills/0/color": "default/default"},
                                   "children": [
                                     {
-                                      "id": "1:5480",
+                                      "id": "1:5394",
                                       "name": "rectangle",
                                       "type": "RECTANGLE",
                                       "x": 0,
@@ -1116,7 +1116,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:5481",
+                                  "id": "1:5395",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -1133,7 +1133,7 @@
                           ]
                         },
                         {
-                          "id": "1:5482",
+                          "id": "1:5396",
                           "name": "Metric Disk",
                           "type": "FRAME",
                           "x": 498.67,
@@ -1155,7 +1155,7 @@
                           "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                           "children": [
                             {
-                              "id": "1:5483",
+                              "id": "1:5397",
                               "name": "Card Content",
                               "type": "FRAME",
                               "x": 0,
@@ -1173,7 +1173,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:5484",
+                                  "id": "1:5398",
                                   "name": "frame",
                                   "type": "FRAME",
                                   "x": 16,
@@ -1191,7 +1191,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:5485",
+                                      "id": "1:5399",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -1204,7 +1204,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     },
                                     {
-                                      "id": "1:5486",
+                                      "id": "1:5400",
                                       "name": "icon",
                                       "type": "FRAME",
                                       "x": 185.33,
@@ -1228,7 +1228,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:5487",
+                                  "id": "1:5401",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -1241,7 +1241,7 @@
                                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:5488",
+                                  "id": "1:5402",
                                   "name": "path",
                                   "type": "VECTOR",
                                   "x": 16,
@@ -1255,7 +1255,7 @@
                                   "variables": {"strokes/0/color": "success/soft-foreground"}
                                 },
                                 {
-                                  "id": "1:5489",
+                                  "id": "1:5403",
                                   "name": "frame",
                                   "type": "FRAME",
                                   "x": 16,
@@ -1277,7 +1277,7 @@
                                   "variables": {"fills/0/color": "default/default"},
                                   "children": [
                                     {
-                                      "id": "1:5490",
+                                      "id": "1:5404",
                                       "name": "rectangle",
                                       "type": "RECTANGLE",
                                       "x": 0,
@@ -1291,7 +1291,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:5491",
+                                  "id": "1:5405",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -1310,7 +1310,7 @@
                       ]
                     },
                     {
-                      "id": "1:5492",
+                      "id": "1:5406",
                       "name": "Recent Events Card",
                       "type": "FRAME",
                       "x": 0,
@@ -1332,7 +1332,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:5493",
+                          "id": "1:5407",
                           "name": "Card Header",
                           "type": "FRAME",
                           "x": 0,
@@ -1353,7 +1353,7 @@
                           "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "1:5494",
+                              "id": "1:5408",
                               "name": "text",
                               "type": "TEXT",
                               "x": 24,
@@ -1366,7 +1366,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:5495",
+                              "id": "1:5409",
                               "name": "text",
                               "type": "TEXT",
                               "x": 665,
@@ -1381,7 +1381,7 @@
                           ]
                         },
                         {
-                          "id": "1:5496",
+                          "id": "1:5410",
                           "name": "Card Content",
                           "type": "FRAME",
                           "x": 0,
@@ -1399,7 +1399,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:5497",
+                              "id": "1:5411",
                               "name": "text",
                               "type": "TEXT",
                               "x": 24,
@@ -1418,7 +1418,7 @@
                   ]
                 },
                 {
-                  "id": "1:5498",
+                  "id": "1:5412",
                   "name": "Right Column",
                   "type": "FRAME",
                   "x": 756,
@@ -1435,7 +1435,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:5499",
+                      "id": "1:5413",
                       "name": "Connection Card",
                       "type": "FRAME",
                       "x": 0,
@@ -1457,7 +1457,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:5500",
+                          "id": "1:5414",
                           "name": "Card Header",
                           "type": "FRAME",
                           "x": 0,
@@ -1475,7 +1475,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:5501",
+                              "id": "1:5415",
                               "name": "text",
                               "type": "TEXT",
                               "x": 24,
@@ -1490,7 +1490,7 @@
                           ]
                         },
                         {
-                          "id": "1:5502",
+                          "id": "1:5416",
                           "name": "Card Content",
                           "type": "FRAME",
                           "x": 0,
@@ -1508,7 +1508,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:5503",
+                              "id": "1:5417",
                               "name": "Tunnel Address Row",
                               "type": "FRAME",
                               "x": 24,
@@ -1531,7 +1531,7 @@
                               "variables": {"fills/0/color": "default/default", "strokes/0/color": "accent/accent"},
                               "children": [
                                 {
-                                  "id": "1:5504",
+                                  "id": "1:5418",
                                   "name": "left",
                                   "type": "FRAME",
                                   "x": 14,
@@ -1548,7 +1548,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:5505",
+                                      "id": "1:5419",
                                       "name": "tunnelIcon",
                                       "type": "FRAME",
                                       "x": 0,
@@ -1590,7 +1590,7 @@
                                       ]
                                     },
                                     {
-                                      "id": "1:5506",
+                                      "id": "1:5420",
                                       "name": "text stack",
                                       "type": "FRAME",
                                       "x": 26,
@@ -1607,7 +1607,7 @@
                                       },
                                       "children": [
                                         {
-                                          "id": "1:5507",
+                                          "id": "1:5421",
                                           "name": "eyebrow",
                                           "type": "TEXT",
                                           "x": 0,
@@ -1620,7 +1620,7 @@
                                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                         },
                                         {
-                                          "id": "1:5508",
+                                          "id": "1:5422",
                                           "name": "address",
                                           "type": "TEXT",
                                           "x": 0,
@@ -1637,7 +1637,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:5509",
+                                  "id": "1:5423",
                                   "name": "copy",
                                   "type": "FRAME",
                                   "x": 284,
@@ -1671,7 +1671,7 @@
                               ]
                             },
                             {
-                              "id": "1:5510",
+                              "id": "1:5424",
                               "name": "External Address Label",
                               "type": "TEXT",
                               "x": 24,
@@ -1684,7 +1684,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:5511",
+                              "id": "1:5425",
                               "name": "External Address Row",
                               "type": "FRAME",
                               "x": 24,
@@ -1707,7 +1707,7 @@
                               "variables": {"fills/0/color": "default/default", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:5512",
+                                  "id": "1:5426",
                                   "name": "Label",
                                   "type": "TEXT",
                                   "x": 14,
@@ -1720,7 +1720,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "1:5513",
+                                  "id": "1:5427",
                                   "name": "stack",
                                   "type": "FRAME",
                                   "x": 166,
@@ -1737,7 +1737,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:5514",
+                                      "id": "1:5428",
                                       "name": "line",
                                       "type": "FRAME",
                                       "x": 0,
@@ -1754,7 +1754,7 @@
                                       },
                                       "children": [
                                         {
-                                          "id": "1:5515",
+                                          "id": "1:5429",
                                           "name": "Address",
                                           "type": "TEXT",
                                           "x": 0,
@@ -1767,7 +1767,7 @@
                                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                         },
                                         {
-                                          "id": "1:5516",
+                                          "id": "1:5430",
                                           "name": "copy",
                                           "type": "FRAME",
                                           "x": 118,
@@ -1801,7 +1801,7 @@
                                       ]
                                     },
                                     {
-                                      "id": "1:5517",
+                                      "id": "1:5431",
                                       "name": "PoolNote",
                                       "type": "TEXT",
                                       "x": 36,
@@ -1818,7 +1818,7 @@
                               ]
                             },
                             {
-                              "id": "1:5518",
+                              "id": "1:5432",
                               "name": "Cluster Address Label",
                               "type": "TEXT",
                               "x": 24,
@@ -1831,7 +1831,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:5519",
+                              "id": "1:5433",
                               "name": "frame",
                               "type": "FRAME",
                               "x": 24,
@@ -1854,7 +1854,7 @@
                               "variables": {"fills/0/color": "default/default", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:5520",
+                                  "id": "1:5434",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 14,
@@ -1867,7 +1867,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "1:5521",
+                                  "id": "1:5435",
                                   "name": "frame",
                                   "type": "FRAME",
                                   "x": 174,
@@ -1884,7 +1884,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:5522",
+                                      "id": "1:5436",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -1897,7 +1897,7 @@
                                       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:5523",
+                                      "id": "1:5437",
                                       "name": "icon",
                                       "type": "FRAME",
                                       "x": 110,
@@ -1933,7 +1933,7 @@
                               ]
                             },
                             {
-                              "id": "1:5524",
+                              "id": "1:5438",
                               "name": "frame",
                               "type": "FRAME",
                               "x": 24,
@@ -1956,7 +1956,7 @@
                               "variables": {"fills/0/color": "default/default", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:5525",
+                                  "id": "1:5439",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 14,
@@ -1969,7 +1969,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "1:5526",
+                                  "id": "1:5440",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 258,
@@ -1988,7 +1988,7 @@
                       ]
                     },
                     {
-                      "id": "1:5527",
+                      "id": "1:5441",
                       "name": "Players Online Card",
                       "type": "FRAME",
                       "x": 0,
@@ -2010,7 +2010,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:5528",
+                          "id": "1:5442",
                           "name": "Card Header",
                           "type": "FRAME",
                           "x": 0,
@@ -2028,7 +2028,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:5529",
+                              "id": "1:5443",
                               "name": "text",
                               "type": "TEXT",
                               "x": 24,
@@ -2043,7 +2043,7 @@
                           ]
                         },
                         {
-                          "id": "1:5530",
+                          "id": "1:5444",
                           "name": "Card Content",
                           "type": "FRAME",
                           "x": 0,
@@ -2061,7 +2061,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:5531",
+                              "id": "1:5445",
                               "name": "text",
                               "type": "TEXT",
                               "x": 114,
@@ -2079,7 +2079,7 @@
                       ]
                     },
                     {
-                      "id": "1:5532",
+                      "id": "1:5446",
                       "name": "Game Status Card",
                       "type": "FRAME",
                       "x": 0,
@@ -2101,7 +2101,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:5533",
+                          "id": "1:5447",
                           "name": "Card Header",
                           "type": "FRAME",
                           "x": 0,
@@ -2119,7 +2119,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:5534",
+                              "id": "1:5448",
                               "name": "text",
                               "type": "TEXT",
                               "x": 24,
@@ -2132,7 +2132,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:5535",
+                              "id": "1:5449",
                               "name": "icon",
                               "type": "FRAME",
                               "x": 320,
@@ -2156,7 +2156,7 @@
                           ]
                         },
                         {
-                          "id": "1:5536",
+                          "id": "1:5450",
                           "name": "Card Content",
                           "type": "FRAME",
                           "x": 0,
@@ -2174,7 +2174,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:5537",
+                              "id": "1:5451",
                               "name": "frame",
                               "type": "FRAME",
                               "x": 24,
@@ -2197,7 +2197,7 @@
                               "variables": {"fills/0/color": "default/default", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:5538",
+                                  "id": "1:5452",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 14,
@@ -2210,7 +2210,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "1:5539",
+                                  "id": "1:5453",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 161,
@@ -2225,7 +2225,7 @@
                               ]
                             },
                             {
-                              "id": "1:5540",
+                              "id": "1:5454",
                               "name": "frame",
                               "type": "FRAME",
                               "x": 24,
@@ -2248,7 +2248,7 @@
                               "variables": {"fills/0/color": "default/default", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:5541",
+                                  "id": "1:5455",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 14,
@@ -2261,7 +2261,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "1:5542",
+                                  "id": "1:5456",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 266,
@@ -2280,7 +2280,7 @@
                       ]
                     },
                     {
-                      "id": "1:5543",
+                      "id": "1:5457",
                       "name": "Quick Actions Card",
                       "type": "FRAME",
                       "x": 0,
@@ -2302,7 +2302,7 @@
                       "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                       "children": [
                         {
-                          "id": "1:5544",
+                          "id": "1:5458",
                           "name": "Card Header",
                           "type": "FRAME",
                           "x": 0,
@@ -2320,7 +2320,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:5545",
+                              "id": "1:5459",
                               "name": "text",
                               "type": "TEXT",
                               "x": 24,
@@ -2335,7 +2335,7 @@
                           ]
                         },
                         {
-                          "id": "1:5546",
+                          "id": "1:5460",
                           "name": "Pending server lifecycle actions",
                           "type": "FRAME",
                           "x": 0,
@@ -2353,7 +2353,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:5547",
+                              "id": "1:5461",
                               "name": "Restart",
                               "type": "FRAME",
                               "x": 0,
@@ -2372,7 +2372,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:5548",
+                                  "id": "1:5462",
                                   "name": "Restart icon",
                                   "type": "FRAME",
                                   "x": 24,
@@ -2404,7 +2404,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:5549",
+                                  "id": "1:5463",
                                   "name": "Restart label",
                                   "type": "TEXT",
                                   "x": 52,
@@ -2419,7 +2419,7 @@
                               ]
                             },
                             {
-                              "id": "1:5550",
+                              "id": "1:5464",
                               "name": "Stop",
                               "type": "FRAME",
                               "x": 0,
@@ -2437,7 +2437,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:5551",
+                                  "id": "1:5465",
                                   "name": "Stop icon",
                                   "type": "FRAME",
                                   "x": 24,
@@ -2459,7 +2459,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:5552",
+                                  "id": "1:5466",
                                   "name": "Stop label",
                                   "type": "TEXT",
                                   "x": 52,
@@ -2474,7 +2474,7 @@
                               ]
                             },
                             {
-                              "id": "1:5553",
+                              "id": "1:5467",
                               "name": "Open console",
                               "type": "FRAME",
                               "x": 0,
@@ -2492,7 +2492,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:5554",
+                                  "id": "1:5468",
                                   "name": "Open console icon",
                                   "type": "FRAME",
                                   "x": 24,
@@ -2514,7 +2514,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:5555",
+                                  "id": "1:5469",
                                   "name": "Open console label",
                                   "type": "TEXT",
                                   "x": 52,

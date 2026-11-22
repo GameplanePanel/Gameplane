@@ -1,6 +1,6 @@
 {
   "file": "zhLZN",
-  "id": "1:10195",
+  "id": "1:10111",
   "name": "Gameplane/Backup Detail Drawer",
   "type": "COMPONENT",
   "x": 1756,
@@ -22,7 +22,7 @@
   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
   "children": [
     {
-      "id": "1:10196",
+      "id": "1:10112",
       "name": "drawerHeader",
       "type": "FRAME",
       "x": 0,
@@ -43,7 +43,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:10197",
+          "id": "1:10113",
           "name": "frame",
           "type": "FRAME",
           "x": 20,
@@ -60,7 +60,7 @@
           },
           "children": [
             {
-              "id": "1:10198",
+              "id": "1:10114",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -74,7 +74,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10199",
+              "id": "1:10115",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -90,7 +90,7 @@
           ]
         },
         {
-          "id": "1:10200",
+          "id": "1:10116",
           "name": "Btn Restore",
           "type": "FRAME",
           "x": 328,
@@ -137,7 +137,7 @@
                   "variables": {"fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10201",
+                  "id": "1:10117",
                   "name": "Label",
                   "type": "TEXT",
                   "x": 28,
@@ -157,7 +157,7 @@
       ]
     },
     {
-      "id": "1:10202",
+      "id": "1:10118",
       "name": "drawerBody",
       "type": "FRAME",
       "x": 0,
@@ -176,7 +176,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10203",
+          "id": "1:10119",
           "name": "frame",
           "type": "FRAME",
           "x": 20,
@@ -194,7 +194,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10204",
+              "id": "1:10120",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -208,7 +208,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10205",
+              "id": "1:10121",
               "name": "phase",
               "type": "FRAME",
               "x": 0,
@@ -228,7 +228,7 @@
               "variables": {"fills/0/color": "success/soft"},
               "children": [
                 {
-                  "id": "1:10206",
+                  "id": "1:10122",
                   "name": "text",
                   "type": "TEXT",
                   "x": 6,
@@ -246,7 +246,7 @@
           ]
         },
         {
-          "id": "1:10207",
+          "id": "1:10123",
           "name": "frame",
           "type": "FRAME",
           "x": 20,
@@ -264,7 +264,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10208",
+              "id": "1:10124",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -278,7 +278,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10209",
+              "id": "1:10125",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -294,7 +294,7 @@
           ]
         },
         {
-          "id": "1:10210",
+          "id": "1:10126",
           "name": "Achieved consistency",
           "type": "FRAME",
           "x": 20,
@@ -312,7 +312,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10211",
+              "id": "1:10127",
               "name": "Consistency label",
               "type": "TEXT",
               "x": 0,
@@ -326,7 +326,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10212",
+              "id": "1:10128",
               "name": "Unknown consistency",
               "type": "TEXT",
               "x": 0,
@@ -343,7 +343,7 @@
           ]
         },
         {
-          "id": "1:10213",
+          "id": "1:10129",
           "name": "Volume coverage — Legacy unknown",
           "type": "FRAME",
           "x": 20,
@@ -361,7 +361,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10214",
+              "id": "1:10130",
               "name": "Coverage label",
               "type": "TEXT",
               "x": 0,
@@ -375,7 +375,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10215",
+              "id": "1:10131",
               "name": "Unknown capture coverage",
               "type": "TEXT",
               "x": 0,
@@ -392,7 +392,7 @@
           ]
         },
         {
-          "id": "1:10216",
+          "id": "1:10132",
           "name": "frame",
           "type": "FRAME",
           "x": 20,
@@ -410,7 +410,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10217",
+              "id": "1:10133",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -424,7 +424,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10218",
+              "id": "1:10134",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -440,7 +440,7 @@
           ]
         },
         {
-          "id": "1:10219",
+          "id": "1:10135",
           "name": "frame",
           "type": "FRAME",
           "x": 20,
@@ -458,7 +458,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10220",
+              "id": "1:10136",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -472,7 +472,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10221",
+              "id": "1:10137",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -486,7 +486,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10222",
+              "id": "1:10138",
               "name": "Packed data added by this run",
               "type": "TEXT",
               "x": 0,
@@ -501,7 +501,7 @@
           ]
         },
         {
-          "id": "1:10223",
+          "id": "1:10139",
           "name": "frame",
           "type": "FRAME",
           "x": 20,
@@ -519,7 +519,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10224",
+              "id": "1:10140",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -533,7 +533,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10225",
+              "id": "1:10141",
               "name": "frame",
               "type": "FRAME",
               "x": 0,
@@ -550,7 +550,7 @@
               },
               "children": [
                 {
-                  "id": "1:10226",
+                  "id": "1:10142",
                   "name": "text",
                   "type": "TEXT",
                   "x": 0,
@@ -564,7 +564,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10227",
+                  "id": "1:10143",
                   "name": "text",
                   "type": "TEXT",
                   "x": 53,
@@ -582,7 +582,7 @@
           ]
         },
         {
-          "id": "1:10228",
+          "id": "1:10144",
           "name": "frame",
           "type": "FRAME",
           "x": 20,
@@ -600,7 +600,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10229",
+              "id": "1:10145",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -614,7 +614,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10230",
+              "id": "1:10146",
               "name": "frame",
               "type": "FRAME",
               "x": 0,
@@ -631,7 +631,7 @@
               },
               "children": [
                 {
-                  "id": "1:10231",
+                  "id": "1:10147",
                   "name": "text",
                   "type": "TEXT",
                   "x": 0,
@@ -645,7 +645,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10232",
+                  "id": "1:10148",
                   "name": "text",
                   "type": "TEXT",
                   "x": 53,
@@ -665,7 +665,7 @@
       ]
     },
     {
-      "id": "1:10233",
+      "id": "1:10149",
       "name": "drawerFooter",
       "type": "FRAME",
       "x": 0,
@@ -686,7 +686,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:10234",
+          "id": "1:10150",
           "name": "Btn Delete",
           "type": "FRAME",
           "x": 254,
@@ -733,7 +733,7 @@
                   "variables": {"fills/0/color": "danger/foreground"}
                 },
                 {
-                  "id": "1:10235",
+                  "id": "1:10151",
                   "name": "Label",
                   "type": "TEXT",
                   "x": 30,
@@ -751,7 +751,7 @@
           ]
         },
         {
-          "id": "1:10236",
+          "id": "1:10152",
           "name": "Btn Restore",
           "type": "FRAME",
           "x": 348,
@@ -799,7 +799,7 @@
                   "variables": {"fills/0/color": "accent/foreground"}
                 },
                 {
-                  "id": "1:10237",
+                  "id": "1:10153",
                   "name": "Label",
                   "type": "TEXT",
                   "x": 12,

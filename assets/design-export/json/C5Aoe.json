@@ -1,6 +1,6 @@
 {
   "file": "C5Aoe",
-  "id": "1:8631",
+  "id": "1:8547",
   "name": "Screen/Mobile — Servers filters open",
   "type": "FRAME",
   "x": 6100,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8632",
+      "id": "1:8548",
       "name": "Mobile TopBar",
       "type": "INSTANCE",
       "x": 0,
@@ -44,7 +44,7 @@
       "texts": ["Servers", "AD"]
     },
     {
-      "id": "1:8633",
+      "id": "1:8549",
       "name": "Body",
       "type": "FRAME",
       "x": 0,
@@ -64,7 +64,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:8634",
+          "id": "1:8550",
           "name": "Filter Row",
           "type": "FRAME",
           "x": 16,
@@ -82,7 +82,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:8635",
+              "id": "1:8551",
               "name": "Search",
               "type": "INSTANCE",
               "x": 0,
@@ -113,7 +113,7 @@
               "texts": ["Search…"]
             },
             {
-              "id": "1:8636",
+              "id": "1:8552",
               "name": "Filter Button",
               "type": "FRAME",
               "x": 303,
@@ -139,7 +139,7 @@
               },
               "children": [
                 {
-                  "id": "1:8637",
+                  "id": "1:8553",
                   "name": "Filter Icon",
                   "type": "FRAME",
                   "x": 11,
@@ -164,7 +164,7 @@
           ]
         },
         {
-          "id": "1:8638",
+          "id": "1:8554",
           "name": "Server Card List",
           "type": "FRAME",
           "x": 16,
@@ -182,7 +182,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:8639",
+              "id": "1:8555",
               "name": "Card — mc-survival",
               "type": "FRAME",
               "x": 0,
@@ -204,7 +204,7 @@
               "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:8640",
+                  "id": "1:8556",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 14,
@@ -222,7 +222,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:8641",
+                      "id": "1:8557",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -239,7 +239,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:8642",
+                          "id": "1:8558",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -259,7 +259,7 @@
                           "variables": {"fills/0/color": "success/soft"},
                           "children": [
                             {
-                              "id": "1:8643",
+                              "id": "1:8559",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 9,
@@ -274,7 +274,7 @@
                           ]
                         },
                         {
-                          "id": "1:8644",
+                          "id": "1:8560",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 42,
@@ -291,7 +291,7 @@
                           },
                           "children": [
                             {
-                              "id": "1:8645",
+                              "id": "1:8561",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -304,7 +304,7 @@
                               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:8646",
+                              "id": "1:8562",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -321,7 +321,7 @@
                       ]
                     },
                     {
-                      "id": "1:8647",
+                      "id": "1:8563",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 263,
@@ -346,7 +346,7 @@
                   ]
                 },
                 {
-                  "id": "1:8648",
+                  "id": "1:8564",
                   "name": "game",
                   "type": "TEXT",
                   "x": 14,
@@ -359,7 +359,7 @@
                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:8649",
+                  "id": "1:8565",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 14,
@@ -376,7 +376,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8650",
+                      "id": "1:8566",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -400,7 +400,7 @@
                       "texts": ["14/20"]
                     },
                     {
-                      "id": "1:8651",
+                      "id": "1:8567",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 95,
@@ -428,7 +428,7 @@
               ]
             },
             {
-              "id": "1:8652",
+              "id": "1:8568",
               "name": "Card — vh-valheim (Asleep)",
               "type": "FRAME",
               "x": 0,
@@ -450,7 +450,7 @@
               "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:8653",
+                  "id": "1:8569",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 14,
@@ -468,7 +468,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:8654",
+                      "id": "1:8570",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -485,7 +485,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:8655",
+                          "id": "1:8571",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -505,7 +505,7 @@
                           "variables": {"fills/0/color": "success/soft"},
                           "children": [
                             {
-                              "id": "1:8656",
+                              "id": "1:8572",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 9,
@@ -520,7 +520,7 @@
                           ]
                         },
                         {
-                          "id": "1:8657",
+                          "id": "1:8573",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 42,
@@ -537,7 +537,7 @@
                           },
                           "children": [
                             {
-                              "id": "1:8658",
+                              "id": "1:8574",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -550,7 +550,7 @@
                               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:8659",
+                              "id": "1:8575",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -567,7 +567,7 @@
                       ]
                     },
                     {
-                      "id": "1:8660",
+                      "id": "1:8576",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 270,
@@ -592,7 +592,7 @@
                   ]
                 },
                 {
-                  "id": "1:8661",
+                  "id": "1:8577",
                   "name": "game",
                   "type": "TEXT",
                   "x": 14,
@@ -605,7 +605,7 @@
                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:8662",
+                  "id": "1:8578",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 14,
@@ -622,7 +622,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8663",
+                      "id": "1:8579",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -646,7 +646,7 @@
                       "texts": ["—"]
                     },
                     {
-                      "id": "1:8664",
+                      "id": "1:8580",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 66,
@@ -674,7 +674,7 @@
               ]
             },
             {
-              "id": "1:8665",
+              "id": "1:8581",
               "name": "Card — user-server-test (Suspended)",
               "type": "FRAME",
               "x": 0,
@@ -696,7 +696,7 @@
               "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:8666",
+                  "id": "1:8582",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 14,
@@ -714,7 +714,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:8667",
+                      "id": "1:8583",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -731,7 +731,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:8668",
+                          "id": "1:8584",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -751,7 +751,7 @@
                           "variables": {"fills/0/color": "success/soft"},
                           "children": [
                             {
-                              "id": "1:8669",
+                              "id": "1:8585",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 9,
@@ -766,7 +766,7 @@
                           ]
                         },
                         {
-                          "id": "1:8670",
+                          "id": "1:8586",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 42,
@@ -784,7 +784,7 @@
                           "clips": true,
                           "children": [
                             {
-                              "id": "1:8671",
+                              "id": "1:8587",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -797,7 +797,7 @@
                               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:8672",
+                              "id": "1:8588",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -814,7 +814,7 @@
                       ]
                     },
                     {
-                      "id": "1:8673",
+                      "id": "1:8589",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 252,
@@ -839,7 +839,7 @@
                   ]
                 },
                 {
-                  "id": "1:8674",
+                  "id": "1:8590",
                   "name": "game",
                   "type": "TEXT",
                   "x": 14,
@@ -852,7 +852,7 @@
                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:8675",
+                  "id": "1:8591",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 14,
@@ -869,7 +869,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8676",
+                      "id": "1:8592",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -893,7 +893,7 @@
                       "texts": ["—"]
                     },
                     {
-                      "id": "1:8677",
+                      "id": "1:8593",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 66,
@@ -921,7 +921,7 @@
               ]
             },
             {
-              "id": "1:8678",
+              "id": "1:8594",
               "name": "Card — factorio-mp",
               "type": "FRAME",
               "x": 0,
@@ -943,7 +943,7 @@
               "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:8679",
+                  "id": "1:8595",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 14,
@@ -961,7 +961,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:8680",
+                      "id": "1:8596",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -978,7 +978,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:8681",
+                          "id": "1:8597",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -998,7 +998,7 @@
                           "variables": {"fills/0/color": "success/soft"},
                           "children": [
                             {
-                              "id": "1:8682",
+                              "id": "1:8598",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 9,
@@ -1013,7 +1013,7 @@
                           ]
                         },
                         {
-                          "id": "1:8683",
+                          "id": "1:8599",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 42,
@@ -1030,7 +1030,7 @@
                           },
                           "children": [
                             {
-                              "id": "1:8684",
+                              "id": "1:8600",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -1043,7 +1043,7 @@
                               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:8685",
+                              "id": "1:8601",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -1060,7 +1060,7 @@
                       ]
                     },
                     {
-                      "id": "1:8686",
+                      "id": "1:8602",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 263,
@@ -1085,7 +1085,7 @@
                   ]
                 },
                 {
-                  "id": "1:8687",
+                  "id": "1:8603",
                   "name": "game",
                   "type": "TEXT",
                   "x": 14,
@@ -1098,7 +1098,7 @@
                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:8688",
+                  "id": "1:8604",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 14,
@@ -1115,7 +1115,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8689",
+                      "id": "1:8605",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -1139,7 +1139,7 @@
                       "texts": ["2/8"]
                     },
                     {
-                      "id": "1:8690",
+                      "id": "1:8606",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 80,
@@ -1167,7 +1167,7 @@
               ]
             },
             {
-              "id": "1:8691",
+              "id": "1:8607",
               "name": "Card — palworld-srv",
               "type": "FRAME",
               "x": 0,
@@ -1189,7 +1189,7 @@
               "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:8692",
+                  "id": "1:8608",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 14,
@@ -1207,7 +1207,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:8693",
+                      "id": "1:8609",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -1224,7 +1224,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:8694",
+                          "id": "1:8610",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -1244,7 +1244,7 @@
                           "variables": {"fills/0/color": "success/soft"},
                           "children": [
                             {
-                              "id": "1:8695",
+                              "id": "1:8611",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 9,
@@ -1259,7 +1259,7 @@
                           ]
                         },
                         {
-                          "id": "1:8696",
+                          "id": "1:8612",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 42,
@@ -1276,7 +1276,7 @@
                           },
                           "children": [
                             {
-                              "id": "1:8697",
+                              "id": "1:8613",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -1289,7 +1289,7 @@
                               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:8698",
+                              "id": "1:8614",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -1306,7 +1306,7 @@
                       ]
                     },
                     {
-                      "id": "1:8699",
+                      "id": "1:8615",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 265,
@@ -1331,7 +1331,7 @@
                   ]
                 },
                 {
-                  "id": "1:8700",
+                  "id": "1:8616",
                   "name": "game",
                   "type": "TEXT",
                   "x": 14,
@@ -1344,7 +1344,7 @@
                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:8701",
+                  "id": "1:8617",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 14,
@@ -1361,7 +1361,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8702",
+                      "id": "1:8618",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -1385,7 +1385,7 @@
                       "texts": ["0/32"]
                     },
                     {
-                      "id": "1:8703",
+                      "id": "1:8619",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 87,
@@ -1413,7 +1413,7 @@
               ]
             },
             {
-              "id": "1:8704",
+              "id": "1:8620",
               "name": "Card — ark-island",
               "type": "FRAME",
               "x": 0,
@@ -1435,7 +1435,7 @@
               "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:8705",
+                  "id": "1:8621",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 14,
@@ -1453,7 +1453,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:8706",
+                      "id": "1:8622",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -1470,7 +1470,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:8707",
+                          "id": "1:8623",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -1490,7 +1490,7 @@
                           "variables": {"fills/0/color": "success/soft"},
                           "children": [
                             {
-                              "id": "1:8708",
+                              "id": "1:8624",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 9,
@@ -1505,7 +1505,7 @@
                           ]
                         },
                         {
-                          "id": "1:8709",
+                          "id": "1:8625",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 42,
@@ -1522,7 +1522,7 @@
                           },
                           "children": [
                             {
-                              "id": "1:8710",
+                              "id": "1:8626",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -1535,7 +1535,7 @@
                               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:8711",
+                              "id": "1:8627",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -1552,7 +1552,7 @@
                       ]
                     },
                     {
-                      "id": "1:8712",
+                      "id": "1:8628",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 249,
@@ -1577,7 +1577,7 @@
                   ]
                 },
                 {
-                  "id": "1:8713",
+                  "id": "1:8629",
                   "name": "game",
                   "type": "TEXT",
                   "x": 14,
@@ -1590,7 +1590,7 @@
                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:8714",
+                  "id": "1:8630",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 14,
@@ -1607,7 +1607,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8715",
+                      "id": "1:8631",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -1631,7 +1631,7 @@
                       "texts": ["0/70"]
                     },
                     {
-                      "id": "1:8716",
+                      "id": "1:8632",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 87,
@@ -1663,7 +1663,7 @@
       ]
     },
     {
-      "id": "1:8717",
+      "id": "1:8633",
       "name": "Open location filter",
       "type": "INSTANCE",
       "x": 79,
@@ -1671,7 +1671,7 @@
       "width": 280,
       "height": 303,
       "component": "Gameplane/Filter Popover",
-      "componentId": "1:8369",
+      "componentId": "1:8285",
       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
       "strokeWeight": 1,

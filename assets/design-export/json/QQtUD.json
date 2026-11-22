@@ -1,6 +1,6 @@
 {
   "file": "QQtUD",
-  "id": "1:7342",
+  "id": "1:7258",
   "name": "Screen/Create Server — Step 4 Network (as built)",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:7343",
+      "id": "1:7259",
       "name": "Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:7344",
+      "id": "1:7260",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:7345",
+          "id": "1:7261",
           "name": "TopBar",
           "type": "INSTANCE",
           "x": 0,
@@ -111,7 +111,7 @@
       ]
     },
     {
-      "id": "1:7346",
+      "id": "1:7262",
       "name": "ModalContainer",
       "type": "FRAME",
       "x": 0,
@@ -130,7 +130,7 @@
       "absolute": true,
       "children": [
         {
-          "id": "1:7347",
+          "id": "1:7263",
           "name": "Modal",
           "type": "FRAME",
           "x": 240,
@@ -154,7 +154,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:7348",
+              "id": "1:7264",
               "name": "Header",
               "type": "INSTANCE",
               "x": 0,
@@ -178,7 +178,7 @@
               "texts": ["New game server", "Step 4 of 5 · Network"]
             },
             {
-              "id": "1:7349",
+              "id": "1:7265",
               "name": "Location placement",
               "type": "FRAME",
               "x": 0,
@@ -199,7 +199,7 @@
               "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7350",
+                  "id": "1:7266",
                   "name": "Location label",
                   "type": "TEXT",
                   "x": 24,
@@ -212,7 +212,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:7351",
+                  "id": "1:7267",
                   "name": "Creation location",
                   "type": "INSTANCE",
                   "x": 24,
@@ -243,7 +243,7 @@
                   "texts": ["remote-lab / gameplane-games"]
                 },
                 {
-                  "id": "1:7352",
+                  "id": "1:7268",
                   "name": "Changing location help",
                   "type": "TEXT",
                   "x": 24,
@@ -259,7 +259,7 @@
               ]
             },
             {
-              "id": "1:7353",
+              "id": "1:7269",
               "name": "Stepper",
               "type": "FRAME",
               "x": 0,
@@ -317,7 +317,7 @@
                       "variables": {"fills/0/color": "success/soft", "strokes/0/color": "success/success"},
                       "children": [
                         {
-                          "id": "1:7354",
+                          "id": "1:7270",
                           "name": "CheckIcon",
                           "type": "FRAME",
                           "x": 4,
@@ -404,7 +404,7 @@
                       "variables": {"fills/0/color": "success/soft", "strokes/0/color": "success/success"},
                       "children": [
                         {
-                          "id": "1:7355",
+                          "id": "1:7271",
                           "name": "CheckIcon",
                           "type": "FRAME",
                           "x": 4,
@@ -491,7 +491,7 @@
                       "variables": {"fills/0/color": "success/soft", "strokes/0/color": "success/success"},
                       "children": [
                         {
-                          "id": "1:7356",
+                          "id": "1:7272",
                           "name": "CheckIcon",
                           "type": "FRAME",
                           "x": 4,
@@ -685,7 +685,7 @@
               ]
             },
             {
-              "id": "1:7357",
+              "id": "1:7273",
               "name": "Body",
               "type": "FRAME",
               "x": 0,
@@ -703,7 +703,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7358",
+                  "id": "1:7274",
                   "name": "StepBody",
                   "type": "FRAME",
                   "x": 24,
@@ -721,7 +721,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:7359",
+                      "id": "1:7275",
                       "name": "Expose",
                       "type": "INSTANCE",
                       "x": 0,
@@ -750,7 +750,7 @@
                       ]
                     },
                     {
-                      "id": "1:7360",
+                      "id": "1:7276",
                       "name": "Checkbox Enable Tunnel",
                       "type": "INSTANCE",
                       "x": 0,
@@ -770,7 +770,7 @@
                       "texts": ["Enable tunnel"]
                     },
                     {
-                      "id": "1:7361",
+                      "id": "1:7277",
                       "name": "Field Hostname",
                       "type": "INSTANCE",
                       "x": 0,
@@ -791,7 +791,7 @@
                       "texts": ["Hostname (optional)", "mc.example.dev", "We'll never share your email."]
                     },
                     {
-                      "id": "1:7362",
+                      "id": "1:7278",
                       "name": "PortOverrides",
                       "type": "INSTANCE",
                       "x": 0,
@@ -812,7 +812,7 @@
                       "texts": ["Add port override"]
                     },
                     {
-                      "id": "1:7363",
+                      "id": "1:7279",
                       "name": "LoadBalancerAddress",
                       "type": "FRAME",
                       "x": 0,
@@ -830,7 +830,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:7364",
+                          "id": "1:7280",
                           "name": "Label",
                           "type": "TEXT",
                           "x": 0,
@@ -843,7 +843,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:7365",
+                          "id": "1:7281",
                           "name": "ColHeader",
                           "type": "FRAME",
                           "x": 0,
@@ -861,7 +861,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7366",
+                              "id": "1:7282",
                               "name": "Col",
                               "type": "TEXT",
                               "x": 0,
@@ -875,7 +875,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:7367",
+                              "id": "1:7283",
                               "name": "Col",
                               "type": "TEXT",
                               "x": 317.5,
@@ -891,7 +891,7 @@
                           ]
                         },
                         {
-                          "id": "1:7368",
+                          "id": "1:7284",
                           "name": "Row",
                           "type": "FRAME",
                           "x": 0,
@@ -909,7 +909,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7369",
+                              "id": "1:7285",
                               "name": "Field",
                               "type": "INSTANCE",
                               "x": 0,
@@ -930,7 +930,7 @@
                               "texts": ["Email", "pool-us-west", "We'll never share your email."]
                             },
                             {
-                              "id": "1:7370",
+                              "id": "1:7286",
                               "name": "Field",
                               "type": "INSTANCE",
                               "x": 317.5,
@@ -953,7 +953,7 @@
                           ]
                         },
                         {
-                          "id": "1:7371",
+                          "id": "1:7287",
                           "name": "Helper",
                           "type": "TEXT",
                           "x": 0,
@@ -968,7 +968,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:7372",
+                          "id": "1:7288",
                           "name": "Alert Address preference ignored",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1003,7 +1003,7 @@
                   ]
                 },
                 {
-                  "id": "1:7373",
+                  "id": "1:7289",
                   "name": "Preview",
                   "type": "INSTANCE",
                   "x": 663,
@@ -1050,7 +1050,7 @@
               ]
             },
             {
-              "id": "1:7374",
+              "id": "1:7290",
               "name": "Footer",
               "type": "INSTANCE",
               "x": 0,

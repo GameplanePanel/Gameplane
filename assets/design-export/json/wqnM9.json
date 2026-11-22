@@ -1,6 +1,6 @@
 {
   "file": "wqnM9",
-  "id": "1:11052",
+  "id": "1:10968",
   "name": "Screen/Cluster Details — Overview",
   "type": "FRAME",
   "x": 13120,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:11053",
+      "id": "1:10969",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:11054",
+      "id": "1:10970",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -82,7 +82,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:11055",
+          "id": "1:10971",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -107,7 +107,7 @@
           "texts": ["gameplane", "Clusters  ›  Remote lab", "Search servers…", "AD"]
         },
         {
-          "id": "1:11056",
+          "id": "1:10972",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -126,7 +126,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:11057",
+              "id": "1:10973",
               "name": "Page Header",
               "type": "INSTANCE",
               "x": 24,
@@ -149,7 +149,7 @@
               "texts": ["Remote lab", "remote-lab · Registered workload cluster"]
             },
             {
-              "id": "1:11058",
+              "id": "1:10974",
               "name": "Cluster detail tabs",
               "type": "FRAME",
               "x": 24,
@@ -170,7 +170,7 @@
               "variables": {"strokes/0/color": "separator/separator"},
               "children": [
                 {
-                  "id": "1:11059",
+                  "id": "1:10975",
                   "name": "Overview tab",
                   "type": "INSTANCE",
                   "x": 0,
@@ -194,7 +194,7 @@
                   "texts": ["Overview"]
                 },
                 {
-                  "id": "1:11060",
+                  "id": "1:10976",
                   "name": "Nodes tab",
                   "type": "INSTANCE",
                   "x": 98,
@@ -216,7 +216,7 @@
                   "texts": ["Nodes"]
                 },
                 {
-                  "id": "1:11061",
+                  "id": "1:10977",
                   "name": "Configuration tab",
                   "type": "INSTANCE",
                   "x": 177,
@@ -240,7 +240,7 @@
               ]
             },
             {
-              "id": "1:11062",
+              "id": "1:10978",
               "name": "Cluster summary",
               "type": "FRAME",
               "x": 24,
@@ -258,7 +258,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11063",
+                  "id": "1:10979",
                   "name": "API CONNECTIVITY",
                   "type": "INSTANCE",
                   "x": 0,
@@ -288,7 +288,7 @@
                   "texts": ["API CONNECTIVITY", "Healthy", "Last checked just now"]
                 },
                 {
-                  "id": "1:11064",
+                  "id": "1:10980",
                   "name": "NODES READY",
                   "type": "INSTANCE",
                   "x": 382.67,
@@ -318,7 +318,7 @@
                   "texts": ["NODES READY", "2 / 2", "inventory available"]
                 },
                 {
-                  "id": "1:11065",
+                  "id": "1:10981",
                   "name": "KUBERNETES",
                   "type": "INSTANCE",
                   "x": 765.33,
@@ -350,7 +350,7 @@
               ]
             },
             {
-              "id": "1:11066",
+              "id": "1:10982",
               "name": "Connection",
               "type": "FRAME",
               "x": 24,
@@ -377,7 +377,7 @@
               },
               "children": [
                 {
-                  "id": "1:11067",
+                  "id": "1:10983",
                   "name": "Connection heading",
                   "type": "TEXT",
                   "x": 20,
@@ -392,7 +392,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:11068",
+                  "id": "1:10984",
                   "name": "Connection description",
                   "type": "TEXT",
                   "x": 20,
@@ -407,7 +407,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:11069",
+                  "id": "1:10985",
                   "name": "Registration identity",
                   "type": "TEXT",
                   "x": 20,
@@ -424,7 +424,7 @@
               ]
             },
             {
-              "id": "1:11070",
+              "id": "1:10986",
               "name": "Cluster destinations",
               "type": "FRAME",
               "x": 24,
@@ -442,7 +442,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11071",
+                  "id": "1:10987",
                   "name": "View servers",
                   "type": "INSTANCE",
                   "x": 0,
@@ -471,7 +471,7 @@
                   "texts": ["View servers"]
                 },
                 {
-                  "id": "1:11072",
+                  "id": "1:10988",
                   "name": "View nodes",
                   "type": "INSTANCE",
                   "x": 152,

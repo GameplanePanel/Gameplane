@@ -1,6 +1,6 @@
 {
   "file": "BdmAW",
-  "id": "1:11025",
+  "id": "1:10941",
   "name": "Screen/Nodes — All clusters",
   "type": "FRAME",
   "x": 11480,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:11026",
+      "id": "1:10942",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:11027",
+      "id": "1:10943",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -82,7 +82,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:11028",
+          "id": "1:10944",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -107,7 +107,7 @@
           "texts": ["gameplane", "Nodes", "Search servers…", "AD"]
         },
         {
-          "id": "1:11029",
+          "id": "1:10945",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -126,7 +126,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:11030",
+              "id": "1:10946",
               "name": "Page Header",
               "type": "FRAME",
               "x": 24,
@@ -188,7 +188,7 @@
                   ]
                 },
                 {
-                  "id": "1:11031",
+                  "id": "1:10947",
                   "name": "Add node",
                   "type": "INSTANCE",
                   "x": 1013,
@@ -219,7 +219,7 @@
               ]
             },
             {
-              "id": "1:11032",
+              "id": "1:10948",
               "name": "Node inventory totals",
               "type": "FRAME",
               "x": 24,
@@ -237,7 +237,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11033",
+                  "id": "1:10949",
                   "name": "NODES READY",
                   "type": "INSTANCE",
                   "x": 0,
@@ -267,7 +267,7 @@
                   "texts": ["NODES READY", "4 / 5", "returned nodes"]
                 },
                 {
-                  "id": "1:11034",
+                  "id": "1:10950",
                   "name": "CLUSTERS REPORTING",
                   "type": "INSTANCE",
                   "x": 286,
@@ -297,7 +297,7 @@
                   "texts": ["CLUSTERS REPORTING", "2 / 3", "one cluster unavailable"]
                 },
                 {
-                  "id": "1:11035",
+                  "id": "1:10951",
                   "name": "CPU USAGE",
                   "type": "INSTANCE",
                   "x": 572,
@@ -327,7 +327,7 @@
                   "texts": ["CPU USAGE", "32%", "4 nodes reporting"]
                 },
                 {
-                  "id": "1:11036",
+                  "id": "1:10952",
                   "name": "MEMORY USAGE",
                   "type": "INSTANCE",
                   "x": 858,
@@ -359,7 +359,7 @@
               ]
             },
             {
-              "id": "1:11037",
+              "id": "1:10953",
               "name": "Search and Filters",
               "type": "INSTANCE",
               "x": 24,
@@ -367,7 +367,7 @@
               "width": 1132,
               "height": 36,
               "component": "Gameplane/Nodes Search and Filters Row",
-              "componentId": "1:11038",
+              "componentId": "1:10954",
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 12,
@@ -380,7 +380,7 @@
               "texts": ["Search nodes…", "Filter"]
             },
             {
-              "id": "1:11048",
+              "id": "1:10964",
               "name": "Partial inventory notice",
               "type": "FRAME",
               "x": 24,
@@ -401,7 +401,7 @@
               "variables": {"fills/0/color": "warning/soft"},
               "children": [
                 {
-                  "id": "1:11049",
+                  "id": "1:10965",
                   "name": "Coverage warning",
                   "type": "TEXT",
                   "x": 16,
@@ -418,7 +418,7 @@
               ]
             },
             {
-              "id": "1:11050",
+              "id": "1:10966",
               "name": "All authorized nodes",
               "type": "INSTANCE",
               "x": 24,
@@ -426,7 +426,7 @@
               "width": 1132,
               "height": 368,
               "component": "Gameplane/Node Inventory Table",
-              "componentId": "1:10976",
+              "componentId": "1:10892",
               "fills": [{"type": "SOLID", "color": "#17151A"}],
               "cornerRadius": 20,
               "layout": {
@@ -486,7 +486,7 @@
               ]
             },
             {
-              "id": "1:11051",
+              "id": "1:10967",
               "name": "Inventory count",
               "type": "TEXT",
               "x": 24,

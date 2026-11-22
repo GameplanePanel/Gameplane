@@ -1,6 +1,6 @@
 {
   "file": "w1QYmf",
-  "id": "1:8581",
+  "id": "1:8497",
   "name": "States/Remote Capture — Access and capability",
   "type": "FRAME",
   "x": 11480,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8582",
+      "id": "1:8498",
       "name": "State board title",
       "type": "TEXT",
       "x": 24,
@@ -33,7 +33,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
     {
-      "id": "1:8583",
+      "id": "1:8499",
       "name": "Checking access",
       "type": "FRAME",
       "x": 24,
@@ -51,7 +51,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:8584",
+          "id": "1:8500",
           "name": "State label",
           "type": "TEXT",
           "x": 0,
@@ -64,7 +64,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:8585",
+          "id": "1:8501",
           "name": "Capture status card",
           "type": "FRAME",
           "x": 244,
@@ -91,7 +91,7 @@
           },
           "children": [
             {
-              "id": "1:8586",
+              "id": "1:8502",
               "name": "Status message",
               "type": "TEXT",
               "x": 20,
@@ -110,7 +110,7 @@
       ]
     },
     {
-      "id": "1:8587",
+      "id": "1:8503",
       "name": "Checking site support",
       "type": "FRAME",
       "x": 24,
@@ -128,7 +128,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:8588",
+          "id": "1:8504",
           "name": "State label",
           "type": "TEXT",
           "x": 0,
@@ -141,7 +141,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:8589",
+          "id": "1:8505",
           "name": "Capture status card",
           "type": "FRAME",
           "x": 244,
@@ -168,7 +168,7 @@
           },
           "children": [
             {
-              "id": "1:8590",
+              "id": "1:8506",
               "name": "Status message",
               "type": "TEXT",
               "x": 20,
@@ -187,7 +187,7 @@
       ]
     },
     {
-      "id": "1:8591",
+      "id": "1:8507",
       "name": "Location unavailable",
       "type": "FRAME",
       "x": 24,
@@ -205,7 +205,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:8592",
+          "id": "1:8508",
           "name": "State label",
           "type": "TEXT",
           "x": 0,
@@ -218,7 +218,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:8593",
+          "id": "1:8509",
           "name": "Capture status card",
           "type": "FRAME",
           "x": 244,
@@ -245,7 +245,7 @@
           },
           "children": [
             {
-              "id": "1:8594",
+              "id": "1:8510",
               "name": "Status message",
               "type": "TEXT",
               "x": 20,
@@ -264,7 +264,7 @@
       ]
     },
     {
-      "id": "1:8595",
+      "id": "1:8511",
       "name": "Gateway update required",
       "type": "FRAME",
       "x": 24,
@@ -282,7 +282,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:8596",
+          "id": "1:8512",
           "name": "State label",
           "type": "TEXT",
           "x": 0,
@@ -295,7 +295,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:8597",
+          "id": "1:8513",
           "name": "Capture status card",
           "type": "FRAME",
           "x": 244,
@@ -322,7 +322,7 @@
           },
           "children": [
             {
-              "id": "1:8598",
+              "id": "1:8514",
               "name": "Status message",
               "type": "TEXT",
               "x": 20,
@@ -341,7 +341,7 @@
       ]
     },
     {
-      "id": "1:8599",
+      "id": "1:8515",
       "name": "New captures disabled",
       "type": "FRAME",
       "x": 24,
@@ -359,7 +359,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:8600",
+          "id": "1:8516",
           "name": "State label",
           "type": "TEXT",
           "x": 0,
@@ -372,7 +372,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:8601",
+          "id": "1:8517",
           "name": "Capture status card",
           "type": "FRAME",
           "x": 244,
@@ -399,7 +399,7 @@
           },
           "children": [
             {
-              "id": "1:8602",
+              "id": "1:8518",
               "name": "Status message",
               "type": "TEXT",
               "x": 20,
@@ -418,7 +418,7 @@
       ]
     },
     {
-      "id": "1:8603",
+      "id": "1:8519",
       "name": "Access denied",
       "type": "FRAME",
       "x": 24,
@@ -436,7 +436,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:8604",
+          "id": "1:8520",
           "name": "State label",
           "type": "TEXT",
           "x": 0,
@@ -449,7 +449,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:8605",
+          "id": "1:8521",
           "name": "Capture status card",
           "type": "FRAME",
           "x": 244,
@@ -476,7 +476,7 @@
           },
           "children": [
             {
-              "id": "1:8606",
+              "id": "1:8522",
               "name": "Status message",
               "type": "TEXT",
               "x": 20,

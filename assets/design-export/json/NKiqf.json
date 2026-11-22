@@ -1,6 +1,6 @@
 {
   "file": "NKiqf",
-  "id": "1:8718",
+  "id": "1:8634",
   "name": "Screen/Mobile — Backups filters open",
   "type": "FRAME",
   "x": 4920,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8719",
+      "id": "1:8635",
       "name": "Mobile Backups header",
       "type": "INSTANCE",
       "x": 0,
@@ -44,7 +44,7 @@
       "texts": ["Backups", "AD"]
     },
     {
-      "id": "1:8720",
+      "id": "1:8636",
       "name": "Backups content",
       "type": "FRAME",
       "x": 0,
@@ -62,7 +62,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:8721",
+          "id": "1:8637",
           "name": "Backups title",
           "type": "TEXT",
           "x": 16,
@@ -75,7 +75,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "id": "1:8722",
+          "id": "1:8638",
           "name": "Backups subtitle",
           "type": "TEXT",
           "x": 16,
@@ -90,7 +90,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:8723",
+          "id": "1:8639",
           "name": "Create backup",
           "type": "INSTANCE",
           "x": 16,
@@ -119,7 +119,7 @@
           "texts": ["Create backup"]
         },
         {
-          "id": "1:8724",
+          "id": "1:8640",
           "name": "Backups tabs",
           "type": "FRAME",
           "x": 16,
@@ -140,7 +140,7 @@
           "variables": {"fills/0/color": "default/default"},
           "children": [
             {
-              "id": "1:8725",
+              "id": "1:8641",
               "name": "tabBackups",
               "type": "INSTANCE",
               "x": 4,
@@ -164,7 +164,7 @@
               "texts": ["Backups"]
             },
             {
-              "id": "1:8726",
+              "id": "1:8642",
               "name": "tabSchedules",
               "type": "INSTANCE",
               "x": 94,
@@ -186,7 +186,7 @@
               "texts": ["Schedules"]
             },
             {
-              "id": "1:8727",
+              "id": "1:8643",
               "name": "tabRestores",
               "type": "INSTANCE",
               "x": 195,
@@ -210,7 +210,7 @@
           ]
         },
         {
-          "id": "1:8728",
+          "id": "1:8644",
           "name": "Backup search",
           "type": "INSTANCE",
           "x": 16,
@@ -241,7 +241,7 @@
           "texts": ["Search by name or server…"]
         },
         {
-          "id": "1:8729",
+          "id": "1:8645",
           "name": "Result count and filter",
           "type": "FRAME",
           "x": 16,
@@ -259,7 +259,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:8730",
+              "id": "1:8646",
               "name": "Count",
               "type": "TEXT",
               "x": 157,
@@ -272,7 +272,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:8731",
+              "id": "1:8647",
               "name": "Filter button",
               "type": "INSTANCE",
               "x": 253,
@@ -304,7 +304,7 @@
           ]
         },
         {
-          "id": "1:8732",
+          "id": "1:8648",
           "name": "Empty results",
           "type": "TEXT",
           "x": 16,
@@ -320,7 +320,7 @@
       ]
     },
     {
-      "id": "1:8733",
+      "id": "1:8649",
       "name": "Open backup filters",
       "type": "INSTANCE",
       "x": 79,
@@ -328,7 +328,7 @@
       "width": 280,
       "height": 268,
       "component": "Gameplane/Backups Filter Popover",
-      "componentId": "1:8419",
+      "componentId": "1:8335",
       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
       "strokeWeight": 1,

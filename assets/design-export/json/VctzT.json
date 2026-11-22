@@ -1,6 +1,6 @@
 {
   "file": "VctzT",
-  "id": "1:7246",
+  "id": "1:7162",
   "name": "Screen/Server Detail — Settings · Version",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:7247",
+      "id": "1:7163",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:7248",
+      "id": "1:7164",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:7249",
+          "id": "1:7165",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:7250",
+          "id": "1:7166",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:7251",
+              "id": "1:7167",
               "name": "Detail Header",
               "type": "INSTANCE",
               "x": 24,
@@ -161,7 +161,7 @@
               ]
             },
             {
-              "id": "1:7252",
+              "id": "1:7168",
               "name": "Tabs Bar",
               "type": "INSTANCE",
               "x": 24,
@@ -198,7 +198,7 @@
               ]
             },
             {
-              "id": "1:7253",
+              "id": "1:7169",
               "name": "Settings Content",
               "type": "FRAME",
               "x": 24,
@@ -217,7 +217,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7254",
+                  "id": "1:7170",
                   "name": "Settings Sub Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -256,7 +256,7 @@
                   ]
                 },
                 {
-                  "id": "1:7255",
+                  "id": "1:7171",
                   "name": "Settings Panel Wrap",
                   "type": "FRAME",
                   "x": 224,
@@ -275,7 +275,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7256",
+                      "id": "1:7172",
                       "name": "Settings Form",
                       "type": "FRAME",
                       "x": 0,
@@ -294,7 +294,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:7257",
+                          "id": "1:7173",
                           "name": "Form Body",
                           "type": "FRAME",
                           "x": 0,
@@ -313,7 +313,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7258",
+                              "id": "1:7174",
                               "name": "Heading",
                               "type": "TEXT",
                               "x": 24,
@@ -326,7 +326,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:7259",
+                              "id": "1:7175",
                               "name": "Sub",
                               "type": "TEXT",
                               "x": 24,
@@ -339,7 +339,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:7260",
+                              "id": "1:7176",
                               "name": "Version Card",
                               "type": "FRAME",
                               "x": 24,
@@ -362,7 +362,7 @@
                               "variables": {"cornerRadius": "radius/xl", "fills/0/color": "accent/soft", "strokes/0/color": "accent/accent"},
                               "children": [
                                 {
-                                  "id": "1:7261",
+                                  "id": "1:7177",
                                   "name": "row",
                                   "type": "FRAME",
                                   "x": 16,
@@ -379,7 +379,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:7262",
+                                      "id": "1:7178",
                                       "name": "Control",
                                       "type": "FRAME",
                                       "x": 0,
@@ -399,7 +399,7 @@
                                       "variables": {"fills/0/color": "accent/accent"},
                                       "children": [
                                         {
-                                          "id": "1:7263",
+                                          "id": "1:7179",
                                           "name": "Dot",
                                           "type": "ELLIPSE",
                                           "x": 5,
@@ -412,7 +412,7 @@
                                       ]
                                     },
                                     {
-                                      "id": "1:7264",
+                                      "id": "1:7180",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 28,
@@ -425,7 +425,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:7265",
+                                      "id": "1:7181",
                                       "name": "Chip/Soft/Accent/SM",
                                       "type": "INSTANCE",
                                       "x": 119,
@@ -450,7 +450,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7266",
+                                  "id": "1:7182",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -465,7 +465,7 @@
                               ]
                             },
                             {
-                              "id": "1:7267",
+                              "id": "1:7183",
                               "name": "Caption",
                               "type": "TEXT",
                               "x": 24,
@@ -480,7 +480,7 @@
                           ]
                         },
                         {
-                          "id": "1:7268",
+                          "id": "1:7184",
                           "name": "Form Footer",
                           "type": "FRAME",
                           "x": 0,
@@ -501,7 +501,7 @@
                           "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "1:7269",
+                              "id": "1:7185",
                               "name": "Btn Discard",
                               "type": "INSTANCE",
                               "x": 681,
@@ -522,7 +522,7 @@
                               "texts": ["Discard"]
                             },
                             {
-                              "id": "1:7270",
+                              "id": "1:7186",
                               "name": "Btn Save Changes",
                               "type": "INSTANCE",
                               "x": 779,

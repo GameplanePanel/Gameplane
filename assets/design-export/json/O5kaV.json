@@ -1,6 +1,6 @@
 {
   "file": "O5kaV",
-  "id": "1:7070",
+  "id": "1:6986",
   "name": "Screen/Dialog/Build Module — Step 2 (Container & Ports)",
   "type": "FRAME",
   "x": 1000,
@@ -23,7 +23,7 @@
   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
   "children": [
     {
-      "id": "1:7071",
+      "id": "1:6987",
       "name": "ModalHeader",
       "type": "FRAME",
       "x": 0,
@@ -44,7 +44,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:7072",
+          "id": "1:6988",
           "name": "TitleGroup",
           "type": "FRAME",
           "x": 28,
@@ -61,7 +61,7 @@
           },
           "children": [
             {
-              "id": "1:7073",
+              "id": "1:6989",
               "name": "Title",
               "type": "TEXT",
               "x": 0,
@@ -74,7 +74,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:7074",
+              "id": "1:6990",
               "name": "Subtitle",
               "type": "TEXT",
               "x": 0,
@@ -89,7 +89,7 @@
           ]
         },
         {
-          "id": "1:7075",
+          "id": "1:6991",
           "name": "CloseIcon",
           "type": "FRAME",
           "x": 754,
@@ -113,7 +113,7 @@
       ]
     },
     {
-      "id": "1:7076",
+      "id": "1:6992",
       "name": "Stepper",
       "type": "FRAME",
       "x": 0,
@@ -134,7 +134,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:7077",
+          "id": "1:6993",
           "name": "Step1_Done",
           "type": "FRAME",
           "x": 28,
@@ -151,7 +151,7 @@
           },
           "children": [
             {
-              "id": "1:7078",
+              "id": "1:6994",
               "name": "Badge",
               "type": "FRAME",
               "x": 0,
@@ -173,7 +173,7 @@
               "variables": {"fills/0/color": "surface-alt", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7079",
+                  "id": "1:6995",
                   "name": "Num",
                   "type": "TEXT",
                   "x": 5,
@@ -188,7 +188,7 @@
               ]
             },
             {
-              "id": "1:7080",
+              "id": "1:6996",
               "name": "Label",
               "type": "TEXT",
               "x": 28,
@@ -203,7 +203,7 @@
           ]
         },
         {
-          "id": "1:7081",
+          "id": "1:6997",
           "name": "Sep1",
           "type": "TEXT",
           "x": 178,
@@ -216,7 +216,7 @@
           "variables": {"fills/0/color": "muted"}
         },
         {
-          "id": "1:7082",
+          "id": "1:6998",
           "name": "Step2_Active",
           "type": "FRAME",
           "x": 194,
@@ -233,7 +233,7 @@
           },
           "children": [
             {
-              "id": "1:7083",
+              "id": "1:6999",
               "name": "Badge",
               "type": "FRAME",
               "x": 0,
@@ -253,7 +253,7 @@
               "variables": {"fills/0/color": "accent/accent"},
               "children": [
                 {
-                  "id": "1:7084",
+                  "id": "1:7000",
                   "name": "Num",
                   "type": "TEXT",
                   "x": 6,
@@ -268,7 +268,7 @@
               ]
             },
             {
-              "id": "1:7085",
+              "id": "1:7001",
               "name": "Label",
               "type": "TEXT",
               "x": 28,
@@ -283,7 +283,7 @@
           ]
         },
         {
-          "id": "1:7086",
+          "id": "1:7002",
           "name": "Sep2",
           "type": "TEXT",
           "x": 341,
@@ -296,7 +296,7 @@
           "variables": {"fills/0/color": "muted"}
         },
         {
-          "id": "1:7087",
+          "id": "1:7003",
           "name": "Step3_Inactive",
           "type": "FRAME",
           "x": 357,
@@ -313,7 +313,7 @@
           },
           "children": [
             {
-              "id": "1:7088",
+              "id": "1:7004",
               "name": "Badge",
               "type": "FRAME",
               "x": 0,
@@ -334,7 +334,7 @@
               "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7089",
+                  "id": "1:7005",
                   "name": "Num",
                   "type": "TEXT",
                   "x": 6.5,
@@ -349,7 +349,7 @@
               ]
             },
             {
-              "id": "1:7090",
+              "id": "1:7006",
               "name": "Label",
               "type": "TEXT",
               "x": 28,
@@ -366,7 +366,7 @@
       ]
     },
     {
-      "id": "1:7091",
+      "id": "1:7007",
       "name": "Body",
       "type": "FRAME",
       "x": 0,
@@ -384,7 +384,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:7092",
+          "id": "1:7008",
           "name": "ImageGroup",
           "type": "FRAME",
           "x": 28,
@@ -402,7 +402,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:7093",
+              "id": "1:7009",
               "name": "ImageLabelRow",
               "type": "FRAME",
               "x": 0,
@@ -420,7 +420,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7094",
+                  "id": "1:7010",
                   "name": "Label",
                   "type": "TEXT",
                   "x": 0,
@@ -433,7 +433,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:7095",
+                  "id": "1:7011",
                   "name": "DigestBadge",
                   "type": "TEXT",
                   "x": 581,
@@ -448,7 +448,7 @@
               ]
             },
             {
-              "id": "1:7096",
+              "id": "1:7012",
               "name": "InputBox",
               "type": "FRAME",
               "x": 0,
@@ -470,7 +470,7 @@
               "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7097",
+                  "id": "1:7013",
                   "name": "Val",
                   "type": "TEXT",
                   "x": 44.5,
@@ -487,7 +487,7 @@
           ]
         },
         {
-          "id": "1:7098",
+          "id": "1:7014",
           "name": "PortsSection",
           "type": "FRAME",
           "x": 28,
@@ -505,7 +505,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:7099",
+              "id": "1:7015",
               "name": "PortsHeaderRow",
               "type": "FRAME",
               "x": 0,
@@ -523,7 +523,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7100",
+                  "id": "1:7016",
                   "name": "Title",
                   "type": "TEXT",
                   "x": 0,
@@ -536,7 +536,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:7101",
+                  "id": "1:7017",
                   "name": "AddPortButton",
                   "type": "INSTANCE",
                   "x": 647,
@@ -567,7 +567,7 @@
               ]
             },
             {
-              "id": "1:7102",
+              "id": "1:7018",
               "name": "PortsList",
               "type": "FRAME",
               "x": 0,
@@ -585,7 +585,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7103",
+                  "id": "1:7019",
                   "name": "PortRow_1",
                   "type": "FRAME",
                   "x": 0,
@@ -603,7 +603,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7104",
+                      "id": "1:7020",
                       "name": "PortName",
                       "type": "FRAME",
                       "x": 0,
@@ -624,7 +624,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:7105",
+                          "id": "1:7021",
                           "name": "Val",
                           "type": "TEXT",
                           "x": 62.5,
@@ -639,7 +639,7 @@
                       ]
                     },
                     {
-                      "id": "1:7106",
+                      "id": "1:7022",
                       "name": "PortNum",
                       "type": "FRAME",
                       "x": 170,
@@ -660,7 +660,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:7107",
+                          "id": "1:7023",
                           "name": "Val",
                           "type": "TEXT",
                           "x": 41.5,
@@ -675,7 +675,7 @@
                       ]
                     },
                     {
-                      "id": "1:7108",
+                      "id": "1:7024",
                       "name": "ProtocolSelect",
                       "type": "FRAME",
                       "x": 300,
@@ -696,7 +696,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:7109",
+                          "id": "1:7025",
                           "name": "Val",
                           "type": "TEXT",
                           "x": 10,
@@ -709,7 +709,7 @@
                           "variables": {"fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "id": "1:7110",
+                          "id": "1:7026",
                           "name": "Chevron",
                           "type": "FRAME",
                           "x": 86,
@@ -733,7 +733,7 @@
                       ]
                     },
                     {
-                      "id": "1:7111",
+                      "id": "1:7027",
                       "name": "AdvertiseCheckbox",
                       "type": "FRAME",
                       "x": 420,
@@ -750,7 +750,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:7112",
+                          "id": "1:7028",
                           "name": "Box",
                           "type": "FRAME",
                           "x": 0,
@@ -770,7 +770,7 @@
                           "variables": {"fills/0/color": "accent/accent"},
                           "children": [
                             {
-                              "id": "1:7113",
+                              "id": "1:7029",
                               "name": "Check",
                               "type": "TEXT",
                               "x": 3,
@@ -784,7 +784,7 @@
                           ]
                         },
                         {
-                          "id": "1:7114",
+                          "id": "1:7030",
                           "name": "Label",
                           "type": "TEXT",
                           "x": 22,
@@ -799,7 +799,7 @@
                       ]
                     },
                     {
-                      "id": "1:7115",
+                      "id": "1:7031",
                       "name": "PortRow1_Delete",
                       "type": "INSTANCE",
                       "x": 507,
@@ -821,7 +821,7 @@
                   ]
                 },
                 {
-                  "id": "1:7116",
+                  "id": "1:7032",
                   "name": "PortRow_2",
                   "type": "FRAME",
                   "x": 0,
@@ -839,7 +839,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7117",
+                      "id": "1:7033",
                       "name": "PortName",
                       "type": "FRAME",
                       "x": 0,
@@ -860,7 +860,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:7118",
+                          "id": "1:7034",
                           "name": "Val",
                           "type": "TEXT",
                           "x": 62,
@@ -875,7 +875,7 @@
                       ]
                     },
                     {
-                      "id": "1:7119",
+                      "id": "1:7035",
                       "name": "PortNum",
                       "type": "FRAME",
                       "x": 170,
@@ -896,7 +896,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:7120",
+                          "id": "1:7036",
                           "name": "Val",
                           "type": "TEXT",
                           "x": 41.5,
@@ -911,7 +911,7 @@
                       ]
                     },
                     {
-                      "id": "1:7121",
+                      "id": "1:7037",
                       "name": "ProtocolSelect",
                       "type": "FRAME",
                       "x": 300,
@@ -932,7 +932,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:7122",
+                          "id": "1:7038",
                           "name": "Val",
                           "type": "TEXT",
                           "x": 10,
@@ -945,7 +945,7 @@
                           "variables": {"fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "id": "1:7123",
+                          "id": "1:7039",
                           "name": "Chevron",
                           "type": "FRAME",
                           "x": 86,
@@ -969,7 +969,7 @@
                       ]
                     },
                     {
-                      "id": "1:7124",
+                      "id": "1:7040",
                       "name": "AdvertiseCheckbox",
                       "type": "FRAME",
                       "x": 420,
@@ -986,7 +986,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:7125",
+                          "id": "1:7041",
                           "name": "Box",
                           "type": "FRAME",
                           "x": 0,
@@ -1006,7 +1006,7 @@
                           "variables": {"fills/0/color": "accent/accent"},
                           "children": [
                             {
-                              "id": "1:7126",
+                              "id": "1:7042",
                               "name": "Check",
                               "type": "TEXT",
                               "x": 3,
@@ -1020,7 +1020,7 @@
                           ]
                         },
                         {
-                          "id": "1:7127",
+                          "id": "1:7043",
                           "name": "Label",
                           "type": "TEXT",
                           "x": 22,
@@ -1035,7 +1035,7 @@
                       ]
                     },
                     {
-                      "id": "1:7128",
+                      "id": "1:7044",
                       "name": "PortRow2_Delete",
                       "type": "INSTANCE",
                       "x": 507,
@@ -1061,7 +1061,7 @@
           ]
         },
         {
-          "id": "1:7129",
+          "id": "1:7045",
           "name": "StorageSection",
           "type": "FRAME",
           "x": 28,
@@ -1079,7 +1079,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:7130",
+              "id": "1:7046",
               "name": "Title",
               "type": "TEXT",
               "x": 0,
@@ -1092,7 +1092,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:7131",
+              "id": "1:7047",
               "name": "StorageRow",
               "type": "FRAME",
               "x": 0,
@@ -1110,7 +1110,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7132",
+                  "id": "1:7048",
                   "name": "SizeGroup",
                   "type": "FRAME",
                   "x": 0,
@@ -1128,7 +1128,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:7133",
+                      "id": "1:7049",
                       "name": "Lbl",
                       "type": "TEXT",
                       "x": 0,
@@ -1141,7 +1141,7 @@
                       "variables": {"fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:7134",
+                      "id": "1:7050",
                       "name": "Box",
                       "type": "FRAME",
                       "x": 0,
@@ -1163,7 +1163,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:7135",
+                          "id": "1:7051",
                           "name": "Val",
                           "type": "TEXT",
                           "x": 168.5,
@@ -1180,7 +1180,7 @@
                   ]
                 },
                 {
-                  "id": "1:7136",
+                  "id": "1:7052",
                   "name": "PathGroup",
                   "type": "FRAME",
                   "x": 378,
@@ -1198,7 +1198,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:7137",
+                      "id": "1:7053",
                       "name": "Lbl",
                       "type": "TEXT",
                       "x": 0,
@@ -1211,7 +1211,7 @@
                       "variables": {"fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:7138",
+                      "id": "1:7054",
                       "name": "Box",
                       "type": "FRAME",
                       "x": 0,
@@ -1233,7 +1233,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:7139",
+                          "id": "1:7055",
                           "name": "Val",
                           "type": "TEXT",
                           "x": 147.5,
@@ -1256,7 +1256,7 @@
       ]
     },
     {
-      "id": "1:7140",
+      "id": "1:7056",
       "name": "ModalFooter",
       "type": "FRAME",
       "x": 0,
@@ -1277,7 +1277,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:7141",
+          "id": "1:7057",
           "name": "BackButton",
           "type": "INSTANCE",
           "x": 28,
@@ -1306,7 +1306,7 @@
           "texts": ["← Back"]
         },
         {
-          "id": "1:7142",
+          "id": "1:7058",
           "name": "ButtonsRow",
           "type": "FRAME",
           "x": 460,
@@ -1323,7 +1323,7 @@
           },
           "children": [
             {
-              "id": "1:7143",
+              "id": "1:7059",
               "name": "CancelButton",
               "type": "INSTANCE",
               "x": 0,
@@ -1352,7 +1352,7 @@
               "texts": ["Cancel"]
             },
             {
-              "id": "1:7144",
+              "id": "1:7060",
               "name": "NextButton",
               "type": "INSTANCE",
               "x": 79,

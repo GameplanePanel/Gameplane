@@ -1,6 +1,6 @@
 {
   "file": "gX7um",
-  "id": "1:6886",
+  "id": "1:6802",
   "name": "Screen/Login (Light)",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:6887",
+      "id": "1:6803",
       "name": "loginL",
       "type": "FRAME",
       "x": 0,
@@ -39,7 +39,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:6888",
+          "id": "1:6804",
           "name": "loginCard",
           "type": "INSTANCE",
           "x": 150,
@@ -77,7 +77,7 @@
       ]
     },
     {
-      "id": "1:6889",
+      "id": "1:6805",
       "name": "loginR",
       "type": "INSTANCE",
       "x": 720,

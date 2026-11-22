@@ -1,6 +1,6 @@
 {
   "file": "DWztv",
-  "id": "1:6905",
+  "id": "1:6821",
   "name": "Screen/Mobile — Servers (Light)",
   "type": "FRAME",
   "x": 5510,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:6906",
+      "id": "1:6822",
       "name": "Mobile TopBar",
       "type": "INSTANCE",
       "x": 0,
@@ -44,7 +44,7 @@
       "texts": ["Servers", "AD"]
     },
     {
-      "id": "1:6907",
+      "id": "1:6823",
       "name": "Body",
       "type": "FRAME",
       "x": 0,
@@ -64,7 +64,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:6908",
+          "id": "1:6824",
           "name": "Filter Row",
           "type": "FRAME",
           "x": 24,
@@ -82,7 +82,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:6909",
+              "id": "1:6825",
               "name": "Search",
               "type": "INSTANCE",
               "x": 0,
@@ -113,7 +113,7 @@
               "texts": ["Search…"]
             },
             {
-              "id": "1:6910",
+              "id": "1:6826",
               "name": "Filter Button",
               "type": "FRAME",
               "x": 302,
@@ -139,7 +139,7 @@
               },
               "children": [
                 {
-                  "id": "1:6911",
+                  "id": "1:6827",
                   "name": "Filter Icon",
                   "type": "FRAME",
                   "x": 11,
@@ -164,7 +164,7 @@
           ]
         },
         {
-          "id": "1:6912",
+          "id": "1:6828",
           "name": "Server Card List",
           "type": "FRAME",
           "x": 24,
@@ -182,7 +182,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:6913",
+              "id": "1:6829",
               "name": "Card — mc-survival",
               "type": "FRAME",
               "x": 0,
@@ -209,7 +209,7 @@
               },
               "children": [
                 {
-                  "id": "1:6914",
+                  "id": "1:6830",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 15,
@@ -227,7 +227,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:6915",
+                      "id": "1:6831",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -244,7 +244,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:6916",
+                          "id": "1:6832",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -264,7 +264,7 @@
                           "variables": {"fills/0/color": "success/soft"},
                           "children": [
                             {
-                              "id": "1:6917",
+                              "id": "1:6833",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 6.5,
@@ -279,7 +279,7 @@
                           ]
                         },
                         {
-                          "id": "1:6918",
+                          "id": "1:6834",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 40,
@@ -297,7 +297,7 @@
                           "clips": true,
                           "children": [
                             {
-                              "id": "1:6919",
+                              "id": "1:6835",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -311,7 +311,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:6920",
+                              "id": "1:6836",
                               "name": "Location and namespace",
                               "type": "TEXT",
                               "x": 0,
@@ -325,7 +325,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:6921",
+                              "id": "1:6837",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -343,7 +343,7 @@
                       ]
                     },
                     {
-                      "id": "1:6922",
+                      "id": "1:6838",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 260,
@@ -368,7 +368,7 @@
                   ]
                 },
                 {
-                  "id": "1:6923",
+                  "id": "1:6839",
                   "name": "game",
                   "type": "TEXT",
                   "x": 15,
@@ -383,7 +383,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:6924",
+                  "id": "1:6840",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 15,
@@ -400,7 +400,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:6925",
+                      "id": "1:6841",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -424,7 +424,7 @@
                       "texts": ["0/20"]
                     },
                     {
-                      "id": "1:6926",
+                      "id": "1:6842",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 87,
@@ -452,7 +452,7 @@
               ]
             },
             {
-              "id": "1:6927",
+              "id": "1:6843",
               "name": "Card — mc-test",
               "type": "FRAME",
               "x": 0,
@@ -479,7 +479,7 @@
               },
               "children": [
                 {
-                  "id": "1:6928",
+                  "id": "1:6844",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 15,
@@ -497,7 +497,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:6929",
+                      "id": "1:6845",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -514,7 +514,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:6930",
+                          "id": "1:6846",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -534,7 +534,7 @@
                           "variables": {"fills/0/color": "success/soft"},
                           "children": [
                             {
-                              "id": "1:6931",
+                              "id": "1:6847",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 6.5,
@@ -549,7 +549,7 @@
                           ]
                         },
                         {
-                          "id": "1:6932",
+                          "id": "1:6848",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 40,
@@ -567,7 +567,7 @@
                           "clips": true,
                           "children": [
                             {
-                              "id": "1:6933",
+                              "id": "1:6849",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -581,7 +581,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:6934",
+                              "id": "1:6850",
                               "name": "Location and namespace",
                               "type": "TEXT",
                               "x": 0,
@@ -595,7 +595,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:6935",
+                              "id": "1:6851",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -613,7 +613,7 @@
                       ]
                     },
                     {
-                      "id": "1:6936",
+                      "id": "1:6852",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 272,
@@ -638,7 +638,7 @@
                   ]
                 },
                 {
-                  "id": "1:6937",
+                  "id": "1:6853",
                   "name": "game",
                   "type": "TEXT",
                   "x": 15,
@@ -653,7 +653,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:6938",
+                  "id": "1:6854",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 15,
@@ -670,7 +670,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:6939",
+                      "id": "1:6855",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -694,7 +694,7 @@
                       "texts": ["—"]
                     },
                     {
-                      "id": "1:6940",
+                      "id": "1:6856",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 66,
@@ -722,7 +722,7 @@
               ]
             },
             {
-              "id": "1:6941",
+              "id": "1:6857",
               "name": "Card — user-server-test",
               "type": "FRAME",
               "x": 0,
@@ -749,7 +749,7 @@
               },
               "children": [
                 {
-                  "id": "1:6942",
+                  "id": "1:6858",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 15,
@@ -767,7 +767,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:6943",
+                      "id": "1:6859",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -784,7 +784,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:6944",
+                          "id": "1:6860",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -804,7 +804,7 @@
                           "variables": {"fills/0/color": "accent/soft"},
                           "children": [
                             {
-                              "id": "1:6945",
+                              "id": "1:6861",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 6.5,
@@ -819,7 +819,7 @@
                           ]
                         },
                         {
-                          "id": "1:6946",
+                          "id": "1:6862",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 40,
@@ -837,7 +837,7 @@
                           "clips": true,
                           "children": [
                             {
-                              "id": "1:6947",
+                              "id": "1:6863",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -851,7 +851,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:6948",
+                              "id": "1:6864",
                               "name": "Location and namespace",
                               "type": "TEXT",
                               "x": 0,
@@ -865,7 +865,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:6949",
+                              "id": "1:6865",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -883,7 +883,7 @@
                       ]
                     },
                     {
-                      "id": "1:6950",
+                      "id": "1:6866",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 267,
@@ -908,7 +908,7 @@
                   ]
                 },
                 {
-                  "id": "1:6951",
+                  "id": "1:6867",
                   "name": "game",
                   "type": "TEXT",
                   "x": 15,
@@ -923,7 +923,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:6952",
+                  "id": "1:6868",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 15,
@@ -940,7 +940,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:6953",
+                      "id": "1:6869",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -964,7 +964,7 @@
                       "texts": ["—"]
                     },
                     {
-                      "id": "1:6954",
+                      "id": "1:6870",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 66,
@@ -992,7 +992,7 @@
               ]
             },
             {
-              "id": "1:6955",
+              "id": "1:6871",
               "name": "Card — test-server-09",
               "type": "FRAME",
               "x": 0,
@@ -1019,7 +1019,7 @@
               },
               "children": [
                 {
-                  "id": "1:6956",
+                  "id": "1:6872",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 15,
@@ -1037,7 +1037,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:6957",
+                      "id": "1:6873",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -1054,7 +1054,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:6958",
+                          "id": "1:6874",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -1074,7 +1074,7 @@
                           "variables": {"fills/0/color": "success/soft"},
                           "children": [
                             {
-                              "id": "1:6959",
+                              "id": "1:6875",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 6.5,
@@ -1089,7 +1089,7 @@
                           ]
                         },
                         {
-                          "id": "1:6960",
+                          "id": "1:6876",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 40,
@@ -1107,7 +1107,7 @@
                           "clips": true,
                           "children": [
                             {
-                              "id": "1:6961",
+                              "id": "1:6877",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -1121,7 +1121,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:6962",
+                              "id": "1:6878",
                               "name": "Location and namespace",
                               "type": "TEXT",
                               "x": 0,
@@ -1135,7 +1135,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:6963",
+                              "id": "1:6879",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -1153,7 +1153,7 @@
                       ]
                     },
                     {
-                      "id": "1:6964",
+                      "id": "1:6880",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 260,
@@ -1178,7 +1178,7 @@
                   ]
                 },
                 {
-                  "id": "1:6965",
+                  "id": "1:6881",
                   "name": "game",
                   "type": "TEXT",
                   "x": 15,
@@ -1193,7 +1193,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:6966",
+                  "id": "1:6882",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 15,
@@ -1210,7 +1210,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:6967",
+                      "id": "1:6883",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -1234,7 +1234,7 @@
                       "texts": ["4/20"]
                     },
                     {
-                      "id": "1:6968",
+                      "id": "1:6884",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 87,
@@ -1262,7 +1262,7 @@
               ]
             },
             {
-              "id": "1:6969",
+              "id": "1:6885",
               "name": "Card — mc-survival (2)",
               "type": "FRAME",
               "x": 0,
@@ -1289,7 +1289,7 @@
               },
               "children": [
                 {
-                  "id": "1:6970",
+                  "id": "1:6886",
                   "name": "row1",
                   "type": "FRAME",
                   "x": 15,
@@ -1307,7 +1307,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:6971",
+                      "id": "1:6887",
                       "name": "left",
                       "type": "FRAME",
                       "x": 0,
@@ -1324,7 +1324,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:6972",
+                          "id": "1:6888",
                           "name": "icon",
                           "type": "FRAME",
                           "x": 0,
@@ -1344,7 +1344,7 @@
                           "variables": {"fills/0/color": "success/soft"},
                           "children": [
                             {
-                              "id": "1:6973",
+                              "id": "1:6889",
                               "name": "emoji",
                               "type": "TEXT",
                               "x": 6.5,
@@ -1359,7 +1359,7 @@
                           ]
                         },
                         {
-                          "id": "1:6974",
+                          "id": "1:6890",
                           "name": "nameCol",
                           "type": "FRAME",
                           "x": 40,
@@ -1377,7 +1377,7 @@
                           "clips": true,
                           "children": [
                             {
-                              "id": "1:6975",
+                              "id": "1:6891",
                               "name": "name",
                               "type": "TEXT",
                               "x": 0,
@@ -1391,7 +1391,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:6976",
+                              "id": "1:6892",
                               "name": "Location and namespace",
                               "type": "TEXT",
                               "x": 0,
@@ -1405,7 +1405,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:6977",
+                              "id": "1:6893",
                               "name": "addr",
                               "type": "TEXT",
                               "x": 0,
@@ -1423,7 +1423,7 @@
                       ]
                     },
                     {
-                      "id": "1:6978",
+                      "id": "1:6894",
                       "name": "statusPill",
                       "type": "INSTANCE",
                       "x": 260,
@@ -1448,7 +1448,7 @@
                   ]
                 },
                 {
-                  "id": "1:6979",
+                  "id": "1:6895",
                   "name": "game",
                   "type": "TEXT",
                   "x": 15,
@@ -1463,7 +1463,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:6980",
+                  "id": "1:6896",
                   "name": "chips",
                   "type": "FRAME",
                   "x": 15,
@@ -1480,7 +1480,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:6981",
+                      "id": "1:6897",
                       "name": "players chip",
                       "type": "INSTANCE",
                       "x": 0,
@@ -1504,7 +1504,7 @@
                       "texts": ["0/20"]
                     },
                     {
-                      "id": "1:6982",
+                      "id": "1:6898",
                       "name": "memory chip",
                       "type": "INSTANCE",
                       "x": 87,

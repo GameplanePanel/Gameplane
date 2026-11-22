@@ -1,6 +1,6 @@
 {
   "file": "iYUWc",
-  "id": "1:8734",
+  "id": "1:8650",
   "name": "Screen/Clusters — Registered clusters",
   "type": "FRAME",
   "x": 0,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8735",
+      "id": "1:8651",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:8736",
+      "id": "1:8652",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:8737",
+          "id": "1:8653",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Clusters", "Search servers…", "AD"]
         },
         {
-          "id": "1:8738",
+          "id": "1:8654",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -128,7 +128,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:8739",
+              "id": "1:8655",
               "name": "Clusters header",
               "type": "INSTANCE",
               "x": 24,
@@ -151,7 +151,7 @@
               "texts": ["Clusters", "Registered clusters, connectivity and node inventory."]
             },
             {
-              "id": "1:8740",
+              "id": "1:8656",
               "name": "API status scope",
               "type": "TEXT",
               "x": 24,
@@ -165,7 +165,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:8741",
+              "id": "1:8657",
               "name": "Registered cluster cards",
               "type": "FRAME",
               "x": 24,
@@ -183,7 +183,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:8742",
+                  "id": "1:8658",
                   "name": "local cluster",
                   "type": "FRAME",
                   "x": 0,
@@ -210,7 +210,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8743",
+                      "id": "1:8659",
                       "name": "Cluster name",
                       "type": "TEXT",
                       "x": 20,
@@ -223,7 +223,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:8744",
+                      "id": "1:8660",
                       "name": "Stable cluster identity",
                       "type": "TEXT",
                       "x": 20,
@@ -236,7 +236,7 @@
                       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:8745",
+                      "id": "1:8661",
                       "name": "API connectivity",
                       "type": "TEXT",
                       "x": 20,
@@ -249,7 +249,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "success/success"}
                     },
                     {
-                      "id": "1:8746",
+                      "id": "1:8662",
                       "name": "Central cluster label",
                       "type": "TEXT",
                       "x": 20,
@@ -262,7 +262,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:8747",
+                      "id": "1:8663",
                       "name": "Last check",
                       "type": "TEXT",
                       "x": 20,
@@ -275,7 +275,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:8748",
+                      "id": "1:8664",
                       "name": "Cluster actions",
                       "type": "FRAME",
                       "x": 20,
@@ -292,7 +292,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:8749",
+                          "id": "1:8665",
                           "name": "Open cluster",
                           "type": "INSTANCE",
                           "x": 0,
@@ -321,7 +321,7 @@
                           "texts": ["Open cluster"]
                         },
                         {
-                          "id": "1:8750",
+                          "id": "1:8666",
                           "name": "View nodes",
                           "type": "INSTANCE",
                           "x": 125,
@@ -355,7 +355,7 @@
                   ]
                 },
                 {
-                  "id": "1:8751",
+                  "id": "1:8667",
                   "name": "remote-lab cluster",
                   "type": "FRAME",
                   "x": 574,
@@ -382,7 +382,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:8752",
+                      "id": "1:8668",
                       "name": "Cluster name",
                       "type": "TEXT",
                       "x": 20,
@@ -395,7 +395,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:8753",
+                      "id": "1:8669",
                       "name": "Stable cluster identity",
                       "type": "TEXT",
                       "x": 20,
@@ -408,7 +408,7 @@
                       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:8754",
+                      "id": "1:8670",
                       "name": "API connectivity",
                       "type": "TEXT",
                       "x": 20,
@@ -421,7 +421,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "success/success"}
                     },
                     {
-                      "id": "1:8755",
+                      "id": "1:8671",
                       "name": "Last check",
                       "type": "TEXT",
                       "x": 20,
@@ -434,7 +434,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:8756",
+                      "id": "1:8672",
                       "name": "Cluster actions",
                       "type": "FRAME",
                       "x": 20,
@@ -451,7 +451,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:8757",
+                          "id": "1:8673",
                           "name": "Open cluster",
                           "type": "INSTANCE",
                           "x": 0,
@@ -480,7 +480,7 @@
                           "texts": ["Open cluster"]
                         },
                         {
-                          "id": "1:8758",
+                          "id": "1:8674",
                           "name": "View nodes",
                           "type": "INSTANCE",
                           "x": 125,

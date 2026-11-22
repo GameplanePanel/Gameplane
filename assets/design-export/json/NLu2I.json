@@ -1,6 +1,6 @@
 {
   "file": "NLu2I",
-  "id": "1:10739",
+  "id": "1:10655",
   "name": "Screen/Create Server — Step 3 Configure (Reserve less on)",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:10740",
+      "id": "1:10656",
       "name": "Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:10741",
+      "id": "1:10657",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:10742",
+          "id": "1:10658",
           "name": "TopBar",
           "type": "INSTANCE",
           "x": 0,
@@ -111,7 +111,7 @@
       ]
     },
     {
-      "id": "1:10743",
+      "id": "1:10659",
       "name": "ModalContainer",
       "type": "FRAME",
       "x": 0,
@@ -130,7 +130,7 @@
       "absolute": true,
       "children": [
         {
-          "id": "1:10744",
+          "id": "1:10660",
           "name": "Modal",
           "type": "FRAME",
           "x": 240,
@@ -154,7 +154,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:10745",
+              "id": "1:10661",
               "name": "Header",
               "type": "INSTANCE",
               "x": 0,
@@ -178,7 +178,7 @@
               "texts": ["New game server", "Step 3 of 5 · Configure"]
             },
             {
-              "id": "1:10746",
+              "id": "1:10662",
               "name": "Location placement",
               "type": "FRAME",
               "x": 0,
@@ -199,7 +199,7 @@
               "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:10747",
+                  "id": "1:10663",
                   "name": "Location label",
                   "type": "TEXT",
                   "x": 24,
@@ -212,7 +212,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10748",
+                  "id": "1:10664",
                   "name": "Creation location",
                   "type": "INSTANCE",
                   "x": 24,
@@ -243,7 +243,7 @@
                   "texts": ["remote-lab / gameplane-games"]
                 },
                 {
-                  "id": "1:10749",
+                  "id": "1:10665",
                   "name": "Changing location help",
                   "type": "TEXT",
                   "x": 24,
@@ -259,7 +259,7 @@
               ]
             },
             {
-              "id": "1:10750",
+              "id": "1:10666",
               "name": "Stepper",
               "type": "INSTANCE",
               "x": 0,
@@ -298,7 +298,7 @@
               ]
             },
             {
-              "id": "1:10751",
+              "id": "1:10667",
               "name": "Body",
               "type": "FRAME",
               "x": 0,
@@ -316,7 +316,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:10752",
+                  "id": "1:10668",
                   "name": "StepBody",
                   "type": "FRAME",
                   "x": 24,
@@ -334,7 +334,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:10753",
+                      "id": "1:10669",
                       "name": "Field Server name",
                       "type": "INSTANCE",
                       "x": 0,
@@ -355,7 +355,7 @@
                       "texts": ["Server name", "mc-survival", "Used as pod name and subdomain. Lowercase, dash-separated."]
                     },
                     {
-                      "id": "1:10754",
+                      "id": "1:10670",
                       "name": "Field Description",
                       "type": "INSTANCE",
                       "x": 0,
@@ -376,7 +376,7 @@
                       "texts": ["Description", "Hardcore survival realm with curated mods. Invite only.", "Max 500 characters."]
                     },
                     {
-                      "id": "1:10755",
+                      "id": "1:10671",
                       "name": "ResourceRow",
                       "type": "FRAME",
                       "x": 0,
@@ -394,7 +394,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:10756",
+                          "id": "1:10672",
                           "name": "Field",
                           "type": "FRAME",
                           "x": 0,
@@ -412,7 +412,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
-                              "id": "1:10757",
+                              "id": "1:10673",
                               "name": "Label",
                               "type": "TEXT",
                               "x": 0,
@@ -426,7 +426,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:10758",
+                              "id": "1:10674",
                               "name": "CtrlRow",
                               "type": "FRAME",
                               "x": 0,
@@ -444,7 +444,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10759",
+                                  "id": "1:10675",
                                   "name": "CpuSlider",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -465,7 +465,7 @@
                                   "texts": ["CPU"]
                                 },
                                 {
-                                  "id": "1:10760",
+                                  "id": "1:10676",
                                   "name": "CpuValue",
                                   "type": "INSTANCE",
                                   "x": 123.5,
@@ -485,7 +485,7 @@
                                   "texts": ["Email", "2", "We'll never share your email."]
                                 },
                                 {
-                                  "id": "1:10761",
+                                  "id": "1:10677",
                                   "name": "CpuUnit",
                                   "type": "INSTANCE",
                                   "x": 195.5,
@@ -507,7 +507,7 @@
                               ]
                             },
                             {
-                              "id": "1:10762",
+                              "id": "1:10678",
                               "name": "Helper",
                               "type": "TEXT",
                               "x": 0,
@@ -524,7 +524,7 @@
                           ]
                         },
                         {
-                          "id": "1:10763",
+                          "id": "1:10679",
                           "name": "Field",
                           "type": "FRAME",
                           "x": 321.5,
@@ -542,7 +542,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
-                              "id": "1:10764",
+                              "id": "1:10680",
                               "name": "Label",
                               "type": "TEXT",
                               "x": 0,
@@ -556,7 +556,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:10765",
+                              "id": "1:10681",
                               "name": "CtrlRow",
                               "type": "FRAME",
                               "x": 0,
@@ -574,7 +574,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10766",
+                                  "id": "1:10682",
                                   "name": "MemSlider",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -595,7 +595,7 @@
                                   "texts": ["Memory"]
                                 },
                                 {
-                                  "id": "1:10767",
+                                  "id": "1:10683",
                                   "name": "MemValue",
                                   "type": "INSTANCE",
                                   "x": 123.5,
@@ -615,7 +615,7 @@
                                   "texts": ["Email", "4", "We'll never share your email."]
                                 },
                                 {
-                                  "id": "1:10768",
+                                  "id": "1:10684",
                                   "name": "MemUnit",
                                   "type": "INSTANCE",
                                   "x": 195.5,
@@ -637,7 +637,7 @@
                               ]
                             },
                             {
-                              "id": "1:10769",
+                              "id": "1:10685",
                               "name": "Helper",
                               "type": "TEXT",
                               "x": 0,
@@ -656,7 +656,7 @@
                       ]
                     },
                     {
-                      "id": "1:10770",
+                      "id": "1:10686",
                       "name": "ReserveLess",
                       "type": "FRAME",
                       "x": 0,
@@ -674,7 +674,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:10771",
+                          "id": "1:10687",
                           "name": "SwitchRow",
                           "type": "FRAME",
                           "x": 0,
@@ -692,7 +692,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:10772",
+                              "id": "1:10688",
                               "name": "Switch",
                               "type": "INSTANCE",
                               "x": 0,
@@ -706,7 +706,7 @@
                               "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"}
                             },
                             {
-                              "id": "1:10773",
+                              "id": "1:10689",
                               "name": "Label",
                               "type": "TEXT",
                               "x": 48,
@@ -721,7 +721,7 @@
                           ]
                         },
                         {
-                          "id": "1:10774",
+                          "id": "1:10690",
                           "name": "Helper",
                           "type": "TEXT",
                           "x": 0,
@@ -738,7 +738,7 @@
                       ]
                     },
                     {
-                      "id": "1:10775",
+                      "id": "1:10691",
                       "name": "ReservedRow",
                       "type": "FRAME",
                       "x": 0,
@@ -756,7 +756,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:10776",
+                          "id": "1:10692",
                           "name": "Field",
                           "type": "FRAME",
                           "x": 0,
@@ -774,7 +774,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
-                              "id": "1:10777",
+                              "id": "1:10693",
                               "name": "Label",
                               "type": "TEXT",
                               "x": 0,
@@ -788,7 +788,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:10778",
+                              "id": "1:10694",
                               "name": "CtrlRow",
                               "type": "FRAME",
                               "x": 0,
@@ -806,7 +806,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10779",
+                                  "id": "1:10695",
                                   "name": "ReservedCpuSlider",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -827,7 +827,7 @@
                                   "texts": ["Reserved CPU"]
                                 },
                                 {
-                                  "id": "1:10780",
+                                  "id": "1:10696",
                                   "name": "ReservedCpuValue",
                                   "type": "INSTANCE",
                                   "x": 123.5,
@@ -847,7 +847,7 @@
                                   "texts": ["Email", "1", "We'll never share your email."]
                                 },
                                 {
-                                  "id": "1:10781",
+                                  "id": "1:10697",
                                   "name": "ReservedCpuUnit",
                                   "type": "INSTANCE",
                                   "x": 195.5,
@@ -871,7 +871,7 @@
                           ]
                         },
                         {
-                          "id": "1:10782",
+                          "id": "1:10698",
                           "name": "Field",
                           "type": "FRAME",
                           "x": 321.5,
@@ -889,7 +889,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
-                              "id": "1:10783",
+                              "id": "1:10699",
                               "name": "Label",
                               "type": "TEXT",
                               "x": 0,
@@ -903,7 +903,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:10784",
+                              "id": "1:10700",
                               "name": "CtrlRow",
                               "type": "FRAME",
                               "x": 0,
@@ -921,7 +921,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:10785",
+                                  "id": "1:10701",
                                   "name": "ReservedMemSlider",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -942,7 +942,7 @@
                                   "texts": ["Reserved memory"]
                                 },
                                 {
-                                  "id": "1:10786",
+                                  "id": "1:10702",
                                   "name": "ReservedMemValue",
                                   "type": "INSTANCE",
                                   "x": 123.5,
@@ -962,7 +962,7 @@
                                   "texts": ["Email", "2", "We'll never share your email."]
                                 },
                                 {
-                                  "id": "1:10787",
+                                  "id": "1:10703",
                                   "name": "ReservedMemUnit",
                                   "type": "INSTANCE",
                                   "x": 195.5,
@@ -988,7 +988,7 @@
                       ]
                     },
                     {
-                      "id": "1:10788",
+                      "id": "1:10704",
                       "name": "StoragePlacementRow",
                       "type": "FRAME",
                       "x": 0,
@@ -1006,7 +1006,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:10789",
+                          "id": "1:10705",
                           "name": "Field Persistent storage",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1027,7 +1027,7 @@
                           "texts": ["Persistent storage", "20Gi", "Mounted at /data (RWO PVC)."]
                         },
                         {
-                          "id": "1:10790",
+                          "id": "1:10706",
                           "name": "NodePlacement",
                           "type": "FRAME",
                           "x": 321.5,
@@ -1045,7 +1045,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
-                              "id": "1:10791",
+                              "id": "1:10707",
                               "name": "Label",
                               "type": "TEXT",
                               "x": 0,
@@ -1058,7 +1058,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:10792",
+                              "id": "1:10708",
                               "name": "Segmented",
                               "type": "FRAME",
                               "x": 0,
@@ -1080,7 +1080,7 @@
                               "variables": {"strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:10793",
+                                  "id": "1:10709",
                                   "name": "Seg",
                                   "type": "FRAME",
                                   "x": 4,
@@ -1100,7 +1100,7 @@
                                   "variables": {"fills/0/color": "accent/soft"},
                                   "children": [
                                     {
-                                      "id": "1:10794",
+                                      "id": "1:10710",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 12,
@@ -1115,7 +1115,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10795",
+                                  "id": "1:10711",
                                   "name": "Seg",
                                   "type": "FRAME",
                                   "x": 125,
@@ -1133,7 +1133,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:10796",
+                                      "id": "1:10712",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 12,
@@ -1148,7 +1148,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:10797",
+                                  "id": "1:10713",
                                   "name": "Seg",
                                   "type": "FRAME",
                                   "x": 216,
@@ -1166,7 +1166,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:10798",
+                                      "id": "1:10714",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 12,
@@ -1183,7 +1183,7 @@
                               ]
                             },
                             {
-                              "id": "1:10799",
+                              "id": "1:10715",
                               "name": "Helper",
                               "type": "TEXT",
                               "x": 0,
@@ -1202,7 +1202,7 @@
                       ]
                     },
                     {
-                      "id": "1:10800",
+                      "id": "1:10716",
                       "name": "TemplateConfigSection",
                       "type": "FRAME",
                       "x": 0,
@@ -1220,7 +1220,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:10801",
+                          "id": "1:10717",
                           "name": "SectionLabel",
                           "type": "TEXT",
                           "x": 0,
@@ -1233,7 +1233,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10802",
+                          "id": "1:10718",
                           "name": "Field Difficulty",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1254,7 +1254,7 @@
                           "texts": ["Difficulty", "easy", "Choose your country."]
                         },
                         {
-                          "id": "1:10803",
+                          "id": "1:10719",
                           "name": "Field Game mode",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1275,7 +1275,7 @@
                           "texts": ["Game mode", "survival", "Choose your country."]
                         },
                         {
-                          "id": "1:10804",
+                          "id": "1:10720",
                           "name": "Field Max players",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1296,7 +1296,7 @@
                           "texts": ["Max players", "20", "We'll never share your email."]
                         },
                         {
-                          "id": "1:10805",
+                          "id": "1:10721",
                           "name": "Field MOTD",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1317,7 +1317,7 @@
                           "texts": ["MOTD", "A Gameplane Minecraft server", "Server description shown in the multiplayer list."]
                         },
                         {
-                          "id": "1:10806",
+                          "id": "1:10722",
                           "name": "Field World seed",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1338,7 +1338,7 @@
                           "texts": ["World seed", "Leave blank for a random seed."]
                         },
                         {
-                          "id": "1:10807",
+                          "id": "1:10723",
                           "name": "Field Enforce whitelist",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1359,7 +1359,7 @@
                           "texts": ["Enforce whitelist", "false", "Choose your country."]
                         },
                         {
-                          "id": "1:10808",
+                          "id": "1:10724",
                           "name": "Field PvP enabled",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1380,7 +1380,7 @@
                           "texts": ["PvP enabled", "true", "Choose your country."]
                         },
                         {
-                          "id": "1:10809",
+                          "id": "1:10725",
                           "name": "Field Hardcore mode",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1401,7 +1401,7 @@
                           "texts": ["Hardcore mode", "false", "Choose your country."]
                         },
                         {
-                          "id": "1:10810",
+                          "id": "1:10726",
                           "name": "Field Online mode",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1422,7 +1422,7 @@
                           "texts": ["Online mode", "true", "Verify players with Mojang. Disable only for offline/LAN setups."]
                         },
                         {
-                          "id": "1:10811",
+                          "id": "1:10727",
                           "name": "Field View distance (chunks)",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1443,7 +1443,7 @@
                           "texts": ["View distance (chunks)", "10", "We'll never share your email."]
                         },
                         {
-                          "id": "1:10812",
+                          "id": "1:10728",
                           "name": "Field JVM max heap",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1468,7 +1468,7 @@
                           ]
                         },
                         {
-                          "id": "1:10813",
+                          "id": "1:10729",
                           "name": "Field JVM initial heap",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1497,7 +1497,7 @@
                   ]
                 },
                 {
-                  "id": "1:10814",
+                  "id": "1:10730",
                   "name": "Preview",
                   "type": "FRAME",
                   "x": 663,
@@ -1520,7 +1520,7 @@
                   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "id": "1:10815",
+                      "id": "1:10731",
                       "name": "PreviewHeader",
                       "type": "FRAME",
                       "x": 0,
@@ -1541,7 +1541,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:10816",
+                          "id": "1:10732",
                           "name": "IconWrap",
                           "type": "FRAME",
                           "x": 14,
@@ -1561,7 +1561,7 @@
                           "variables": {"fills/0/color": "default/default"},
                           "children": [
                             {
-                              "id": "1:10817",
+                              "id": "1:10733",
                               "name": "GameIcon",
                               "type": "FRAME",
                               "x": 6,
@@ -1584,7 +1584,7 @@
                           ]
                         },
                         {
-                          "id": "1:10818",
+                          "id": "1:10734",
                           "name": "TitleGroup",
                           "type": "FRAME",
                           "x": 50,
@@ -1601,7 +1601,7 @@
                           },
                           "children": [
                             {
-                              "id": "1:10819",
+                              "id": "1:10735",
                               "name": "Title",
                               "type": "TEXT",
                               "x": 0,
@@ -1614,7 +1614,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:10820",
+                              "id": "1:10736",
                               "name": "Subtitle",
                               "type": "TEXT",
                               "x": 0,
@@ -1631,7 +1631,7 @@
                       ]
                     },
                     {
-                      "id": "1:10821",
+                      "id": "1:10737",
                       "name": "CodeBlockWrap",
                       "type": "FRAME",
                       "x": 0,
@@ -1650,7 +1650,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:10822",
+                          "id": "1:10738",
                           "name": "L0",
                           "type": "TEXT",
                           "x": 14,
@@ -1663,7 +1663,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10823",
+                          "id": "1:10739",
                           "name": "L1",
                           "type": "TEXT",
                           "x": 14,
@@ -1676,7 +1676,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10824",
+                          "id": "1:10740",
                           "name": "L2",
                           "type": "TEXT",
                           "x": 14,
@@ -1689,7 +1689,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10825",
+                          "id": "1:10741",
                           "name": "L3",
                           "type": "TEXT",
                           "x": 14,
@@ -1702,7 +1702,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10826",
+                          "id": "1:10742",
                           "name": "L4",
                           "type": "TEXT",
                           "x": 14,
@@ -1715,7 +1715,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10827",
+                          "id": "1:10743",
                           "name": "L5",
                           "type": "TEXT",
                           "x": 14,
@@ -1728,7 +1728,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10828",
+                          "id": "1:10744",
                           "name": "L6",
                           "type": "TEXT",
                           "x": 14,
@@ -1741,7 +1741,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10829",
+                          "id": "1:10745",
                           "name": "L7",
                           "type": "TEXT",
                           "x": 14,
@@ -1754,7 +1754,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10830",
+                          "id": "1:10746",
                           "name": "L8",
                           "type": "TEXT",
                           "x": 14,
@@ -1767,7 +1767,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10831",
+                          "id": "1:10747",
                           "name": "L9",
                           "type": "TEXT",
                           "x": 14,
@@ -1780,7 +1780,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10832",
+                          "id": "1:10748",
                           "name": "L10",
                           "type": "TEXT",
                           "x": 14,
@@ -1793,7 +1793,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10833",
+                          "id": "1:10749",
                           "name": "L11",
                           "type": "TEXT",
                           "x": 14,
@@ -1806,7 +1806,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10834",
+                          "id": "1:10750",
                           "name": "L12",
                           "type": "TEXT",
                           "x": 14,
@@ -1819,7 +1819,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10835",
+                          "id": "1:10751",
                           "name": "L13",
                           "type": "TEXT",
                           "x": 14,
@@ -1832,7 +1832,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10836",
+                          "id": "1:10752",
                           "name": "L14",
                           "type": "TEXT",
                           "x": 14,
@@ -1845,7 +1845,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10837",
+                          "id": "1:10753",
                           "name": "L15",
                           "type": "TEXT",
                           "x": 14,
@@ -1858,7 +1858,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:10838",
+                          "id": "1:10754",
                           "name": "L16",
                           "type": "TEXT",
                           "x": 14,
@@ -1873,7 +1873,7 @@
                       ]
                     },
                     {
-                      "id": "1:10839",
+                      "id": "1:10755",
                       "name": "MemoryTip",
                       "type": "FRAME",
                       "x": 0,
@@ -1894,7 +1894,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "id": "1:10840",
+                          "id": "1:10756",
                           "name": "TipText",
                           "type": "TEXT",
                           "x": 14,
@@ -1915,7 +1915,7 @@
               ]
             },
             {
-              "id": "1:10841",
+              "id": "1:10757",
               "name": "Footer",
               "type": "INSTANCE",
               "x": 0,

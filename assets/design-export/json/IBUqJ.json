@@ -1,6 +1,6 @@
 {
   "file": "IBUqJ",
-  "id": "1:11144",
+  "id": "1:11060",
   "name": "Screen/Nodes — Add node target",
   "type": "FRAME",
   "x": 19680,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:11145",
+      "id": "1:11061",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:11146",
+      "id": "1:11062",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -82,7 +82,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:11147",
+          "id": "1:11063",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -107,7 +107,7 @@
           "texts": ["gameplane", "Nodes", "Search servers…", "AD"]
         },
         {
-          "id": "1:11148",
+          "id": "1:11064",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -127,7 +127,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:11149",
+              "id": "1:11065",
               "name": "Page Header",
               "type": "FRAME",
               "x": 24,
@@ -189,7 +189,7 @@
                   ]
                 },
                 {
-                  "id": "1:11150",
+                  "id": "1:11066",
                   "name": "Add node",
                   "type": "INSTANCE",
                   "x": 1013,
@@ -220,7 +220,7 @@
               ]
             },
             {
-              "id": "1:11151",
+              "id": "1:11067",
               "name": "Node inventory totals",
               "type": "FRAME",
               "x": 24,
@@ -238,7 +238,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11152",
+                  "id": "1:11068",
                   "name": "NODES READY",
                   "type": "INSTANCE",
                   "x": 0,
@@ -268,7 +268,7 @@
                   "texts": ["NODES READY", "4 / 5", "returned nodes"]
                 },
                 {
-                  "id": "1:11153",
+                  "id": "1:11069",
                   "name": "CLUSTERS REPORTING",
                   "type": "INSTANCE",
                   "x": 286,
@@ -298,7 +298,7 @@
                   "texts": ["CLUSTERS REPORTING", "2 / 3", "one cluster unavailable"]
                 },
                 {
-                  "id": "1:11154",
+                  "id": "1:11070",
                   "name": "CPU USAGE",
                   "type": "INSTANCE",
                   "x": 572,
@@ -328,7 +328,7 @@
                   "texts": ["CPU USAGE", "32%", "4 nodes reporting"]
                 },
                 {
-                  "id": "1:11155",
+                  "id": "1:11071",
                   "name": "MEMORY USAGE",
                   "type": "INSTANCE",
                   "x": 858,
@@ -360,7 +360,7 @@
               ]
             },
             {
-              "id": "1:11156",
+              "id": "1:11072",
               "name": "Search and Filters",
               "type": "INSTANCE",
               "x": 24,
@@ -368,7 +368,7 @@
               "width": 1132,
               "height": 36,
               "component": "Gameplane/Nodes Search and Filters Row",
-              "componentId": "1:11038",
+              "componentId": "1:10954",
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 12,
@@ -381,7 +381,7 @@
               "texts": ["Search nodes…", "Filter"]
             },
             {
-              "id": "1:11157",
+              "id": "1:11073",
               "name": "Partial inventory notice",
               "type": "FRAME",
               "x": 24,
@@ -402,7 +402,7 @@
               "variables": {"fills/0/color": "warning/soft"},
               "children": [
                 {
-                  "id": "1:11158",
+                  "id": "1:11074",
                   "name": "Coverage warning",
                   "type": "TEXT",
                   "x": 16,
@@ -419,7 +419,7 @@
               ]
             },
             {
-              "id": "1:11159",
+              "id": "1:11075",
               "name": "All authorized nodes",
               "type": "INSTANCE",
               "x": 24,
@@ -427,7 +427,7 @@
               "width": 1132,
               "height": 368,
               "component": "Gameplane/Node Inventory Table",
-              "componentId": "1:10976",
+              "componentId": "1:10892",
               "fills": [{"type": "SOLID", "color": "#17151A"}],
               "cornerRadius": 20,
               "layout": {
@@ -487,7 +487,7 @@
               ]
             },
             {
-              "id": "1:11160",
+              "id": "1:11076",
               "name": "Inventory count",
               "type": "TEXT",
               "x": 24,
@@ -506,7 +506,7 @@
       ]
     },
     {
-      "id": "1:11161",
+      "id": "1:11077",
       "name": "Add node target dialog",
       "type": "FRAME",
       "x": 480,
@@ -529,7 +529,7 @@
       "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:11162",
+          "id": "1:11078",
           "name": "Add node title",
           "type": "TEXT",
           "x": 28,
@@ -544,7 +544,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "id": "1:11163",
+          "id": "1:11079",
           "name": "Add node instructions",
           "type": "TEXT",
           "x": 28,
@@ -559,7 +559,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:11164",
+          "id": "1:11080",
           "name": "Target cluster selection",
           "type": "INSTANCE",
           "x": 28,
@@ -590,7 +590,7 @@
           "texts": ["Select a cluster…"]
         },
         {
-          "id": "1:11165",
+          "id": "1:11081",
           "name": "Cluster enrollment capability",
           "type": "TEXT",
           "x": 28,
@@ -605,7 +605,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:11166",
+          "id": "1:11082",
           "name": "Enrollment dialog actions",
           "type": "FRAME",
           "x": 28,
@@ -623,7 +623,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:11167",
+              "id": "1:11083",
               "name": "Cancel",
               "type": "INSTANCE",
               "x": 362,
@@ -653,7 +653,7 @@
               "texts": ["Cancel"]
             },
             {
-              "id": "1:11168",
+              "id": "1:11084",
               "name": "Continue after target selection",
               "type": "INSTANCE",
               "x": 452,

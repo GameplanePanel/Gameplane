@@ -1,6 +1,6 @@
 {
   "file": "Kp48V",
-  "id": "1:10453",
+  "id": "1:10369",
   "name": "Gameplane/Dialog/Confirm Admin Mapping",
   "type": "FRAME",
   "x": 3736,
@@ -27,7 +27,7 @@
   },
   "children": [
     {
-      "id": "1:10454",
+      "id": "1:10370",
       "name": "cdTitleRow",
       "type": "FRAME",
       "x": 20,
@@ -45,7 +45,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10455",
+          "id": "1:10371",
           "name": "icon",
           "type": "FRAME",
           "x": 0,
@@ -65,7 +65,7 @@
           "variables": {"fills/0/color": "danger/soft"},
           "children": [
             {
-              "id": "1:10456",
+              "id": "1:10372",
               "name": "icon",
               "type": "FRAME",
               "x": 10,
@@ -99,7 +99,7 @@
           ]
         },
         {
-          "id": "1:10457",
+          "id": "1:10373",
           "name": "cdTitle",
           "type": "TEXT",
           "x": 52,
@@ -114,7 +114,7 @@
       ]
     },
     {
-      "id": "1:10458",
+      "id": "1:10374",
       "name": "cdDescWrap",
       "type": "FRAME",
       "x": 20,
@@ -132,7 +132,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10459",
+          "id": "1:10375",
           "name": "warningBox",
           "type": "FRAME",
           "x": 0,
@@ -155,7 +155,7 @@
           "variables": {"fills/0/color": "warning/soft", "strokes/0/color": "warning/soft-foreground"},
           "children": [
             {
-              "id": "1:10460",
+              "id": "1:10376",
               "name": "warningIcon",
               "type": "FRAME",
               "x": 12,
@@ -172,7 +172,7 @@
               },
               "children": [
                 {
-                  "id": "1:10461",
+                  "id": "1:10377",
                   "name": "icon",
                   "type": "FRAME",
                   "x": 0,
@@ -196,7 +196,7 @@
               ]
             },
             {
-              "id": "1:10462",
+              "id": "1:10378",
               "name": "warningContent",
               "type": "FRAME",
               "x": 40,
@@ -214,7 +214,7 @@
               "layoutGrow": 1,
               "children": [
                 {
-                  "id": "1:10463",
+                  "id": "1:10379",
                   "name": "warningTitle",
                   "type": "TEXT",
                   "x": 0,
@@ -227,7 +227,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
                 },
                 {
-                  "id": "1:10464",
+                  "id": "1:10380",
                   "name": "warningDesc",
                   "type": "TEXT",
                   "x": 0,
@@ -245,7 +245,7 @@
           ]
         },
         {
-          "id": "1:10465",
+          "id": "1:10381",
           "name": "groupSection",
           "type": "FRAME",
           "x": 0,
@@ -263,7 +263,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10466",
+              "id": "1:10382",
               "name": "groupLabel",
               "type": "TEXT",
               "x": 0,
@@ -276,7 +276,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10467",
+              "id": "1:10383",
               "name": "chipRow",
               "type": "FRAME",
               "x": 0,
@@ -293,7 +293,7 @@
               },
               "children": [
                 {
-                  "id": "1:10468",
+                  "id": "1:10384",
                   "name": "Chip ops-leads",
                   "type": "FRAME",
                   "x": 0,
@@ -312,7 +312,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:10469",
+                      "id": "1:10385",
                       "name": "chipLabel",
                       "type": "TEXT",
                       "x": 8,

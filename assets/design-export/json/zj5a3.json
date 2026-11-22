@@ -1,6 +1,6 @@
 {
   "file": "zj5a3",
-  "id": "1:8996",
+  "id": "1:8912",
   "name": "Screen/Dashboard Home — Telemetry notice (default)",
   "type": "FRAME",
   "x": 4920,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8997",
+      "id": "1:8913",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:8998",
+      "id": "1:8914",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:8999",
+          "id": "1:8915",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Dashboard", "Search servers…", "AD"]
         },
         {
-          "id": "1:9000",
+          "id": "1:8916",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:9001",
+              "id": "1:8917",
               "name": "Telemetry Notice",
               "type": "INSTANCE",
               "x": 32,
@@ -138,7 +138,7 @@
               "width": 1116,
               "height": 216,
               "component": "Gameplane/Telemetry Notice Banner",
-              "componentId": "1:9002",
+              "componentId": "1:8918",
               "fills": [{"type": "SOLID", "color": "#2C1926"}],
               "strokes": [{"type": "SOLID", "color": "#FF8AC4"}],
               "strokeWeight": 1,
@@ -171,7 +171,7 @@
               ]
             },
             {
-              "id": "1:9026",
+              "id": "1:8942",
               "name": "Page Header",
               "type": "FRAME",
               "x": 32,
@@ -249,7 +249,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:9027",
+                      "id": "1:8943",
                       "name": "Create Server Button",
                       "type": "INSTANCE",
                       "x": -5,
@@ -274,7 +274,7 @@
               ]
             },
             {
-              "id": "1:9028",
+              "id": "1:8944",
               "name": "Dashboard location filter",
               "type": "INSTANCE",
               "x": 32,
@@ -304,7 +304,7 @@
               "texts": ["All clusters"]
             },
             {
-              "id": "1:9029",
+              "id": "1:8945",
               "name": "Stats Row",
               "type": "INSTANCE",
               "x": 32,
@@ -341,7 +341,7 @@
               ]
             },
             {
-              "id": "1:9030",
+              "id": "1:8946",
               "name": "Row2",
               "type": "FRAME",
               "x": 32,
@@ -359,7 +359,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9031",
+                  "id": "1:8947",
                   "name": "Fleet Status Card",
                   "type": "INSTANCE",
                   "x": 0,
@@ -398,7 +398,7 @@
                   ]
                 },
                 {
-                  "id": "1:9032",
+                  "id": "1:8948",
                   "name": "Cluster Resources Card",
                   "type": "INSTANCE",
                   "x": 570,
@@ -449,7 +449,7 @@
               ]
             },
             {
-              "id": "1:9033",
+              "id": "1:8949",
               "name": "Row3",
               "type": "FRAME",
               "x": 32,
@@ -467,7 +467,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9034",
+                  "id": "1:8950",
                   "name": "Central audit activity",
                   "type": "INSTANCE",
                   "x": 0,
@@ -507,7 +507,7 @@
                   ]
                 },
                 {
-                  "id": "1:9035",
+                  "id": "1:8951",
                   "name": "Recent Backups Card",
                   "type": "INSTANCE",
                   "x": 570,

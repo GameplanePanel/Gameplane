@@ -1,6 +1,6 @@
 {
   "file": "RpHBg",
-  "id": "1:9406",
+  "id": "1:9322",
   "name": "Screen/Standalone — Register cluster",
   "type": "FRAME",
   "x": 6560,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9407",
+      "id": "1:9323",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:9408",
+      "id": "1:9324",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:9409",
+          "id": "1:9325",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Clusters", "Search servers…", "AD"]
         },
         {
-          "id": "1:9410",
+          "id": "1:9326",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -128,7 +128,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9411",
+              "id": "1:9327",
               "name": "Clusters header",
               "type": "FRAME",
               "x": 24,
@@ -190,7 +190,7 @@
                   ]
                 },
                 {
-                  "id": "1:9412",
+                  "id": "1:9328",
                   "name": "Page actions",
                   "type": "FRAME",
                   "x": 995,
@@ -207,7 +207,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:9413",
+                      "id": "1:9329",
                       "name": "Register cluster",
                       "type": "INSTANCE",
                       "x": 0,
@@ -240,7 +240,7 @@
               ]
             },
             {
-              "id": "1:9414",
+              "id": "1:9330",
               "name": "No registered clusters",
               "type": "FRAME",
               "x": 24,
@@ -261,7 +261,7 @@
               "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
               "children": [
                 {
-                  "id": "1:9415",
+                  "id": "1:9331",
                   "name": "Empty title",
                   "type": "TEXT",
                   "x": 24,
@@ -276,7 +276,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:9416",
+                  "id": "1:9332",
                   "name": "Empty description",
                   "type": "TEXT",
                   "x": 24,
@@ -297,7 +297,7 @@
       ]
     },
     {
-      "id": "1:9417",
+      "id": "1:9333",
       "name": "Modal backdrop",
       "type": "FRAME",
       "x": 0,
@@ -316,7 +316,7 @@
       "absolute": true,
       "children": [
         {
-          "id": "1:9418",
+          "id": "1:9334",
           "name": "Register cluster dialog",
           "type": "FRAME",
           "x": 480,
@@ -389,7 +389,7 @@
               ]
             },
             {
-              "id": "1:9419",
+              "id": "1:9335",
               "name": "Registration fields",
               "type": "FRAME",
               "x": 20,
@@ -407,7 +407,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9420",
+                  "id": "1:9336",
                   "name": "Name field",
                   "type": "FRAME",
                   "x": 0,
@@ -425,7 +425,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:9421",
+                      "id": "1:9337",
                       "name": "Name label",
                       "type": "TEXT",
                       "x": 0,
@@ -440,7 +440,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:9422",
+                      "id": "1:9338",
                       "name": "Name input",
                       "type": "INSTANCE",
                       "x": 0,
@@ -473,7 +473,7 @@
                   ]
                 },
                 {
-                  "id": "1:9423",
+                  "id": "1:9339",
                   "name": "Display name field",
                   "type": "FRAME",
                   "x": 0,
@@ -491,7 +491,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:9424",
+                      "id": "1:9340",
                       "name": "Display name label",
                       "type": "TEXT",
                       "x": 0,
@@ -506,7 +506,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:9425",
+                      "id": "1:9341",
                       "name": "Display name input",
                       "type": "INSTANCE",
                       "x": 0,
@@ -538,7 +538,7 @@
                   ]
                 },
                 {
-                  "id": "1:9426",
+                  "id": "1:9342",
                   "name": "Kubeconfig field",
                   "type": "FRAME",
                   "x": 0,
@@ -556,7 +556,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:9427",
+                      "id": "1:9343",
                       "name": "Kubeconfig label",
                       "type": "TEXT",
                       "x": 0,
@@ -571,7 +571,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:9428",
+                      "id": "1:9344",
                       "name": "Kubeconfig textarea (eight rows)",
                       "type": "FRAME",
                       "x": 0,
@@ -600,7 +600,7 @@
                   ]
                 },
                 {
-                  "id": "1:9429",
+                  "id": "1:9345",
                   "name": "Connection helper",
                   "type": "TEXT",
                   "x": 0,

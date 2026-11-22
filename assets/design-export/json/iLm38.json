@@ -1,6 +1,6 @@
 {
   "file": "iLm38",
-  "id": "1:7271",
+  "id": "1:7187",
   "name": "Screen/Server Detail — Settings · Environment",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:7272",
+      "id": "1:7188",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:7273",
+      "id": "1:7189",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:7274",
+          "id": "1:7190",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:7275",
+          "id": "1:7191",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:7276",
+              "id": "1:7192",
               "name": "Detail Header",
               "type": "INSTANCE",
               "x": 24,
@@ -161,7 +161,7 @@
               ]
             },
             {
-              "id": "1:7277",
+              "id": "1:7193",
               "name": "Tabs Bar",
               "type": "INSTANCE",
               "x": 24,
@@ -198,7 +198,7 @@
               ]
             },
             {
-              "id": "1:7278",
+              "id": "1:7194",
               "name": "Settings Content",
               "type": "FRAME",
               "x": 24,
@@ -217,7 +217,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7279",
+                  "id": "1:7195",
                   "name": "Settings Sub Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -256,7 +256,7 @@
                   ]
                 },
                 {
-                  "id": "1:7280",
+                  "id": "1:7196",
                   "name": "Settings Panel Wrap",
                   "type": "FRAME",
                   "x": 224,
@@ -275,7 +275,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7281",
+                      "id": "1:7197",
                       "name": "Settings Form",
                       "type": "FRAME",
                       "x": 0,
@@ -294,7 +294,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:7282",
+                          "id": "1:7198",
                           "name": "Form Body",
                           "type": "FRAME",
                           "x": 0,
@@ -313,7 +313,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7283",
+                              "id": "1:7199",
                               "name": "Empty copy",
                               "type": "TEXT",
                               "x": 24,
@@ -326,7 +326,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:7284",
+                              "id": "1:7200",
                               "name": "Buttons row",
                               "type": "FRAME",
                               "x": 24,
@@ -343,7 +343,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:7285",
+                                  "id": "1:7201",
                                   "name": "Gameplane/Button/Small/Outline",
                                   "type": "INSTANCE",
                                   "x": 0,
@@ -367,7 +367,7 @@
                                   "texts": ["Add variable"]
                                 },
                                 {
-                                  "id": "1:7286",
+                                  "id": "1:7202",
                                   "name": "Gameplane/Button/Small/Outline",
                                   "type": "INSTANCE",
                                   "x": 127,
@@ -395,7 +395,7 @@
                           ]
                         },
                         {
-                          "id": "1:7287",
+                          "id": "1:7203",
                           "name": "Form Footer",
                           "type": "FRAME",
                           "x": 0,
@@ -416,7 +416,7 @@
                           "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "1:7288",
+                              "id": "1:7204",
                               "name": "Btn Discard",
                               "type": "INSTANCE",
                               "x": 681,
@@ -437,7 +437,7 @@
                               "texts": ["Discard"]
                             },
                             {
-                              "id": "1:7289",
+                              "id": "1:7205",
                               "name": "Btn Save Changes",
                               "type": "INSTANCE",
                               "x": 779,

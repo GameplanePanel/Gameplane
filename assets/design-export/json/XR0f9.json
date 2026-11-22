@@ -1,6 +1,6 @@
 {
   "file": "XR0f9",
-  "id": "1:7315",
+  "id": "1:7231",
   "name": "Screen/Server Detail — Settings · Danger zone",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:7316",
+      "id": "1:7232",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:7317",
+      "id": "1:7233",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:7318",
+          "id": "1:7234",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:7319",
+          "id": "1:7235",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:7320",
+              "id": "1:7236",
               "name": "Detail Header",
               "type": "INSTANCE",
               "x": 24,
@@ -161,7 +161,7 @@
               ]
             },
             {
-              "id": "1:7321",
+              "id": "1:7237",
               "name": "Tabs Bar",
               "type": "INSTANCE",
               "x": 24,
@@ -198,7 +198,7 @@
               ]
             },
             {
-              "id": "1:7322",
+              "id": "1:7238",
               "name": "Settings Content",
               "type": "FRAME",
               "x": 24,
@@ -217,7 +217,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7323",
+                  "id": "1:7239",
                   "name": "Settings Sub Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -256,7 +256,7 @@
                   ]
                 },
                 {
-                  "id": "1:7324",
+                  "id": "1:7240",
                   "name": "Settings Panel Wrap",
                   "type": "FRAME",
                   "x": 224,
@@ -275,7 +275,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7325",
+                      "id": "1:7241",
                       "name": "Settings Form",
                       "type": "FRAME",
                       "x": 0,
@@ -294,7 +294,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:7326",
+                          "id": "1:7242",
                           "name": "Form Body",
                           "type": "FRAME",
                           "x": 0,
@@ -313,7 +313,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7327",
+                              "id": "1:7243",
                               "name": "Wipe World Card",
                               "type": "FRAME",
                               "x": 24,
@@ -341,7 +341,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:7328",
+                                  "id": "1:7244",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -354,7 +354,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:7329",
+                                  "id": "1:7245",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -368,7 +368,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "1:7330",
+                                  "id": "1:7246",
                                   "name": "Gameplane/Button/Small/Ghost",
                                   "type": "INSTANCE",
                                   "x": 16,
@@ -391,7 +391,7 @@
                               ]
                             },
                             {
-                              "id": "1:7331",
+                              "id": "1:7247",
                               "name": "Transfer Ownership Card",
                               "type": "FRAME",
                               "x": 24,
@@ -419,7 +419,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:7332",
+                                  "id": "1:7248",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -432,7 +432,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:7333",
+                                  "id": "1:7249",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -446,7 +446,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "1:7334",
+                                  "id": "1:7250",
                                   "name": "Gameplane/Button/Small/Ghost",
                                   "type": "INSTANCE",
                                   "x": 16,
@@ -469,7 +469,7 @@
                               ]
                             },
                             {
-                              "id": "1:7335",
+                              "id": "1:7251",
                               "name": "Delete Server Card",
                               "type": "FRAME",
                               "x": 24,
@@ -497,7 +497,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:7336",
+                                  "id": "1:7252",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -510,7 +510,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:7337",
+                                  "id": "1:7253",
                                   "name": "text",
                                   "type": "TEXT",
                                   "x": 16,
@@ -524,7 +524,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "1:7338",
+                                  "id": "1:7254",
                                   "name": "Gameplane/Button/Danger",
                                   "type": "INSTANCE",
                                   "x": 16,
@@ -549,7 +549,7 @@
                           ]
                         },
                         {
-                          "id": "1:7339",
+                          "id": "1:7255",
                           "name": "Form Footer",
                           "type": "FRAME",
                           "x": 0,
@@ -570,7 +570,7 @@
                           "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "1:7340",
+                              "id": "1:7256",
                               "name": "Btn Discard",
                               "type": "INSTANCE",
                               "x": 681,
@@ -591,7 +591,7 @@
                               "texts": ["Discard"]
                             },
                             {
-                              "id": "1:7341",
+                              "id": "1:7257",
                               "name": "Btn Save Changes",
                               "type": "INSTANCE",
                               "x": 779,

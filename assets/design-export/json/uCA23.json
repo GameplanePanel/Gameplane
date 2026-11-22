@@ -1,6 +1,6 @@
 {
   "file": "uCA23",
-  "id": "1:7202",
+  "id": "1:7118",
   "name": "Screen/Server Detail — Settings · General",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:7203",
+      "id": "1:7119",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:7204",
+      "id": "1:7120",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:7205",
+          "id": "1:7121",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:7206",
+          "id": "1:7122",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:7207",
+              "id": "1:7123",
               "name": "Detail Header",
               "type": "INSTANCE",
               "x": 24,
@@ -161,7 +161,7 @@
               ]
             },
             {
-              "id": "1:7208",
+              "id": "1:7124",
               "name": "Tabs Bar",
               "type": "INSTANCE",
               "x": 24,
@@ -198,7 +198,7 @@
               ]
             },
             {
-              "id": "1:7209",
+              "id": "1:7125",
               "name": "Settings Content",
               "type": "FRAME",
               "x": 24,
@@ -217,7 +217,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7210",
+                  "id": "1:7126",
                   "name": "Settings Sub Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -256,7 +256,7 @@
                   ]
                 },
                 {
-                  "id": "1:7211",
+                  "id": "1:7127",
                   "name": "Settings Panel Wrap",
                   "type": "FRAME",
                   "x": 224,
@@ -275,7 +275,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7212",
+                      "id": "1:7128",
                       "name": "Settings Form",
                       "type": "FRAME",
                       "x": 0,
@@ -294,7 +294,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:7213",
+                          "id": "1:7129",
                           "name": "Form Body",
                           "type": "FRAME",
                           "x": 0,
@@ -313,7 +313,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7214",
+                              "id": "1:7130",
                               "name": "Field Name",
                               "type": "FRAME",
                               "x": 24,
@@ -331,7 +331,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7215",
+                                  "id": "1:7131",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -348,7 +348,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:7216",
+                                      "id": "1:7132",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -361,7 +361,7 @@
                                       "variables": {"fontFamily": "typography/font-sans"}
                                     },
                                     {
-                                      "id": "1:7217",
+                                      "id": "1:7133",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -376,7 +376,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7218",
+                                  "id": "1:7134",
                                   "name": "Input",
                                   "type": "INSTANCE",
                                   "x": 216,
@@ -409,7 +409,7 @@
                               ]
                             },
                             {
-                              "id": "1:7219",
+                              "id": "1:7135",
                               "name": "Field Template",
                               "type": "FRAME",
                               "x": 24,
@@ -427,7 +427,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7220",
+                                  "id": "1:7136",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -444,7 +444,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:7221",
+                                      "id": "1:7137",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -459,7 +459,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7222",
+                                  "id": "1:7138",
                                   "name": "Input",
                                   "type": "INSTANCE",
                                   "x": 216,
@@ -492,7 +492,7 @@
                               ]
                             },
                             {
-                              "id": "1:7223",
+                              "id": "1:7139",
                               "name": "Field Description",
                               "type": "FRAME",
                               "x": 24,
@@ -510,7 +510,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7224",
+                                  "id": "1:7140",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -527,7 +527,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:7225",
+                                      "id": "1:7141",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -540,7 +540,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:7226",
+                                      "id": "1:7142",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -555,7 +555,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7227",
+                                  "id": "1:7143",
                                   "name": "Textarea",
                                   "type": "FRAME",
                                   "x": 216,
@@ -583,7 +583,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:7228",
+                                      "id": "1:7144",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 12,
@@ -601,7 +601,7 @@
                               ]
                             },
                             {
-                              "id": "1:7229",
+                              "id": "1:7145",
                               "name": "Field Image override",
                               "type": "FRAME",
                               "x": 24,
@@ -619,7 +619,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7230",
+                                  "id": "1:7146",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -636,7 +636,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:7231",
+                                      "id": "1:7147",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -649,7 +649,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:7232",
+                                      "id": "1:7148",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -664,7 +664,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7233",
+                                  "id": "1:7149",
                                   "name": "Input",
                                   "type": "INSTANCE",
                                   "x": 216,
@@ -697,7 +697,7 @@
                               ]
                             },
                             {
-                              "id": "1:7234",
+                              "id": "1:7150",
                               "name": "Field Labels",
                               "type": "FRAME",
                               "x": 24,
@@ -715,7 +715,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:7235",
+                                  "id": "1:7151",
                                   "name": "lbl",
                                   "type": "FRAME",
                                   "x": 0,
@@ -732,7 +732,7 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:7236",
+                                      "id": "1:7152",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -745,7 +745,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:7237",
+                                      "id": "1:7153",
                                       "name": "text",
                                       "type": "TEXT",
                                       "x": 0,
@@ -760,7 +760,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:7238",
+                                  "id": "1:7154",
                                   "name": "ctrl",
                                   "type": "FRAME",
                                   "x": 216,
@@ -778,7 +778,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:7239",
+                                      "id": "1:7155",
                                       "name": "key add row",
                                       "type": "FRAME",
                                       "x": 0,
@@ -796,7 +796,7 @@
                                       "layoutAlignSelf": "STRETCH",
                                       "children": [
                                         {
-                                          "id": "1:7240",
+                                          "id": "1:7156",
                                           "name": "key",
                                           "type": "INSTANCE",
                                           "x": 0,
@@ -827,7 +827,7 @@
                                           "texts": ["key"]
                                         },
                                         {
-                                          "id": "1:7241",
+                                          "id": "1:7157",
                                           "name": "value",
                                           "type": "INSTANCE",
                                           "x": 288,
@@ -858,7 +858,7 @@
                                           "texts": ["value"]
                                         },
                                         {
-                                          "id": "1:7242",
+                                          "id": "1:7158",
                                           "name": "Add",
                                           "type": "INSTANCE",
                                           "x": 576,
@@ -890,7 +890,7 @@
                           ]
                         },
                         {
-                          "id": "1:7243",
+                          "id": "1:7159",
                           "name": "Form Footer",
                           "type": "FRAME",
                           "x": 0,
@@ -911,7 +911,7 @@
                           "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "1:7244",
+                              "id": "1:7160",
                               "name": "Btn Discard",
                               "type": "INSTANCE",
                               "x": 681,
@@ -932,7 +932,7 @@
                               "texts": ["Discard"]
                             },
                             {
-                              "id": "1:7245",
+                              "id": "1:7161",
                               "name": "Btn Save Changes",
                               "type": "INSTANCE",
                               "x": 779,

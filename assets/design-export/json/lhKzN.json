@@ -1,6 +1,6 @@
 {
   "file": "lhKzN",
-  "id": "1:7718",
+  "id": "1:7634",
   "name": "Create Server — Step 4 Network · Tunnel disabled",
   "type": "FRAME",
   "x": 3280,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:7719",
+      "id": "1:7635",
       "name": "Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:7720",
+      "id": "1:7636",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:7721",
+          "id": "1:7637",
           "name": "TopBar",
           "type": "INSTANCE",
           "x": 0,
@@ -111,7 +111,7 @@
       ]
     },
     {
-      "id": "1:7722",
+      "id": "1:7638",
       "name": "ModalContainer",
       "type": "FRAME",
       "x": 0,
@@ -130,7 +130,7 @@
       "absolute": true,
       "children": [
         {
-          "id": "1:7723",
+          "id": "1:7639",
           "name": "Modal",
           "type": "FRAME",
           "x": 240,
@@ -154,7 +154,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:7724",
+              "id": "1:7640",
               "name": "Header",
               "type": "INSTANCE",
               "x": 0,
@@ -178,7 +178,7 @@
               "texts": ["New game server", "Step 4 of 5 · Network"]
             },
             {
-              "id": "1:7725",
+              "id": "1:7641",
               "name": "Stepper",
               "type": "FRAME",
               "x": 0,
@@ -236,7 +236,7 @@
                       "variables": {"fills/0/color": "success/soft", "strokes/0/color": "success/success"},
                       "children": [
                         {
-                          "id": "1:7726",
+                          "id": "1:7642",
                           "name": "CheckIcon",
                           "type": "FRAME",
                           "x": 4,
@@ -323,7 +323,7 @@
                       "variables": {"fills/0/color": "success/soft", "strokes/0/color": "success/success"},
                       "children": [
                         {
-                          "id": "1:7727",
+                          "id": "1:7643",
                           "name": "CheckIcon",
                           "type": "FRAME",
                           "x": 4,
@@ -410,7 +410,7 @@
                       "variables": {"fills/0/color": "success/soft", "strokes/0/color": "success/success"},
                       "children": [
                         {
-                          "id": "1:7728",
+                          "id": "1:7644",
                           "name": "CheckIcon",
                           "type": "FRAME",
                           "x": 4,
@@ -604,7 +604,7 @@
               ]
             },
             {
-              "id": "1:7729",
+              "id": "1:7645",
               "name": "Body",
               "type": "FRAME",
               "x": 0,
@@ -623,7 +623,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7730",
+                  "id": "1:7646",
                   "name": "StepBody",
                   "type": "FRAME",
                   "x": 24,
@@ -641,7 +641,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:7731",
+                      "id": "1:7647",
                       "name": "Expose",
                       "type": "INSTANCE",
                       "x": 0,
@@ -670,7 +670,7 @@
                       ]
                     },
                     {
-                      "id": "1:7732",
+                      "id": "1:7648",
                       "name": "Checkbox Enable Tunnel",
                       "type": "INSTANCE",
                       "x": 0,
@@ -690,7 +690,7 @@
                       "texts": ["Enable tunnel"]
                     },
                     {
-                      "id": "1:7733",
+                      "id": "1:7649",
                       "name": "Field Hostname",
                       "type": "INSTANCE",
                       "x": 0,
@@ -711,7 +711,7 @@
                       "texts": ["Hostname (optional)", "mc.example.dev", "We'll never share your email."]
                     },
                     {
-                      "id": "1:7734",
+                      "id": "1:7650",
                       "name": "PortOverrides",
                       "type": "INSTANCE",
                       "x": 0,
@@ -748,7 +748,7 @@
                       ]
                     },
                     {
-                      "id": "1:7735",
+                      "id": "1:7651",
                       "name": "Field IP allow-list",
                       "type": "INSTANCE",
                       "x": 0,
@@ -769,7 +769,7 @@
                       "texts": ["IP allow-list (CIDRs, optional)", "203.0.113.0/24\n10.0.0.0/8", "Max 500 characters."]
                     },
                     {
-                      "id": "1:7736",
+                      "id": "1:7652",
                       "name": "LoadBalancerAddress",
                       "type": "FRAME",
                       "x": 0,
@@ -787,7 +787,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:7737",
+                          "id": "1:7653",
                           "name": "Label",
                           "type": "TEXT",
                           "x": 0,
@@ -800,7 +800,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:7738",
+                          "id": "1:7654",
                           "name": "ColHeader",
                           "type": "FRAME",
                           "x": 0,
@@ -818,7 +818,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7739",
+                              "id": "1:7655",
                               "name": "Col",
                               "type": "TEXT",
                               "x": 0,
@@ -832,7 +832,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:7740",
+                              "id": "1:7656",
                               "name": "Col",
                               "type": "TEXT",
                               "x": 317.5,
@@ -848,7 +848,7 @@
                           ]
                         },
                         {
-                          "id": "1:7741",
+                          "id": "1:7657",
                           "name": "Row",
                           "type": "FRAME",
                           "x": 0,
@@ -866,7 +866,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:7742",
+                              "id": "1:7658",
                               "name": "Field",
                               "type": "INSTANCE",
                               "x": 0,
@@ -887,7 +887,7 @@
                               "texts": ["Email", "pool-us-west", "We'll never share your email."]
                             },
                             {
-                              "id": "1:7743",
+                              "id": "1:7659",
                               "name": "Field",
                               "type": "INSTANCE",
                               "x": 317.5,
@@ -910,7 +910,7 @@
                           ]
                         },
                         {
-                          "id": "1:7744",
+                          "id": "1:7660",
                           "name": "Helper",
                           "type": "TEXT",
                           "x": 0,
@@ -925,7 +925,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:7745",
+                          "id": "1:7661",
                           "name": "Alert Address preference ignored",
                           "type": "INSTANCE",
                           "x": 0,
@@ -956,7 +956,7 @@
                           ]
                         },
                         {
-                          "id": "1:7746",
+                          "id": "1:7662",
                           "name": "Alert No address manager configured",
                           "type": "INSTANCE",
                           "x": 0,
@@ -991,7 +991,7 @@
                   ]
                 },
                 {
-                  "id": "1:7747",
+                  "id": "1:7663",
                   "name": "Preview",
                   "type": "INSTANCE",
                   "x": 663,
@@ -1039,7 +1039,7 @@
               ]
             },
             {
-              "id": "1:7748",
+              "id": "1:7664",
               "name": "Footer",
               "type": "INSTANCE",
               "x": 0,

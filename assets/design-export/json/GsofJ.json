@@ -1,6 +1,6 @@
 {
   "file": "GsofJ",
-  "id": "1:10584",
+  "id": "1:10500",
   "name": "Screen/Login — Language menu open",
   "type": "FRAME",
   "x": 6560,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:10585",
+      "id": "1:10501",
       "name": "loginL",
       "type": "FRAME",
       "x": 0,
@@ -39,7 +39,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10586",
+          "id": "1:10502",
           "name": "loginCard",
           "type": "INSTANCE",
           "x": 150,
@@ -77,7 +77,7 @@
       ]
     },
     {
-      "id": "1:10587",
+      "id": "1:10503",
       "name": "loginR",
       "type": "INSTANCE",
       "x": 720,
@@ -109,7 +109,7 @@
       ]
     },
     {
-      "id": "1:10588",
+      "id": "1:10504",
       "name": "langMenu",
       "type": "FRAME",
       "x": 388,
@@ -137,7 +137,7 @@
       },
       "children": [
         {
-          "id": "1:10589",
+          "id": "1:10505",
           "name": "langItemEnglish",
           "type": "INSTANCE",
           "x": 4,
@@ -161,7 +161,7 @@
           "texts": ["English"]
         },
         {
-          "id": "1:10590",
+          "id": "1:10506",
           "name": "langItemFrancais",
           "type": "INSTANCE",
           "x": 4,
@@ -184,7 +184,7 @@
           "texts": ["Français"]
         },
         {
-          "id": "1:10591",
+          "id": "1:10507",
           "name": "langItemDeutsch",
           "type": "INSTANCE",
           "x": 4,

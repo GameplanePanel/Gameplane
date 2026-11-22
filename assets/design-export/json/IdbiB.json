@@ -1,6 +1,6 @@
 {
   "file": "IdbiB",
-  "id": "1:6983",
+  "id": "1:6899",
   "name": "Screen/Dialog/Build Module — Step 1 (Preset & Metadata)",
   "type": "FRAME",
   "x": 0,
@@ -23,7 +23,7 @@
   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
   "children": [
     {
-      "id": "1:6984",
+      "id": "1:6900",
       "name": "ModalHeader",
       "type": "FRAME",
       "x": 0,
@@ -44,7 +44,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:6985",
+          "id": "1:6901",
           "name": "TitleGroup",
           "type": "FRAME",
           "x": 28,
@@ -61,7 +61,7 @@
           },
           "children": [
             {
-              "id": "1:6986",
+              "id": "1:6902",
               "name": "Title",
               "type": "TEXT",
               "x": 0,
@@ -74,7 +74,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:6987",
+              "id": "1:6903",
               "name": "Subtitle",
               "type": "TEXT",
               "x": 0,
@@ -89,7 +89,7 @@
           ]
         },
         {
-          "id": "1:6988",
+          "id": "1:6904",
           "name": "CloseIcon",
           "type": "FRAME",
           "x": 754,
@@ -113,7 +113,7 @@
       ]
     },
     {
-      "id": "1:6989",
+      "id": "1:6905",
       "name": "Stepper",
       "type": "FRAME",
       "x": 0,
@@ -134,7 +134,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:6990",
+          "id": "1:6906",
           "name": "Step1_Active",
           "type": "FRAME",
           "x": 28,
@@ -151,7 +151,7 @@
           },
           "children": [
             {
-              "id": "1:6991",
+              "id": "1:6907",
               "name": "Badge",
               "type": "FRAME",
               "x": 0,
@@ -171,7 +171,7 @@
               "variables": {"fills/0/color": "accent/accent"},
               "children": [
                 {
-                  "id": "1:6992",
+                  "id": "1:6908",
                   "name": "Num",
                   "type": "TEXT",
                   "x": 7.5,
@@ -186,7 +186,7 @@
               ]
             },
             {
-              "id": "1:6993",
+              "id": "1:6909",
               "name": "Label",
               "type": "TEXT",
               "x": 28,
@@ -201,7 +201,7 @@
           ]
         },
         {
-          "id": "1:6994",
+          "id": "1:6910",
           "name": "Sep1",
           "type": "TEXT",
           "x": 181,
@@ -214,7 +214,7 @@
           "variables": {"fills/0/color": "muted"}
         },
         {
-          "id": "1:6995",
+          "id": "1:6911",
           "name": "Step2_Inactive",
           "type": "FRAME",
           "x": 197,
@@ -231,7 +231,7 @@
           },
           "children": [
             {
-              "id": "1:6996",
+              "id": "1:6912",
               "name": "Badge",
               "type": "FRAME",
               "x": 0,
@@ -252,7 +252,7 @@
               "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:6997",
+                  "id": "1:6913",
                   "name": "Num",
                   "type": "TEXT",
                   "x": 6.5,
@@ -267,7 +267,7 @@
               ]
             },
             {
-              "id": "1:6998",
+              "id": "1:6914",
               "name": "Label",
               "type": "TEXT",
               "x": 28,
@@ -282,7 +282,7 @@
           ]
         },
         {
-          "id": "1:6999",
+          "id": "1:6915",
           "name": "Sep2",
           "type": "TEXT",
           "x": 342,
@@ -295,7 +295,7 @@
           "variables": {"fills/0/color": "muted"}
         },
         {
-          "id": "1:7000",
+          "id": "1:6916",
           "name": "Step3_Inactive",
           "type": "FRAME",
           "x": 358,
@@ -312,7 +312,7 @@
           },
           "children": [
             {
-              "id": "1:7001",
+              "id": "1:6917",
               "name": "Badge",
               "type": "FRAME",
               "x": 0,
@@ -333,7 +333,7 @@
               "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7002",
+                  "id": "1:6918",
                   "name": "Num",
                   "type": "TEXT",
                   "x": 6.5,
@@ -348,7 +348,7 @@
               ]
             },
             {
-              "id": "1:7003",
+              "id": "1:6919",
               "name": "Label",
               "type": "TEXT",
               "x": 28,
@@ -365,7 +365,7 @@
       ]
     },
     {
-      "id": "1:7004",
+      "id": "1:6920",
       "name": "Body",
       "type": "FRAME",
       "x": 0,
@@ -383,7 +383,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:7005",
+          "id": "1:6921",
           "name": "ArchetypeLabel",
           "type": "TEXT",
           "x": 28,
@@ -396,7 +396,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "id": "1:7006",
+          "id": "1:6922",
           "name": "ArchetypesRow",
           "type": "FRAME",
           "x": 28,
@@ -414,7 +414,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:7007",
+              "id": "1:6923",
               "name": "Archetype_SteamCMD_Selected",
               "type": "FRAME",
               "x": 0,
@@ -437,7 +437,7 @@
               "variables": {"fills/0/color": "surface-alt", "strokes/0/color": "accent/accent"},
               "children": [
                 {
-                  "id": "1:7008",
+                  "id": "1:6924",
                   "name": "Title",
                   "type": "TEXT",
                   "x": 14,
@@ -450,7 +450,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:7009",
+                  "id": "1:6925",
                   "name": "Desc",
                   "type": "TEXT",
                   "x": 14,
@@ -466,7 +466,7 @@
               ]
             },
             {
-              "id": "1:7010",
+              "id": "1:6926",
               "name": "Archetype_Java",
               "type": "FRAME",
               "x": 252,
@@ -489,7 +489,7 @@
               "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7011",
+                  "id": "1:6927",
                   "name": "Title",
                   "type": "TEXT",
                   "x": 14,
@@ -502,7 +502,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:7012",
+                  "id": "1:6928",
                   "name": "Desc",
                   "type": "TEXT",
                   "x": 14,
@@ -518,7 +518,7 @@
               ]
             },
             {
-              "id": "1:7013",
+              "id": "1:6929",
               "name": "Archetype_Generic",
               "type": "FRAME",
               "x": 504,
@@ -541,7 +541,7 @@
               "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "id": "1:7014",
+                  "id": "1:6930",
                   "name": "Title",
                   "type": "TEXT",
                   "x": 14,
@@ -554,7 +554,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:7015",
+                  "id": "1:6931",
                   "name": "Desc",
                   "type": "TEXT",
                   "x": 14,
@@ -572,7 +572,7 @@
           ]
         },
         {
-          "id": "1:7016",
+          "id": "1:6932",
           "name": "ArchetypeConfigSection",
           "type": "FRAME",
           "x": 28,
@@ -590,7 +590,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:7017",
+              "id": "1:6933",
               "name": "ArchetypeConfigHeaderRow",
               "type": "FRAME",
               "x": 0,
@@ -607,7 +607,7 @@
               },
               "children": [
                 {
-                  "id": "1:7018",
+                  "id": "1:6934",
                   "name": "ArchetypeConfigLabel",
                   "type": "TEXT",
                   "x": 0,
@@ -620,7 +620,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:7019",
+                  "id": "1:6935",
                   "name": "ArchetypeConfigChip",
                   "type": "INSTANCE",
                   "x": 155,
@@ -645,7 +645,7 @@
               ]
             },
             {
-              "id": "1:7020",
+              "id": "1:6936",
               "name": "ArchetypeConfigHint",
               "type": "TEXT",
               "x": 0,
@@ -659,7 +659,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:7021",
+              "id": "1:6937",
               "name": "ArchetypeFieldsRow",
               "type": "FRAME",
               "x": 0,
@@ -677,7 +677,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7022",
+                  "id": "1:6938",
                   "name": "MaxPlayersField",
                   "type": "INSTANCE",
                   "x": 0,
@@ -685,7 +685,7 @@
                   "width": 237.33,
                   "height": 58,
                   "component": "NumberField/Primary",
-                  "componentId": "1:6064",
+                  "componentId": "1:5980",
                   "layout": {
                     "mode": "VERTICAL",
                     "gap": 4,
@@ -698,7 +698,7 @@
                   "texts": ["Maximum Players", "16"]
                 },
                 {
-                  "id": "1:7023",
+                  "id": "1:6939",
                   "name": "ServerPasswordField",
                   "type": "INSTANCE",
                   "x": 253.33,
@@ -719,7 +719,7 @@
                   "texts": ["Server Password", "Optional", "Password required for players to join the server."]
                 },
                 {
-                  "id": "1:7024",
+                  "id": "1:6940",
                   "name": "SteamAppIdField",
                   "type": "INSTANCE",
                   "x": 506.67,
@@ -748,7 +748,7 @@
           ]
         },
         {
-          "id": "1:7025",
+          "id": "1:6941",
           "name": "FormFields",
           "type": "FRAME",
           "x": 28,
@@ -766,7 +766,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:7026",
+              "id": "1:6942",
               "name": "NameFieldGroup",
               "type": "FRAME",
               "x": 0,
@@ -784,7 +784,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7027",
+                  "id": "1:6943",
                   "name": "NameLabelRow",
                   "type": "FRAME",
                   "x": 0,
@@ -802,7 +802,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7028",
+                      "id": "1:6944",
                       "name": "Label",
                       "type": "TEXT",
                       "x": 0,
@@ -815,7 +815,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:7029",
+                      "id": "1:6945",
                       "name": "DNSBadge",
                       "type": "TEXT",
                       "x": 628,
@@ -830,7 +830,7 @@
                   ]
                 },
                 {
-                  "id": "1:7030",
+                  "id": "1:6946",
                   "name": "InputBox",
                   "type": "FRAME",
                   "x": 0,
@@ -852,7 +852,7 @@
                   "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "id": "1:7031",
+                      "id": "1:6947",
                       "name": "Val",
                       "type": "TEXT",
                       "x": 323.5,
@@ -869,7 +869,7 @@
               ]
             },
             {
-              "id": "1:7032",
+              "id": "1:6948",
               "name": "DisplayNameGroup",
               "type": "FRAME",
               "x": 0,
@@ -887,7 +887,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7033",
+                  "id": "1:6949",
                   "name": "Label",
                   "type": "TEXT",
                   "x": 0,
@@ -900,7 +900,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:7034",
+                  "id": "1:6950",
                   "name": "InputBox",
                   "type": "FRAME",
                   "x": 0,
@@ -922,7 +922,7 @@
                   "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "id": "1:7035",
+                      "id": "1:6951",
                       "name": "Val",
                       "type": "TEXT",
                       "x": 285,
@@ -939,7 +939,7 @@
               ]
             },
             {
-              "id": "1:7036",
+              "id": "1:6952",
               "name": "SummaryGroup",
               "type": "FRAME",
               "x": 0,
@@ -957,7 +957,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7037",
+                  "id": "1:6953",
                   "name": "Label",
                   "type": "TEXT",
                   "x": 0,
@@ -970,7 +970,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:7038",
+                  "id": "1:6954",
                   "name": "InputBox",
                   "type": "FRAME",
                   "x": 0,
@@ -992,7 +992,7 @@
                   "variables": {"strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "id": "1:7039",
+                      "id": "1:6955",
                       "name": "Val",
                       "type": "TEXT",
                       "x": 221.5,
@@ -1009,7 +1009,7 @@
               ]
             },
             {
-              "id": "1:7040",
+              "id": "1:6956",
               "name": "CategoriesGroup",
               "type": "FRAME",
               "x": 0,
@@ -1027,7 +1027,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:7041",
+                  "id": "1:6957",
                   "name": "CategoriesLabelRow",
                   "type": "FRAME",
                   "x": 0,
@@ -1045,7 +1045,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7042",
+                      "id": "1:6958",
                       "name": "Label",
                       "type": "TEXT",
                       "x": 0,
@@ -1058,7 +1058,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:7043",
+                      "id": "1:6959",
                       "name": "RecommendedHint",
                       "type": "TEXT",
                       "x": 668,
@@ -1073,7 +1073,7 @@
                   ]
                 },
                 {
-                  "id": "1:7044",
+                  "id": "1:6960",
                   "name": "ChipsRow",
                   "type": "FRAME",
                   "x": 0,
@@ -1091,7 +1091,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7045",
+                      "id": "1:6961",
                       "name": "ChipsRow_Line1",
                       "type": "FRAME",
                       "x": 0,
@@ -1108,7 +1108,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:7046",
+                          "id": "1:6962",
                           "name": "Chip_Shooter",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1132,7 +1132,7 @@
                           "texts": ["Shooter"]
                         },
                         {
-                          "id": "1:7047",
+                          "id": "1:6963",
                           "name": "Chip_Sandbox",
                           "type": "INSTANCE",
                           "x": 72,
@@ -1156,7 +1156,7 @@
                           "texts": ["Sandbox"]
                         },
                         {
-                          "id": "1:7048",
+                          "id": "1:6964",
                           "name": "Chip_Survival",
                           "type": "INSTANCE",
                           "x": 149,
@@ -1180,7 +1180,7 @@
                           "texts": ["Survival"]
                         },
                         {
-                          "id": "1:7049",
+                          "id": "1:6965",
                           "name": "Chip_Simulation",
                           "type": "INSTANCE",
                           "x": 221,
@@ -1204,7 +1204,7 @@
                           "texts": ["Simulation"]
                         },
                         {
-                          "id": "1:7050",
+                          "id": "1:6966",
                           "name": "Chip_Building",
                           "type": "INSTANCE",
                           "x": 308,
@@ -1228,7 +1228,7 @@
                           "texts": ["Building"]
                         },
                         {
-                          "id": "1:7051",
+                          "id": "1:6967",
                           "name": "Chip_Adventure",
                           "type": "INSTANCE",
                           "x": 381,
@@ -1252,7 +1252,7 @@
                           "texts": ["Adventure"]
                         },
                         {
-                          "id": "1:7052",
+                          "id": "1:6968",
                           "name": "Chip_Horror",
                           "type": "INSTANCE",
                           "x": 466,
@@ -1276,7 +1276,7 @@
                           "texts": ["Horror"]
                         },
                         {
-                          "id": "1:7053",
+                          "id": "1:6969",
                           "name": "Chip_Coop_Unselected",
                           "type": "INSTANCE",
                           "x": 529,
@@ -1300,7 +1300,7 @@
                           "texts": ["Co-op"]
                         },
                         {
-                          "id": "1:7054",
+                          "id": "1:6970",
                           "name": "Chip_PvP",
                           "type": "INSTANCE",
                           "x": 592,
@@ -1324,7 +1324,7 @@
                           "texts": ["PvP"]
                         },
                         {
-                          "id": "1:7055",
+                          "id": "1:6971",
                           "name": "Chip_Modded",
                           "type": "INSTANCE",
                           "x": 642,
@@ -1350,7 +1350,7 @@
                       ]
                     },
                     {
-                      "id": "1:7056",
+                      "id": "1:6972",
                       "name": "ChipsRow_Line2",
                       "type": "FRAME",
                       "x": 0,
@@ -1367,7 +1367,7 @@
                       },
                       "children": [
                         {
-                          "id": "1:7057",
+                          "id": "1:6973",
                           "name": "Chip_Creative",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1393,7 +1393,7 @@
                       ]
                     },
                     {
-                      "id": "1:7058",
+                      "id": "1:6974",
                       "name": "CustomTagInput",
                       "type": "FRAME",
                       "x": 0,
@@ -1411,7 +1411,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:7059",
+                          "id": "1:6975",
                           "name": "Custom Tag Input",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1442,7 +1442,7 @@
                           "texts": ["Add custom tag..."]
                         },
                         {
-                          "id": "1:7060",
+                          "id": "1:6976",
                           "name": "Add Tag Button",
                           "type": "INSTANCE",
                           "x": 657,
@@ -1467,7 +1467,7 @@
                   ]
                 },
                 {
-                  "id": "1:7061",
+                  "id": "1:6977",
                   "name": "SelectedTagsSection",
                   "type": "FRAME",
                   "x": 0,
@@ -1485,7 +1485,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:7062",
+                      "id": "1:6978",
                       "name": "SelectedTagsHeading",
                       "type": "TEXT",
                       "x": 0,
@@ -1498,7 +1498,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:7063",
+                      "id": "1:6979",
                       "name": "SelectedTagsRow",
                       "type": "FRAME",
                       "x": 0,
@@ -1516,7 +1516,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:7064",
+                          "id": "1:6980",
                           "name": "Chip_Custom_Selected",
                           "type": "INSTANCE",
                           "x": 0,
@@ -1549,7 +1549,7 @@
       ]
     },
     {
-      "id": "1:7065",
+      "id": "1:6981",
       "name": "ModalFooter",
       "type": "FRAME",
       "x": 0,
@@ -1570,7 +1570,7 @@
       "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "1:7066",
+          "id": "1:6982",
           "name": "Hint",
           "type": "TEXT",
           "x": 28,
@@ -1583,7 +1583,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:7067",
+          "id": "1:6983",
           "name": "ButtonsRow",
           "type": "FRAME",
           "x": 451,
@@ -1600,7 +1600,7 @@
           },
           "children": [
             {
-              "id": "1:7068",
+              "id": "1:6984",
               "name": "CancelButton",
               "type": "INSTANCE",
               "x": 0,
@@ -1629,7 +1629,7 @@
               "texts": ["Cancel"]
             },
             {
-              "id": "1:7069",
+              "id": "1:6985",
               "name": "NextButton",
               "type": "INSTANCE",
               "x": 79,

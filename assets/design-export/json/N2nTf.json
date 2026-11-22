@@ -1,6 +1,6 @@
 {
   "file": "N2nTf",
-  "id": "1:11169",
+  "id": "1:11085",
   "name": "Screen/Mobile — Nodes — All clusters",
   "type": "FRAME",
   "x": 21280,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:11170",
+      "id": "1:11086",
       "name": "Mobile navigation",
       "type": "INSTANCE",
       "x": 0,
@@ -44,7 +44,7 @@
       "texts": ["Nodes", "AD"]
     },
     {
-      "id": "1:11171",
+      "id": "1:11087",
       "name": "Mobile node inventory",
       "type": "FRAME",
       "x": 0,
@@ -62,7 +62,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:11172",
+          "id": "1:11088",
           "name": "Page description",
           "type": "TEXT",
           "x": 16,
@@ -77,7 +77,7 @@
           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "1:11173",
+          "id": "1:11089",
           "name": "Summary and add action",
           "type": "FRAME",
           "x": 16,
@@ -95,7 +95,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:11174",
+              "id": "1:11090",
               "name": "Ready nodes summary",
               "type": "TEXT",
               "x": 0,
@@ -110,7 +110,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:11175",
+              "id": "1:11091",
               "name": "Add node",
               "type": "INSTANCE",
               "x": 239,
@@ -141,7 +141,7 @@
           ]
         },
         {
-          "id": "1:11176",
+          "id": "1:11092",
           "name": "Search and Filters — mobile",
           "type": "INSTANCE",
           "x": 16,
@@ -149,7 +149,7 @@
           "width": 358,
           "height": 36,
           "component": "Gameplane/Nodes Search and Filters Row",
-          "componentId": "1:11038",
+          "componentId": "1:10954",
           "layout": {
             "mode": "HORIZONTAL",
             "gap": 12,
@@ -162,7 +162,7 @@
           "texts": ["Search nodes…", "Filter"]
         },
         {
-          "id": "1:11177",
+          "id": "1:11093",
           "name": "Sort nodes",
           "type": "INSTANCE",
           "x": 16,
@@ -193,7 +193,7 @@
           "texts": ["Sort: Node name ↑"]
         },
         {
-          "id": "1:11178",
+          "id": "1:11094",
           "name": "Partial inventory",
           "type": "FRAME",
           "x": 16,
@@ -214,7 +214,7 @@
           "variables": {"fills/0/color": "warning/soft"},
           "children": [
             {
-              "id": "1:11179",
+              "id": "1:11095",
               "name": "Partial data message",
               "type": "TEXT",
               "x": 12,
@@ -231,7 +231,7 @@
           ]
         },
         {
-          "id": "1:11180",
+          "id": "1:11096",
           "name": "Stacked node kubelab-control",
           "type": "FRAME",
           "x": 16,
@@ -254,7 +254,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:11181",
+              "id": "1:11097",
               "name": "Node name",
               "type": "TEXT",
               "x": 16,
@@ -269,7 +269,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:11182",
+              "id": "1:11098",
               "name": "Cluster and readiness",
               "type": "FRAME",
               "x": 16,
@@ -287,7 +287,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11183",
+                  "id": "1:11099",
                   "name": "Cluster link",
                   "type": "TEXT",
                   "x": 0,
@@ -302,7 +302,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                 },
                 {
-                  "id": "1:11184",
+                  "id": "1:11100",
                   "name": "Node readiness",
                   "type": "TEXT",
                   "x": 169,
@@ -319,7 +319,7 @@
               ]
             },
             {
-              "id": "1:11185",
+              "id": "1:11101",
               "name": "Node metrics",
               "type": "FRAME",
               "x": 16,
@@ -337,7 +337,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11186",
+                  "id": "1:11102",
                   "name": "CPU",
                   "type": "FRAME",
                   "x": 0,
@@ -355,7 +355,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11187",
+                      "id": "1:11103",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -370,7 +370,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11188",
+                      "id": "1:11104",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -387,7 +387,7 @@
                   ]
                 },
                 {
-                  "id": "1:11189",
+                  "id": "1:11105",
                   "name": "Memory",
                   "type": "FRAME",
                   "x": 169,
@@ -405,7 +405,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11190",
+                      "id": "1:11106",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -420,7 +420,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11191",
+                      "id": "1:11107",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -439,7 +439,7 @@
               ]
             },
             {
-              "id": "1:11192",
+              "id": "1:11108",
               "name": "Node metrics",
               "type": "FRAME",
               "x": 16,
@@ -457,7 +457,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11193",
+                  "id": "1:11109",
                   "name": "Pods",
                   "type": "FRAME",
                   "x": 0,
@@ -475,7 +475,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11194",
+                      "id": "1:11110",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -490,7 +490,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11195",
+                      "id": "1:11111",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -507,7 +507,7 @@
                   ]
                 },
                 {
-                  "id": "1:11196",
+                  "id": "1:11112",
                   "name": "Uptime",
                   "type": "FRAME",
                   "x": 169,
@@ -525,7 +525,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11197",
+                      "id": "1:11113",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -540,7 +540,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11198",
+                      "id": "1:11114",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -561,7 +561,7 @@
           ]
         },
         {
-          "id": "1:11199",
+          "id": "1:11115",
           "name": "Stacked node kubelab-worker-1",
           "type": "FRAME",
           "x": 16,
@@ -584,7 +584,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:11200",
+              "id": "1:11116",
               "name": "Node name",
               "type": "TEXT",
               "x": 16,
@@ -599,7 +599,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:11201",
+              "id": "1:11117",
               "name": "Cluster and readiness",
               "type": "FRAME",
               "x": 16,
@@ -617,7 +617,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11202",
+                  "id": "1:11118",
                   "name": "Cluster link",
                   "type": "TEXT",
                   "x": 0,
@@ -632,7 +632,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                 },
                 {
-                  "id": "1:11203",
+                  "id": "1:11119",
                   "name": "Node readiness",
                   "type": "TEXT",
                   "x": 169,
@@ -649,7 +649,7 @@
               ]
             },
             {
-              "id": "1:11204",
+              "id": "1:11120",
               "name": "Node metrics",
               "type": "FRAME",
               "x": 16,
@@ -667,7 +667,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11205",
+                  "id": "1:11121",
                   "name": "CPU",
                   "type": "FRAME",
                   "x": 0,
@@ -685,7 +685,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11206",
+                      "id": "1:11122",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -700,7 +700,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11207",
+                      "id": "1:11123",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -717,7 +717,7 @@
                   ]
                 },
                 {
-                  "id": "1:11208",
+                  "id": "1:11124",
                   "name": "Memory",
                   "type": "FRAME",
                   "x": 169,
@@ -735,7 +735,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11209",
+                      "id": "1:11125",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -750,7 +750,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11210",
+                      "id": "1:11126",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -769,7 +769,7 @@
               ]
             },
             {
-              "id": "1:11211",
+              "id": "1:11127",
               "name": "Node metrics",
               "type": "FRAME",
               "x": 16,
@@ -787,7 +787,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11212",
+                  "id": "1:11128",
                   "name": "Pods",
                   "type": "FRAME",
                   "x": 0,
@@ -805,7 +805,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11213",
+                      "id": "1:11129",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -820,7 +820,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11214",
+                      "id": "1:11130",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -837,7 +837,7 @@
                   ]
                 },
                 {
-                  "id": "1:11215",
+                  "id": "1:11131",
                   "name": "Uptime",
                   "type": "FRAME",
                   "x": 169,
@@ -855,7 +855,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11216",
+                      "id": "1:11132",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -870,7 +870,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11217",
+                      "id": "1:11133",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -891,7 +891,7 @@
           ]
         },
         {
-          "id": "1:11218",
+          "id": "1:11134",
           "name": "Stacked node kubelab-worker-2",
           "type": "FRAME",
           "x": 16,
@@ -914,7 +914,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:11219",
+              "id": "1:11135",
               "name": "Node name",
               "type": "TEXT",
               "x": 16,
@@ -929,7 +929,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:11220",
+              "id": "1:11136",
               "name": "Cluster and readiness",
               "type": "FRAME",
               "x": 16,
@@ -947,7 +947,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11221",
+                  "id": "1:11137",
                   "name": "Cluster link",
                   "type": "TEXT",
                   "x": 0,
@@ -962,7 +962,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                 },
                 {
-                  "id": "1:11222",
+                  "id": "1:11138",
                   "name": "Node readiness",
                   "type": "TEXT",
                   "x": 169,
@@ -979,7 +979,7 @@
               ]
             },
             {
-              "id": "1:11223",
+              "id": "1:11139",
               "name": "Node metrics",
               "type": "FRAME",
               "x": 16,
@@ -997,7 +997,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11224",
+                  "id": "1:11140",
                   "name": "CPU",
                   "type": "FRAME",
                   "x": 0,
@@ -1015,7 +1015,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11225",
+                      "id": "1:11141",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1030,7 +1030,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11226",
+                      "id": "1:11142",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1047,7 +1047,7 @@
                   ]
                 },
                 {
-                  "id": "1:11227",
+                  "id": "1:11143",
                   "name": "Memory",
                   "type": "FRAME",
                   "x": 169,
@@ -1065,7 +1065,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11228",
+                      "id": "1:11144",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1080,7 +1080,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11229",
+                      "id": "1:11145",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1099,7 +1099,7 @@
               ]
             },
             {
-              "id": "1:11230",
+              "id": "1:11146",
               "name": "Node metrics",
               "type": "FRAME",
               "x": 16,
@@ -1117,7 +1117,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11231",
+                  "id": "1:11147",
                   "name": "Pods",
                   "type": "FRAME",
                   "x": 0,
@@ -1135,7 +1135,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11232",
+                      "id": "1:11148",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1150,7 +1150,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11233",
+                      "id": "1:11149",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1167,7 +1167,7 @@
                   ]
                 },
                 {
-                  "id": "1:11234",
+                  "id": "1:11150",
                   "name": "Uptime",
                   "type": "FRAME",
                   "x": 169,
@@ -1185,7 +1185,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11235",
+                      "id": "1:11151",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1200,7 +1200,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11236",
+                      "id": "1:11152",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1221,7 +1221,7 @@
           ]
         },
         {
-          "id": "1:11237",
+          "id": "1:11153",
           "name": "Stacked node remote-worker-1",
           "type": "FRAME",
           "x": 16,
@@ -1244,7 +1244,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:11238",
+              "id": "1:11154",
               "name": "Node name",
               "type": "TEXT",
               "x": 16,
@@ -1259,7 +1259,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:11239",
+              "id": "1:11155",
               "name": "Cluster and readiness",
               "type": "FRAME",
               "x": 16,
@@ -1277,7 +1277,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11240",
+                  "id": "1:11156",
                   "name": "Cluster link",
                   "type": "TEXT",
                   "x": 0,
@@ -1292,7 +1292,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                 },
                 {
-                  "id": "1:11241",
+                  "id": "1:11157",
                   "name": "Node readiness",
                   "type": "TEXT",
                   "x": 169,
@@ -1309,7 +1309,7 @@
               ]
             },
             {
-              "id": "1:11242",
+              "id": "1:11158",
               "name": "Node metrics",
               "type": "FRAME",
               "x": 16,
@@ -1327,7 +1327,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11243",
+                  "id": "1:11159",
                   "name": "CPU",
                   "type": "FRAME",
                   "x": 0,
@@ -1345,7 +1345,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11244",
+                      "id": "1:11160",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1360,7 +1360,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11245",
+                      "id": "1:11161",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1377,7 +1377,7 @@
                   ]
                 },
                 {
-                  "id": "1:11246",
+                  "id": "1:11162",
                   "name": "Memory",
                   "type": "FRAME",
                   "x": 169,
@@ -1395,7 +1395,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11247",
+                      "id": "1:11163",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1410,7 +1410,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11248",
+                      "id": "1:11164",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1429,7 +1429,7 @@
               ]
             },
             {
-              "id": "1:11249",
+              "id": "1:11165",
               "name": "Node metrics",
               "type": "FRAME",
               "x": 16,
@@ -1447,7 +1447,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11250",
+                  "id": "1:11166",
                   "name": "Pods",
                   "type": "FRAME",
                   "x": 0,
@@ -1465,7 +1465,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11251",
+                      "id": "1:11167",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1480,7 +1480,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11252",
+                      "id": "1:11168",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1497,7 +1497,7 @@
                   ]
                 },
                 {
-                  "id": "1:11253",
+                  "id": "1:11169",
                   "name": "Uptime",
                   "type": "FRAME",
                   "x": 169,
@@ -1515,7 +1515,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11254",
+                      "id": "1:11170",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1530,7 +1530,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11255",
+                      "id": "1:11171",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1551,7 +1551,7 @@
           ]
         },
         {
-          "id": "1:11256",
+          "id": "1:11172",
           "name": "Stacked node remote-worker-2",
           "type": "FRAME",
           "x": 16,
@@ -1574,7 +1574,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:11257",
+              "id": "1:11173",
               "name": "Node name",
               "type": "TEXT",
               "x": 16,
@@ -1589,7 +1589,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:11258",
+              "id": "1:11174",
               "name": "Cluster and readiness",
               "type": "FRAME",
               "x": 16,
@@ -1607,7 +1607,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11259",
+                  "id": "1:11175",
                   "name": "Cluster link",
                   "type": "TEXT",
                   "x": 0,
@@ -1622,7 +1622,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                 },
                 {
-                  "id": "1:11260",
+                  "id": "1:11176",
                   "name": "Node readiness",
                   "type": "TEXT",
                   "x": 169,
@@ -1639,7 +1639,7 @@
               ]
             },
             {
-              "id": "1:11261",
+              "id": "1:11177",
               "name": "Node metrics",
               "type": "FRAME",
               "x": 16,
@@ -1657,7 +1657,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11262",
+                  "id": "1:11178",
                   "name": "CPU",
                   "type": "FRAME",
                   "x": 0,
@@ -1675,7 +1675,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11263",
+                      "id": "1:11179",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1690,7 +1690,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11264",
+                      "id": "1:11180",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1707,7 +1707,7 @@
                   ]
                 },
                 {
-                  "id": "1:11265",
+                  "id": "1:11181",
                   "name": "Memory",
                   "type": "FRAME",
                   "x": 169,
@@ -1725,7 +1725,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11266",
+                      "id": "1:11182",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1740,7 +1740,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11267",
+                      "id": "1:11183",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1759,7 +1759,7 @@
               ]
             },
             {
-              "id": "1:11268",
+              "id": "1:11184",
               "name": "Node metrics",
               "type": "FRAME",
               "x": 16,
@@ -1777,7 +1777,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11269",
+                  "id": "1:11185",
                   "name": "Pods",
                   "type": "FRAME",
                   "x": 0,
@@ -1795,7 +1795,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11270",
+                      "id": "1:11186",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1810,7 +1810,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11271",
+                      "id": "1:11187",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1827,7 +1827,7 @@
                   ]
                 },
                 {
-                  "id": "1:11272",
+                  "id": "1:11188",
                   "name": "Uptime",
                   "type": "FRAME",
                   "x": 169,
@@ -1845,7 +1845,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "id": "1:11273",
+                      "id": "1:11189",
                       "name": "Metric label",
                       "type": "TEXT",
                       "x": 0,
@@ -1860,7 +1860,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:11274",
+                      "id": "1:11190",
                       "name": "Metric value",
                       "type": "TEXT",
                       "x": 0,
@@ -1881,7 +1881,7 @@
           ]
         },
         {
-          "id": "1:11275",
+          "id": "1:11191",
           "name": "Results summary",
           "type": "TEXT",
           "x": 16,

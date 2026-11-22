@@ -1,6 +1,6 @@
 {
   "file": "jXykV",
-  "id": "1:7405",
+  "id": "1:7321",
   "name": "J5pjJ3 states/Alerts",
   "type": "FRAME",
   "x": 10540,
@@ -19,7 +19,7 @@
   "variables": {"fills/0/color": "surface/surface"},
   "children": [
     {
-      "id": "1:7406",
+      "id": "1:7322",
       "name": "AlertStatesCaption",
       "type": "TEXT",
       "x": 20,
@@ -32,7 +32,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
     },
     {
-      "id": "1:7407",
+      "id": "1:7323",
       "name": "Alert Ignored For Exposure Mode",
       "type": "INSTANCE",
       "x": 20,
@@ -40,7 +40,7 @@
       "width": 660,
       "height": 84,
       "component": "Alert/Warning Simple",
-      "componentId": "1:5629",
+      "componentId": "1:5543",
       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
       "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
       "cornerRadius": 24,
@@ -60,7 +60,7 @@
       ]
     },
     {
-      "id": "1:7408",
+      "id": "1:7324",
       "name": "Alert No Address Manager Configured",
       "type": "INSTANCE",
       "x": 20,
@@ -68,7 +68,7 @@
       "width": 660,
       "height": 84,
       "component": "Alert/Warning Simple",
-      "componentId": "1:5629",
+      "componentId": "1:5543",
       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
       "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
       "cornerRadius": 24,

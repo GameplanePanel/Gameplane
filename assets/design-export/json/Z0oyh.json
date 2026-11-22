@@ -1,6 +1,6 @@
 {
   "file": "Z0oyh",
-  "id": "1:9380",
+  "id": "1:9296",
   "name": "Screen/Standalone — Modules (No selection)",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9381",
+      "id": "1:9297",
       "name": "App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:9382",
+      "id": "1:9298",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:9383",
+          "id": "1:9299",
           "name": "Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Modules", "Search servers…", "AD"]
         },
         {
-          "id": "1:9384",
+          "id": "1:9300",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -128,7 +128,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9385",
+              "id": "1:9301",
               "name": "Workload cluster selector",
               "type": "FRAME",
               "x": 24,
@@ -154,7 +154,7 @@
               },
               "children": [
                 {
-                  "id": "1:9386",
+                  "id": "1:9302",
                   "name": "API status",
                   "type": "ELLIPSE",
                   "x": 12,
@@ -165,7 +165,7 @@
                   "variables": {"fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:9387",
+                  "id": "1:9303",
                   "name": "Selector label",
                   "type": "TEXT",
                   "x": 26,
@@ -178,7 +178,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:9388",
+                  "id": "1:9304",
                   "name": "Selected workload cluster",
                   "type": "TEXT",
                   "x": 82,
@@ -191,7 +191,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:9389",
+                  "id": "1:9305",
                   "name": "Open cluster choices",
                   "type": "FRAME",
                   "x": 177,
@@ -215,7 +215,7 @@
               ]
             },
             {
-              "id": "1:9390",
+              "id": "1:9306",
               "name": "Select cluster guidance",
               "type": "FRAME",
               "x": 24,
@@ -236,7 +236,7 @@
               "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
               "children": [
                 {
-                  "id": "1:9391",
+                  "id": "1:9307",
                   "name": "Selection title",
                   "type": "TEXT",
                   "x": 24,
@@ -251,7 +251,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:9392",
+                  "id": "1:9308",
                   "name": "Selection description",
                   "type": "TEXT",
                   "x": 24,
@@ -266,7 +266,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "1:9393",
+                  "id": "1:9309",
                   "name": "Manage clusters link",
                   "type": "TEXT",
                   "x": 24,

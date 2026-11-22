@@ -1,6 +1,6 @@
 {
   "file": "NLDDv",
-  "id": "1:10369",
+  "id": "1:10285",
   "name": "Gameplane/Dialog/Invite User",
   "type": "FRAME",
   "x": 3816,
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "id": "1:10370",
+      "id": "1:10286",
       "name": "mBody",
       "type": "FRAME",
       "x": 20,
@@ -91,7 +91,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10371",
+          "id": "1:10287",
           "name": "frame",
           "type": "FRAME",
           "x": 0,
@@ -109,7 +109,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10372",
+              "id": "1:10288",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -122,7 +122,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10373",
+              "id": "1:10289",
               "name": "Input",
               "type": "INSTANCE",
               "x": 0,
@@ -155,7 +155,7 @@
           ]
         },
         {
-          "id": "1:10374",
+          "id": "1:10290",
           "name": "frame",
           "type": "FRAME",
           "x": 0,
@@ -173,7 +173,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10375",
+              "id": "1:10291",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -186,7 +186,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10376",
+              "id": "1:10292",
               "name": "Input",
               "type": "INSTANCE",
               "x": 0,
@@ -219,7 +219,7 @@
           ]
         },
         {
-          "id": "1:10377",
+          "id": "1:10293",
           "name": "frame",
           "type": "FRAME",
           "x": 0,
@@ -237,7 +237,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10378",
+              "id": "1:10294",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -250,7 +250,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10379",
+              "id": "1:10295",
               "name": "Input",
               "type": "INSTANCE",
               "x": 0,
@@ -283,7 +283,7 @@
           ]
         },
         {
-          "id": "1:10380",
+          "id": "1:10296",
           "name": "frame",
           "type": "FRAME",
           "x": 0,
@@ -301,7 +301,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10381",
+              "id": "1:10297",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -314,7 +314,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10382",
+              "id": "1:10298",
               "name": "Input",
               "type": "INSTANCE",
               "x": 0,
@@ -347,7 +347,7 @@
           ]
         },
         {
-          "id": "1:10383",
+          "id": "1:10299",
           "name": "Role field",
           "type": "FRAME",
           "x": 0,
@@ -365,7 +365,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10384",
+              "id": "1:10300",
               "name": "Role label",
               "type": "TEXT",
               "x": 0,
@@ -378,7 +378,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10385",
+              "id": "1:10301",
               "name": "Select",
               "type": "INSTANCE",
               "x": 0,

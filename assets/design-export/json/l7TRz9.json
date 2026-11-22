@@ -1,6 +1,6 @@
 {
   "file": "l7TRz9",
-  "id": "1:9036",
+  "id": "1:8952",
   "name": "Screen/Admin Settings — Telemetry (default)",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9037",
+      "id": "1:8953",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:9038",
+      "id": "1:8954",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:9039",
+          "id": "1:8955",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Settings", "Search servers…", "AD"]
         },
         {
-          "id": "1:9040",
+          "id": "1:8956",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -128,7 +128,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9041",
+              "id": "1:8957",
               "name": "Gameplane/Page Header",
               "type": "INSTANCE",
               "x": 24,
@@ -151,7 +151,7 @@
               "texts": ["Admin settings", "Platform-wide configuration for this Gameplane instance."]
             },
             {
-              "id": "1:9042",
+              "id": "1:8958",
               "name": "Settings Layout",
               "type": "FRAME",
               "x": 24,
@@ -170,7 +170,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9043",
+                  "id": "1:8959",
                   "name": "Settings Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -200,7 +200,7 @@
                   ]
                 },
                 {
-                  "id": "1:9044",
+                  "id": "1:8960",
                   "name": "Settings Panel",
                   "type": "FRAME",
                   "x": 244,
@@ -222,7 +222,7 @@
                   "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "id": "1:9045",
+                      "id": "1:8961",
                       "name": "Card Header",
                       "type": "INSTANCE",
                       "x": 16,
@@ -246,7 +246,7 @@
                       ]
                     },
                     {
-                      "id": "1:9046",
+                      "id": "1:8962",
                       "name": "Card Content",
                       "type": "FRAME",
                       "x": 16,
@@ -264,7 +264,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9047",
+                          "id": "1:8963",
                           "name": "destinationRow",
                           "type": "FRAME",
                           "x": 0,
@@ -285,7 +285,7 @@
                           "variables": {"fills/0/color": "surface/secondary"},
                           "children": [
                             {
-                              "id": "1:9048",
+                              "id": "1:8964",
                               "name": "destIcon",
                               "type": "FRAME",
                               "x": 12,
@@ -306,7 +306,7 @@
                               ]
                             },
                             {
-                              "id": "1:9049",
+                              "id": "1:8965",
                               "name": "destText",
                               "type": "FRAME",
                               "x": 44,
@@ -324,7 +324,7 @@
                               "layoutGrow": 1,
                               "children": [
                                 {
-                                  "id": "1:9050",
+                                  "id": "1:8966",
                                   "name": "host",
                                   "type": "TEXT",
                                   "x": 0,
@@ -337,7 +337,7 @@
                                   "variables": {"fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:9051",
+                                  "id": "1:8967",
                                   "name": "destDetail",
                                   "type": "TEXT",
                                   "x": 0,
@@ -354,7 +354,7 @@
                               ]
                             },
                             {
-                              "id": "1:9052",
+                              "id": "1:8968",
                               "name": "destChip",
                               "type": "INSTANCE",
                               "x": 602,
@@ -377,7 +377,7 @@
                               "texts": ["Project default"]
                             },
                             {
-                              "id": "1:9053",
+                              "id": "1:8969",
                               "name": "destStatement",
                               "type": "TEXT",
                               "x": 699,
@@ -392,7 +392,7 @@
                           ]
                         },
                         {
-                          "id": "1:9054",
+                          "id": "1:8970",
                           "name": "telemetryRow",
                           "type": "FRAME",
                           "x": 0,
@@ -410,7 +410,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:9055",
+                              "id": "1:8971",
                               "name": "labelCol",
                               "type": "FRAME",
                               "x": 0,
@@ -427,7 +427,7 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:9056",
+                                  "id": "1:8972",
                                   "name": "Label",
                                   "type": "TEXT",
                                   "x": 0,
@@ -440,7 +440,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:9057",
+                                  "id": "1:8973",
                                   "name": "Description",
                                   "type": "TEXT",
                                   "x": 0,
@@ -455,7 +455,7 @@
                               ]
                             },
                             {
-                              "id": "1:9058",
+                              "id": "1:8974",
                               "name": "basicSwitch",
                               "type": "INSTANCE",
                               "x": 820,
@@ -471,7 +471,7 @@
                           ]
                         },
                         {
-                          "id": "1:9059",
+                          "id": "1:8975",
                           "name": "extendedRow",
                           "type": "FRAME",
                           "x": 0,
@@ -489,7 +489,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:9060",
+                              "id": "1:8976",
                               "name": "extRowInner",
                               "type": "FRAME",
                               "x": 24,
@@ -507,7 +507,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:9061",
+                                  "id": "1:8977",
                                   "name": "extLabelCol",
                                   "type": "FRAME",
                                   "x": 0,
@@ -525,7 +525,7 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:9062",
+                                      "id": "1:8978",
                                       "name": "extLabel",
                                       "type": "TEXT",
                                       "x": 0,
@@ -538,7 +538,7 @@
                                       "variables": {"fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:9063",
+                                      "id": "1:8979",
                                       "name": "extDescription",
                                       "type": "TEXT",
                                       "x": 0,
@@ -555,7 +555,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:9064",
+                                  "id": "1:8980",
                                   "name": "extendedSwitch",
                                   "type": "INSTANCE",
                                   "x": 796,
@@ -573,7 +573,7 @@
                           ]
                         },
                         {
-                          "id": "1:9065",
+                          "id": "1:8981",
                           "name": "installIdRow",
                           "type": "FRAME",
                           "x": 0,
@@ -591,7 +591,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:9066",
+                              "id": "1:8982",
                               "name": "installIdCol",
                               "type": "FRAME",
                               "x": 24,
@@ -609,7 +609,7 @@
                               "layoutGrow": 1,
                               "children": [
                                 {
-                                  "id": "1:9067",
+                                  "id": "1:8983",
                                   "name": "installIdLabel",
                                   "type": "TEXT",
                                   "x": 0,
@@ -622,7 +622,7 @@
                                   "variables": {"fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:9068",
+                                  "id": "1:8984",
                                   "name": "installIdValue",
                                   "type": "TEXT",
                                   "x": 0,
@@ -635,7 +635,7 @@
                                   "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:9069",
+                                  "id": "1:8985",
                                   "name": "installIdHelp",
                                   "type": "TEXT",
                                   "x": 0,
@@ -652,7 +652,7 @@
                               ]
                             },
                             {
-                              "id": "1:9070",
+                              "id": "1:8986",
                               "name": "resetIdBtn",
                               "type": "INSTANCE",
                               "x": 781,
@@ -678,7 +678,7 @@
                           ]
                         },
                         {
-                          "id": "1:9071",
+                          "id": "1:8987",
                           "name": "previewBlock",
                           "type": "FRAME",
                           "x": 0,
@@ -696,7 +696,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:9072",
+                              "id": "1:8988",
                               "name": "previewLabel",
                               "type": "TEXT",
                               "x": 0,
@@ -709,7 +709,7 @@
                               "variables": {"fills/0/color": "foreground/foreground"}
                             },
                             {
-                              "id": "1:9073",
+                              "id": "1:8989",
                               "name": "previewHelp",
                               "type": "TEXT",
                               "x": 0,
@@ -722,7 +722,7 @@
                               "variables": {"fills/0/color": "muted"}
                             },
                             {
-                              "id": "1:9074",
+                              "id": "1:8990",
                               "name": "previewCode",
                               "type": "FRAME",
                               "x": 0,
@@ -745,7 +745,7 @@
                               "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:9075",
+                                  "id": "1:8991",
                                   "name": "previewJson",
                                   "type": "TEXT",
                                   "x": 16,
@@ -764,7 +764,7 @@
                           ]
                         },
                         {
-                          "id": "1:9076",
+                          "id": "1:8992",
                           "name": "statusRow",
                           "type": "FRAME",
                           "x": 0,
@@ -782,7 +782,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:9077",
+                              "id": "1:8993",
                               "name": "statusIcon",
                               "type": "FRAME",
                               "x": 0,
@@ -792,7 +792,7 @@
                               "variables": {"fills/0/color": "success/soft-foreground"}
                             },
                             {
-                              "id": "1:9078",
+                              "id": "1:8994",
                               "name": "statusText",
                               "type": "TEXT",
                               "x": 22,
@@ -809,7 +809,7 @@
                       ]
                     },
                     {
-                      "id": "1:9079",
+                      "id": "1:8995",
                       "name": "Card Actions",
                       "type": "FRAME",
                       "x": 16,
@@ -827,7 +827,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9080",
+                          "id": "1:8996",
                           "name": "Btn Save Changes",
                           "type": "INSTANCE",
                           "x": 732,

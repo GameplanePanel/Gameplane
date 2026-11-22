@@ -1,6 +1,6 @@
 {
   "file": "KJdxg",
-  "id": "1:11320",
+  "id": "1:11236",
   "name": "Screen/Server Detail — Settings · Minecraft JVM startup",
   "type": "FRAME",
   "x": 9740,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:11321",
+      "id": "1:11237",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:11322",
+      "id": "1:11238",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:11323",
+          "id": "1:11239",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "id": "1:11324",
+          "id": "1:11240",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -130,7 +130,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:11325",
+              "id": "1:11241",
               "name": "Detail Header",
               "type": "INSTANCE",
               "x": 24,
@@ -161,7 +161,7 @@
               ]
             },
             {
-              "id": "1:11326",
+              "id": "1:11242",
               "name": "Tabs Bar",
               "type": "INSTANCE",
               "x": 24,
@@ -198,7 +198,7 @@
               ]
             },
             {
-              "id": "1:11327",
+              "id": "1:11243",
               "name": "Settings Content",
               "type": "FRAME",
               "x": 24,
@@ -217,7 +217,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:11328",
+                  "id": "1:11244",
                   "name": "Settings Sub Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -256,7 +256,7 @@
                   ]
                 },
                 {
-                  "id": "1:11329",
+                  "id": "1:11245",
                   "name": "Settings Panel Wrap",
                   "type": "FRAME",
                   "x": 224,
@@ -275,7 +275,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "1:11330",
+                      "id": "1:11246",
                       "name": "Settings Form",
                       "type": "FRAME",
                       "x": 0,
@@ -294,7 +294,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:11331",
+                          "id": "1:11247",
                           "name": "Form Body",
                           "type": "FRAME",
                           "x": 0,
@@ -313,7 +313,7 @@
                           "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "1:11332",
+                              "id": "1:11248",
                               "name": "Section Header",
                               "type": "FRAME",
                               "x": 24,
@@ -331,7 +331,7 @@
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:11333",
+                                  "id": "1:11249",
                                   "name": "Section Title",
                                   "type": "TEXT",
                                   "x": 0,
@@ -344,7 +344,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:11334",
+                                  "id": "1:11250",
                                   "name": "Section Description",
                                   "type": "TEXT",
                                   "x": 0,
@@ -359,7 +359,7 @@
                               ]
                             },
                             {
-                              "id": "1:11335",
+                              "id": "1:11251",
                               "name": "Restart Alert",
                               "type": "INSTANCE",
                               "x": 24,
@@ -367,7 +367,7 @@
                               "width": 860,
                               "height": 48,
                               "component": "Alert/Warning Simple",
-                              "componentId": "1:5629",
+                              "componentId": "1:5543",
                               "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                               "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
                               "cornerRadius": 24,
@@ -384,7 +384,7 @@
                               "texts": ["These configuration changes apply at the next container start."]
                             },
                             {
-                              "id": "1:11336",
+                              "id": "1:11252",
                               "name": "JVM startup settings",
                               "type": "FRAME",
                               "x": 24,
@@ -406,7 +406,7 @@
                               "variables": {"strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "id": "1:11337",
+                                  "id": "1:11253",
                                   "name": "Startup section title",
                                   "type": "TEXT",
                                   "x": 16,
@@ -419,7 +419,7 @@
                                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "id": "1:11338",
+                                  "id": "1:11254",
                                   "name": "JVM max heap",
                                   "type": "FRAME",
                                   "x": 16,
@@ -437,7 +437,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:11339",
+                                      "id": "1:11255",
                                       "name": "JVM max heap label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -450,7 +450,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:11340",
+                                      "id": "1:11256",
                                       "name": "JVM max heap control",
                                       "type": "INSTANCE",
                                       "x": 196,
@@ -483,7 +483,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:11341",
+                                  "id": "1:11257",
                                   "name": "JVM initial heap",
                                   "type": "FRAME",
                                   "x": 16,
@@ -501,7 +501,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:11342",
+                                      "id": "1:11258",
                                       "name": "JVM initial heap label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -514,7 +514,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:11343",
+                                      "id": "1:11259",
                                       "name": "JVM initial heap control",
                                       "type": "INSTANCE",
                                       "x": 196,
@@ -547,7 +547,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:11344",
+                                  "id": "1:11260",
                                   "name": "Extra JVM options",
                                   "type": "FRAME",
                                   "x": 16,
@@ -565,7 +565,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:11345",
+                                      "id": "1:11261",
                                       "name": "Extra JVM options label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -578,7 +578,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:11346",
+                                      "id": "1:11262",
                                       "name": "Extra JVM options control",
                                       "type": "INSTANCE",
                                       "x": 196,
@@ -611,7 +611,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:11347",
+                                  "id": "1:11263",
                                   "name": "Extra JVM -XX options",
                                   "type": "FRAME",
                                   "x": 16,
@@ -629,7 +629,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:11348",
+                                      "id": "1:11264",
                                       "name": "Extra JVM -XX options label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -642,7 +642,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:11349",
+                                      "id": "1:11265",
                                       "name": "Extra JVM -XX options control",
                                       "type": "INSTANCE",
                                       "x": 196,
@@ -674,7 +674,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:11350",
+                                  "id": "1:11266",
                                   "name": "Use Aikar’s flags",
                                   "type": "FRAME",
                                   "x": 16,
@@ -692,7 +692,7 @@
                                   "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "id": "1:11351",
+                                      "id": "1:11267",
                                       "name": "Use Aikar’s flags label",
                                       "type": "TEXT",
                                       "x": 0,
@@ -705,7 +705,7 @@
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "1:11352",
+                                      "id": "1:11268",
                                       "name": "Use Aikar’s flags control",
                                       "type": "INSTANCE",
                                       "x": 196,
@@ -738,7 +738,7 @@
                                   ]
                                 },
                                 {
-                                  "id": "1:11353",
+                                  "id": "1:11269",
                                   "name": "Heap argument preview",
                                   "type": "TEXT",
                                   "x": 16,
@@ -755,7 +755,7 @@
                           ]
                         },
                         {
-                          "id": "1:11354",
+                          "id": "1:11270",
                           "name": "Form Footer",
                           "type": "FRAME",
                           "x": 0,
@@ -776,7 +776,7 @@
                           "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "1:11355",
+                              "id": "1:11271",
                               "name": "Btn Discard",
                               "type": "INSTANCE",
                               "x": 681,
@@ -797,7 +797,7 @@
                               "texts": ["Discard"]
                             },
                             {
-                              "id": "1:11356",
+                              "id": "1:11272",
                               "name": "Btn Save Changes",
                               "type": "INSTANCE",
                               "x": 779,

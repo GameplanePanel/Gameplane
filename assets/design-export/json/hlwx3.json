@@ -1,6 +1,6 @@
 {
   "file": "hlwx3",
-  "id": "1:8214",
+  "id": "1:8130",
   "name": "State/Server Actions Menu — Owner-only disabled",
   "type": "FRAME",
   "x": 9840,
@@ -12,7 +12,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8215",
+      "id": "1:8131",
       "name": "Menu",
       "type": "INSTANCE",
       "x": 16,
@@ -20,7 +20,7 @@
       "width": 220,
       "height": 161,
       "component": "Gameplane/Dropdown Menu",
-      "componentId": "1:8216",
+      "componentId": "1:8132",
       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
       "strokeWeight": 1,
@@ -42,7 +42,7 @@
       "texts": ["Clone server", "Transfer ownership", "Wipe world data", "Delete server"]
     },
     {
-      "id": "1:8222",
+      "id": "1:8138",
       "name": "Hint Tooltip",
       "type": "INSTANCE",
       "x": 244,
@@ -50,7 +50,7 @@
       "width": 191,
       "height": 24,
       "component": "Tooltip",
-      "componentId": "1:5581",
+      "componentId": "1:5495",
       "fills": [{"type": "SOLID", "color": "#201E24"}],
       "effects": [{"type": "DROP_SHADOW", "radius": 8, "visible": true}],
       "cornerRadius": 12,

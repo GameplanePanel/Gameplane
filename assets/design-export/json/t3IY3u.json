@@ -1,6 +1,6 @@
 {
   "file": "t3IY3u",
-  "id": "1:10386",
+  "id": "1:10302",
   "name": "Gameplane/Dialog/Edit User",
   "type": "FRAME",
   "x": 160,
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "id": "1:10387",
+      "id": "1:10303",
       "name": "mBody",
       "type": "FRAME",
       "x": 20,
@@ -91,7 +91,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10388",
+          "id": "1:10304",
           "name": "frame",
           "type": "FRAME",
           "x": 0,
@@ -109,7 +109,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10389",
+              "id": "1:10305",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -122,7 +122,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10390",
+              "id": "1:10306",
               "name": "Input",
               "type": "INSTANCE",
               "x": 0,
@@ -155,7 +155,7 @@
           ]
         },
         {
-          "id": "1:10391",
+          "id": "1:10307",
           "name": "frame",
           "type": "FRAME",
           "x": 0,
@@ -173,7 +173,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10392",
+              "id": "1:10308",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -186,7 +186,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10393",
+              "id": "1:10309",
               "name": "Input",
               "type": "INSTANCE",
               "x": 0,
@@ -219,7 +219,7 @@
           ]
         },
         {
-          "id": "1:10394",
+          "id": "1:10310",
           "name": "frame",
           "type": "FRAME",
           "x": 0,
@@ -237,7 +237,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10395",
+              "id": "1:10311",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -250,7 +250,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10396",
+              "id": "1:10312",
               "name": "Select",
               "type": "INSTANCE",
               "x": 0,
@@ -283,7 +283,7 @@
           ]
         },
         {
-          "id": "1:10397",
+          "id": "1:10313",
           "name": "Grants Divider",
           "type": "FRAME",
           "x": 0,
@@ -303,7 +303,7 @@
           "variables": {"fills/0/color": "border/border"}
         },
         {
-          "id": "1:10398",
+          "id": "1:10314",
           "name": "Namespace Grants",
           "type": "FRAME",
           "x": 0,
@@ -321,7 +321,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10399",
+              "id": "1:10315",
               "name": "Section Label",
               "type": "TEXT",
               "x": 0,
@@ -335,7 +335,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10400",
+              "id": "1:10316",
               "name": "Grant scope explanation",
               "type": "TEXT",
               "x": 0,
@@ -350,7 +350,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:10401",
+              "id": "1:10317",
               "name": "Cluster and role",
               "type": "FRAME",
               "x": 0,
@@ -368,7 +368,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:10402",
+                  "id": "1:10318",
                   "name": "Grant cluster",
                   "type": "INSTANCE",
                   "x": 0,
@@ -399,7 +399,7 @@
                   "texts": ["Local cluster"]
                 },
                 {
-                  "id": "1:10403",
+                  "id": "1:10319",
                   "name": "Grant Role Select",
                   "type": "INSTANCE",
                   "x": 224,
@@ -432,7 +432,7 @@
               ]
             },
             {
-              "id": "1:10404",
+              "id": "1:10320",
               "name": "Add Grant Row",
               "type": "FRAME",
               "x": 0,
@@ -450,7 +450,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:10405",
+                  "id": "1:10321",
                   "name": "Grant Namespace Input",
                   "type": "INSTANCE",
                   "x": 0,
@@ -481,7 +481,7 @@
                   "texts": ["namespace"]
                 },
                 {
-                  "id": "1:10406",
+                  "id": "1:10322",
                   "name": "All namespaces button",
                   "type": "FRAME",
                   "x": 232,
@@ -499,7 +499,7 @@
                   },
                   "children": [
                     {
-                      "id": "1:10407",
+                      "id": "1:10323",
                       "name": "All namespaces label",
                       "type": "TEXT",
                       "x": 16,
@@ -514,7 +514,7 @@
                   ]
                 },
                 {
-                  "id": "1:10408",
+                  "id": "1:10324",
                   "name": "Add Grant Button",
                   "type": "INSTANCE",
                   "x": 376,
@@ -538,7 +538,7 @@
               ]
             },
             {
-              "id": "1:10409",
+              "id": "1:10325",
               "name": "Remote inventory grant guidance",
               "type": "TEXT",
               "x": 0,

@@ -1,6 +1,6 @@
 {
   "file": "FOVMf",
-  "id": "1:9565",
+  "id": "1:9481",
   "name": "Screen/Standalone — Settings · About",
   "type": "FRAME",
   "x": 1640,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:9566",
+      "id": "1:9482",
       "name": "Gameplane/App Sidebar",
       "type": "INSTANCE",
       "x": 0,
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "id": "1:9567",
+      "id": "1:9483",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -84,7 +84,7 @@
       "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "1:9568",
+          "id": "1:9484",
           "name": "Gameplane/Top Bar",
           "type": "INSTANCE",
           "x": 0,
@@ -109,7 +109,7 @@
           "texts": ["gameplane", "Settings", "Search servers…", "AD"]
         },
         {
-          "id": "1:9569",
+          "id": "1:9485",
           "name": "Central management notice",
           "type": "FRAME",
           "x": 0,
@@ -131,7 +131,7 @@
           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
           "children": [
             {
-              "id": "1:9570",
+              "id": "1:9486",
               "name": "Central management scope",
               "type": "TEXT",
               "x": 24,
@@ -148,7 +148,7 @@
           ]
         },
         {
-          "id": "1:9571",
+          "id": "1:9487",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -167,7 +167,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9572",
+              "id": "1:9488",
               "name": "Gameplane/Page Header",
               "type": "INSTANCE",
               "x": 24,
@@ -190,7 +190,7 @@
               "texts": ["Admin settings", "Platform-wide configuration for this Gameplane instance."]
             },
             {
-              "id": "1:9573",
+              "id": "1:9489",
               "name": "Settings Layout",
               "type": "FRAME",
               "x": 24,
@@ -209,7 +209,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9574",
+                  "id": "1:9490",
                   "name": "Settings Nav",
                   "type": "INSTANCE",
                   "x": 0,
@@ -239,7 +239,7 @@
                   ]
                 },
                 {
-                  "id": "1:9575",
+                  "id": "1:9491",
                   "name": "About",
                   "type": "FRAME",
                   "x": 244,
@@ -260,7 +260,7 @@
                   "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "id": "1:9576",
+                      "id": "1:9492",
                       "name": "Section title",
                       "type": "TEXT",
                       "x": 24,
@@ -275,7 +275,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:9577",
+                      "id": "1:9493",
                       "name": "About description",
                       "type": "TEXT",
                       "x": 24,
@@ -290,7 +290,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "1:9578",
+                      "id": "1:9494",
                       "name": "Gameplane row",
                       "type": "FRAME",
                       "x": 24,
@@ -308,7 +308,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9579",
+                          "id": "1:9495",
                           "name": "Gameplane label",
                           "type": "TEXT",
                           "x": 0,
@@ -322,7 +322,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:9580",
+                          "id": "1:9496",
                           "name": "Gameplane value",
                           "type": "TEXT",
                           "x": 124,
@@ -339,7 +339,7 @@
                       ]
                     },
                     {
-                      "id": "1:9581",
+                      "id": "1:9497",
                       "name": "License row",
                       "type": "FRAME",
                       "x": 24,
@@ -357,7 +357,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:9582",
+                          "id": "1:9498",
                           "name": "License label",
                           "type": "TEXT",
                           "x": 0,
@@ -371,7 +371,7 @@
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "id": "1:9583",
+                          "id": "1:9499",
                           "name": "License value",
                           "type": "TEXT",
                           "x": 124,

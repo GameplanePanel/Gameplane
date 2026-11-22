@@ -1,6 +1,6 @@
 {
   "file": "uw0dB",
-  "id": "1:10158",
+  "id": "1:10074",
   "name": "Gameplane/Removable Group Chip/Secondary",
   "type": "COMPONENT",
   "x": 4175,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "default/default"},
   "children": [
     {
-      "id": "1:10159",
+      "id": "1:10075",
       "name": "chipLabel",
       "type": "TEXT",
       "x": 8,
@@ -34,7 +34,7 @@
       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
     },
     {
-      "id": "1:10160",
+      "id": "1:10076",
       "name": "chipRemove",
       "type": "FRAME",
       "x": 60,
@@ -52,7 +52,7 @@
       },
       "children": [
         {
-          "id": "1:10161",
+          "id": "1:10077",
           "name": "chipRemoveIcon",
           "type": "INSTANCE",
           "x": 1.5,

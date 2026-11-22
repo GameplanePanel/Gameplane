@@ -1,6 +1,6 @@
 {
   "file": "atqRh",
-  "id": "1:10422",
+  "id": "1:10338",
   "name": "Gameplane/Dialog/Create Share Link",
   "type": "FRAME",
   "x": 2192,
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "id": "1:10423",
+      "id": "1:10339",
       "name": "mBody",
       "type": "FRAME",
       "x": 20,
@@ -91,7 +91,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10424",
+          "id": "1:10340",
           "name": "fExpiry",
           "type": "FRAME",
           "x": 0,
@@ -109,7 +109,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10425",
+              "id": "1:10341",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -122,7 +122,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "1:10426",
+              "id": "1:10342",
               "name": "Select",
               "type": "INSTANCE",
               "x": 0,
@@ -155,7 +155,7 @@
           ]
         },
         {
-          "id": "1:10427",
+          "id": "1:10343",
           "name": "fCanStart",
           "type": "FRAME",
           "x": 0,
@@ -173,7 +173,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:10428",
+              "id": "1:10344",
               "name": "canStartSwitch",
               "type": "INSTANCE",
               "x": 0,
@@ -187,7 +187,7 @@
               "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "border/border"}
             },
             {
-              "id": "1:10429",
+              "id": "1:10345",
               "name": "canStartText",
               "type": "FRAME",
               "x": 40,
@@ -205,7 +205,7 @@
               "layoutGrow": 1,
               "children": [
                 {
-                  "id": "1:10430",
+                  "id": "1:10346",
                   "name": "text",
                   "type": "TEXT",
                   "x": 0,
@@ -218,7 +218,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "1:10431",
+                  "id": "1:10347",
                   "name": "text",
                   "type": "TEXT",
                   "x": 0,
@@ -239,7 +239,7 @@
       ]
     },
     {
-      "id": "1:10432",
+      "id": "1:10348",
       "name": "mFooter",
       "type": "FRAME",
       "x": 20,
@@ -257,7 +257,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "1:10433",
+          "id": "1:10349",
           "name": "btnCancel",
           "type": "INSTANCE",
           "x": 263,
@@ -279,7 +279,7 @@
           "texts": ["Cancel"]
         },
         {
-          "id": "1:10434",
+          "id": "1:10350",
           "name": "btnPrimary",
           "type": "INSTANCE",
           "x": 334,

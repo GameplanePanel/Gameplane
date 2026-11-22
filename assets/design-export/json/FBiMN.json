@@ -1,6 +1,6 @@
 {
   "file": "FBiMN",
-  "id": "1:8991",
+  "id": "1:8907",
   "name": "Screen/Share Link — Asleep (Start cooldown)",
   "type": "FRAME",
   "x": 3280,
@@ -20,7 +20,7 @@
   "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "1:8992",
+      "id": "1:8908",
       "name": "shareCard",
       "type": "FRAME",
       "x": 500,
@@ -202,7 +202,7 @@
           ]
         },
         {
-          "id": "1:8993",
+          "id": "1:8909",
           "name": "asleepBlock",
           "type": "FRAME",
           "x": 36,
@@ -220,7 +220,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:8994",
+              "id": "1:8910",
               "name": "text",
               "type": "TEXT",
               "x": 0,
@@ -235,7 +235,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "1:8995",
+              "id": "1:8911",
               "name": "btnStart",
               "type": "INSTANCE",
               "x": 0,
