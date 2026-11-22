@@ -267,10 +267,11 @@ func (h *podsHandler) tailServerPodLog(w http.ResponseWriter, req *http.Request)
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 	if truncated {
 		_, _ = io.WriteString(w, logTruncatedNotice)
 	}
-	_, _ = w.Write(body)
+	_, _ = io.Copy(w, bytes.NewReader(body))
 }
 
 // parseTailLines reads tailLines: default 200, clamped to 1..5000. A value
@@ -322,7 +323,6 @@ func readLogTail(ctx context.Context, k *kube.Client, ns, pod string, opts corev
 		}
 	}
 	if buf.Len() > maxLogTailBytes {
-		truncated = true
 		data := buf.Bytes()
 		return append([]byte(nil), data[len(data)-maxLogTailBytes:]...), true, nil
 	}
