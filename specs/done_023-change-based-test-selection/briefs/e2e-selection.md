@@ -928,7 +928,7 @@ class E2ESelectionTests(unittest.TestCase):
         self.assertTrue(values["all"])
 
     def test_docs_only_change_selects_no_e2e_test(self):
-        values = self.select("docs/architecture.md", "specs/023-change-based-test-selection/plan.md")
+        values = self.select("docs/architecture.md", "specs/done_023-change-based-test-selection/plan.md")
         self.assertEqual(values["e2e-run"], {})
         self.assertFalse(values["bots-any"])
 

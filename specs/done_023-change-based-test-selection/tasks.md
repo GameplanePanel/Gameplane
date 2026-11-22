@@ -1,6 +1,6 @@
 # Tasks: Change-Based Test Selection
 
-**Input**: Design documents from `specs/023-change-based-test-selection/`
+**Input**: Design documents from `specs/done_023-change-based-test-selection/`
 
 **Prerequisites**: [plan.md](./plan.md), [spec.md](./spec.md), [research.md](./research.md), [data-model.md](./data-model.md), [contracts/](./contracts/), [quickstart.md](./quickstart.md), [OPEN-DECISIONS.md](./OPEN-DECISIONS.md) (all ten settled)
 
@@ -33,7 +33,7 @@ Repository root of `GameplanePanel/Gameplane`. Main files: `hack/ci_scope.py`, `
 **Purpose**: repository prerequisites shared by every phase.
 
 - [X] T001 Create the repository label `ci: full-run` (colour neutral, description "Force the full CI suite on this PR") via `POST repos/GameplanePanel/Gameplane/labels`; it is needed by OD-7 and by quickstart scenario 11
-- [X] T002 [P] Read `hack/ci_scope.py` and `hack/test_ci_scope.py` end to end and write a scout brief at `specs/023-change-based-test-selection/briefs/ci-scope.md` listing every function, its `file:line`, its current outputs and the `changes`-job steps in `.github/workflows/ci.yaml` (lines ~71-301) that consume them (CLAUDE.md rule 18: fix agents edit from this brief only)
+- [X] T002 [P] Read `hack/ci_scope.py` and `hack/test_ci_scope.py` end to end and write a scout brief at `specs/done_023-change-based-test-selection/briefs/ci-scope.md` listing every function, its `file:line`, its current outputs and the `changes`-job steps in `.github/workflows/ci.yaml` (lines ~71-301) that consume them (CLAUDE.md rule 18: fix agents edit from this brief only)
 
 ---
 
@@ -100,7 +100,7 @@ Repository root of `GameplanePanel/Gameplane`. Main files: `hack/ci_scope.py`, `
 - [X] T027 [US1] In `.github/workflows/ci.yaml`, fold the four e2e booleans from T023 into the gates of `e2e-multicluster*`, `e2e-upgrade*`, `e2e-web-live*` and `e2e-capture-overhead`, and gate `e2e-game-bot` on `bots-any`
 - [X] T028 [US1] Extend the `selection` records (T010) with the per-bucket and per-test decisions and reasons from T023
 - [X] T029 [US1] Compile checks only: `python3 -m py_compile hack/ci_scope.py`, `go vet -tags e2e ./...` in `test/e2e`; open PR 2 with labels `type: ci`, `area: shared`, `area: e2e`
-- [X] T030 [US1] Run quickstart scenarios 1–4 and 12 as draft PRs based on PR 2's branch, record the summaries and wall times in `specs/023-change-based-test-selection/validation.md`, close the draft PRs and delete their branches
+- [X] T030 [US1] Run quickstart scenarios 1–4 and 12 as draft PRs based on PR 2's branch, record the summaries and wall times in `specs/done_023-change-based-test-selection/validation.md`, close the draft PRs and delete their branches
 
 **Checkpoint**: MVP. A single-component PR boots only its suites (SC-001).
 
@@ -161,7 +161,7 @@ Repository root of `GameplanePanel/Gameplane`. Main files: `hack/ci_scope.py`, `
 - [X] T049 [P] Add the new selection files to the task map in `docs/agent-architecture.md`
 - [X] T050 Compile and link checks only; open PR 5 with labels `type: docs`, `area: shared`
 - [X] T051 After the first `master` push following PR 5's merge, confirm every job ran (FR-006, SC-006) and record it in `validation.md`
-- [ ] T052 After 30 merged PRs, measure median runner-minutes against the 30 before PR 2 via the Actions API and record SC-002 in `validation.md`; for 60 days review each red `master` run for a selection miss (SC-004)
+- [X] T052 After 30 merged PRs, measure median runner-minutes against the 30 before PR 2 via the Actions API and record SC-002 in `validation.md`; for 60 days review each red `master` run for a selection miss (SC-004). Done 2026-11-22: SC-004 covered 31 of the 60 days (15 red runs, 0 misses); the maintainer closed it early on 2026-11-22. Results in `validation.md`
 
 ---
 
