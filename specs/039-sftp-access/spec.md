@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-22
 
-**Status**: Draft (open decisions OD-1 to OD-4 pending, see `OPEN-DECISIONS.md`)
+**Status**: Draft (OD-1 and OD-2 settled; OD-3 and OD-4 pending, see `OPEN-DECISIONS.md`)
 
 **Input**: Issue [#1051](https://github.com/GameplanePanel/Gameplane/issues/1051) "Add SFTP server for file access", and valgul's design idea on it: "Give the sidecar a new internal API to list, stat, download and upload files. Then run one global SFTP server that uses this API. You connect to {sftp-cluster-ip} and see one folder per game server your account can access. Each folder is backed by that server pod's sidecar API."
 
@@ -55,7 +55,7 @@ A user with write access to a server uploads a mod jar, edits a config file in p
 
 ### User Story 3 - Manage personal SFTP credentials (Priority: P2)
 
-A user, including one who signs in with SSO and has no Gameplane password, opens their profile in the dashboard, adds the credential their SFTP client will use (see OD-2), sees the SFTP address and the server's host key fingerprint, and can revoke the credential at any time. An admin can see and revoke any user's SFTP credentials.
+A user, including one who signs in with SSO and has no Gameplane password, opens their profile in the dashboard, adds an SSH public key or generates an SFTP password (OD-2), sees the SFTP address and the server's host key fingerprint, and can revoke the credential at any time. An admin can see and revoke any user's SFTP credentials.
 
 **Why this priority**: Without it SSO users cannot connect at all, and a leaked credential could not be cut off. P2 only because P1 can be tested with a credential seeded by an admin.
 
@@ -111,8 +111,10 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 
 **Authentication**
 
-- **FR-005**: Users MUST authenticate with a credential tied to their Gameplane user that works for local and SSO users alike (kinds per OD-2). The dashboard login password MUST NOT be accepted.
-- **FR-006**: Users MUST be able to create, list and revoke their own SFTP credentials in their profile; admins with `users:manage` MUST be able to list and revoke any user's.
+- **FR-005**: Users MUST authenticate with an SFTP credential tied to their Gameplane user, which works for local and SSO users alike: an SSH public key or a generated SFTP password (OD-2). The dashboard login password MUST NOT be accepted.
+- **FR-006**: Users MUST be able to add, list and remove their own SFTP SSH public keys in their profile; admins with `users:manage` MUST be able to list and remove any user's.
+- **FR-006a**: Each user MUST be able to have at most one generated SFTP password. Gameplane generates it, shows it exactly once, and stores only a hash. It never expires. The user can only regenerate it (the old one stops working at once) or revoke it; admins with `users:manage` can revoke any user's.
+- **FR-006b**: A generated SFTP password MUST be 20 to 40 characters long, with the length picked by the user within that range, and each character drawn uniformly at random from the 94 printable ASCII characters (space excluded) using a cryptographically secure source.
 - **FR-007**: Revoking a credential, disabling or deleting the user MUST end that user's open SFTP sessions within one minute and refuse new logins.
 - **FR-008**: Failed logins MUST be rate limited per username and per source address at least as strictly as the dashboard login, and MUST NOT reveal whether a user exists (core rule 3).
 
@@ -145,7 +147,8 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 
 ### Key Entities
 
-- **SFTP credential**: belongs to one Gameplane user; kind per OD-2; has a name, a creation time, a last-used time, an optional expiry, and can be revoked. Secret material is stored only in a form that cannot be turned back into the secret (public key, or hash).
+- **SFTP SSH key**: belongs to one Gameplane user; has a name, the public key, its fingerprint, a creation time and a last-used time; can be removed. A user can have several.
+- **SFTP password**: at most one per Gameplane user; stored only as a hash with its creation and last-used time; never expires; can be regenerated or revoked.
 - **SFTP session**: one authenticated client connection, bound to one user and one credential; ends on disconnect, idle timeout, revoke or user disable.
 - **Server folder**: a virtual folder in the SFTP tree that stands for one game server (cluster, namespace, name) and maps to that server's sidecar data root.
 - **Host key**: the endpoint's long-lived SSH host key, stored as a Kubernetes Secret, with its fingerprint shown in the dashboard.
