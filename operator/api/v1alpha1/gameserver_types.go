@@ -64,11 +64,6 @@ const (
 	// retry (new requestId) runs it again.
 	ModpackRemoveAnnotation = "gameplane.local/modpack-remove"
 
-	// ModpackInstallAnnotation holds a fresh request id the API stamps on every
-	// install/change request. Annotation edits do not bump the generation, so
-	// this lets the operator tell a retry of the same choice (after
-	// BackupFailed) from the attempt that failed.
-	ModpackInstallAnnotation = "gameplane.local/modpack-install-request"
 )
 
 // GameServerSpec is the desired state of a single game server instance.
@@ -245,6 +240,10 @@ type GameServerModpackSpec struct {
 	// only when the server has a backup destination.
 	// +optional
 	BackupFirst bool `json:"backupFirst,omitempty"`
+
+	// RequestID is a fresh id the API sets on every install request, so a retry of the same choice (for example after BackupFailed) is a new change.
+	// +optional
+	RequestID string `json:"requestId,omitempty"`
 }
 
 // ModpackPhase is the progress of the current modpack change.

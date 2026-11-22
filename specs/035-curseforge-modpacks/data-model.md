@@ -28,6 +28,7 @@ No database tables change. All state lives on Kubernetes objects.
 | `title` | string | 0–128, display only |
 | `versionName` | string | 0–128, display only |
 | `backupFirst` | bool | honoured only when a backup destination exists |
+| `requestId` | string | set by the API on every install request, so a retry of the same choice (for example after BackupFailed) is a new change |
 
 Absent `spec.modpack` = no pack. Remove deletes `spec.modpack` and sets the annotation
 `gameplane.local/modpack-remove` (below), which tells the operator whether to back up first.

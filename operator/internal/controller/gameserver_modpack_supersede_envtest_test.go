@@ -45,10 +45,7 @@ func startBackingUpInstall(t *testing.T, ns string) string {
 	mutateGameServer(t, ns, "pack", func(g *gameplanev1alpha1.GameServer) {
 		g.Spec.Modpack = modpackSpecOf("curseforge", "all-the-mods-10", "200")
 		g.Spec.Modpack.BackupFirst = true
-		if g.Annotations == nil {
-			g.Annotations = map[string]string{}
-		}
-		g.Annotations[gameplanev1alpha1.ModpackInstallAnnotation] = "req-1"
+		g.Spec.Modpack.RequestID = "req-1"
 	})
 	st := waitModpackPhase(t, ns, "pack", gameplanev1alpha1.ModpackPhaseBackingUp)
 	if st.RequestID != "req-1" || st.Target == nil || st.Target.Version != "200" {
@@ -57,21 +54,17 @@ func startBackingUpInstall(t *testing.T, ns string) string {
 	return st.BackupName
 }
 
-// A BackupFailed install retried with the identical choice (same spec, same
-// generation) carries a new install request id and starts a new Backup.
+// A BackupFailed install retried with the identical choice carries a new
+// spec.modpack.requestId and starts a new Backup.
 func TestGameServer_ModpackInstallRetryAfterBackupFailed(t *testing.T) {
 	ns := newNamespace(t)
 	firstName := startBackingUpInstall(t, ns)
 	markBackupFailed(t, ns, firstName, "restic: repository unreachable")
 	waitModpackPhase(t, ns, "pack", gameplanev1alpha1.ModpackPhaseBackupFailed)
 
-	genBefore := getGameServer(t, ns, "pack").Generation
 	mutateGameServer(t, ns, "pack", func(g *gameplanev1alpha1.GameServer) {
-		g.Annotations[gameplanev1alpha1.ModpackInstallAnnotation] = "req-2"
+		g.Spec.Modpack.RequestID = "req-2"
 	})
-	if gen := getGameServer(t, ns, "pack").Generation; gen != genBefore {
-		t.Fatalf("generation moved %d -> %d on an annotation edit", genBefore, gen)
-	}
 	eventually(t, func() (bool, string) {
 		st := getGameServer(t, ns, "pack").Status.Modpack
 		if st == nil || st.Phase != gameplanev1alpha1.ModpackPhaseBackingUp || st.RequestID != "req-2" ||

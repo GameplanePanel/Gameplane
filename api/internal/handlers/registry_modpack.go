@@ -30,11 +30,6 @@ import (
 // reads unstructured objects and does not import the operator types).
 const modpackRemoveAnnotation = "gameplane.local/modpack-remove"
 
-// modpackInstallAnnotation mirrors v1alpha1.ModpackInstallAnnotation: a fresh
-// request id stamped on every install POST, so a retry of the same choice after
-// BackupFailed (identical spec, same generation) still starts a new change.
-const modpackInstallAnnotation = "gameplane.local/modpack-install-request"
-
 // modpackProjectRe and modpackVersionRe mirror the GameServer CRD patterns of
 // spec.modpack.project and spec.modpack.version, so a bad value is a 400 from
 // us instead of an apiserver 422.
@@ -177,7 +172,7 @@ func modpackPhase(gs *unstructured.Unstructured) string {
 }
 
 // currentModpackRequestID mirrors the operator's modpackRequestID: the removal
-// request id when a removal is requested, else the install request id.
+// request id when a removal is requested, else spec.modpack.requestId.
 func currentModpackRequestID(gs *unstructured.Unstructured) string {
 	ann := gs.GetAnnotations()
 	if raw := ann[modpackRemoveAnnotation]; raw != "" {
@@ -187,7 +182,8 @@ func currentModpackRequestID(gs *unstructured.Unstructured) string {
 		}
 		return req.RequestID
 	}
-	return ann[modpackInstallAnnotation]
+	id, _, _ := unstructured.NestedString(gs.Object, "spec", "modpack", "requestId")
+	return id
 }
 
 // modpackChangeInProgress reports that a previous change has not finished:

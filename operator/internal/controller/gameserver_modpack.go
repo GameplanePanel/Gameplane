@@ -112,13 +112,16 @@ func modpackWantsBackup(gs *gameplanev1alpha1.GameServer) bool {
 }
 
 // modpackRequestID is the removal request id when a removal is requested,
-// otherwise the install request id the API stamps on each install ("" when
+// otherwise spec.modpack.requestId, the id the API sets on each install ("" when
 // absent).
 func modpackRequestID(gs *gameplanev1alpha1.GameServer) string {
 	if req, ok := modpackRemovalRequest(gs); ok {
 		return req.RequestID
 	}
-	return gs.Annotations[gameplanev1alpha1.ModpackInstallAnnotation]
+	if gs.Spec.Modpack == nil {
+		return ""
+	}
+	return gs.Spec.Modpack.RequestID
 }
 
 // modpackLegacyRender reports that the pod must keep rendering the pre-035 env
