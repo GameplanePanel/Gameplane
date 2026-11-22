@@ -1,6 +1,6 @@
 # Open decisions: spec 039 SFTP access to game servers
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. OD-1 to OD-3 are settled; OD-4 and OD-5 are open. Planning starts once they are settled.
+Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. OD-1 to OD-4 are settled; OD-5 is open. Planning starts once they are settled.
 
 ## OD-1: Where does the SFTP server run, and how does it reach the sidecars? (SETTLED: A, valgul 2026-11-22)
 
@@ -37,13 +37,15 @@ A server is identified by cluster, namespace and name, and names can repeat acro
 - Logging in as `<user>+<server>` (default games namespace) or `<user>+<namespace>/<server>` opens straight in that server's files. The login is split at the last `+`; Gameplane usernames (`[a-zA-Z0-9][a-zA-Z0-9_.-]{0,63}`) and Kubernetes names never contain `+`, so the split is unambiguous. The separator is a proposal from planning; valgul's answer settles both login forms, not the character.
 - Both forms take the same credentials and the same permission checks.
 
-## OD-4: What happens with a stopped or sleeping server? (OPEN)
+## OD-4: What happens with a stopped or sleeping server? (SETTLED: C, valgul 2026-11-22)
 
 Its sidecar is not running, so its files cannot be reached the way FR-015 describes. The dashboard Files tab has the same gap today.
 
 - A. The folder is listed, but opening it fails with "server is not running, start it from the dashboard". (Recommended: no new pods or wake side effects; editing files while stopped can be its own spec and would then fix the Files tab too.)
 - B. Opening the folder wakes an asleep server (stopped servers still fail as in A). Uses game-server resources just to browse files.
 - C. The operator starts a short-lived file-only pod with the server's volumes while the server is stopped, so files can be edited offline. Most useful, but needs new operator logic, care with single-node volumes, and is a larger change than SFTP itself.
+
+**Settled:** C, by decision card. The spec's FR-013 and FR-013a to FR-013e record the defaults planning chose around it (no wake, start ends file access, idle teardown, the Files tab uses the same pod); valgul can change any of them at review.
 
 ## OD-5: How does a remote cluster's SFTP endpoint reach permissions and files? (OPEN)
 

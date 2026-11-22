@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-22
 
-**Status**: Draft (OD-1 to OD-3 settled; OD-4 and OD-5 pending, see `OPEN-DECISIONS.md`)
+**Status**: Draft (OD-1 to OD-4 settled; OD-5 pending, see `OPEN-DECISIONS.md`)
 
 **Input**: Issue [#1051](https://github.com/GameplanePanel/Gameplane/issues/1051) "Add SFTP server for file access", and valgul's design idea on it: "Give the sidecar a new internal API to list, stat, download and upload files. Then run one global SFTP server that uses this API. You connect to {sftp-cluster-ip} and see one folder per game server your account can access. Each folder is backed by that server pod's sidecar API."
 
@@ -85,9 +85,28 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 
 ---
 
+### User Story 5 - Edit files of a stopped or sleeping server (Priority: P2)
+
+A user stops a server, or it falls asleep when idle, and then opens its folder over SFTP (or in the dashboard Files tab) to replace the world or fix a config that keeps it from starting. The files are there without starting the game.
+
+**Why this priority**: Replacing a world or a broken config is safest while the game is not running, and today it needs the game running. P2 because P1 already covers running servers.
+
+**Independent Test**: Stop server A. Open its folder over SFTP: files list within the readiness bound, no player port opens and A stays stopped. Upload a file, wait past the idle time: the file-only pod is gone. Open A again, then start A from the dashboard: the SFTP session gets "server is starting", and A starts with the uploaded file in place.
+
+**Acceptance Scenarios**:
+
+1. **Given** server A is stopped, **When** a user with read access opens A's folder, **Then** they see A's files and A stays stopped.
+2. **Given** server A is asleep, **When** a user opens A's folder, **Then** A is not woken, and players connecting to A still get the normal wake behaviour.
+3. **Given** files of stopped A are open over SFTP, **When** someone starts A, **Then** file access ends first and A starts normally.
+4. **Given** no file operation on stopped A for the idle time, **Then** the file-only pod is removed.
+
+---
+
 ### Edge Cases
 
-- A server is stopped or asleep, so its sidecar is not running (OD-4).
+- A server is stopped or asleep, so its sidecar is not running: a file-only pod serves its files (OD-4, FR-013).
+- A user starts the server while someone has its stopped files open over SFTP (FR-013c).
+- A server's volumes can only be attached to one node: the file-only pod lands where the volumes can attach.
 - Two servers share a name in different namespaces: they appear under different `/_namespaces/` paths, or one of them as `/<server>` when it is in the default games namespace (OD-3).
 - A server is created, deleted or renamed while a user is connected: the root listing reflects it on the next listing; operations on a deleted server fail cleanly.
 - The server's pod restarts mid-transfer: the transfer fails with a clear error and can be resumed.
@@ -125,7 +144,12 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 - **FR-010**: Inside a server folder, the user MUST see exactly what the dashboard Files tab shows for that server: the same data root, with dotfiles hidden and symlink escapes refused.
 - **FR-011**: Reads MUST require the same permission as the Files tab read routes, and every change (upload, overwrite, rename, mkdir, delete) MUST require the same permission as the Files tab write routes. Permissions MUST be checked on every operation, not only at login.
 - **FR-012**: The root and the server folders themselves MUST be read-only: users cannot create, rename or delete them.
-- **FR-013**: Behaviour for a server whose sidecar is not running MUST follow OD-4.
+- **FR-013**: When a server is stopped or asleep, opening its folder (or logging in to it directly) MUST make its files available through a short-lived file-only pod that the operator runs with the server's volumes and the agent's file API only: no game process, no console, no game ports (OD-4).
+- **FR-013a**: File access MUST NOT wake or start the game server, and the file-only pod MUST NOT be reachable by players.
+- **FR-013b**: The file-only pod MUST be removed after a configurable idle time with no file operation (default proposed in planning), and at once when the server is deleted.
+- **FR-013c**: Starting or waking the server MUST end file-only access first: open transfers to that server fail with a clear "server is starting" error, and the game pod starts only after the file-only pod is gone, so the two never mount the volumes at the same time.
+- **FR-013d**: The dashboard Files tab MUST use the same file-only access for a stopped or asleep server, so it behaves like SFTP.
+- **FR-013e**: Waiting for a file-only pod MUST NOT hang a client: if it is not ready within a bounded time, the operation fails with a clear "files are starting, try again" error.
 
 **File operations**
 
@@ -173,7 +197,7 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 - The SFTP component is optional and off by default, like the MCP server and the audit syslog bridge.
 - The upload size limit and the dotfile, symlink and data-root rules are the same as the dashboard Files tab; SFTP gets no wider view of the volume than the dashboard.
 - Host key type is a modern one (Ed25519) generated once at install and kept in a Secret.
-- No dashboard file browser change is needed; the only new dashboard UI is the profile's SFTP section (and admin revoke on the Users page), which is designed in `design.fig` first (core rule 1).
+- The Files tab needs no new screen; it gains offline access through FR-013d (and may need a short "files are starting" state, designed first). The other new dashboard UI is the profile's SFTP section (and admin revoke on the Users page), which is designed in `design.fig` first (core rule 1).
 
 ## Out of Scope
 
