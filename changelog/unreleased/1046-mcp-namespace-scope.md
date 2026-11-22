@@ -7,4 +7,4 @@ reads now cover only the release namespace and the managed game namespaces, thro
 namespaced Roles. A ClusterRole remains for GameTemplate, Module and ModuleSource only.
 After upgrading, use a personal MCP token (`/users/me/mcp-tokens`) for per-user reads
 across clusters. See [`docs/security.md`](docs/security.md#mcp-server-optional).
-[PR #0000](https://github.com/GameplanePanel/Gameplane/pull/0000)
+[PR #1046](https://github.com/GameplanePanel/Gameplane/pull/1046)
