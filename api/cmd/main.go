@@ -390,7 +390,6 @@ func main() {
 	// rbac.Middleware and handlers.MountPods read it to gate pod and event reads.
 	scope.SetControlPlaneNamespace(cfg.namespace)
 
-
 	// Internal reads use the same selected cluster and credentials as
 	// browser-facing agent routes, including remote-only management installs.
 	agentLister := ws.NewClusterAgentClient(reg, credentialsNS, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)

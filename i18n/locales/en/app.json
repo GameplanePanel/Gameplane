@@ -6117,11 +6117,11 @@
   },
   "web.routes.admin_settings.share_curseforge_key_flag_set": {
     "defaultMessage": "Set by the --curseforge-api-key startup flag",
-    "description": "Admin settings: line under the CurseForge key share title when the key comes from the --curseforge-api-key startup flag"
+    "description": "Admin settings: CurseForge registry description when the key comes from the --curseforge-api-key startup flag"
   },
   "web.routes.admin_settings.share_curseforge_key_from_flag": {
     "defaultMessage": "From startup flag",
-    "description": "Admin settings: badge shown next to the CurseForge share title when the key comes from the --curseforge-api-key startup flag"
+    "description": "Admin settings: badge shown next to the CurseForge registry name when the key comes from the --curseforge-api-key startup flag"
   },
   "web.routes.admin_settings.share_curseforge_key_help": {
     "defaultMessage": "Lets servers on images without a built-in key (Minecraft 1.16.5 and older) install CurseForge packs.",
