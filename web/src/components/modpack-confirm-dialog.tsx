@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   Button,
@@ -53,9 +53,11 @@ export function ModpackConfirmDialog({
   // every time the dialog opens so a previous untick does not stick.
   const [backupWanted, setBackupWanted] = useState(backupAvailable);
 
-  useEffect(() => {
+  const [prevInit, setPrevInit] = useState({ open, backupAvailable });
+  if (prevInit.open !== open || prevInit.backupAvailable !== backupAvailable) {
+    setPrevInit({ open, backupAvailable });
     if (open) setBackupWanted(backupAvailable);
-  }, [open, backupAvailable]);
+  }
 
   const backupFirst = backupAvailable && backupWanted;
   const isRemove = mode === "remove";

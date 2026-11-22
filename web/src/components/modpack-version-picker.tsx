@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Button,
@@ -93,9 +93,11 @@ export function ModpackVersionPicker({
   // undefined means "the newest version", so the selection resets on each open.
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (open) setSelectedId(undefined);
-  }, [open]);
+  }
 
   const versionsQ = useQuery({
     queryKey: resourceKey(target, "modpack-versions", provider, project),
