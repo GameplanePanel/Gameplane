@@ -9995,6 +9995,10 @@
     "defaultMessage": "=",
     "description": "Networking: separator shown between an annotation key and its value"
   },
+  "web.routes.tabs.settings.networking.load_balancer_hostname_hint": {
+    "defaultMessage": "Leave blank for the template hostname or load balancer address.",
+    "description": "Networking: explains which hostname a LoadBalancer server advertises when no override is set"
+  },
   "web.routes.tabs.settings.networking.loadbalancer_ip_allow_list": {
     "defaultMessage": "LoadBalancer IP allow-list",
     "description": "Networking: field label for the LoadBalancer IP allow-list, shown only when Expose is LoadBalancer; the accessible name of its text box is the same"
@@ -10028,7 +10032,7 @@
     "description": "Networking: warning title shown when the cluster has no address manager; the line below says the pool and address preference will be saved but not applied"
   },
   "web.routes.tabs.settings.networking.nodeport_hostname_hint": {
-    "defaultMessage": "Use a DNS name that points to a node players can reach. Leave blank to use a node’s external IP when available.",
+    "defaultMessage": "Leave blank for the template hostname or a node’s external IP.",
     "description": "Networking: explains how the optional hostname determines the address advertised for a NodePort server"
   },
   "web.routes.tabs.settings.networking.one_cidr_per_line_restricts_which": {

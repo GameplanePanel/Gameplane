@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"net"
@@ -282,7 +283,7 @@ func (r *GameServerReconciler) reconcileStatus(
 		// Service type cannot establish which node ports are allocated.
 		gs.Status.Endpoints = nil
 	case svcExists:
-		host := gs.Spec.Networking.Hostname
+		host := cmp.Or(gs.Spec.Networking.Hostname, r.TemplateHostnames[gs.Spec.TemplateRef.Name])
 		if svc.Spec.Type == corev1.ServiceTypeNodePort && host == "" {
 			var err error
 			host, err = r.nodePortExternalIP(ctx, &svc)

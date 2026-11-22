@@ -8911,6 +8911,10 @@
         "defaultMessage": "=",
         "description": "Networking: separator shown between an annotation key and its value"
     },
+    "web.routes.tabs.settings.networking.load_balancer_hostname_hint": {
+        "defaultMessage": "Laissez ce champ vide pour utiliser le nom d’hôte du modèle ou l’adresse du LoadBalancer.",
+        "description": "Networking: explains which hostname a LoadBalancer server advertises when no override is set"
+    },
     "web.routes.tabs.settings.networking.loadbalancer_ip_allow_list": {
         "defaultMessage": "Liste d'autorisation des IP LoadBalancer",
         "description": "Networking: field label for the LoadBalancer IP allow-list, shown only when Expose is LoadBalancer; the accessible name of its text box is the same"
@@ -8944,7 +8948,7 @@
         "description": "Networking: warning title shown when the cluster has no address manager; the line below says the pool and address preference will be saved but not applied"
     },
     "web.routes.tabs.settings.networking.nodeport_hostname_hint": {
-        "defaultMessage": "Utilisez un nom DNS qui pointe vers un nœud accessible aux joueurs. Laissez ce champ vide pour utiliser l’adresse IP externe d’un nœud si elle est disponible.",
+        "defaultMessage": "Laissez ce champ vide pour utiliser le nom d’hôte du modèle ou l’adresse IP externe d’un nœud.",
         "description": "Networking: explains how the optional hostname determines the address advertised for a NodePort server"
     },
     "web.routes.tabs.settings.networking.one_cidr_per_line_restricts_which": {

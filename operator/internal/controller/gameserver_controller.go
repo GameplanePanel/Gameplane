@@ -139,6 +139,9 @@ type GameServerReconciler struct {
 	// unhonored request, never silently fall back to the default pool.
 	AddressManager string
 
+	// TemplateHostnames supplies player-facing Service hostnames by GameTemplate name.
+	TemplateHostnames map[string]string
+
 	// PortPools gives the servers of each pooled template Service ports of
 	// their own on a shared endpoint (--port-pool, --port-pool-template); see
 	// gameserver_portpool.go. portPoolMu serializes allocations.
