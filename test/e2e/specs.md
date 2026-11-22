@@ -82,6 +82,23 @@ runs alone because it changes node scheduling. Its GameServer and template names
 are unique per run; it uses the chart-owned game namespace so the operator's
 configured Secret scope and RBAC apply. Runtime results come from CI.
 
+### Standalone Helm panel
+
+The amd64 `standalone` bucket runs `TestStandalone_HelmPanelLifecycle` (spec 025,
+OD-6 and OD-7). It installs the chart's panel-only profile (`api.standalone=true`,
+`operator.enabled=false`, `web.enabled=false`) as a second Helm release in the
+fixed namespace `e2e-standalone-panel`, with `api.remoteAllowedCIDRs` set to the
+in-cluster Kubernetes API address. It checks one replica, `Recreate` and no
+service-account token; bootstraps an admin; checks empty clusters and fleet with
+no `local` cluster, `/admin/installation` (standalone, and 401 when anonymous) and
+the 501 from system logs; refuses plain-HTTP, disallowed-destination and
+unverified-TLS kubeconfigs; registers the Kind cluster with a ServiceAccount token;
+creates a GameServer through the panel and waits for the operator's StatefulSet;
+replaces the kubeconfig, revokes the first token and reads the server again;
+restarts the API pod and reads it again; then deletes the server and the
+registration. The panel has its own database, key and login limiter (3 logins),
+so it spends none of the shared panel's login budget.
+
 ### Panel recovery drill
 
 The amd64 `recovery` bucket runs `TestPanel_OfflineRecovery` in a unique namespace
@@ -191,7 +208,7 @@ rows. Each matrix leg skips cluster setup only when its selected test pattern
 is empty; full-scope and affected-component runs must include the affected
 buckets.
 
-The CI report counts `wake-hostport` and `recovery` only when their exact
+The CI report counts `wake-hostport`, `recovery` and `standalone` only when their exact
 `run go e2e (<bucket>)` test step completes with success or failure. Skipped,
 cancelled or absent test steps do not count as executed drills.
 

@@ -117,6 +117,19 @@ description: "Task list for Feature 025: Standalone panel and API (retroactive, 
 - [X] T050 CI green on PR #630 head `117caf35` (97 checks), human approval, merge into `master` as `6ed25c1` (2026-10-14)
 - [X] T051 Renumber this folder from `specs/023-standalone-panel/` to `specs/025-standalone-panel/`, update `api/specs.md`, and complete the spec-kit artifacts (this change)
 
+## Phase 9: Standalone E2E test (converge, 2026-11-22)
+
+**Goal**: Close the Constitution I gap (spec Known gaps) with a `test/e2e/` test on the Helm panel-only profile, so this folder can be archived (OD-5).
+
+**Independent Test**: CI leg `e2e standalone / amd64 (kind)` runs `TestStandalone_HelmPanelLifecycle`.
+
+- [X] T052 [US1] [US2] [US3] [US5] Add `TestStandalone_HelmPanelLifecycle` in `test/e2e/standalone_panel_e2e_test.go` covering OD-6 steps 1 to 7
+- [X] T053 Register bucket `standalone` in `test/e2e/buckets.sh` and the test's components in `test/e2e/suite-components.json`
+- [X] T054 Add `standalone` to `E2E_BUCKETS` and `E2E_AMD64_ONLY` in `hack/ci_scope.py`, and to the `e2e-go` matrix, its failure dump namespaces and the report regexes in `.github/workflows/ci.yaml` (OD-7)
+- [X] T055 [P] Document the bucket in `test/e2e/specs.md` and the bucket list in `AGENTS.md`
+- [ ] T056 CI green on the PR, human approval, merge into `master`
+- [ ] T057 After T056, archive this folder as `specs/done_025-standalone-panel/` and update in-repo references (OD-5, CLAUDE.md rule 16)
+
 ## Requirement Coverage
 
 | Requirement | Tasks |
@@ -167,5 +180,5 @@ As delivered: one large PR. The first commit `0182e16` built the MVP across US1,
 
 ## Notes
 
-- Every task is ticked and PR #630 is merged, so Constitution IV and CLAUDE.md rule 16 call for renaming this folder to `done_025-standalone-panel`. valgul decided to keep the `025-` name until a standalone E2E test exists, because Constitution I also requires one and there is none (OD-5, spec Known gaps).
+- valgul decided to keep the `025-` name until a standalone E2E test exists (OD-5). Phase 9 adds it (OD-6, OD-7); T057 archives the folder once T056 has merged.
 - Follow-ups outside this feature: telemetry marker for standalone installs (OD-2); `--skip-crds` issue (OD-3).
