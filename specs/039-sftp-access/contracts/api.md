@@ -26,7 +26,7 @@ Only these routes accept a session token (guard like `MCPTokenGuard`); `cluster`
 - `POST /servers/{name}/files/{mkdir,rename}`, `DELETE /servers/{name}/files/delete`
 - `PUT /servers/{name}/files/stream?path=…&offset=N` (OD-6)
 
-`stat`, `rename` and `stream` are new and also mounted for the dashboard session (same RBAC as `read` / `write`). On a stopped or asleep server every file route first ensures file-only access (R3) and answers `503` with `server.files.starting` after 60 s if it is not ready.
+`stat`, `rename` and `stream` are new and also mounted for the dashboard session (same RBAC as `read` / `write`); the dashboard Files tab uploads through `stream` (OD-6). The multipart `files/upload` route stays for one release. On a stopped or asleep server every file route first ensures file-only access (R3) and answers `503` with `server.files.starting` after 60 s if it is not ready.
 
 ## Called by the dashboard (cookie session)
 
@@ -48,4 +48,4 @@ Session-token requests are refused on all of these. Endpoint address and host ke
 |---|---|
 | `GET /files/stat?path=` | `Entry` for one path; 404 if missing |
 | `POST /files/rename` `{from, to, overwrite}` | same server only; refuses dotfiles, root, crossing the data root |
-| `PUT /files/stream?path=&offset=N` | raw body; `offset=0` writes a new temp file; `offset=N` copies the first N bytes of the existing file first (N must be ≤ its size); commit by rename on success; free-space check before writing; limit from OD-6 |
+| `PUT /files/stream?path=&offset=N` | raw body; `offset=0` writes a new temp file; `offset=N` copies the first N bytes of the existing file first (N must be ≤ its size); commit by rename on success; free-space check before writing; limit `files.maxUploadSize` (OD-6) |

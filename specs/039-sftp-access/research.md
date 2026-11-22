@@ -9,7 +9,7 @@ Facts read from `origin/master` at `71a2db19` on 2026-11-22. Each item states wh
 - Missing for SFTP: **stat** of one path (SFTP `STAT`/`LSTAT`/`FSTAT`), **rename** (SFTP `RENAME`, `posix-rename@openssh.com`; WinSCP uploads to `*.filepart` and renames), and an **offset/streaming upload** (`upload` is multipart with a 64 MiB per-file cap, `files.go:249-253`, `maxFormSize` 64 MiB at `files.go:300`).
 - `list` returns `Entry{Name,Path,Size,Mode,Dir,ModTime}` (`files.go:101-109`), enough for SFTP `READDIR` attributes.
 
-**Decision**: add `GET /files/stat`, `POST /files/rename` and `PUT /files/stream` (raw body, `offset` query, temp file committed atomically on success) to the agent. The streaming route has its own limit from OD-6 and is long-running like `upload`.
+**Decision**: add `GET /files/stat`, `POST /files/rename` and `PUT /files/stream` (raw body, `offset` query, temp file committed atomically on success) to the agent. The streaming route is long-running like `upload`, with one limit for SFTP and the dashboard (OD-6 B, Helm `files.maxUploadSize`, default 20 GiB, passed to the agent through the operator and to the API and gateway as their body limit for this route).
 
 ## R2. How the API reaches an agent, locally and remotely
 

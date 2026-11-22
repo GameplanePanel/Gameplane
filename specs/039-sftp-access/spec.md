@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-22
 
-**Status**: Draft (OD-1 to OD-5 settled; OD-6 and OD-7 raised by planning are open, see `OPEN-DECISIONS.md`)
+**Status**: Draft (OD-1 to OD-6 settled; OD-7 raised by planning is open, see `OPEN-DECISIONS.md`)
 
 **Input**: Issue [#1051](https://github.com/GameplanePanel/Gameplane/issues/1051) "Add SFTP server for file access", and valgul's design idea on it: "Give the sidecar a new internal API to list, stat, download and upload files. Then run one global SFTP server that uses this API. You connect to {sftp-cluster-ip} and see one folder per game server your account can access. Each folder is backed by that server pod's sidecar API."
 
@@ -158,7 +158,9 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 - **FR-015**: The agent sidecar's file API MUST gain the operations FR-014 needs that it lacks today: stat, rename/move, read from an offset, and write at an offset or append. The new operations MUST keep the existing guarantees: rooted at the data root, no dotfiles, no symlink following, and safe against a path changing between check and use.
 - **FR-016**: An upload that fails or is cancelled MUST NOT leave a partly written file in place of an existing file of the same name.
 - **FR-017**: Changing file modes, owners and timestamps (`chmod`, `chown`, `utime`) MUST either be accepted as a no-op or refused consistently; it MUST NOT change ownership inside the volume.
-- **FR-018**: Transfers MUST NOT be cut off by the short per-request timeouts used for small file operations; they MUST be limited only by the SFTP upload size limit (OD-6), the volume's free space and an idle timeout.
+- **FR-018**: Transfers MUST NOT be cut off by the short per-request timeouts used for small file operations; they MUST be limited only by the file upload size limit (OD-6), the volume's free space and an idle timeout.
+- **FR-018a**: One upload size limit MUST apply to SFTP and the dashboard Files tab alike, configurable in Helm with a default of 20 GiB, and an upload that would not fit in the volume's free space MUST be refused before writing (OD-6).
+- **FR-018b**: The dashboard Files tab MUST upload through the same streaming path as SFTP, show progress for each file, and let the user cancel; a cancelled or failed upload follows FR-016.
 - **FR-019**: Each user MUST be limited to a configurable number of concurrent sessions and transfers.
 
 **Audit and observability**
@@ -196,9 +198,9 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 - One address per cluster (OD-3) matches what the reporter asked for in #1051; dedicated per-server ports or port pools are a possible later spec.
 - File permissions reuse the existing catalog (`servers:read` to read, `servers:write` or ownership to change); no new permission is added.
 - The SFTP component is optional and off by default, like the MCP server and the audit syslog bridge.
-- The dotfile, symlink and data-root rules are the same as the dashboard Files tab (the upload size limit is OD-6); SFTP gets no wider view of the volume than the dashboard.
+- The dotfile, symlink and data-root rules are the same as the dashboard Files tab (the upload size limit is shared, OD-6); SFTP gets no wider view of the volume than the dashboard.
 - Host key type is a modern one (Ed25519) generated once at install and kept in a Secret.
-- The Files tab needs no new screen; it gains offline access through FR-013d (and may need a short "files are starting" state, designed first). The other new dashboard UI is the profile's SFTP section (and admin revoke on the Users page), which is designed in `design.fig` first (core rule 1).
+- The Files tab needs no new screen; it gains offline access through FR-013d and streaming uploads with progress through FR-018b (both states designed first). The other new dashboard UI is the profile's SFTP section (and admin revoke on the Users page), which is designed in `design.fig` first (core rule 1).
 
 ## Out of Scope
 

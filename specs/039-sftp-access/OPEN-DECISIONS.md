@@ -1,6 +1,6 @@
 # Open decisions: spec 039 SFTP access to game servers
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. OD-1 to OD-5 are settled. Planning raised OD-6 and OD-7 on 2026-11-22: both are open. Planning starts once they are settled.
+Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. OD-1 to OD-5 are settled. Planning raised OD-6 and OD-7 on 2026-11-22: OD-6 is settled, OD-7 is open. Planning starts once they are settled.
 
 ## OD-1: Where does the SFTP server run, and how does it reach the sidecars? (SETTLED: A, valgul 2026-11-22)
 
@@ -55,13 +55,15 @@ OD-1 routes every SFTP operation through the Gameplane API, and OD-3 puts one SF
 - B. A remote endpoint sends file data straight to its own cluster's gateway, and asks the central API only to log the user in, check each operation and write the audit entry. Data stays in the remote cluster, but permission handling splits across two paths and the gateway gains a new client.
 - C. SFTP runs only on the cluster that hosts the panel API for now; remote clusters get SFTP in a later spec.
 
-## OD-6: How large can one SFTP upload be? (OPEN)
+## OD-6: How large can one SFTP upload be? (SETTLED: B, valgul 2026-11-22)
 
 Raised by planning. The dashboard and the agent cap one upload at 64 MiB today (`agent/internal/files/files.go`, `maxUploadFileBytes`), and the gateway caps request bodies too. Worlds and modpacks are often bigger, which is the main reason #1051 asks for SFTP.
 
 - A. A new streaming upload route on the agent, API and gateway used by SFTP only, with its own Helm limit (`sftp.maxUploadSize`, default 20 GiB) and a free-space check before writing. The dashboard keeps 64 MiB. (Recommended: SFTP can move whole worlds, and the dashboard's tested upload path does not change.)
 - B. Same as A, and the dashboard upload also moves to the streaming route with the same limit. Bigger change, needs a design pass for progress on large uploads.
 - C. Keep 64 MiB everywhere. Smallest change, but worlds must be split or uploaded another way.
+
+**Settled:** B, by decision card. The limit is one Helm value shared by SFTP and the dashboard (`files.maxUploadSize`, default 20 GiB). The dashboard upload moves to the streaming route and shows progress for large files (designed first). The multipart `files/upload` route stays mounted for one release for API clients and is then removed in a later change.
 
 ## OD-7: Where does the SFTP server's code live? (OPEN)
 

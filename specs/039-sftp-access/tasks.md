@@ -2,7 +2,7 @@
 
 **Input**: Design documents from `/specs/039-sftp-access/`
 
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/api.md. OD-1 to OD-5 settled by valgul on 2026-11-22. OD-6 and OD-7 are open; tasks below follow their recommended options and are re-checked when they are settled. No implementation starts while any decision is open.
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/api.md. OD-1 to OD-6 settled by valgul on 2026-11-22. OD-7 is open; tasks below follow its recommended option and are re-checked when it is settled. No implementation starts while any decision is open.
 
 **Tests**: Required (Constitution I and coverage gates: agent 90, api 80, operator 72, web 92/76/82/92, new component `.testcoverage.yml`). Every test task adds **new** test functions or files. Changing an **existing** test needs valgul's written sign-off from T002 first (CLAUDE.md override 1). Tests run in CI only; locally only `go build ./...` (`GOWORK=off` in the component) and `npx tsc --noEmit`.
 
@@ -26,7 +26,7 @@
 ## Phase 2: Foundational (blocks every story)
 
 - [ ] T004 [P] Agent `GET /files/stat` in `agent/internal/files/stat.go`, rooted like `list`, dotfiles refused, returns `Entry`; mount in `files.go` bounded group.
-- [ ] T005 [P] Agent `PUT /files/stream` in `agent/internal/files/stream_linux.go`: raw body, `offset` query (0 or ≤ existing size, copy prefix), temp file in the target dir, free-space check (`statfs`) before writing, limit from flag `--stream-max-bytes` (OD-6, default 20 GiB), fsync + rename commit on success, temp removed on any failure (FR-016); long-running group.
+- [ ] T005 [P] Agent `PUT /files/stream` in `agent/internal/files/stream_linux.go`: raw body, `offset` query (0 or ≤ existing size, copy prefix), temp file in the target dir, free-space check (`statfs`) before writing, limit from flag `--max-upload-bytes` (OD-6, Helm `files.maxUploadSize`, default 20 GiB, wired by the operator), fsync + rename commit on success, temp removed on any failure (FR-016); long-running group.
 - [ ] T006 [P] Agent `POST /files/rename` in `agent/internal/files/rename_linux.go` using `renameat` on directory fds opened by the rooted walker; refuses root, dotfiles, `overwrite=false` onto an existing name.
 - [ ] T007 Tests for T004–T006 in new files `stat_test.go`, `stream_linux_test.go`, `rename_linux_test.go`: escapes via `..` and symlink swaps (use `beforeOpen` seam), resume prefix copy, cancel mid-stream leaves old file intact, free-space refusal, size limit.
 - [ ] T008 Update `agent/specs.md` with the three routes and their invariants.
@@ -54,12 +54,12 @@
 
 - [ ] T022 [US3] Routes in `api/internal/handlers/sftp.go` per contracts/api.md (self and admin), mounted with RBAC; session-token requests refused.
 - [ ] T023 [US3] Envtest `api/internal/handlers/sftp_envtest_test.go`: add/remove keys, duplicate fingerprint refused, password shown once and regenerate invalidates old, admin revoke, user disable ends sessions.
-- [ ] T024 [US3] Design in `design.fig`: profile SFTP section (address, port, username forms, host key fingerprint, keys list, add key dialog, generate password dialog with length 20–40 and one-time display), admin SFTP panel on Users, cluster SFTP token dialog; run `hack/design/fig-export.ts`; get valgul's sign-off.
+- [ ] T024 [US3] Design in `design.fig`: profile SFTP section (address, port, username forms, host key fingerprint, keys list, add key dialog, generate password dialog with length 20–40 and one-time display), admin SFTP panel on Users, cluster SFTP token dialog, Files tab upload progress and cancel for large files (OD-6), Files tab "files are starting" state; run `hack/design/fig-export.ts`; get valgul's sign-off.
 - [ ] T025 [US3] Web after T024 sign-off: profile section, Users admin panel, `web/src/lib/api.ts` methods, i18n strings, Vitest tests.
 
 ## Phase 6: US4 Admin enables SFTP (P2)
 
-- [ ] T026 [US4] Chart `charts/gameplane/templates/sftp.yaml`: Deployment, Service (type/port values), host key Secret generated once (lookup, `helm.sh/resource-policy: keep`), local service token Secret, values `sftp.*` (enabled false, port 2222, serviceType, publicAddress, apiURL, apiCASecret, serviceTokenSecret, maxUploadSize, limits); NetworkPolicy allowing SFTP ingress and egress to the API.
+- [ ] T026 [US4] Chart `charts/gameplane/templates/sftp.yaml`: Deployment, Service (type/port values), host key Secret generated once (lookup, `helm.sh/resource-policy: keep`), local service token Secret, values `sftp.*` (enabled false, port 2222, serviceType, publicAddress, apiURL, apiCASecret, serviceTokenSecret, limits) and `files.maxUploadSize` (default 20Gi, used by operator, API and gateway); NetworkPolicy allowing SFTP ingress and egress to the API.
 - [ ] T027 [US4] `POST /clusters/{name}/sftp-token`, `PUT /clusters/{name}/sftp` and the Clusters page dialog (design from T024).
 - [ ] T028 [US4] Submodule `sftp` (`.gitmodules` `component = true`, `hack/submodules.sh` path filters), `Makefile` `IMAGES += sftp`, release image list and signing.
 - [ ] T029 [US4] E2E bucket `sftp` in `test/e2e/sftp_test.go` registered in `test/e2e/buckets.sh`: chart off renders nothing; on: connect, list, 2 GiB upload/download with resume, permission matrix, audit `source`, revoke within 60 s; `multicluster` addition for a remote endpoint.
@@ -72,6 +72,8 @@
 - [ ] T033 [US5] API ensure-files in the file routes for stopped/asleep servers: patch the annotation (at most once a minute), wait up to 60 s, `503 server.files.starting`.
 - [ ] T034 [US5] NetworkPolicy for `gameplane-files` pods (API, operator, gateway → 8090 only).
 - [ ] T035 [US5] Operator envtest `gameserver_files_envtest_test.go`: create/teardown, selector switch both ways, start while active, asleep server not woken, delete server; Files tab "files are starting" state (design from T024) and Vitest.
+
+- [ ] T035a Files tab streaming upload (OD-6, FR-018b): `web/src/routes/tabs/Files.tsx` uploads each file with `PUT files/stream` and shows progress and cancel per the T024 design; `web/src/lib/api.ts` method; Vitest tests. Multipart route kept for one release.
 
 ## Phase 8: Polish
 
