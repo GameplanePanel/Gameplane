@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Players",
   "type": "FRAME",
   "x": 0,
-  "y": 34270,
+  "y": 34528,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

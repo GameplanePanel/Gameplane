@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Notifications",
   "type": "FRAME",
   "x": 0,
-  "y": 86131,
+  "y": 86389,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

@@ -115,7 +115,7 @@
           "componentId": "1:706",
           "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
           "strokes": [{"type": "SOLID", "color": "#DB2777"}],
-          "strokeWeight": 2,
+          "strokeWeight": 1,
           "cornerRadius": 12,
           "layout": {
             "mode": "HORIZONTAL",

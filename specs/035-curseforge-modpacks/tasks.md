@@ -40,7 +40,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 - [ ] T009 [P] Update the minecraft-java template to the providers block in data-model.md (modrinth, curseforge, ftb, hangar), raise `gameplaneMinVersion` to the release that ships this spec and bump the module minor version in modules/minecraft-java/template.yaml and modules/minecraft-java/module.yaml (module repo PR; root pointer bump only after it merges)
 - [X] T010 Replace the `spec.env` patch in `installModpack` with a `spec.modpack` write and add `GET /servers/{name}/modpack` (active, phase, message, backupName, keyShared, backupAvailable; missingFiles empty for now) per contracts/api-modpack.md in api/internal/handlers/registry.go
 - [X] T011 Write the local Pencil prompt for the six surfaces in contracts/ui-modpacks-tab.md (repo `local-prompt` skill) and save it as notes/design-prompts/035-modpacks-tab.md in the project files
-- [ ] T012 (valgul's machine, pencil-designer) Design the six surfaces in design.pen and export touched nodes to assets/design-export/json/ and assets/design-export/screenshots/ in the same commit
+- [x] T012 (valgul's machine, pencil-designer) Design the six surfaces in design.pen and export touched nodes to assets/design-export/json/ and assets/design-export/screenshots/ in the same commit (redone in design.fig)
 - [ ] T013 (valgul) Approve the T012 screenshots; record the approval in this file
 
 **Checkpoint**: CRDs regenerated, operator renders pack env from `spec.modpack`, module declares all three registries, design approved.
