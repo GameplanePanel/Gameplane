@@ -128,6 +128,7 @@ func (m *Modrinth) Versions(ctx context.Context, projectID string, f Filter) ([]
 		GameVersions  []string `json:"game_versions"`
 		Loaders       []string `json:"loaders"`
 		DatePublished string   `json:"date_published"`
+		VersionType   string   `json:"version_type"`
 		Files         []struct {
 			URL      string `json:"url"`
 			Filename string `json:"filename"`
@@ -159,6 +160,8 @@ func (m *Modrinth) Versions(ctx context.Context, projectID string, f Filter) ([]
 			VersionNumber: v.VersionNumber,
 			GameVersions:  v.GameVersions,
 			Loaders:       v.Loaders,
+			ReleaseType:   v.VersionType,
+			PublishedAt:   v.DatePublished,
 			Files:         files,
 		})
 	}

@@ -1039,6 +1039,26 @@
     "defaultMessage": "token not found",
     "description": "API error when a personal MCP token to revoke does not exist, is already revoked, or belongs to another user (mcp_tokens.go:writeMCPTokenErr)."
   },
+  "server.modpack.backup_unavailable": {
+    "defaultMessage": "no backup destination is configured for this server",
+    "description": "API error from the modpack API (registry.go:installModpack, registry_modpack.go:removeModpack) when backupFirst is requested but the server has no backup destination."
+  },
+  "server.modpack.change_in_progress": {
+    "defaultMessage": "a modpack change is already in progress; wait for it to finish",
+    "description": "API error from the modpack API (registry.go:installModpack, registry_modpack.go:removeModpack) while the previous modpack change is still pending, backing up or applying."
+  },
+  "server.modpack.key_required": {
+    "defaultMessage": "this modpack registry needs the CurseForge key to be shared with game servers; ask an administrator to turn on key sharing",
+    "description": "API error from the modpack API (registry.go:installModpack) when the server's game image has no built-in CurseForge key and the administrator has not enabled key sharing."
+  },
+  "server.modpack.not_found": {
+    "defaultMessage": "this server has no modpack",
+    "description": "API error from the modpack API (registry_modpack.go:removeModpack) when there is no modpack to remove."
+  },
+  "server.modpack.version_required": {
+    "defaultMessage": "version is required",
+    "description": "API error from the modpack API (registry.go:installModpack) when a modpack is installed without choosing a version."
+  },
   "server.namespace_forbidden": {
     "defaultMessage": "namespace not permitted",
     "description": "API error when the user's role does not cover the requested namespace."
@@ -1066,6 +1086,10 @@
   "server.registry.api_key_required": {
     "defaultMessage": "apiKey is required",
     "description": "API error from the mod-registry credentials API (registry_secret.go:put)."
+  },
+  "server.registry.share_needs_managed_key": {
+    "defaultMessage": "the CurseForge key must be saved in the panel before it can be shared with game servers",
+    "description": "API error from the mod-registry credentials API (registry_secret.go:putShare) when key sharing is turned on but the key comes only from a startup flag, not from a saved Secret."
   },
   "server.remote_cluster_not_implemented": {
     "defaultMessage": "not implemented: no cross-cluster agent yet; this route only serves the home cluster",
@@ -2263,6 +2287,266 @@
     "defaultMessage": "Unavailable.",
     "description": "Fleet scope: warning shown when a cluster cannot be queried"
   },
+  "web.components.modpack_active_card.change_version": {
+    "defaultMessage": "Change version",
+    "description": "Modpack active card: button that opens the version picker to switch the modpack version"
+  },
+  "web.components.modpack_active_card.chip_applied": {
+    "defaultMessage": "Applied",
+    "description": "Modpack active card: status chip when the modpack is pinned and applied"
+  },
+  "web.components.modpack_active_card.chip_applying": {
+    "defaultMessage": "Applying",
+    "description": "Modpack active card: status chip while the modpack change is being applied"
+  },
+  "web.components.modpack_active_card.chip_backing_up": {
+    "defaultMessage": "Backing up",
+    "description": "Modpack active card: status chip while a backup is taken before the modpack changes"
+  },
+  "web.components.modpack_active_card.chip_backup_failed": {
+    "defaultMessage": "Backup failed",
+    "description": "Modpack active card: status chip when the backup taken before a change or removal failed"
+  },
+  "web.components.modpack_active_card.chip_not_pinned": {
+    "defaultMessage": "Not pinned",
+    "description": "Modpack active card: status chip when the installed modpack version could not be read"
+  },
+  "web.components.modpack_active_card.chip_removing": {
+    "defaultMessage": "Removing",
+    "description": "Modpack active card: status chip while the modpack removal is queued"
+  },
+  "web.components.modpack_active_card.label": {
+    "defaultMessage": "Active modpack",
+    "description": "Modpack active card: small label above the active modpack summary"
+  },
+  "web.components.modpack_active_card.message_applying": {
+    "defaultMessage": "Restarting with the new version…",
+    "description": "Modpack active card: default line shown while the server restarts with the new modpack version"
+  },
+  "web.components.modpack_active_card.message_backing_up": {
+    "defaultMessage": "Backing up before switching. The server keeps running.",
+    "description": "Modpack active card: default line shown while the backup before a modpack change runs"
+  },
+  "web.components.modpack_active_card.message_not_pinned": {
+    "defaultMessage": "The installed version could not be read. Pick a version to pin this pack; until then a restart may upgrade it.",
+    "description": "Modpack active card: line explaining that the installed modpack version is unknown and a restart may upgrade it"
+  },
+  "web.components.modpack_active_card.message_removing": {
+    "defaultMessage": "Removing the pack and emptying the mods folder at the next start…",
+    "description": "Modpack active card: line shown while a modpack removal is queued for the next server start"
+  },
+  "web.components.modpack_active_card.pick_version": {
+    "defaultMessage": "Pick version",
+    "description": "Modpack active card: button that opens the version picker when the installed version is unknown"
+  },
+  "web.components.modpack_active_card.remove": {
+    "defaultMessage": "Remove",
+    "description": "Modpack active card: button that removes the active modpack"
+  },
+  "web.components.modpack_active_card.retry_remove": {
+    "defaultMessage": "Retry remove",
+    "description": "Modpack active card: button that retries removing the modpack after its backup failed"
+  },
+  "web.components.modpack_active_card.version_pinned": {
+    "defaultMessage": "Version {version} · pinned · {mc}",
+    "description": "Modpack active card: second line with the pinned modpack version; {version} is the version name, {mc} the Minecraft version and loader label"
+  },
+  "web.components.modpack_active_card.version_unknown": {
+    "defaultMessage": "Version unknown · {mc}",
+    "description": "Modpack active card: second line when the installed version is unknown; {mc} is the Minecraft version and loader label"
+  },
+  "web.components.modpack_confirm_dialog.back_up_first": {
+    "defaultMessage": "Back up first",
+    "description": "Modpack confirm dialog: checkbox label that takes a backup before the change"
+  },
+  "web.components.modpack_confirm_dialog.backup_help": {
+    "defaultMessage": "Takes a backup to this server's backup destination before the change. If the backup fails, nothing changes.",
+    "description": "Modpack confirm dialog: help text under the back-up checkbox explaining the backup is taken first and the change is cancelled if it fails"
+  },
+  "web.components.modpack_confirm_dialog.backup_help_destination": {
+    "defaultMessage": "Takes a backup to the cluster’s backup destination ({destination}) before the change. If the backup fails, nothing changes.",
+    "description": "Modpack confirm dialog: help text under the back-up checkbox naming the backup destination; the backup is taken first and the change is cancelled if it fails; {destination} is the destination name"
+  },
+  "web.components.modpack_confirm_dialog.cancel": {
+    "defaultMessage": "Cancel",
+    "description": "Modpack confirm dialog: button that closes the dialog without changing the modpack"
+  },
+  "web.components.modpack_confirm_dialog.change_and_restart": {
+    "defaultMessage": "Change version and restart",
+    "description": "Modpack confirm dialog: primary button that switches the modpack version and restarts the server"
+  },
+  "web.components.modpack_confirm_dialog.change_title": {
+    "defaultMessage": "Switch to {versionName}?",
+    "description": "Modpack confirm dialog: title when switching the modpack to a newer version; {versionName} is the version name"
+  },
+  "web.components.modpack_confirm_dialog.downgrade_and_restart": {
+    "defaultMessage": "Downgrade and restart",
+    "description": "Modpack confirm dialog: primary button that moves to an older modpack version and restarts the server"
+  },
+  "web.components.modpack_confirm_dialog.downgrade_title": {
+    "defaultMessage": "Go back to {versionName}?",
+    "description": "Modpack confirm dialog: title when moving the modpack to an older version; {versionName} is the version name"
+  },
+  "web.components.modpack_confirm_dialog.downgrade_warning_body": {
+    "defaultMessage": "Going back to an older version can break the world, for example when it removes blocks or items the world already uses. Keep the backup.",
+    "description": "Modpack confirm dialog: body of the downgrade warning explaining older versions can break the world; keep the backup"
+  },
+  "web.components.modpack_confirm_dialog.downgrade_warning_title": {
+    "defaultMessage": "This is an older version",
+    "description": "Modpack confirm dialog: heading of the warning shown when the chosen version is older than the current one"
+  },
+  "web.components.modpack_confirm_dialog.install_and_restart": {
+    "defaultMessage": "Install and restart",
+    "description": "Modpack confirm dialog: primary button that installs the modpack and restarts the server"
+  },
+  "web.components.modpack_confirm_dialog.install_desc": {
+    "defaultMessage": "{serverName} restarts to install the pack. It stays on this version until you change it.",
+    "description": "Modpack confirm dialog: explains the server restarts to install the pack and keeps this version until changed; {serverName} is the server name"
+  },
+  "web.components.modpack_confirm_dialog.install_title": {
+    "defaultMessage": "Install {packTitle}?",
+    "description": "Modpack confirm dialog: title when installing a modpack; {packTitle} is the modpack title"
+  },
+  "web.components.modpack_confirm_dialog.no_backup_destination": {
+    "defaultMessage": "No backup destination is set for this server's cluster.",
+    "description": "Modpack confirm dialog: help text under the disabled back-up checkbox when the cluster has no backup destination"
+  },
+  "web.components.modpack_confirm_dialog.provider_version": {
+    "defaultMessage": "{providerLabel} · {versionName}",
+    "description": "Modpack confirm dialog: pack summary line with the registry label and the version name; {providerLabel} is the registry, {versionName} the version"
+  },
+  "web.components.modpack_confirm_dialog.remove_desc": {
+    "defaultMessage": "The pack is removed and {serverName} restarts as a plain server.",
+    "description": "Modpack confirm dialog: explains the modpack is removed and the server restarts without it; {serverName} is the server name"
+  },
+  "web.components.modpack_confirm_dialog.remove_modpack": {
+    "defaultMessage": "Remove modpack",
+    "description": "Modpack confirm dialog: danger primary button that removes the modpack"
+  },
+  "web.components.modpack_confirm_dialog.remove_title": {
+    "defaultMessage": "Remove {packTitle}?",
+    "description": "Modpack confirm dialog: title when removing the modpack from the server; {packTitle} is the modpack title"
+  },
+  "web.components.modpack_confirm_dialog.remove_warning": {
+    "defaultMessage": "Every mod in the mods folder is deleted, including ones added by hand. The world folder is not touched.",
+    "description": "Modpack confirm dialog: danger warning when removing the modpack; every mod in the mods folder is deleted, including hand-added ones, and the world folder is kept"
+  },
+  "web.components.modpack_confirm_dialog.switch_desc": {
+    "defaultMessage": "{serverName} restarts on {packTitle} {versionName}.",
+    "description": "Modpack confirm dialog: explains the server restarts on the chosen modpack version; {serverName}, {packTitle} and {versionName} are names"
+  },
+  "web.components.modpack_confirm_dialog.switch_desc_from": {
+    "defaultMessage": "{serverName} restarts on {packTitle} {versionName} instead of {fromVersionName}.",
+    "description": "Modpack confirm dialog: explains the server restarts on the new version instead of the current one; {serverName}, {packTitle}, {versionName} and {fromVersionName} are names"
+  },
+  "web.components.modpack_confirm_dialog.working": {
+    "defaultMessage": "Working…",
+    "description": "Modpack confirm dialog: label of the primary button while the change is being submitted"
+  },
+  "web.components.modpack_missing_files.body": {
+    "defaultMessage": "Their authors block automatic downloads, so the install stopped. Download each file from its page, upload it to <b>{path}</b> in the Files tab, then restart the server.",
+    "description": "Modpack missing files: explains that files blocked by their authors must be downloaded and uploaded by hand; {path} is the downloads folder, shown in code style"
+  },
+  "web.components.modpack_missing_files.download": {
+    "defaultMessage": "Download",
+    "description": "Modpack missing files: column heading for the link to the file's download page; keep it short"
+  },
+  "web.components.modpack_missing_files.download_page": {
+    "defaultMessage": "Download page",
+    "description": "Modpack missing files: link text that opens the file's download page in a new tab"
+  },
+  "web.components.modpack_missing_files.file_name": {
+    "defaultMessage": "File name",
+    "description": "Modpack missing files: column heading for the file name to upload; keep it short"
+  },
+  "web.components.modpack_missing_files.mod": {
+    "defaultMessage": "Mod",
+    "description": "Modpack missing files: column heading for the mod name; keep it short"
+  },
+  "web.components.modpack_missing_files.open_files": {
+    "defaultMessage": "Open Files",
+    "description": "Modpack missing files: button that switches to the Files tab so the operator can upload the files"
+  },
+  "web.components.modpack_missing_files.table": {
+    "defaultMessage": "Missing files table",
+    "description": "Modpack missing files: accessible label of the table listing the files to download, read by screen readers; not shown as text"
+  },
+  "web.components.modpack_missing_files.title": {
+    "defaultMessage": "{count, plural, one {# file needs} other {# files need}} a manual download",
+    "description": "Modpack missing files: panel title saying how many files must be downloaded by hand; {count} is the number of files"
+  },
+  "web.components.modpack_missing_files.unknown": {
+    "defaultMessage": "Start the server to check whether this pack needs files you have to download yourself.",
+    "description": "Modpack missing files: info note shown when the server must start before the missing files can be known"
+  },
+  "web.components.modpack_version_picker.cancel": {
+    "defaultMessage": "Cancel",
+    "description": "Modpack version picker: button that closes the picker without choosing a version"
+  },
+  "web.components.modpack_version_picker.change_version": {
+    "defaultMessage": "Change version",
+    "description": "Modpack version picker: dialog title when changing the version of the modpack already on the server"
+  },
+  "web.components.modpack_version_picker.choose_a_version": {
+    "defaultMessage": "Choose a version",
+    "description": "Modpack version picker: dialog title when choosing a version of a modpack to install"
+  },
+  "web.components.modpack_version_picker.continue": {
+    "defaultMessage": "Continue",
+    "description": "Modpack version picker: default primary button that continues with the chosen version"
+  },
+  "web.components.modpack_version_picker.load_failed": {
+    "defaultMessage": "Couldn't load versions.",
+    "description": "Modpack version picker: fallback error when the versions of the modpack cannot be loaded"
+  },
+  "web.components.modpack_version_picker.loading_versions": {
+    "defaultMessage": "Loading versions…",
+    "description": "Modpack version picker: shown while the versions of the modpack are loading"
+  },
+  "web.components.modpack_version_picker.no_versions": {
+    "defaultMessage": "No versions of this pack match {mcLabel}.",
+    "description": "Modpack version picker: empty state when the modpack has no version for the server's game version and loader; {mcLabel} is that label"
+  },
+  "web.components.modpack_version_picker.older": {
+    "defaultMessage": "Older",
+    "description": "Modpack version picker: chip marking a version older than the one pinned on the server"
+  },
+  "web.components.modpack_version_picker.pinned": {
+    "defaultMessage": "Pinned",
+    "description": "Modpack version picker: chip marking the version currently pinned on the server"
+  },
+  "web.components.modpack_version_picker.published": {
+    "defaultMessage": "Published {date}",
+    "description": "Modpack version picker: version row line giving the publish date; {date} is a formatted date"
+  },
+  "web.components.modpack_version_picker.published_with_details": {
+    "defaultMessage": "Published {date} · {details}",
+    "description": "Modpack version picker: version row line giving the publish date and the loader and game version; {date} is a formatted date, {details} the loader and game version"
+  },
+  "web.components.modpack_version_picker.release_type_alpha": {
+    "defaultMessage": "Alpha",
+    "description": "Modpack version picker: chip for an alpha release of the modpack version"
+  },
+  "web.components.modpack_version_picker.release_type_beta": {
+    "defaultMessage": "Beta",
+    "description": "Modpack version picker: chip for a beta release of the modpack version"
+  },
+  "web.components.modpack_version_picker.release_type_release": {
+    "defaultMessage": "Release",
+    "description": "Modpack version picker: chip for a stable release of the modpack version"
+  },
+  "web.components.modpack_version_picker.showing_versions": {
+    "defaultMessage": "Showing versions for {mcLabel}, newest first.",
+    "description": "Modpack version picker: explains which Minecraft or game version and loader the listed versions match; {mcLabel} is that label"
+  },
+  "web.components.modpack_version_picker.title_provider": {
+    "defaultMessage": "{title} · {provider}",
+    "description": "Modpack version picker: subtitle with the modpack title and its registry name; {title} is the modpack title, {provider} the registry label"
+  },
+  "web.components.modpack_version_picker.version_list": {
+    "defaultMessage": "Version list",
+    "description": "Modpack version picker: accessible name of the radio list of versions"
+  },
   "web.components.module_target.couldn_t_load_installation_capabilities": {
     "defaultMessage": "Couldn't load installation capabilities.",
     "description": "Module target: error card message shown when the installation's capabilities cannot be loaded; the card has a retry button"
@@ -3206,6 +3490,10 @@
   "web.components.registry_browser.category_unavailable": {
     "defaultMessage": "Category filtering isn't available for {provider}.",
     "description": "Registry browser: tooltip when a provider has no category filter; {provider} is the provider label"
+  },
+  "web.components.registry_browser.curseforge_needs_shared_key": {
+    "defaultMessage": "CurseForge packs for Minecraft 1.16.5 need the shared CurseForge key. An admin can turn on “Share the CurseForge key with game servers” in Settings → Mod registries.",
+    "description": "Registry browser: muted hint under the modpack switch explaining CurseForge is hidden until an admin shares the CurseForge key with game servers"
   },
   "web.components.registry_browser.in_app_browse_isn_t_available_for_this": {
     "defaultMessage": "In-app browse isn’t available for this server.",
@@ -5810,6 +6098,38 @@
   "web.routes.admin_settings.set_verb": {
     "defaultMessage": "Set",
     "description": "Admin settings: verb on the button that sets an API key for the first time"
+  },
+  "web.routes.admin_settings.share_curseforge_key": {
+    "defaultMessage": "Share the CurseForge key with game servers",
+    "description": "Admin settings: title of the switch that lets game servers use the managed CurseForge key"
+  },
+  "web.routes.admin_settings.share_curseforge_key_apply": {
+    "defaultMessage": "Changes apply to a server when it has 0 players, so nobody is kicked by a restart.",
+    "description": "Admin settings: note under the CurseForge key share switch when it is on; changes only apply to servers with 0 players"
+  },
+  "web.routes.admin_settings.share_curseforge_key_aria": {
+    "defaultMessage": "Share the CurseForge key with game servers",
+    "description": "Admin settings: aria-label of the CurseForge key share switch"
+  },
+  "web.routes.admin_settings.share_curseforge_key_flag": {
+    "defaultMessage": "Store the key here to share it. A key from the startup flag stays inside the API.",
+    "description": "Admin settings: reason shown under the disabled CurseForge key share switch when the key comes from the startup flag, not from this page"
+  },
+  "web.routes.admin_settings.share_curseforge_key_flag_set": {
+    "defaultMessage": "Set by the --curseforge-api-key startup flag",
+    "description": "Admin settings: CurseForge registry description when the key comes from the --curseforge-api-key startup flag"
+  },
+  "web.routes.admin_settings.share_curseforge_key_from_flag": {
+    "defaultMessage": "From startup flag",
+    "description": "Admin settings: badge shown next to the CurseForge registry name when the key comes from the --curseforge-api-key startup flag"
+  },
+  "web.routes.admin_settings.share_curseforge_key_help": {
+    "defaultMessage": "Lets servers on images without a built-in key (Minecraft 1.16.5 and older) install CurseForge packs.",
+    "description": "Admin settings: first description line under the CurseForge key share switch"
+  },
+  "web.routes.admin_settings.share_curseforge_key_risk": {
+    "defaultMessage": "Mods running on those servers can read the key.",
+    "description": "Admin settings: second description line under the CurseForge key share switch; it warns that mods can read the shared key"
   },
   "web.routes.admin_settings.sink_kind": {
     "defaultMessage": "Sink kind",
@@ -8511,6 +8831,10 @@
     "defaultMessage": "Tech",
     "description": "Modpacks: category filter chip for technology modpacks"
   },
+  "web.routes.tabs.modpacks.continue": {
+    "defaultMessage": "Continue",
+    "description": "Modpacks: button that continues from the version picker to the confirmation step"
+  },
   "web.routes.tabs.modpacks.dismiss": {
     "defaultMessage": "dismiss",
     "description": "Modpacks tab: icon-only button that closes the result banner; read by screen readers; keep it short"
@@ -8531,6 +8855,10 @@
     "defaultMessage": "Install",
     "description": "Modpacks: label of the button that installs a modpack"
   },
+  "web.routes.tabs.modpacks.install_ellipsis": {
+    "defaultMessage": "Install…",
+    "description": "Modpacks: label of the button that opens the version picker to install a modpack; the ellipsis means more steps follow"
+  },
   "web.routes.tabs.modpacks.installing": {
     "defaultMessage": "Installing…",
     "description": "Modpacks: label of the install button while this modpack is installing"
@@ -8538,6 +8866,14 @@
   "web.routes.tabs.modpacks.installing_a_modpack_either_pins_it_on": {
     "defaultMessage": "Installing a modpack either pins it on the server (and restarts) or adds all of its mods, depending on the registry.",
     "description": "Modpacks tab: hint under the modpacks heading saying an install either pins the modpack and restarts the server, or adds all its mods, depending on the registry"
+  },
+  "web.routes.tabs.modpacks.minecraft_version": {
+    "defaultMessage": "Minecraft {version}",
+    "description": "Modpacks: label for the server's Minecraft version in the active modpack card; {version} is the version number"
+  },
+  "web.routes.tabs.modpacks.pick_a_pack_and_a_version": {
+    "defaultMessage": "Pick a pack and a version. The server pins that version and restarts to install it; a restart never upgrades it.",
+    "description": "Modpacks tab: hint under the modpacks heading for registries that pin one version of a pack; the server restarts to install it and a restart never upgrades it"
   },
   "web.routes.tabs.modpacks.requires_operator_role": {
     "defaultMessage": "Requires operator role",
@@ -10452,8 +10788,8 @@
     "description": "Button that closes the link-created dialog"
   },
   "web.routes.tabs.settings.share_links.edit_wake_permission": {
-    "defaultMessage": "Allow anyone with this link to wake the server",
-    "description": "Accessible name of an active share link's wake permission switch"
+    "defaultMessage": "Allow anyone with link {id} to wake the server",
+    "description": "Accessible name of the wake permission switch for the given share link ID"
   },
   "web.routes.tabs.settings.share_links.expires": {
     "defaultMessage": "Expires",
@@ -10498,6 +10834,10 @@
   "web.routes.tabs.settings.share_links.let_people_without_a_gameplane_account": {
     "defaultMessage": "Let people without a Gameplane account check this server's status and connection address. Only the owner can create or revoke links.",
     "description": "Share links: hint under the Share links heading saying people without an account can check the status and address, and only the owner can create or revoke links"
+  },
+  "web.routes.tabs.settings.share_links.link_id": {
+    "defaultMessage": "Link ID",
+    "description": "Label for the non-secret share link identifier in the creation dialog and table"
   },
   "web.routes.tabs.settings.share_links.long_lived_link_it_stays_valid_for_over": {
     "defaultMessage": "Long-lived link — it stays valid for over a year unless you revoke it.",

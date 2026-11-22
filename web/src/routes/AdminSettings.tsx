@@ -1,6 +1,6 @@
 import { useModRegistrySave, type RegistryChange } from "@/lib/useModRegistrySave";
 import { useInstallation } from "@/lib/useInstallation";
-import { useState, useEffect, useRef, type ChangeEvent, type ComponentType, type ReactNode, type SetStateAction } from "react";
+import { Fragment, useState, useEffect, useRef, type ChangeEvent, type ComponentType, type ReactNode, type SetStateAction } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
@@ -61,7 +61,7 @@ import { cn } from "@/lib/utils";
 import { errorTextIntl } from "@/lib/errors";
 import { Telemetry, type TelemetryInfo } from "@/lib/api";
 import { TELEMETRY_STATEMENT_URL } from "@/lib/links";
-import { Auth, AuthProviders, Cluster, Notifications, type SinkSecretBody } from "@/lib/endpoints";
+import { Auth, AuthProviders, Cluster, ModRegistries, Notifications, type SinkSecretBody } from "@/lib/endpoints";
 import { LegacyBackupSettings } from "@/components/clusters/LegacyBackupSettings";
 import { can, useMe } from "@/lib/auth";
 import type { ClusterInfo } from "@/types";
@@ -943,12 +943,67 @@ function SetRegistryKeyForm({
   );
 }
 
+// Admin switch that lets game servers use the managed CurseForge key (design
+// 4001: share on; 4260: key from the startup flag, switch disabled). Only a
+// key stored here can be shared; a flag-set key stays inside the API.
+function CurseForgeShareRow() {
+  const intl = useOptionalIntl();
+  const queryClient = useQueryClient();
+  const shareQ = useQuery({
+    queryKey: ["admin", "curseforge-share"],
+    queryFn: ModRegistries.getShare,
+  });
+  const shareMutation = useMutation({
+    mutationFn: (share: boolean) => ModRegistries.putShare(share),
+    onSuccess: (body) => {
+      queryClient.setQueryData(["admin", "curseforge-share"], body);
+    },
+  });
+
+  // Hidden while loading so the row does not flicker in.
+  const data = shareQ.data;
+  if (!data) return null;
+  const off = !data.managedKey;
+  const error = shareMutation.error ? errorTextIntl(intl, shareMutation.error) : null;
+
+  return (
+    <li className="flex flex-wrap items-center gap-3 py-3">
+      <div className={cn("min-w-28 flex-1", off && "opacity-60")}>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span>{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key", defaultMessage: "Share the CurseForge key with game servers", description: "Admin settings: title of the switch that lets game servers use the managed CurseForge key" })}</span>
+        </div>
+        <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_help", defaultMessage: "Lets servers on images without a built-in key (Minecraft 1.16.5 and older) install CurseForge packs.", description: "Admin settings: first description line under the CurseForge key share switch" })}</div>
+        <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_risk", defaultMessage: "Mods running on those servers can read the key.", description: "Admin settings: second description line under the CurseForge key share switch; it warns that mods can read the shared key" })}</div>
+        {data.share && (
+          <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_apply", defaultMessage: "Changes apply to a server when it has 0 players, so nobody is kicked by a restart.", description: "Admin settings: note under the CurseForge key share switch when it is on; changes only apply to servers with 0 players" })}</div>
+        )}
+        {off && (
+          <div className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_flag", defaultMessage: "Store the key here to share it. A key from the startup flag stays inside the API.", description: "Admin settings: reason shown under the disabled CurseForge key share switch when the key comes from the startup flag, not from this page" })}</div>
+        )}
+        {error && <p className="text-xs text-danger">{error}</p>}
+      </div>
+      <TelemetrySwitch
+        isSelected={data.share}
+        isDisabled={off || shareMutation.isPending}
+        ariaLabel={intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_aria", defaultMessage: "Share the CurseForge key with game servers", description: "Admin settings: aria-label of the CurseForge key share switch" })}
+        onChange={(value) => { shareMutation.mutate(value); }}
+      />
+    </li>
+  );
+}
+
 function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
   const intl = useOptionalIntl();
   const save = useModRegistrySave();
   const saving = useRef(false);
   const [editing, setEditing] = useState<{ provider: KeyedRegistryProvider; expected?: ModRegistryEntry } | null>(null);
   const entryFor = (provider: KeyedRegistryProvider) => initial?.registries.find((entry) => entry.provider === provider);
+  // Same query key as CurseForgeShareRow, so react-query shares one request.
+  const curseForgeFromFlag = useQuery({
+    queryKey: ["admin", "curseforge-share"],
+    queryFn: ModRegistries.getShare,
+    select: (body) => body.keySource === "startup-flag",
+  }).data === true;
 
   const openEditor = (provider: KeyedRegistryProvider) => {
     save.reset();
@@ -978,25 +1033,29 @@ function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
         {keyedRegistryProviders.map(({ provider, label, icon: Icon }) => {
           const entry = entryFor(provider);
           const configured = Boolean(entry);
+          const fromFlag = provider === "curseforge" && curseForgeFromFlag;
           return (
-            <li key={provider} className="flex flex-wrap items-center gap-3 py-3">
+            <Fragment key={provider}>
+            <li className="flex flex-wrap items-center gap-3 py-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-surface">
                 <Icon className="h-4 w-4 text-muted" />
               </div>
               <div className="min-w-28 flex-1">
-                <div className="text-sm">{label}</div>
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span>{label}</span>
+                </div>
                 <div className="truncate text-xs text-muted">
-                  {configured ? intl.formatMessage({ id: "web.routes.admin_settings.active_in_mods_browser", defaultMessage: "Active in the Mods browser", description: "Admin settings: registry status when a key is configured and the provider shows in the Mods browser" }) : intl.formatMessage({ id: "web.routes.admin_settings.hidden_from_mods_browser", defaultMessage: "Hidden from the Mods browser", description: "Admin settings: registry status when no key is configured and the provider is hidden from the Mods browser" })}
+                  {provider === "curseforge" && curseForgeFromFlag ? intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_flag_set", defaultMessage: "Set by the --curseforge-api-key startup flag", description: "Admin settings: CurseForge registry description when the key comes from the --curseforge-api-key startup flag" }) : configured ? intl.formatMessage({ id: "web.routes.admin_settings.active_in_mods_browser", defaultMessage: "Active in the Mods browser", description: "Admin settings: registry status when a key is configured and the provider shows in the Mods browser" }) : intl.formatMessage({ id: "web.routes.admin_settings.hidden_from_mods_browser", defaultMessage: "Hidden from the Mods browser", description: "Admin settings: registry status when no key is configured and the provider is hidden from the Mods browser" })}
                 </div>
               </div>
               <span
                 className={cn(
                   "flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs",
-                  configured ? "bg-primary/15 text-primary" : "bg-muted/15 text-muted",
+                  fromFlag ? "bg-accent/15 text-accent" : configured ? "bg-primary/15 text-primary" : "bg-muted/15 text-muted",
                 )}
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                {configured ? intl.formatMessage({ id: "web.routes.admin_settings.configured", defaultMessage: "Configured", description: "Admin settings: badge on a mod registry whose API key is set" }) : intl.formatMessage({ id: "web.routes.admin_settings.not_configured", defaultMessage: "Not configured", description: "Admin settings: badge on a mod registry whose API key is not set" })}
+                {fromFlag ? intl.formatMessage({ id: "web.routes.admin_settings.share_curseforge_key_from_flag", defaultMessage: "From startup flag", description: "Admin settings: badge shown next to the CurseForge registry name when the key comes from the --curseforge-api-key startup flag" }) : configured ? intl.formatMessage({ id: "web.routes.admin_settings.configured", defaultMessage: "Configured", description: "Admin settings: badge on a mod registry whose API key is set" }) : intl.formatMessage({ id: "web.routes.admin_settings.not_configured", defaultMessage: "Not configured", description: "Admin settings: badge on a mod registry whose API key is not set" })}
               </span>
               {editing?.provider !== provider && (
                 configured ? (
@@ -1009,6 +1068,8 @@ function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
                 )
               )}
             </li>
+            {provider === "curseforge" && <CurseForgeShareRow />}
+            </Fragment>
           );
         })}
       </ul>

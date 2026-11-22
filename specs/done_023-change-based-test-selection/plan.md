@@ -2,7 +2,7 @@
 
 **Branch**: `claude/project-thread-4uisie` | **Date**: 2026-10-11 | **Spec**: [spec.md](./spec.md)
 
-**Input**: Feature specification from `specs/023-change-based-test-selection/spec.md`
+**Input**: Feature specification from `specs/done_023-change-based-test-selection/spec.md`
 
 ## Summary
 
@@ -67,7 +67,7 @@ not name (see research R12). Principle I is met by the e2e test in R13.
 ### Documentation (this feature)
 
 ```text
-specs/023-change-based-test-selection/
+specs/done_023-change-based-test-selection/
 ├── spec.md
 ├── plan.md                    # this file
 ├── research.md                # Phase 0

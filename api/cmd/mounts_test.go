@@ -21,6 +21,7 @@ var homeClientMounts = []string{
 	"handlers.MountClusters",
 	"handlers.MountNotifications",
 	"handlers.MountRegistrySecrets",
+	"handlers.MountRegistryShareWithOptions",
 	"handlers.MountSystemLogs",
 }
 

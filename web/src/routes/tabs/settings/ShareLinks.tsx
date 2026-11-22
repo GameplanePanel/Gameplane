@@ -36,7 +36,7 @@ import { type ShareLinkCreateBody } from "@/lib/api";
 import { errorTextIntl } from "@/lib/errors";
 import { useFormat, type FormatApi } from "@/lib/i18n/format";
 import { useOptionalIntl } from "@/lib/i18n/format";
-import { defineMessages, type MessageDescriptor } from "react-intl";
+import { defineMessage, defineMessages, type MessageDescriptor } from "react-intl";
 
 interface ShareLinksProps {
   name: string;
@@ -74,6 +74,12 @@ const STATUS_LABELS = defineMessages({
 const CAN_START_LABELS = defineMessages({
   canStart: { id: "web.routes.tabs.settings.share_links.can_start_value", defaultMessage: "Can start", description: "Share links: table cell for a link that allows starting the server" },
   viewOnly: { id: "web.routes.tabs.settings.share_links.view_only", defaultMessage: "View only", description: "Share links: table cell for a link that only allows viewing the server status" },
+});
+
+const LINK_ID_LABEL = defineMessage({
+  id: "web.routes.tabs.settings.share_links.link_id",
+  defaultMessage: "Link ID",
+  description: "Label for the non-secret share link identifier in the creation dialog and table",
 });
 
 const DEFAULT_EXPIRY_CHOICE = "30";
@@ -407,6 +413,10 @@ function CreatedDialog({ open, onOpenChange, link }: CreatedDialogProps) {
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
+              <dl className="flex items-baseline gap-2 text-sm">
+                <dt className="text-muted">{intl.formatMessage(LINK_ID_LABEL)}</dt>
+                <dd className="font-mono">{link.id}</dd>
+              </dl>
             </ModalBody>
 
             <ModalFooter className="flex items-center justify-end gap-2">
@@ -598,7 +608,8 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
           <Table.Root className="table--mono">
             <Table.Content aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.share_links.share_links", defaultMessage: "Share links", description: "Share links: section heading and table label for the list of share links; the table name is read by screen readers" })} keyboardNavigationBehavior="arrow">
               <Table.Header>
-                <Table.Column isRowHeader>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.created", defaultMessage: "Created", description: "Table column header for the share link creation date" })}</Table.Column>
+                <Table.Column isRowHeader>{intl.formatMessage(LINK_ID_LABEL)}</Table.Column>
+                <Table.Column>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.created", defaultMessage: "Created", description: "Table column header for the share link creation date" })}</Table.Column>
                 <Table.Column>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.expires", defaultMessage: "Expires", description: "Table column header for the share link expiry date" })}</Table.Column>
                 <Table.Column>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.can_start", defaultMessage: "Can start", description: "Table column header for whether the share link allows starting the server" })}</Table.Column>
                 <Table.Column>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.status", defaultMessage: "Status", description: "Table column header for the share link status (Active, Expired or Revoked)" })}</Table.Column>
@@ -607,13 +618,14 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
               <Table.Body>
                 {links?.map((link) => (
                   <Table.Row key={link.id}>
+                    <Table.Cell><span className="font-mono">{link.id}</span></Table.Cell>
                     <Table.Cell>{formatDate(link.createdAt, fmt, neverLabel)}</Table.Cell>
                     <Table.Cell>{formatDate(link.expiresAt, fmt, neverLabel)}</Table.Cell>
                     <Table.Cell>
                       {access?.isOwner && getLinkStatus(link.expiresAt, link.revokedAt) === "Active" ? (
                         <Switch
                           size="sm"
-                          aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.share_links.edit_wake_permission", defaultMessage: "Allow anyone with this link to wake the server", description: "Accessible name of an active share link's wake permission switch" })}
+                          aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.share_links.edit_wake_permission", defaultMessage: "Allow anyone with link {id} to wake the server", description: "Accessible name of the wake permission switch for the given share link ID" }, { id: link.id })}
                           isSelected={link.canStart}
                           isDisabled={changeStart.isPending}
                           onChange={(canStart) => changeStart.mutate({ id: link.id, canStart })}

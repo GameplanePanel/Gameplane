@@ -1288,6 +1288,62 @@ func TestShareLinkLegacyEmptyUIDUsesTimestamp(t *testing.T) {
 	}
 }
 
+func TestShareManagementAfterServerRecreation(t *testing.T) {
+	store := newTestStore(t)
+	ownerID := insertShareTestUser(t, store, "owner-replacement")
+	owner := &auth.User{ID: ownerID}
+	const name = "srv-replacement"
+	links := make(map[string]string)
+	for _, uid := range []string{"uid-live", "uid-old", ""} {
+		_, link, err := store.CreateShareLinkForServer(t.Context(), "local", "gameplane-games", name, uid, ownerID, false, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		links[uid] = link.ID
+	}
+
+	for _, tc := range []struct {
+		name        string
+		created     time.Time
+		legacyValid bool
+	}{
+		{"legacy link created after server", time.Now().Add(-time.Hour), true},
+		{"legacy link predates server", time.Now().Add(time.Hour), false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			reg := kube.NewRegistry("local")
+			reg.Set("local", fakeKubeClient(serverWithUID(name, ownerID, tc.created, "uid-live")))
+			h := mountSharesRouter(reg, store)
+			status, body := shareReq(t, h, "GET", "/servers/"+name+":shares", nil, owner, "")
+			if status != http.StatusOK {
+				t.Fatalf("list: status %d, body %s", status, body)
+			}
+			var listed []shareResp
+			if err := json.Unmarshal(body, &listed); err != nil {
+				t.Fatal(err)
+			}
+			visible := make(map[string]bool)
+			for _, link := range listed {
+				visible[link.ID] = true
+			}
+			for uid, id := range links {
+				wantVisible := uid == "uid-live" || (uid == "" && tc.legacyValid)
+				if visible[id] != wantVisible {
+					t.Errorf("uid %q listed = %v, want %v", uid, visible[id], wantVisible)
+				}
+				wantStatus := http.StatusNotFound
+				if wantVisible {
+					wantStatus = http.StatusNoContent
+				}
+				status, body := shareReq(t, h, "PATCH", "/servers/"+name+"/shares/"+id, map[string]bool{"canStart": true}, owner, "")
+				if status != wantStatus {
+					t.Errorf("uid %q edit: status %d, want %d, body %s", uid, status, wantStatus, body)
+				}
+			}
+		})
+	}
+}
+
 // TestShareCreateStoresServerUID verifies the create handler binds the link
 // to the live GameServer's UID.
 func TestShareCreateStoresServerUID(t *testing.T) {

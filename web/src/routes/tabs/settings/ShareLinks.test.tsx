@@ -1,7 +1,7 @@
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { ReactNode } from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { setupServer } from "msw/node";
@@ -171,14 +171,14 @@ describe("ShareLinksSection", () => {
     expect(screen.getAllByText("—")).toHaveLength(2);
   });
 
-  it("lets the owner change an active link's wake permission in either direction", async () => {
+  it("changes only the selected link when active links have the same dates and permission", async () => {
     const user = userEvent.setup();
     let canStart = true;
     const updates: boolean[] = [];
     server.use(
       http.get(/\/servers\/[^/]+:shares$/, () =>
-        HttpResponse.json([{ ...mockLinks[0], canStart }, ...mockLinks.slice(1)])),
-      http.patch("/servers/mc-survival/shares/link-1", async ({ request }) => {
+        HttpResponse.json([mockLinks[0], { ...mockLinks[0], id: "link-other", canStart }, ...mockLinks.slice(1)])),
+      http.patch("/servers/mc-survival/shares/link-other", async ({ request }) => {
         const body = await request.json() as { canStart: boolean };
         canStart = body.canStart;
         updates.push(canStart);
@@ -186,15 +186,20 @@ describe("ShareLinksSection", () => {
       }),
     );
     render(<ShareLinksSection name="mc-survival" />, { wrapper: Wrapper });
-    const toggle = await screen.findByRole("switch", { name: "Allow anyone with this link to wake the server" });
+    const other = await screen.findByRole("switch", { name: "Allow anyone with link link-1 to wake the server" });
+    const toggle = screen.getByRole("switch", { name: "Allow anyone with link link-other to wake the server" });
+    const row = screen.getByRole("row", { name: /link-other/ });
+    expect(within(row).getByText("link-other")).toBeVisible();
+    expect(within(row).getByRole("switch")).toBe(toggle);
     expect(toggle).toBeChecked();
-    expect(screen.getAllByRole("switch")).toHaveLength(1);
+    expect(screen.getAllByRole("switch")).toHaveLength(2);
     for (const enabled of [false, true]) {
       await user.click(toggle);
       await waitFor(() => {
         expect(toggle).toBeEnabled();
         expect(toggle).toHaveProperty("checked", enabled);
       });
+      expect(other).toBeChecked();
     }
     expect(updates).toEqual([false, true]);
   });
@@ -203,7 +208,7 @@ describe("ShareLinksSection", () => {
     server.use(http.patch("/servers/:name/shares/:id", () =>
       HttpResponse.json({ error: "Permission denied" }, { status: 403 })));
     render(<ShareLinksSection name="mc-survival" />, { wrapper: Wrapper });
-    const toggle = await screen.findByRole("switch", { name: "Allow anyone with this link to wake the server" });
+    const toggle = await screen.findByRole("switch", { name: "Allow anyone with link link-1 to wake the server" });
     await userEvent.setup().click(toggle);
     expect(await screen.findByRole("alert")).toHaveTextContent("Permission denied");
     expect(toggle).toBeChecked();
@@ -324,8 +329,17 @@ describe("ShareLinksSection", () => {
   });
 
   // Created dialog tests
-  it("displays created link URL in created dialog", async () => {
+  it("shows the URL once and the same management ID in the created dialog and the table", async () => {
     const user = userEvent.setup();
+    const created = { ...mockLinks[0], id: "friends-link", token: "friends-token" };
+    let rows = mockLinks;
+    server.use(
+      http.get(/\/servers\/[^/]+:shares$/, () => HttpResponse.json(rows)),
+      http.post(/\/servers\/[^/]+:shares$/, () => {
+        rows = [{ ...mockLinks[0], id: created.id }, ...mockLinks];
+        return HttpResponse.json(created);
+      }),
+    );
     render(<ShareLinksSection name="mc-survival" />, { wrapper: Wrapper });
     const createBtn = screen.getByRole("button", { name: /Create link/ });
     await user.click(createBtn);
@@ -338,6 +352,14 @@ describe("ShareLinksSection", () => {
       expect(screen.getByText("Share link created")).toBeInTheDocument();
       expect(screen.getByText(/You will not see this link again/)).toBeInTheDocument();
     });
+    const dialog = screen.getByRole("dialog", { name: "Share link created" });
+    expect(within(dialog).getByText(/\/share\/friends-token$/)).toBeVisible();
+    expect(within(dialog).getByText("friends-link")).toBeVisible();
+    await user.click(within(dialog).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
+    expect(await screen.findByRole("switch", { name: "Allow anyone with link friends-link to wake the server" })).toBeInTheDocument();
+    expect(screen.getByText("friends-link")).toBeVisible();
+    expect(screen.queryByText(/friends-token/)).not.toBeInTheDocument();
   });
 
   it("copies link URL to clipboard", async () => {

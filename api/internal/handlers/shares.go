@@ -191,7 +191,7 @@ func createShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 	}
 }
 
-// listSharesHandler lists all share links for a server (owner-only).
+// listSharesHandler lists the current server incarnation's share links (owner-only).
 // The returned list never includes the raw token, only ID + metadata.
 func listSharesHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -231,16 +231,19 @@ func listSharesHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 		}
 
 		// Convert to response format, excluding tokens.
-		resps := make([]shareResp, len(links))
-		for i, link := range links {
-			resps[i] = shareResp{
+		resps := make([]shareResp, 0, len(links))
+		for _, link := range links {
+			if serverReplacedSinceLink(obj, link) {
+				continue
+			}
+			resps = append(resps, shareResp{
 				ID:        link.ID,
 				CreatedAt: link.CreatedAt.UTC().Format(time.RFC3339),
 				ExpiresAt: formatExpiresAt(link.ExpiresAt),
 				RevokedAt: formatRevokedAt(link.RevokedAt),
 				CanStart:  link.CanStart,
 				// Token deliberately omitted in list response
-			}
+			})
 		}
 		writeOrErr(w, req, resps, nil)
 	}

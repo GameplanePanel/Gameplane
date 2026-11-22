@@ -231,15 +231,16 @@ describe("Servers mods endpoints (uncovered branches)", () => {
     expect(last().url).toBe("/servers/s1/mods/registry/projects/packname/modpack");
   });
 
-  it("installModpack with provider includes provider query param", async () => {
-    await Servers.installModpack("s1", { ref: "1.0" }, "modrinth");
-    expect(last().url).toBe("/servers/s1/modpack?provider=modrinth");
+  it("installModpack carries the provider in the body, not the query", async () => {
+    await Servers.installModpack("s1", { provider: "modrinth", project: "p", version: "1.0" });
+    expect(last().url).toBe("/servers/s1/modpack");
     expect(last().init.method).toBe("POST");
+    expect(JSON.parse(String(last().init.body))).toEqual({ provider: "modrinth", project: "p", version: "1.0" });
   });
 
-  it("installModpack without provider omits provider query param", async () => {
-    await Servers.installModpack("s1", { ref: "1.0" });
-    expect(last().url).toBe("/servers/s1/modpack");
+  it("installModpack appends the namespace query when given", async () => {
+    await Servers.installModpack("s1", { provider: "modrinth", project: "p", version: "1.0" }, "ns1");
+    expect(last().url).toBe("/servers/s1/modpack?namespace=ns1");
     expect(last().init.method).toBe("POST");
   });
 

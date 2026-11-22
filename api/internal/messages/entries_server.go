@@ -90,6 +90,36 @@ var serverEntries = []Entry{
 		Status:      http.StatusBadRequest,
 	},
 	{
+		ID:          "server.modpack.backup_unavailable",
+		English:     "no backup destination is configured for this server",
+		Description: "API error from the modpack API (registry.go:installModpack, registry_modpack.go:removeModpack) when backupFirst is requested but the server has no backup destination.",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.modpack.change_in_progress",
+		English:     "a modpack change is already in progress; wait for it to finish",
+		Description: "API error from the modpack API (registry.go:installModpack, registry_modpack.go:removeModpack) while the previous modpack change is still pending, backing up or applying.",
+		Status:      http.StatusConflict,
+	},
+	{
+		ID:          "server.modpack.key_required",
+		English:     "this modpack registry needs the CurseForge key to be shared with game servers; ask an administrator to turn on key sharing",
+		Description: "API error from the modpack API (registry.go:installModpack) when the server's game image has no built-in CurseForge key and the administrator has not enabled key sharing.",
+		Status:      http.StatusConflict,
+	},
+	{
+		ID:          "server.modpack.not_found",
+		English:     "this server has no modpack",
+		Description: "API error from the modpack API (registry_modpack.go:removeModpack) when there is no modpack to remove.",
+		Status:      http.StatusNotFound,
+	},
+	{
+		ID:          "server.modpack.version_required",
+		English:     "version is required",
+		Description: "API error from the modpack API (registry.go:installModpack) when a modpack is installed without choosing a version.",
+		Status:      http.StatusBadRequest,
+	},
+	{
 		ID:          "server.notifications.sink_name_not_dns_label",
 		English:     "sink name must be a DNS label (lowercase, digits, hyphens)",
 		Description: "API error from the notification sinks API (notifications.go:deleteSecret, notifications.go:putSecret).",
@@ -118,6 +148,12 @@ var serverEntries = []Entry{
 		English:     "apiKey is required",
 		Description: "API error from the mod-registry credentials API (registry_secret.go:put).",
 		Status:      http.StatusUnprocessableEntity,
+	},
+	{
+		ID:          "server.registry.share_needs_managed_key",
+		English:     "the CurseForge key must be saved in the panel before it can be shared with game servers",
+		Description: "API error from the mod-registry credentials API (registry_secret.go:putShare) when key sharing is turned on but the key comes only from a startup flag, not from a saved Secret.",
+		Status:      http.StatusConflict,
 	},
 	{
 		ID:          "server.roles.admin_not_editable",

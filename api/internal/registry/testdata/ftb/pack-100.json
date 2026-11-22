@@ -1,0 +1,1130 @@
+{
+  "art": [
+    {
+      "compressed": false,
+      "height": 512,
+      "id": -1,
+      "mirrors": [],
+      "order": 0,
+      "sha1": "08e2b62329bbf778eabcf5ca8f0d7b6b61a82b34",
+      "title": "Logo",
+      "type": "square",
+      "updated": 0,
+      "url": "https://cdn.feed-the-beast.com/blob/27/277ea696db174dabd3cdc1ba9f6120218c8f9c6aea916855140f6be41adf821a.png",
+      "width": 512
+    },
+    {
+      "compressed": false,
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1,
+      "sha1": "ac058b5f8638fed132b3893abebe2cac18d13bbb",
+      "title": "Background",
+      "type": "splash",
+      "updated": 0,
+      "url": "https://cdn.feed-the-beast.com/blob/8b/8be71c3fda1c8e071dae644a023025940f2ef1b8f80aa8c153b46602748eccd6.png",
+      "width": 1920
+    }
+  ],
+  "authors": [
+    {
+      "id": -1,
+      "name": "FTB Team",
+      "type": "team",
+      "updated": 0,
+      "website": "https://www.feed-the-beast.com/"
+    }
+  ],
+  "featured": false,
+  "id": 100,
+  "installs": 2525282,
+  "links": [
+    {
+      "id": -1,
+      "link": "https://docs.feed-the-beast.com",
+      "name": "Wiki",
+      "type": "misc"
+    },
+    {
+      "id": -1,
+      "link": "https://github.com/ftbteam/ftb-modpack-issues/issues",
+      "name": "Issue Tracker",
+      "type": "misc"
+    }
+  ],
+  "meta": {
+    "curseforgeProjectId": 1091305,
+    "isLegacy": true,
+    "supportsWorlds": true
+  },
+  "name": "FTB StoneBlock 3",
+  "notification": "",
+  "plays": 14479333,
+  "plays_14d": 7432014,
+  "private": false,
+  "provider": "modpacks.ch",
+  "rating": {
+    "age": 7,
+    "alcoholdrugs": false,
+    "configured": false,
+    "frightening": true,
+    "gambling": false,
+    "id": -1,
+    "language": false,
+    "nuditysexual": false,
+    "sterotypeshate": false,
+    "verified": false,
+    "violence": true
+  },
+  "released": 1667330107,
+  "slug": "ftb-stoneblock-3",
+  "status": "success",
+  "synopsis": "In a world surrounded by stone, build yourself a subterranean kingdom that really rocks! Use magic and technology to forge your realm to your designs.",
+  "tags": [
+    {
+      "id": 9,
+      "name": "FTB"
+    },
+    {
+      "id": 12,
+      "name": "Magic"
+    },
+    {
+      "id": 13,
+      "name": "Tech"
+    },
+    {
+      "id": 14,
+      "name": "Questing"
+    },
+    {
+      "id": 23,
+      "name": "Exploration"
+    },
+    {
+      "id": 45,
+      "name": "1.18.2"
+    },
+    {
+      "id": 22,
+      "name": "Large"
+    },
+    {
+      "id": 102,
+      "name": "Kitchen Sink"
+    }
+  ],
+  "type": "release",
+  "updated": 1667243244,
+  "versions": [
+    {
+      "id": 2275,
+      "name": "1.0.0",
+      "private": false,
+      "released": 1667330107,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "beta",
+      "updated": 1667330107
+    },
+    {
+      "id": 2276,
+      "name": "1.0.1",
+      "private": false,
+      "released": 1667420169,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1667420169
+    },
+    {
+      "id": 2277,
+      "name": "1.0.2",
+      "private": false,
+      "released": 1667501951,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1667501951
+    },
+    {
+      "id": 2280,
+      "name": "1.1.0",
+      "private": false,
+      "released": 1667759149,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "beta",
+      "updated": 1667759149
+    },
+    {
+      "id": 2282,
+      "name": "1.1.1",
+      "private": false,
+      "released": 1667903164,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1667903164
+    },
+    {
+      "id": 2283,
+      "name": "1.2.0",
+      "private": false,
+      "released": 1667938978,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1667938978
+    },
+    {
+      "id": 2287,
+      "name": "1.2.1",
+      "private": false,
+      "released": 1668119916,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "beta",
+      "updated": 1668119916
+    },
+    {
+      "id": 2288,
+      "name": "1.3.0",
+      "private": false,
+      "released": 1668453107,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1668453107
+    },
+    {
+      "id": 2293,
+      "name": "1.4.0",
+      "private": false,
+      "released": 1669321533,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "archived",
+      "updated": 1669321533
+    },
+    {
+      "id": 2294,
+      "name": "1.4.1",
+      "private": false,
+      "released": 1669322832,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "beta",
+      "updated": 1669322832
+    },
+    {
+      "id": 2295,
+      "name": "1.4.2",
+      "private": false,
+      "released": 1669404952,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "beta",
+      "updated": 1669404952
+    },
+    {
+      "id": 2298,
+      "name": "1.4.3",
+      "private": false,
+      "released": 1670588480,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.84"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1670588480
+    },
+    {
+      "id": 2308,
+      "name": "1.5.0",
+      "private": false,
+      "released": 1671881071,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.1.92"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1671881071
+    },
+    {
+      "id": 2327,
+      "name": "1.6.0",
+      "private": false,
+      "released": 1675453657,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.1"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "alpha",
+      "updated": 1675453657
+    },
+    {
+      "id": 2328,
+      "name": "1.6.1",
+      "private": false,
+      "released": 1675523714,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.1"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1675523714
+    },
+    {
+      "id": 6479,
+      "name": "1.7.0",
+      "private": false,
+      "released": 1683967859,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.1"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "beta",
+      "updated": 1683967859
+    },
+    {
+      "id": 6498,
+      "name": "1.7.1",
+      "private": false,
+      "released": 1685996761,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.1"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1685996761
+    },
+    {
+      "id": 6647,
+      "name": "1.8.0",
+      "private": false,
+      "released": 1691672431,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.10"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1691672431
+    },
+    {
+      "id": 6967,
+      "name": "1.8.1",
+      "private": false,
+      "released": 1698747472,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.9"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1698747472
+    },
+    {
+      "id": 11655,
+      "name": "1.9.0",
+      "private": false,
+      "released": 1706997565,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.14"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1706997565
+    },
+    {
+      "id": 12145,
+      "name": "1.10.0",
+      "private": false,
+      "released": 1718983764,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.14"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1718983764
+    },
+    {
+      "id": 12492,
+      "name": "1.11.0",
+      "private": false,
+      "released": 1726692434,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.14"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1726692434
+    },
+    {
+      "id": 12632,
+      "name": "1.11.1",
+      "private": false,
+      "released": 1731616290,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.14"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1731616290
+    },
+    {
+      "id": 100013,
+      "name": "1.11.2",
+      "private": false,
+      "released": 1734729268,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.14"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1734729268
+    },
+    {
+      "id": 100021,
+      "name": "1.11.3",
+      "private": false,
+      "released": 1737660938,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.14"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1737660938
+    },
+    {
+      "id": 100043,
+      "name": "1.11.4",
+      "private": false,
+      "released": 1741432146,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.14"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1741432146
+    },
+    {
+      "id": 100096,
+      "name": "1.11.5",
+      "private": false,
+      "released": 1748535636,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.34"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1748535636
+    },
+    {
+      "id": 100359,
+      "name": "1.11.6",
+      "private": false,
+      "released": 1781198103,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.18.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "40.2.34"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "17.0.2+8"
+        }
+      ],
+      "type": "release",
+      "updated": 1781198103
+    }
+  ]
+}

@@ -1,0 +1,344 @@
+{
+  "art": [
+    {
+      "compressed": false,
+      "height": 512,
+      "id": -1,
+      "mirrors": [],
+      "order": 0,
+      "sha1": "83368d267dc917283ec207b6bab641c834b467f1",
+      "title": "Logo",
+      "type": "square",
+      "updated": 0,
+      "url": "https://cdn.feed-the-beast.com/blob/38/386ff1cc602943863eea02d642bb3107c6b4ab0008dc3cf144544165ef52a939.png",
+      "width": 512
+    },
+    {
+      "compressed": false,
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1,
+      "sha1": "32ec70a0b579137cbab2bd4e5a6202776ff0ed84",
+      "title": "Background",
+      "type": "splash",
+      "updated": 0,
+      "url": "https://cdn.feed-the-beast.com/blob/a7/a710d45599a32968912b31bcaac91bbca397b926cf8587d614dea4e51bc184f7.png",
+      "width": 1920
+    }
+  ],
+  "authors": [
+    {
+      "id": -1,
+      "name": "FTB Team",
+      "type": "team",
+      "updated": 0,
+      "website": "https://www.feed-the-beast.com/"
+    }
+  ],
+  "featured": false,
+  "id": 4,
+  "installs": 485127,
+  "links": [
+    {
+      "id": -1,
+      "link": "https://docs.feed-the-beast.com",
+      "name": "Wiki",
+      "type": "misc"
+    },
+    {
+      "id": -1,
+      "link": "https://github.com/ftbteam/ftb-modpack-issues/issues",
+      "name": "Issue Tracker",
+      "type": "misc"
+    },
+    {
+      "id": -1,
+      "link": "https://www.youtube.com/watch?v=iGIl76S3fc0",
+      "name": "ChosenArchitect plays FTB Presents Stoneblock 2",
+      "type": "video"
+    }
+  ],
+  "meta": {
+    "curseforgeProjectId": 310396,
+    "isLegacy": true,
+    "supportsWorlds": false
+  },
+  "name": "FTB Presents Stoneblock 2",
+  "notification": "",
+  "plays": 3158861,
+  "plays_14d": 3158861,
+  "private": false,
+  "provider": "modpacks.ch",
+  "rating": {
+    "age": 7,
+    "alcoholdrugs": false,
+    "configured": false,
+    "frightening": true,
+    "gambling": false,
+    "id": -1,
+    "language": false,
+    "nuditysexual": false,
+    "sterotypeshate": false,
+    "verified": false,
+    "violence": true
+  },
+  "released": 1585735857,
+  "slug": "ftb-presents-stoneblock-2",
+  "status": "success",
+  "synopsis": "The Stoneblock you like, now just even better then before! New mods, new dimensions, and new bosses! ",
+  "tags": [
+    {
+      "id": 9,
+      "name": "FTB"
+    },
+    {
+      "id": 12,
+      "name": "Magic"
+    },
+    {
+      "id": 13,
+      "name": "Tech"
+    },
+    {
+      "id": 14,
+      "name": "Questing"
+    },
+    {
+      "id": 23,
+      "name": "Exploration"
+    },
+    {
+      "id": 6,
+      "name": "1.12.2"
+    },
+    {
+      "id": 22,
+      "name": "Large"
+    },
+    {
+      "id": 102,
+      "name": "Kitchen Sink"
+    }
+  ],
+  "type": "release",
+  "updated": 1585735857,
+  "versions": [
+    {
+      "id": 94,
+      "name": "1.20.0",
+      "private": false,
+      "released": 1596289070,
+      "specs": {
+        "id": -1,
+        "minimum": 4092,
+        "recommended": 6138
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.12.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "14.23.5.2847"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "8.0.312+7"
+        }
+      ],
+      "type": "release",
+      "updated": 1596289070
+    },
+    {
+      "id": 141,
+      "name": "1.21.0",
+      "private": false,
+      "released": 1603038076,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6122
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.12.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "14.23.5.2847"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "8.0.312+7"
+        }
+      ],
+      "type": "release",
+      "updated": 1603038076
+    },
+    {
+      "id": 153,
+      "name": "1.21.1",
+      "private": false,
+      "released": 1603548262,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6122
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.12.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "14.23.5.2847"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "8.0.312+7"
+        }
+      ],
+      "type": "release",
+      "updated": 1603548262
+    },
+    {
+      "id": 2115,
+      "name": "1.22.0",
+      "private": false,
+      "released": 1678012813,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.12.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "14.23.5.2860"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "8.0.312+7"
+        }
+      ],
+      "type": "release",
+      "updated": 1678012813
+    },
+    {
+      "id": 12182,
+      "name": "1.23.0",
+      "private": false,
+      "released": 1719574054,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.12.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "14.23.5.2860"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "8.0.312+7"
+        }
+      ],
+      "type": "release",
+      "updated": 1719574054
+    },
+    {
+      "id": 100093,
+      "name": "1.23.1",
+      "private": false,
+      "released": 1747911202,
+      "specs": {
+        "id": -1,
+        "minimum": 4096,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.12.2"
+        },
+        {
+          "id": -1,
+          "name": "forge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "14.23.5.2860"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "8.0.312+7"
+        }
+      ],
+      "type": "release",
+      "updated": 1747911202
+    }
+  ]
+}

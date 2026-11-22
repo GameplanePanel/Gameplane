@@ -478,7 +478,7 @@ new:
 
 ## 3. Specs
 
-3a. `specs/023-change-based-test-selection/contracts/ci-scope-cli.md`. old:
+3a. `specs/done_023-change-based-test-selection/contracts/ci-scope-cli.md`. old:
 ```markdown
 | `ci-jobs` | JSON list of job ids selected by the `ci.yaml` line mapper | Folded into each job's gate |
 ```
@@ -508,7 +508,7 @@ its legs, packages or tests. Still forcing everything (FR-014): `hack/ci_scope.p
 
 ```
 
-3b. `specs/023-change-based-test-selection/tasks.md`: change `- [ ] T042` … `- [ ] T046`
+3b. `specs/done_023-change-based-test-selection/tasks.md`: change `- [ ] T042` … `- [ ] T046`
 (five lines) to `- [X]`.
 
 ## 4. Tests: `hack/test_ci_scope.py`

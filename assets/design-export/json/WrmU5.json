@@ -4,7 +4,7 @@
   "name": "Screen/Standalone — Clusters (Registered)",
   "type": "FRAME",
   "x": 3280,
-  "y": 63932,
+  "y": 64190,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
