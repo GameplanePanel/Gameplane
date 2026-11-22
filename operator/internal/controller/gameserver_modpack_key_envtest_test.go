@@ -71,7 +71,7 @@ func buildManagedCFKey(ns, key string, share bool) *corev1.Secret {
 	}
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        curseforgeManagedSecret,
+			Name:        curseforgeManagedName,
 			Namespace:   ns,
 			Labels:      map[string]string{modRegistryLabel: "true"},
 			Annotations: ann,
@@ -87,7 +87,7 @@ func mutateManagedCFKey(t *testing.T, ns string, mut func(sec *corev1.Secret)) {
 	t.Helper()
 	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		var sec corev1.Secret
-		if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: ns, Name: curseforgeManagedSecret}, &sec); err != nil {
+		if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: ns, Name: curseforgeManagedName}, &sec); err != nil {
 			return err
 		}
 		mut(&sec)
@@ -102,7 +102,7 @@ func mutateManagedCFKey(t *testing.T, ns string, mut func(sec *corev1.Secret)) {
 func keyCopyOf(t *testing.T, ns, gsName string) (*corev1.Secret, bool) {
 	t.Helper()
 	var sec corev1.Secret
-	err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: ns, Name: gsName + curseforgeKeySecretSuffix}, &sec)
+	err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: ns, Name: gsName + curseforgeKeyCopySuffix}, &sec)
 	if apierrors.IsNotFound(err) {
 		return nil, false
 	}

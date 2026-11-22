@@ -43,16 +43,16 @@ func modpackKeyRequeue(gs *gameplanev1alpha1.GameServer) time.Duration {
 // namespace and the game container reads the key through a secretKeyRef.
 // The key value never reaches the pod template, the config hash or the agent.
 const (
-	curseforgeKeySecretSuffix = "-curseforge-key"
+	curseforgeKeyCopySuffix   = "-curseforge-key"
 	curseforgeKeyCopyLabel    = "gameplane.local/curseforge-key-copy"
-	curseforgeManagedSecret   = "gameplane-modreg-curseforge"
+	curseforgeManagedName     = "gameplane-modreg-curseforge"
 	curseforgeShareAnnotation = "gameplane.local/share-with-game-servers"
 	modRegistryLabel          = "gameplane.local/mod-registry"
 	curseforgeKeyDataKey      = "apiKey"
 )
 
 func curseforgeKeySecretName(gs *gameplanev1alpha1.GameServer) string {
-	return gs.Name + curseforgeKeySecretSuffix
+	return gs.Name + curseforgeKeyCopySuffix
 }
 
 // modpackKeyEnvName returns the apiKeyEnv of the applied provider when it is
@@ -88,20 +88,20 @@ func (r *GameServerReconciler) managedCurseForgeKey(ctx context.Context) ([]byte
 		reader = r.Client
 	}
 	var sec corev1.Secret
-	if err := reader.Get(ctx, client.ObjectKey{Namespace: r.ControlPlaneNamespace, Name: curseforgeManagedSecret}, &sec); err != nil {
+	if err := reader.Get(ctx, client.ObjectKey{Namespace: r.ControlPlaneNamespace, Name: curseforgeManagedName}, &sec); err != nil {
 		if apierrors.IsNotFound(err) {
 			log.FromContext(ctx).V(1).Info("managed mod-registry key not shared",
-				"namespace", r.ControlPlaneNamespace, "name", curseforgeManagedSecret, "reason", string(apierrors.ReasonForError(err)))
+				"namespace", r.ControlPlaneNamespace, "name", curseforgeManagedName, "reason", string(apierrors.ReasonForError(err)))
 			return nil, false, nil
 		}
 		if apierrors.IsForbidden(err) {
 			// Info level: a forbidden read means the operator Role is missing or
 			// misconfigured, which an operator should see without debug logging.
 			log.FromContext(ctx).Info("managed mod-registry key read forbidden; treating as not shared",
-				"namespace", r.ControlPlaneNamespace, "name", curseforgeManagedSecret, "reason", string(apierrors.ReasonForError(err)))
+				"namespace", r.ControlPlaneNamespace, "name", curseforgeManagedName, "reason", string(apierrors.ReasonForError(err)))
 			return nil, false, nil
 		}
-		return nil, false, fmt.Errorf("get managed key Secret %s/%s: %w", r.ControlPlaneNamespace, curseforgeManagedSecret, err)
+		return nil, false, fmt.Errorf("get managed key Secret %s/%s: %w", r.ControlPlaneNamespace, curseforgeManagedName, err)
 	}
 	key := sec.Data[curseforgeKeyDataKey]
 	if sec.Labels[modRegistryLabel] != "true" || len(key) == 0 || sec.Annotations[curseforgeShareAnnotation] != "true" {
