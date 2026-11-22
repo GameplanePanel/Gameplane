@@ -86,6 +86,8 @@ interface WizardState {
   requestedAddress: string;
   // Spec 030: optional per-server security overrides (omitted when empty).
   security?: GameServerSecuritySpec;
+  // False while a typed security value in the Advanced section is not a valid ID.
+  securityDraftValid?: boolean;
 }
 
 const initial: WizardState = {
@@ -293,7 +295,7 @@ function validateStep(
     if (cfgErrors.length > 0) {
       return { ok: false, reason: cfgErrors[0].message };
     }
-    if (!securityIsValid(state.security)) {
+    if (state.securityDraftValid === false || !securityIsValid(state.security)) {
       return { ok: false, reason: intl.formatMessage({ id: "web.routes.create_server.advanced_invalid", defaultMessage: "Fix the Advanced security values before continuing.", description: "Create server: reason the Configure step cannot continue because a security override is not a whole number from 0 to 4294967295" }) };
     }
     return { ok: true };
@@ -943,6 +945,7 @@ function Configure({ state, setState, caps, cluster, canSecurity }: { state: Wiz
         onChange={(security) => setState({ ...state, security })}
         template={state.template ?? undefined}
         readOnly={!canSecurity}
+        onValidityChange={(securityDraftValid) => { if (state.securityDraftValid !== securityDraftValid) setState({ ...state, securityDraftValid }); }}
       />
     </div>
   );

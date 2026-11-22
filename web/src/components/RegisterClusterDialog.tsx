@@ -15,7 +15,7 @@ export function RegisterClusterDialog({ open, onOpenChange }: { open: boolean; o
   const trimmedNamespace = controlPlaneNamespace.trim();
   const namespaceValid = trimmedNamespace === "" || (/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(trimmedNamespace) && trimmedNamespace.length <= 63);
   const register = useMutation({
-    mutationFn: () => Clusters.register({ name: name.trim(), displayName: displayName.trim(), kubeconfig, controlPlaneNamespace: trimmedNamespace || undefined }),
+    mutationFn: () => Clusters.register({ name: name.trim(), displayName: displayName.trim(), kubeconfig, controlPlaneNamespace: trimmedNamespace && trimmedNamespace !== "gameplane" ? trimmedNamespace : undefined }),
     onSuccess: async () => {
       setKubeconfig("");
       onOpenChange(false);
