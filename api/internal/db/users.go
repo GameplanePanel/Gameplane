@@ -43,6 +43,7 @@ func (s *Store) DeleteUserTx(ctx context.Context, tx *sql.Tx, userID int64) erro
 		`DELETE FROM user_preferences WHERE user_id = ?`,
 		`DELETE FROM sessions WHERE user_id = ?`,
 		`DELETE FROM api_tokens WHERE user_id = ?`,
+		`DELETE FROM mcp_tokens WHERE user_id = ?`,
 	} {
 		if _, err := tx.ExecContext(ctx, stmt, userID); err != nil {
 			return fmt.Errorf("delete user: %s: %w", stmt, err)
