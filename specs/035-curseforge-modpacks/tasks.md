@@ -96,8 +96,8 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 - [X] T033 [US2] Implement adopted-pack rendering (rule 2 of contracts/operator-modpack.md) in operator/internal/controller/gameserver_modpack.go
 - [X] T034 [US2] Implement the legacy sweep at API startup plus the lazy retry on `GET /servers/{name}/modpack` (research R6) in new api/internal/handlers/modpack_adopt.go and wire it in api/cmd/main.go
 - [X] T035 [US2] Validate `version` required, `backupFirst` vs destination, change-in-progress on POST in api/internal/handlers/registry.go
-- [ ] T036 [US2] Build version change, older-version marking, downgrade warning and the "Back up first" checkbox from the approved design in web/src/components/modpack-version-picker.tsx and web/src/components/modpack-confirm-dialog.tsx
-- [ ] T037 [P] [US2] vitest for downgrade warning and backup checkbox states (destination / no destination) in web/src/components/modpack-confirm-dialog.test.tsx
+- [X] T036 [US2] Build version change, older-version marking, downgrade warning and the "Back up first" checkbox from the approved design in web/src/components/modpack-version-picker.tsx and web/src/components/modpack-confirm-dialog.tsx
+- [X] T037 [P] [US2] vitest for downgrade warning and backup checkbox states (destination / no destination) in web/src/components/modpack-confirm-dialog.test.tsx
 
 **Checkpoint**: versions are pinned for every registry; legacy servers are adopted without restarting while players are online (OD-8 B).
 
