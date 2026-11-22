@@ -39,8 +39,8 @@ export function ModpackMissingFiles({
           </h3>
           <p className="text-xs text-muted">
             {intl.formatMessage(
-              { id: "web.components.modpack_missing_files.body", defaultMessage: "Their authors block automatic downloads, so the install stopped. Download each file from its page, upload it to <code>{path}</code> in the Files tab, then restart the server.", description: "Modpack missing files: explains that files blocked by their authors must be downloaded and uploaded by hand; {path} is the downloads folder, shown in code style" },
-              { path: view.downloadsPath, code: (chunks: ReactNode) => <code className="font-mono text-foreground">{chunks}</code> },
+              { id: "web.components.modpack_missing_files.body", defaultMessage: "Their authors block automatic downloads, so the install stopped. Download each file from its page, upload it to <b>{path}</b> in the Files tab, then restart the server.", description: "Modpack missing files: explains that files blocked by their authors must be downloaded and uploaded by hand; {path} is the downloads folder, shown in code style" },
+              { path: view.downloadsPath, b: (chunks: ReactNode) => <code className="font-mono text-foreground">{chunks}</code> },
             )}
           </p>
         </div>

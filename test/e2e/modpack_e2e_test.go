@@ -260,6 +260,7 @@ func getModpack(t *testing.T, cli *APIClient, gs string) (modpackView, error) {
 	if err != nil {
 		return v, err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return v, fmt.Errorf("GET /modpack status %d body=%q", resp.StatusCode, string(body))
 	}
@@ -280,6 +281,7 @@ func installModpack(t *testing.T, cli *APIClient, gs, provider, project, version
 	if err != nil {
 		t.Fatalf("POST /modpack (%s/%s): %v", provider, project, err)
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusAccepted {
 		t.Fatalf("POST /modpack (%s/%s) expected 202, got %d body=%q", provider, project, resp.StatusCode, string(body))
 	}
@@ -402,6 +404,7 @@ func listFiles(t *testing.T, cli *APIClient, gs, dir string) []fileEntry {
 	if err != nil {
 		t.Fatalf("list %s: %v", dir, err)
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("list %s expected 200, got %d body=%q", dir, resp.StatusCode, string(body))
 	}
@@ -449,6 +452,7 @@ func readDataFile(cli *APIClient, gs, path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("read %s status %d body=%q", path, resp.StatusCode, string(body))
 	}
@@ -465,6 +469,7 @@ func clearModsFolder(t *testing.T, cli *APIClient, gs string) {
 		if err != nil {
 			t.Fatalf("delete /mods/%s: %v", name, err)
 		}
+		_ = resp.Body.Close()
 		if resp.StatusCode/100 != 2 {
 			t.Fatalf("delete /mods/%s expected 2xx, got %d body=%q", name, resp.StatusCode, string(body))
 		}
@@ -614,6 +619,7 @@ func TestGameServer_Modpack_PinSurvivesRestarts(t *testing.T) {
 		if err != nil {
 			t.Fatalf("restart %d: POST :restart: %v", i, err)
 		}
+		_ = resp.Body.Close()
 		if resp.StatusCode != http.StatusAccepted {
 			t.Fatalf("restart %d: expected 202, got %d body=%q", i, resp.StatusCode, string(body))
 		}
@@ -673,6 +679,7 @@ func TestGameServer_Modpack_RemoveKeepsWorld(t *testing.T) {
 	if err != nil {
 		t.Fatalf("DELETE /modpack: %v", err)
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusAccepted {
 		t.Fatalf("DELETE /modpack expected 202, got %d body=%q", resp.StatusCode, string(body))
 	}

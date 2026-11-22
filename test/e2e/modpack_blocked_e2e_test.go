@@ -94,6 +94,7 @@ func TestGameServer_Modpack_BlockedModManualDownload(t *testing.T) {
 	if err != nil {
 		t.Fatalf("restart: %v", err)
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusAccepted {
 		t.Fatalf("restart expected 202, got %d body=%q", resp.StatusCode, string(body))
 	}
