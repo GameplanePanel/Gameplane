@@ -274,7 +274,7 @@ Status as of 2026-11-11. Task counts come from each spec's `tasks.md`.
 - **Spec 021, edit game configuration from server Settings** (`specs/done_021-settings-game-config/`): done. All 24 tasks complete; merged in PR #568 and PR #652, then archived.
 - **Spec 022, default telemetry destination, extended telemetry and telemetry dashboard** (`specs/done_022-default-telemetry-dashboard/`): done. All 126 tasks complete, including the 2026-10-14 version-trend amendment (Phase 11 of its `tasks.md`); archived.
 - **Spec 023, change-based test selection** (`specs/023-change-based-test-selection/`): 51 of 52 tasks done. The open task is T052, which measures median runner-minutes after 30 merged PRs. No blocker is named.
-- **Spec 025, standalone panel and API** (`specs/025-standalone-panel/`, see [standalone panel](standalone-panel.md)): implemented and merged in PR #630; all 51 tasks done, with known gaps listed in the spec. The folder was renumbered from `023-standalone-panel` and written after the fact. Next step: archive to `done_025`.
+- **Spec 025, standalone panel and API** (`specs/done_025-standalone-panel/`, see [standalone panel](standalone-panel.md)): done. All 57 tasks complete; merged in PR #630, with the standalone Helm E2E test (`TestStandalone_HelmPanelLifecycle`, `standalone` bucket) in PR #1052, then archived. The folder was renumbered from `023-standalone-panel` and written after the fact; remaining known gaps are listed in the spec.
 
 ---
 

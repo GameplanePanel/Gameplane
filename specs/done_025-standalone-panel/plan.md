@@ -2,7 +2,7 @@
 
 **Branch**: `feat/standalone-panel` (PR #630, merged as `6ed25c1`) | **Date**: 2026-10-14 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/025-standalone-panel/spec.md`
+**Input**: Feature specification from `specs/done_025-standalone-panel/spec.md`
 
 **Note**: Written retroactively. This plan describes the design PR #630 merged; it plans no new work.
 
@@ -50,7 +50,7 @@ The API gains a standalone mode that runs without any local Kubernetes cluster. 
 ### Documentation (this feature)
 
 ```text
-specs/025-standalone-panel/
+specs/done_025-standalone-panel/
 ├── spec.md
 ├── plan.md
 ├── research.md
