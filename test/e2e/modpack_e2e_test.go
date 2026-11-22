@@ -538,6 +538,7 @@ func bootCurseForgePack(t *testing.T, name string) (*APIClient, string) {
 
 	applyModpackTemplate(t, tmpl, modpackImage, modpackGameVersion)
 	applyModpackServer(t, gs, tmpl)
+	t.Cleanup(func() { logGameContainerOnFailure(t, gs) })
 	waitPVCBound(t, modpackNamespace, gs+"-data", 90*time.Second)
 
 	installModpack(t, cli, gs, "curseforge", cfPackSlug, cfPackFileID, cfPackTitle, cfPackFileName)
@@ -704,5 +705,26 @@ func TestGameServer_Modpack_RemoveKeepsWorld(t *testing.T) {
 	got, err := readDataFile(cli, gs, worldFile)
 	if err != nil || got != worldPayload {
 		t.Fatalf("world marker after removal = %q, err=%v, want %q", got, err, worldPayload)
+	}
+}
+
+// logGameContainerOnFailure prints the tail of the game container's current
+// and previous logs when the test failed, so a crash-looping image (for
+// example a CurseForge install error) shows its own error in the test output.
+func logGameContainerOnFailure(t *testing.T, gs string) {
+	t.Helper()
+	if !t.Failed() {
+		return
+	}
+	pods := envInstance.K8s.CoreV1().Pods(modpackNamespace)
+	tail := int64(200)
+	for _, previous := range []bool{true, false} {
+		opts := &corev1.PodLogOptions{Container: "game", Previous: previous, TailLines: &tail}
+		out, err := pods.GetLogs(gs+"-0", opts).DoRaw(context.Background())
+		if err != nil {
+			t.Logf("game container logs (previous=%t): %v", previous, err)
+			continue
+		}
+		t.Logf("game container logs (previous=%t):\n%s", previous, out)
 	}
 }
