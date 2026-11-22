@@ -61,6 +61,8 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | Change the website | `website/AGENTS.md` (submodule) |
 | Add a DB migration | `api/specs.md`, `api/internal/db/migrations/README.md` |
 | Change CI or a workflow | `docs/contributing.md` ("CI and workflows", "How CI picks tests") |
+| Change personal MCP tokens or the MCP read routes (`api/internal/auth/mcptokens.go`, `api/internal/handlers/mcp_tokens.go`, `api/internal/handlers/pods.go`) | `api/specs.md`, `docs/security.md` ("mcp-server (optional)") |
+| Change MCP server RBAC or namespace scope (`charts/gameplane/templates/mcp-server.yaml`, `charts/gameplane/tests/mcp-server-rbac.sh`) | `docs/security.md` ("mcp-server (optional)"), `mcp-server/specs.md` |
 | Decide where new code goes | `docs/layout.md` |
 
 ## How to use this index
