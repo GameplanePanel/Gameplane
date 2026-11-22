@@ -21,4 +21,6 @@ All decisions for this spec are settled; none is open. A new question gets its o
 
 - **OD-11 (FR-018, contracts/layout-check.md rule 1): dev scripts under `web/scripts/`.** No exemption: `web/scripts/i18n-migrate.ts` (1,195 lines, spec 019 codemod) is split like any other file, in place, into files of 500 lines or fewer (T061). Chosen on a card (2026-10-22).
 
+- **OD-12 (T044, T050, T051, T053): components split into their own repos.** `mcp-server` (GameplanePanel/mcp, PR #993), `audit-syslog-bridge`, `tunnel` and `capture-sidecar` are leaving this repo. Their tasks are carried into the new repos, not withdrawn: the same layout (027 OD-3) and 500-line work happens as PRs in each component's repo, tracked from this spec's tasks. Chosen on a card (2026-11-17).
+
 No open decisions remain.
