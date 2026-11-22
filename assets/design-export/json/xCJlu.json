@@ -369,7 +369,7 @@
                                       "width": 520,
                                       "height": 32,
                                       "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-                                      "text": "Let people without a Gameplane account check this server's status and connection address. Only the owner can create or revoke links.",
+                                      "text": "Let people without a Gameplane account check this server's status and address. Turn on Can start to let anyone with that link wake the server.",
                                       "font": ["Geist", 400, 12],
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     }
@@ -675,27 +675,17 @@
                                           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                           "children": [
                                             {
-                                              "id": "1:4461",
-                                              "name": "Capability Chip",
+                                              "name": "Allow link holders to wake the server",
                                               "type": "INSTANCE",
                                               "x": 16,
-                                              "y": 39,
-                                              "width": 84,
-                                              "height": 22,
-                                              "component": "Chip/Soft/Accent/SM",
-                                              "componentId": "1:1397",
-                                              "fills": [{"type": "SOLID", "color": "#2C1926"}],
-                                              "cornerRadius": 16,
-                                              "layout": {
-                                                "mode": "HORIZONTAL",
-                                                "gap": 2,
-                                                "padding": [2, 4, 2, 4],
-                                                "primary": "MIN",
-                                                "counter": "CENTER",
-                                                "sizing": ["HUG", "HUG"]
-                                              },
-                                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "accent/soft"},
-                                              "texts": ["Can start"]
+                                              "y": 40,
+                                              "width": 36,
+                                              "height": 20,
+                                              "component": "Gameplane/Switch/On",
+                                              "componentId": "1:1532",
+                                              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                              "cornerRadius": 24,
+                                              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"}
                                             }
                                           ]
                                         },

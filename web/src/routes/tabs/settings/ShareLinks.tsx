@@ -531,11 +531,26 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
   const [createdOpen, setCreatedOpen] = useState(false);
   const [revokeOpen, setRevokeOpen] = useState(false);
   const [revokeId, setRevokeId] = useState<string | null>(null);
+  const queryKey = resourceKey(resourceTarget, "sharelinks", name, ns);
 
   const { data: links, isLoading } = useQuery({
-    queryKey: resourceKey(resourceTarget, "sharelinks", name, ns),
+    queryKey,
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Shares.list(name, ns),
     enabled: !!name,
+  });
+
+  const changeStart = useMutation({
+    mutationFn: async ({ id, canStart }: { id: string; canStart: boolean }) => {
+      try {
+        await resourceClient.Shares.setCanStart(name, id, canStart, ns);
+        qc.setQueryData<ShareLink[]>(queryKey, (rows) =>
+          rows?.map((row) => row.id === id ? { ...row, canStart } : row)
+        );
+      } finally {
+        // Also refresh an expired or revoked row after the API declines the edit.
+        await qc.invalidateQueries({ queryKey });
+      }
+    },
   });
 
   const neverLabel = intl.formatMessage({ id: "web.routes.tabs.settings.share_links.never", defaultMessage: "Never", description: "Share links: table cell for a link's expiry when the link never expires" });
@@ -543,11 +558,11 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
   const handleLinkCreated = (link: ShareLink) => {
     setCreatedLink(link);
     setCreatedOpen(true);
-    void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "sharelinks", name, ns) });
+    void qc.invalidateQueries({ queryKey });
   };
 
   const handleRevoked = () => {
-    void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "sharelinks", name, ns) });
+    void qc.invalidateQueries({ queryKey });
   };
 
   const empty = !isLoading && (!links || links.length === 0);
@@ -557,7 +572,9 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
       <div className="flex items-start justify-between">
         <div>
           <h3 className="text-base font-medium">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.share_links", defaultMessage: "Share links", description: "Share links: section heading and table label for the list of share links; the table name is read by screen readers" })}</h3>
-          <p className="mt-1 text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.let_people_without_a_gameplane_account", defaultMessage: "Let people without a Gameplane account check this server's status and connection address. Only the owner can create or revoke links.", description: "Share links: hint under the Share links heading saying people without an account can check the status and address, and only the owner can create or revoke links" })}</p>
+          <p className="mt-1 text-sm text-muted">{links?.length
+            ? intl.formatMessage({ id: "web.routes.tabs.settings.share_links.wake_permission_hint", defaultMessage: "Let people without a Gameplane account check this server's status and address. Turn on Can start to let anyone with that link wake the server.", description: "Share links: explains the effect of the Can start switch on everyone with the existing URL" })
+            : intl.formatMessage({ id: "web.routes.tabs.settings.share_links.let_people_without_a_gameplane_account", defaultMessage: "Let people without a Gameplane account check this server's status and connection address. Only the owner can create or revoke links.", description: "Share links: hint under the Share links heading saying people without an account can check the status and address, and only the owner can create or revoke links" })}</p>
         </div>
         <Button variant="primary" size="sm" isDisabled={!access?.isOwner} onPress={() => setCreateOpen(true)}>
           <Link2 className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.create_link", defaultMessage: "Create link", description: "Button that opens the create-link dialog" })}</Button>
@@ -593,15 +610,29 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
                     <Table.Cell>{formatDate(link.createdAt, fmt, neverLabel)}</Table.Cell>
                     <Table.Cell>{formatDate(link.expiresAt, fmt, neverLabel)}</Table.Cell>
                     <Table.Cell>
-                      <Chip
-                        variant="soft"
-                        size="sm"
-                        className={link.canStart ? "text-success" : "text-foreground"}
-                      >
-                        {link.canStart
-                          ? intl.formatMessage(CAN_START_LABELS.canStart)
-                          : intl.formatMessage(CAN_START_LABELS.viewOnly)}
-                      </Chip>
+                      {access?.isOwner && getLinkStatus(link.expiresAt, link.revokedAt) === "Active" ? (
+                        <Switch
+                          size="sm"
+                          aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.share_links.edit_wake_permission", defaultMessage: "Allow anyone with this link to wake the server", description: "Accessible name of an active share link's wake permission switch" })}
+                          isSelected={link.canStart}
+                          isDisabled={changeStart.isPending}
+                          onChange={(canStart) => changeStart.mutate({ id: link.id, canStart })}
+                        >
+                          <Switch.Content>
+                            <Switch.Control><Switch.Thumb /></Switch.Control>
+                          </Switch.Content>
+                        </Switch>
+                      ) : (
+                        <Chip
+                          variant="soft"
+                          size="sm"
+                          className={link.canStart ? "text-success" : "text-foreground"}
+                        >
+                          {link.canStart
+                            ? intl.formatMessage(CAN_START_LABELS.canStart)
+                            : intl.formatMessage(CAN_START_LABELS.viewOnly)}
+                        </Chip>
+                      )}
                     </Table.Cell>
                     <Table.Cell>
                       <Chip
@@ -633,6 +664,10 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
             </Table.Content>
           </Table.Root>
         </div>
+      )}
+
+      {changeStart.isError && (
+        <p role="alert" className="text-sm text-danger">{errorTextIntl(intl, changeStart.error, intl.formatMessage({ id: "web.routes.tabs.settings.share_links.wake_permission_failed", defaultMessage: "Could not change the link's wake permission.", description: "Share links: error shown when updating the start permission fails" }))}</p>
       )}
 
       <CreateDialog

@@ -149,11 +149,9 @@ describe("ShareLinksSection", () => {
     });
   });
 
-  it("displays can-start capability as 'Can start' chip", async () => {
+  it("displays can-start capability as a chip on inactive links", async () => {
     render(<ShareLinksSection name="mc-survival" />, { wrapper: Wrapper });
-    await waitFor(() => {
-      expect(screen.getByText("Can start")).toBeInTheDocument();
-    });
+    expect(await screen.findByRole("gridcell", { name: "Can start" })).toBeInTheDocument();
   });
 
   it("displays view-only capability as 'View only' chip", async () => {
@@ -171,6 +169,56 @@ describe("ShareLinksSection", () => {
     });
     // The two expired links show a muted dash instead of a Revoke button.
     expect(screen.getAllByText("—")).toHaveLength(2);
+  });
+
+  it("lets the owner change an active link's wake permission in either direction", async () => {
+    const user = userEvent.setup();
+    let canStart = true;
+    const updates: boolean[] = [];
+    server.use(
+      http.get(/\/servers\/[^/]+:shares$/, () =>
+        HttpResponse.json([{ ...mockLinks[0], canStart }, ...mockLinks.slice(1)])),
+      http.patch("/servers/mc-survival/shares/link-1", async ({ request }) => {
+        const body = await request.json() as { canStart: boolean };
+        canStart = body.canStart;
+        updates.push(canStart);
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    render(<ShareLinksSection name="mc-survival" />, { wrapper: Wrapper });
+    const toggle = await screen.findByRole("switch", { name: "Allow anyone with this link to wake the server" });
+    expect(toggle).toBeChecked();
+    expect(screen.getAllByRole("switch")).toHaveLength(1);
+    for (const enabled of [false, true]) {
+      await user.click(toggle);
+      await waitFor(() => {
+        expect(toggle).toBeEnabled();
+        expect(toggle).toHaveProperty("checked", enabled);
+      });
+    }
+    expect(updates).toEqual([false, true]);
+  });
+
+  it("keeps the current permission visible when the API rejects an edit", async () => {
+    server.use(http.patch("/servers/:name/shares/:id", () =>
+      HttpResponse.json({ error: "Permission denied" }, { status: 403 })));
+    render(<ShareLinksSection name="mc-survival" />, { wrapper: Wrapper });
+    const toggle = await screen.findByRole("switch", { name: "Allow anyone with this link to wake the server" });
+    await userEvent.setup().click(toggle);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Permission denied");
+    expect(toggle).toBeChecked();
+  });
+
+  it("keeps the capability read-only for a non-owner", async () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ResourceTargetProvider target={{ cluster: "local", name: "mc-survival" }} access={{ canWrite: true, canControl: true, canConsole: true, canDelete: true, isOwner: false, isCollaborator: false }}>
+          <ShareLinksSection name="mc-survival" />
+        </ResourceTargetProvider>
+      </QueryClientProvider>
+    );
+    expect(await screen.findByText("Active")).toBeInTheDocument();
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   });
 
   // Create dialog tests
@@ -497,6 +545,7 @@ describe("ShareLinksSection", () => {
     expect(screen.queryByText("Active")).not.toBeInTheDocument();
     expect(screen.queryByText("Expired")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Revoke" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   });
 
   // T029: expiry-choice request shapes, warnings, and client-side blocking.

@@ -9367,6 +9367,10 @@
         "defaultMessage": "Terminé",
         "description": "Button that closes the link-created dialog"
     },
+    "web.routes.tabs.settings.share_links.edit_wake_permission": {
+        "defaultMessage": "Autoriser toute personne disposant de ce lien à réveiller le serveur",
+        "description": "Accessible name of an active share link's wake permission switch"
+    },
     "web.routes.tabs.settings.share_links.expires": {
         "defaultMessage": "Expire",
         "description": "Table column header for the share link expiry date"
@@ -9482,6 +9486,14 @@
     "web.routes.tabs.settings.share_links.view_only": {
         "defaultMessage": "Lecture seule",
         "description": "Share links: table cell for a link that only allows viewing the server status"
+    },
+    "web.routes.tabs.settings.share_links.wake_permission_failed": {
+        "defaultMessage": "Impossible de modifier l’autorisation de réveil associée au lien.",
+        "description": "Share links: error shown when updating the start permission fails"
+    },
+    "web.routes.tabs.settings.share_links.wake_permission_hint": {
+        "defaultMessage": "Les personnes sans compte Gameplane peuvent consulter l’état et l’adresse du serveur. Activez « Démarrage possible » pour permettre à toute personne disposant du lien de réveiller le serveur.",
+        "description": "Share links: explains the effect of the Can start switch on everyone with the existing URL"
     },
     "web.routes.tabs.settings.share_links.you_will_not_see_this_link_again": {
         "defaultMessage": "Vous ne reverrez pas ce lien",
