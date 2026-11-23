@@ -149,6 +149,7 @@ describe("McpTokensPage create flow", () => {
     await screen.findByRole("heading", { name: "Token created" });
     await user.click(screen.getAllByRole("button", { name: "Copy" })[0]);
     expect(writeText).toHaveBeenCalled();
+    expect(await screen.findByText("Copying failed. Select the text and copy it by hand.")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Token created" })).toBeInTheDocument();
   });
 

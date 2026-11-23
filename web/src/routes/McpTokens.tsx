@@ -5,7 +5,7 @@
 // once by the create call; it lives only in the reveal dialog and is dropped
 // when that dialog closes.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -80,6 +80,7 @@ const messages = defineMessages({
   copyWarning: { id: "web.routes.mcp_tokens.copy_warning", defaultMessage: "Copy this token now. It will not be shown again.", description: "MCP tokens: warning that the full token is shown only once" },
   tokenField: { id: "web.routes.mcp_tokens.token_field", defaultMessage: "Token", description: "MCP tokens: label above the new token in the reveal dialog" },
   copy: { id: "web.routes.mcp_tokens.copy", defaultMessage: "Copy", description: "MCP tokens: button that copies the token or the client configuration; keep it short" },
+  copyFailed: { id: "web.routes.mcp_tokens.copy_failed", defaultMessage: "Copying failed. Select the text and copy it by hand.", description: "MCP tokens: hint shown in the token reveal dialog when the clipboard refuses a copy" },
   configLabel: { id: "web.routes.mcp_tokens.client_configuration", defaultMessage: "MCP client configuration", description: "MCP tokens: label above the MCP client configuration snippet" },
   done: { id: "web.routes.mcp_tokens.done", defaultMessage: "Done", description: "MCP tokens: button that closes the token reveal dialog; keep it short" },
   revokeBody: { id: "web.routes.mcp_tokens.revoke_body", defaultMessage: "Any MCP client using it stops working at once.", description: "MCP tokens: body of the revoke confirmation" },
@@ -126,12 +127,9 @@ function clientConfig(token: string, panelUrl: string): string {
   );
 }
 
+// copyText rejects when the clipboard is blocked (insecure context or permission denied); callers show a hint.
 async function copyText(text: string): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    // Clipboard blocked (insecure context or permission denied): the text stays selectable on screen.
-  }
+  await navigator.clipboard.writeText(text);
 }
 
 function ErrorLine({ error }: { error: unknown }) {
@@ -164,18 +162,25 @@ export function McpTokensPage() {
 
   const list = useQuery({ queryKey: ["mcp-tokens"], queryFn: listMcpTokens });
   const tokens = list.data?.items ?? [];
-  // Fixed at mount: render must stay pure (react-hooks/purity).
-  const [now] = useState(() => Date.now());
+  // Advances once a minute so a token that expires while the page is open turns Expired.
+  // Lazy init and the interval callback keep render pure (react-hooks/purity).
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   const create = useMutation({
     mutationFn: () => createMcpToken(name.trim(), days),
+    // gcTime 0 drops the cached mutation (and the token it holds) once nothing uses it.
+    gcTime: 0,
     onSuccess: (token) => {
       void qc.invalidateQueries({ queryKey: ["mcp-tokens"] });
       setCreateOpen(false);
       setName("");
       setDays(DEFAULT_LIFETIME);
       setCreated(token);
-      // Drop the mutation's copy of the secret; only the reveal state keeps it.
+      // reset() detaches the observer; gcTime 0 removes the cached entry. Only the reveal state keeps the secret.
       create.reset();
     },
   });
@@ -390,9 +395,18 @@ export function McpTokensPage() {
 function CreatedTokenDialog({ token, onClose }: { token: CreatedMcpToken; onClose: () => void }) {
   const intl = useOptionalIntl();
   const configText = clientConfig(token.token, window.location.origin);
+  const [copyFailed, setCopyFailed] = useState(false);
+  // Closing unmounts this dialog, which drops the secret; copyFailed is reset here as well.
+  const dismiss = () => {
+    setCopyFailed(false);
+    onClose();
+  };
+  const copyToClipboard = (text: string) => {
+    void copyText(text).then(() => setCopyFailed(false), () => setCopyFailed(true));
+  };
 
   return (
-    <Modal isOpen onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Modal isOpen onOpenChange={(open) => { if (!open) dismiss(); }}>
       <ModalBackdrop>
         <ModalContainer>
           <ModalDialog className="w-[560px] max-w-[560px] rounded-xl">
@@ -411,7 +425,7 @@ function CreatedTokenDialog({ token, onClose }: { token: CreatedMcpToken; onClos
                   <code className="min-w-0 flex-1 truncate rounded-md border border-border bg-surface px-3 py-2 font-mono text-sm">
                     {middleEllipsis(token.token)}
                   </code>
-                  <Button size="sm" variant="secondary" onPress={() => void copyText(token.token)}>
+                  <Button size="sm" variant="secondary" onPress={() => copyToClipboard(token.token)}>
                     {intl.formatMessage(messages.copy)}
                   </Button>
                 </div>
@@ -420,7 +434,7 @@ function CreatedTokenDialog({ token, onClose }: { token: CreatedMcpToken; onClos
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-xs font-medium">{intl.formatMessage(messages.configLabel)}</div>
-                  <Button size="sm" variant="secondary" onPress={() => void copyText(configText)}>
+                  <Button size="sm" variant="secondary" onPress={() => copyToClipboard(configText)}>
                     {intl.formatMessage(messages.copy)}
                   </Button>
                 </div>
@@ -428,9 +442,10 @@ function CreatedTokenDialog({ token, onClose }: { token: CreatedMcpToken; onClos
                   <code>{configText}</code>
                 </pre>
               </div>
+              {copyFailed && <p className="text-sm text-danger">{intl.formatMessage(messages.copyFailed)}</p>}
             </ModalBody>
             <ModalFooter className="flex items-center justify-end">
-              <Button size="sm" onPress={onClose}>{intl.formatMessage(messages.done)}</Button>
+              <Button size="sm" onPress={dismiss}>{intl.formatMessage(messages.done)}</Button>
             </ModalFooter>
           </ModalDialog>
         </ModalContainer>

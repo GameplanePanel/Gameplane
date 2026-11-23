@@ -7883,6 +7883,10 @@
     "defaultMessage": "Copy",
     "description": "MCP tokens: button that copies the token or the client configuration; keep it short"
   },
+  "web.routes.mcp_tokens.copy_failed": {
+    "defaultMessage": "Copying failed. Select the text and copy it by hand.",
+    "description": "MCP tokens: hint shown in the token reveal dialog when the clipboard refuses a copy"
+  },
   "web.routes.mcp_tokens.copy_warning": {
     "defaultMessage": "Copy this token now. It will not be shown again.",
     "description": "MCP tokens: warning that the full token is shown only once"

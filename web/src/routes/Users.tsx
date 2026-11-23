@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useInstallation } from "@/lib/useInstallation";
 import {
   useMutation,
@@ -555,8 +555,13 @@ function UserMcpTokensDialog({ user, canRevoke, onClose }: { user: ExtendedUser;
     },
   });
   const tokens = data?.items ?? [];
-  // Fixed at mount: render must stay pure (react-hooks/purity).
-  const [now] = useState(() => Date.now());
+  // Advances once a minute so a token that expires while the dialog is open turns Expired.
+  // Lazy init and the interval callback keep render pure (react-hooks/purity).
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   return (
     <Modal isOpen onOpenChange={(open) => { if (!open) onClose(); }}>
