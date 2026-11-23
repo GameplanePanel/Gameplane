@@ -274,13 +274,20 @@ func TestSFTP_Lifecycle(t *testing.T) {
 
 	var aliceSSH *ssh.Client
 	var aliceSFTP *sftp.Client
+	// alice's connection lives across the subtests below (and is replaced by
+	// the resume subtest's reconnect), so the parent test closes it, not the
+	// login subtest: a subtest's cleanup runs when that subtest ends.
+	t.Cleanup(func() {
+		if aliceSSH != nil {
+			_ = aliceSSH.Close()
+		}
+	})
 	if !t.Run("login-and-browse", func(t *testing.T) {
 		var err error
 		aliceSSH, aliceSFTP, err = sftpDial(port, aliceName, keyAuth, hostKey)
 		if err != nil {
 			t.Fatalf("alice key login: %v", err)
 		}
-		t.Cleanup(func() { _ = aliceSSH.Close() })
 
 		names, err := sftpEntryNames(aliceSFTP, "/")
 		if err != nil {
