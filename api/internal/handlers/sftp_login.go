@@ -10,6 +10,8 @@ import (
 	"net/netip"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -95,20 +97,24 @@ func (h *sftpLoginHandler) login(w http.ResponseWriter, req *http.Request) {
 	base, rawTarget, hasTarget := splitSFTPUsername(body.Username)
 	actor := truncateRunes(base, sftpActorMaxRunes)
 	refuse := func(cause string) {
-		slog.Debug("sftp login refused", "cause", cause)
+		// The client and the audit trail get one generic reason; the operator's log names the cause so a
+		// refused login can be diagnosed (key not registered, wrong account, no access to the target, …).
+		slog.Info("sftp login refused", "user", actor, "cluster", caller.Cluster, "cause", cause)
 		h.auditLoginFailure(ctx, req, actor)
 		httperr.WriteMessage(w, req, messages.New("server.sftp.login_failed", nil))
 	}
 
 	// Rate limits run before any validation or credential work (so refusals cannot flood the audit
 	// trail either), keyed like /auth/login: the source address the endpoint reports and the
-	// username. The request IP is always the SFTP pod, so it is not used. actor is the username
-	// capped to 64 runes, identical to base for every valid username.
+	// full username. The request IP is always the SFTP pod, so it is not used. actor is the username
+	// capped to 64 runes for the audit trail only; the username budget keys on the full base, so two
+	// long SSO email names that share a 64-rune prefix do not share a budget. The key is capped one rune
+	// past the longest valid name, so an oversized name cannot grow the limiter's keys.
 	auth.SetActor(ctx, actor)
 	if !auth.LoginLimiter.RequestBudget(w, req, sftpSourceKey(body.RemoteAddr, req)) {
 		return
 	}
-	if !auth.LoginUserLimiter.RequestBudget(w, req, actor) {
+	if !auth.LoginUserLimiter.RequestBudget(w, req, truncateRunes(base, sftpUsernameMaxRunes+1)) {
 		return
 	}
 
@@ -116,7 +122,7 @@ func (h *sftpLoginHandler) login(w http.ResponseWriter, req *http.Request) {
 		refuse("credential-shape")
 		return
 	}
-	if !identifierRE.MatchString(base) {
+	if !validSFTPUsername(base) {
 		refuse("username")
 		return
 	}
@@ -348,6 +354,26 @@ func (h *sftpServersHandler) list(w http.ResponseWriter, req *http.Request) {
 		items = append(items, sftpServerItem{Namespace: ref.Namespace, Server: ref.Name, Write: write})
 	}
 	writeJSON(w, map[string]any{"items": items})
+}
+
+// sftpUsernameMaxRunes bounds an SFTP login name: long enough for an SSO account named by its email
+// address (RFC 5321 caps a path at 254), far below anything that costs real work.
+const sftpUsernameMaxRunes = 254
+
+// validSFTPUsername reports whether name can be a panel username. Local accounts follow identifierRE,
+// but SSO accounts are named by the identity provider (usually an email address), so the check only
+// refuses what no account can hold: an empty or overlong name, whitespace, control characters and "/".
+// The user lookup decides the rest.
+func validSFTPUsername(name string) bool {
+	if name == "" || !utf8.ValidString(name) || utf8.RuneCountInString(name) > sftpUsernameMaxRunes {
+		return false
+	}
+	for _, r := range name {
+		if unicode.IsSpace(r) || unicode.IsControl(r) || r == '/' {
+			return false
+		}
+	}
+	return true
 }
 
 // splitSFTPUsername splits "name+target" at the last "+". The base is what authenticates.
