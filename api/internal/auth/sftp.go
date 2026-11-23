@@ -16,18 +16,24 @@ import (
 )
 
 const (
-	// SFTPPasswordMinLen and SFTPPasswordMaxLen bound the generated SFTP password length.
+	// SFTPPasswordMinLen is the shortest generated SFTP password length.
 	SFTPPasswordMinLen = 20
+	// SFTPPasswordMaxLen is the longest generated SFTP password length.
 	SFTPPasswordMaxLen = 40
 	sftpRSAMinBits     = 3072
 	maxSFTPKeyNameLen  = 64
 )
 
 var (
-	ErrSFTPKeyInvalid  = errors.New("sftp key: not a valid authorized_keys public key")
-	ErrSFTPKeyType     = errors.New("sftp key: unsupported key type")
-	ErrSFTPKeyWeak     = errors.New("sftp key: RSA keys must be at least 3072 bits")
-	ErrSFTPKeyName     = errors.New("sftp key: name must be 1 to 64 characters")
+	// ErrSFTPKeyInvalid is returned for a line that is not one valid authorized_keys public key.
+	ErrSFTPKeyInvalid = errors.New("sftp key: not a valid authorized_keys public key")
+	// ErrSFTPKeyType is returned for a key algorithm outside the supported set.
+	ErrSFTPKeyType = errors.New("sftp key: unsupported key type")
+	// ErrSFTPKeyWeak is returned for an RSA key with fewer than 3072 bits.
+	ErrSFTPKeyWeak = errors.New("sftp key: RSA keys must be at least 3072 bits")
+	// ErrSFTPKeyName is returned when a key name is empty or longer than 64 characters.
+	ErrSFTPKeyName = errors.New("sftp key: name must be 1 to 64 characters")
+	// ErrSFTPPasswordLen is returned when a requested password length is outside 20 to 40.
 	ErrSFTPPasswordLen = errors.New("sftp password: length must be 20 to 40")
 )
 
@@ -96,14 +102,27 @@ func GenerateSFTPPassword(length int) (string, error) {
 	}
 	buf := make([]byte, length)
 	for i := range buf {
-		n, err := rand.Int(rand.Reader, big.NewInt(94))
+		// rand.Int returns a value in [0, len(sftpPasswordAlphabet)), so indexing cannot go out of range.
+		n, err := rand.Int(rand.Reader, sftpPasswordAlphabetLen)
 		if err != nil {
 			return "", fmt.Errorf("generate sftp password: %w", err)
 		}
-		buf[i] = byte('!' + n.Int64())
+		buf[i] = sftpPasswordAlphabet[n.Int64()]
 	}
 	return string(buf), nil
 }
+
+// sftpPasswordAlphabet is the 94 printable ASCII characters '!'..'~' (space excluded), in code order.
+var sftpPasswordAlphabet = func() string {
+	alphabet := make([]byte, 0, 94)
+	for c := byte('!'); c <= '~'; c++ {
+		alphabet = append(alphabet, c)
+	}
+	return string(alphabet)
+}()
+
+// sftpPasswordAlphabetLen is the bound passed to rand.Int when drawing a password character.
+var sftpPasswordAlphabetLen = big.NewInt(int64(len(sftpPasswordAlphabet)))
 
 // AddSFTPKey validates name (trimmed, 1 to 64 runes) and the key, then stores it for userID.
 func (s *SessionStore) AddSFTPKey(ctx context.Context, userID int64, name, publicKeyLine string) (SFTPKey, error) {

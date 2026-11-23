@@ -15,17 +15,24 @@ import (
 )
 
 const (
-	SFTPMaxKeysPerUser         = 20
+	// SFTPMaxKeysPerUser is the number of SFTP public keys one user may register.
+	SFTPMaxKeysPerUser = 20
+	// SFTPMaxActiveServiceTokens is the number of unrevoked SFTP service tokens one cluster may hold.
 	SFTPMaxActiveServiceTokens = 2
 	sftpCredentialPassword     = "password" // sftp_sessions.credential; keys use "key:<id>"
 	sftpMaxCheckDigests        = 500
 )
 
 var (
-	ErrSFTPNotFound          = errors.New("sftp: not found")
-	ErrSFTPKeyLimit          = errors.New("sftp: too many keys")
-	ErrSFTPKeyNameInUse      = errors.New("sftp: key name already in use")
-	ErrSFTPKeyDuplicate      = errors.New("sftp: key already registered")
+	// ErrSFTPNotFound is returned when an SFTP key, token or session does not exist.
+	ErrSFTPNotFound = errors.New("sftp: not found")
+	// ErrSFTPKeyLimit is returned when a user already holds SFTPMaxKeysPerUser keys.
+	ErrSFTPKeyLimit = errors.New("sftp: too many keys")
+	// ErrSFTPKeyNameInUse is returned when a user already has a key with the same name.
+	ErrSFTPKeyNameInUse = errors.New("sftp: key name already in use")
+	// ErrSFTPKeyDuplicate is returned when the same public key is already registered.
+	ErrSFTPKeyDuplicate = errors.New("sftp: key already registered")
+	// ErrSFTPServiceTokenLimit is returned when a cluster already holds SFTPMaxActiveServiceTokens tokens.
 	ErrSFTPServiceTokenLimit = errors.New("sftp: too many active service tokens")
 )
 
@@ -550,27 +557,45 @@ func (s *SessionStore) CheckSFTPSessions(ctx context.Context, cluster string, di
 	if len(digests) > sftpMaxCheckDigests {
 		return nil, fmt.Errorf("check sftp sessions: %d digests exceeds %d", len(digests), sftpMaxCheckDigests)
 	}
-	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(digests)), ",")
-	args := make([]any, 0, len(digests)+1)
-	args = append(args, cluster)
-	for _, d := range digests {
-		args = append(args, d)
-	}
-	rows, err := s.db.DB.QueryContext(ctx, `
-		SELECT s.digest, s.expires_at
-		FROM sftp_sessions s JOIN users u ON u.id = s.user_id
-		WHERE s.cluster = ? AND s.revoked_at IS NULL AND s.session_epoch = u.session_epoch
-		  AND s.digest IN (`+placeholders+`)`, args...)
+	// One digest per query, all inside one transaction so the checks share a snapshot.
+	tx, err := s.db.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("check sftp sessions: %w", err)
 	}
-	defer func() { _ = rows.Close() }()
-	valid := make(map[string]bool, len(digests))
+	defer func() { _ = tx.Rollback() }()
 	now := time.Now()
+	for _, d := range digests {
+		live, err := sftpSessionLive(ctx, tx, cluster, d, now)
+		if err != nil {
+			return nil, err
+		}
+		if !live {
+			revoked = append(revoked, d)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("check sftp sessions: commit: %w", err)
+	}
+	return revoked, nil
+}
+
+// sftpSessionLive reports whether digest names an unrevoked, unexpired session on cluster whose
+// user's session_epoch still matches.
+func sftpSessionLive(ctx context.Context, tx *sql.Tx, cluster, digest string, now time.Time) (bool, error) {
+	rows, err := tx.QueryContext(ctx, `
+		SELECT s.expires_at
+		FROM sftp_sessions s JOIN users u ON u.id = s.user_id
+		WHERE s.cluster = ? AND s.revoked_at IS NULL AND s.session_epoch = u.session_epoch
+		  AND s.digest = ?`, cluster, digest)
+	if err != nil {
+		return false, fmt.Errorf("check sftp sessions: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+	live := false
 	for rows.Next() {
-		var digest, expires string
-		if err := rows.Scan(&digest, &expires); err != nil {
-			return nil, fmt.Errorf("scan sftp session: %w", err)
+		var expires string
+		if err := rows.Scan(&expires); err != nil {
+			return false, fmt.Errorf("scan sftp session: %w", err)
 		}
 		exp, perr := parseSFTPTime(expires)
 		if perr != nil {
@@ -578,16 +603,11 @@ func (s *SessionStore) CheckSFTPSessions(ctx context.Context, cluster string, di
 			continue
 		}
 		if now.Before(exp) {
-			valid[digest] = true
+			live = true
 		}
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate sftp sessions: %w", err)
+		return false, fmt.Errorf("iterate sftp sessions: %w", err)
 	}
-	for _, d := range digests {
-		if !valid[d] {
-			revoked = append(revoked, d)
-		}
-	}
-	return revoked, nil
+	return live, nil
 }

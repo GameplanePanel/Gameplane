@@ -12,9 +12,10 @@ import (
 	"time"
 )
 
+// SFTPServiceTokenPrefix starts every SFTP service token (the SFTP endpoint's bearer credential).
+const SFTPServiceTokenPrefix = "gpsftps_"
+
 const (
-	// SFTPServiceTokenPrefix starts every SFTP service token (the SFTP endpoint's bearer credential).
-	SFTPServiceTokenPrefix = "gpsftps_"
 	// SFTPSessionTokenPrefix starts every SFTP session token minted by /sftp/v1/login.
 	// Neither prefix is a prefix of the other ("gpsftps_" differs at index 6).
 	SFTPSessionTokenPrefix = "gpsftp_"

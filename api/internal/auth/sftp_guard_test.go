@@ -48,7 +48,7 @@ func TestSFTPSessionGuard_AllowedRoutes(t *testing.T) {
 		t.Run(c.method+" "+c.path, func(t *testing.T) {
 			next := &okHandler{}
 			h := s.SFTPSessionGuard(next)
-			req := httptest.NewRequest(c.method, c.path, nil).WithContext(sessionCaller(context.Background()))
+			req := httptest.NewRequestWithContext(t.Context(), c.method, c.path, nil).WithContext(sessionCaller(context.Background()))
 			rec := httptest.NewRecorder()
 			h.ServeHTTP(rec, req)
 			if !next.called || rec.Code != http.StatusOK {
@@ -79,7 +79,7 @@ func TestSFTPSessionGuard_RefusedRoutes(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			next := &okHandler{}
 			h := s.SFTPSessionGuard(next)
-			req := httptest.NewRequest(c.method, c.path, nil).WithContext(sessionCaller(context.Background()))
+			req := httptest.NewRequestWithContext(t.Context(), c.method, c.path, nil).WithContext(sessionCaller(context.Background()))
 			if c.upgrade {
 				req.Header.Set("Upgrade", "websocket")
 			}
@@ -97,7 +97,7 @@ func TestSFTPSessionGuard_ForcesCluster(t *testing.T) {
 	for _, target := range []string{"/servers/a/files/list", "/servers/a/files/list?cluster=other"} {
 		next := &okHandler{}
 		h := s.SFTPSessionGuard(next)
-		req := httptest.NewRequest(http.MethodGet, target, nil).WithContext(sessionCaller(context.Background()))
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil).WithContext(sessionCaller(context.Background()))
 		h.ServeHTTP(httptest.NewRecorder(), req)
 		if next.cluster != "local" {
 			t.Fatalf("%s: cluster = %q, want local", target, next.cluster)
@@ -115,7 +115,7 @@ func TestSFTPSessionGuard_PassesOtherCallers(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			next := &okHandler{}
 			h := s.SFTPSessionGuard(next)
-			req := httptest.NewRequest(http.MethodGet, "/users/me", nil).WithContext(ctx)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/users/me", nil).WithContext(ctx)
 			rec := httptest.NewRecorder()
 			h.ServeHTTP(rec, req)
 			if !next.called || rec.Code != http.StatusOK {
@@ -145,7 +145,7 @@ func TestSFTPAuthenticate_SessionTokenAndFailures(t *testing.T) {
 	}
 
 	okNext := &okHandler{}
-	req := bearerRequest("/servers/a/files/list", token)
+	req := bearerRequest(t, "/servers/a/files/list", token)
 	rec := httptest.NewRecorder()
 	s.Authenticate(okNext).ServeHTTP(rec, req)
 	if !okNext.called || okNext.user != "alice" || !okNext.hasCall || okNext.caller.Cluster != "local" || okNext.caller.SessionID == 0 {
@@ -157,7 +157,7 @@ func TestSFTPAuthenticate_SessionTokenAndFailures(t *testing.T) {
 	for i, bad := range []string{revokedToken, "gpsftp_garbage", "gpsftps_" + token[len(SFTPSessionTokenPrefix):]} {
 		next := &okHandler{}
 		rec := httptest.NewRecorder()
-		s.Authenticate(next).ServeHTTP(rec, bearerRequest("/servers/a/files/list", bad))
+		s.Authenticate(next).ServeHTTP(rec, bearerRequest(t, "/servers/a/files/list", bad))
 		if next.called || rec.Code != http.StatusUnauthorized {
 			t.Fatalf("case %d: called=%v code=%d", i, next.called, rec.Code)
 		}
@@ -188,7 +188,7 @@ func TestSFTPServiceAuth_OnlyServiceTokens(t *testing.T) {
 
 	next := &okHandler{}
 	rec := httptest.NewRecorder()
-	s.SFTPServiceAuth(next).ServeHTTP(rec, bearerRequest("/sftp/v1/login", svcRaw))
+	s.SFTPServiceAuth(next).ServeHTTP(rec, bearerRequest(t, "/sftp/v1/login", svcRaw))
 	if !next.called || rec.Code != http.StatusOK || !next.hasCall || next.caller.Cluster != "local" || next.caller.ServiceTokenID == 0 {
 		t.Fatalf("service token refused: called=%v code=%d caller=%+v", next.called, rec.Code, next.caller)
 	}
@@ -197,7 +197,7 @@ func TestSFTPServiceAuth_OnlyServiceTokens(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			next := &okHandler{}
 			rec := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodPost, "/sftp/v1/login", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/sftp/v1/login", nil)
 			if auth != "" {
 				req.Header.Set("Authorization", "Bearer "+auth)
 			}
@@ -210,8 +210,8 @@ func TestSFTPServiceAuth_OnlyServiceTokens(t *testing.T) {
 }
 
 // bearerRequest builds a cookie-less request carrying a bearer token.
-func bearerRequest(path, token string) *http.Request {
-	req := httptest.NewRequest(http.MethodGet, path, nil)
+func bearerRequest(t *testing.T, path, token string) *http.Request {
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, path, nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	return req
 }

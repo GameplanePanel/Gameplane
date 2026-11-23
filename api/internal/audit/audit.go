@@ -702,7 +702,11 @@ func Middleware(a *Auditor) func(http.Handler) http.Handler {
 				TS: ts, Actor: actor, Method: req.Method, Path: path,
 				Target: target, Status: rw.status, IP: clientIP, Source: source,
 			}
-			_ = a.insertChainedEvent(writeCtx, ev)
+			if source == "" {
+				_ = a.insertChained(writeCtx, ts, actor, req.Method, path, target, "", rw.status, clientIP)
+			} else {
+				_ = a.insertChainedEvent(writeCtx, ev)
+			}
 			if a.sink != nil {
 				attrs := []any{
 					"actor", actor, "method", req.Method, "path", path,
