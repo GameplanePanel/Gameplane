@@ -1,0 +1,139 @@
+# Dependabot go.work.sum sync — commits the workspace checksum update a Go bump needs.
+#
+# Dependabot bumps one module's go.mod/go.sum but never the workspace's go.work.sum, so every
+# Go bump failed "codegen drift" until someone pushed "chore: sync go.work.sum for the
+# dependency bump" by hand. This workflow runs the same regeneration as that CI job
+# (make generate manifests && make tidy) and commits the go module files it changes back to
+# the Dependabot branch. Other drift (deepcopy, CRDs) is printed but never committed: it
+# needs a human look and still fails "codegen drift".
+#
+# Like design-export.yaml, the work is split in two: the sync job runs the bumped
+# dependencies' code (controller-gen, go mod tidy) with a read-only token and hands over a
+# patch; only the commit job can write, it runs no repository or dependency code, and it
+# refuses a patch that touches anything but go.work.sum, go.mod and go.sum files.
+#
+# Every same-repository PR that changes a go.mod or go.sum runs the sync job, so a human PR
+# with a stale go.work.sum sees the missing diff in the log; only Dependabot PRs get the commit.
+#
+# Credentials: SCREENSHOT_BOT_PAT (see screenshot-refresh.yaml), so the pushed commit starts
+# the PR's checks again; a push with the default token would not. Workflows started by
+# Dependabot only see Dependabot secrets, so the PAT must also be stored under
+# Settings > Secrets and variables > Dependabot. Without it the job falls back to the
+# default token and the new head commit gets no checks until someone pushes again.
+#
+# When go.work.sum conflicts after another bump merges, comment `@dependabot rebase`: the
+# rebase drops this commit and the next run adds a fresh one on top.
+#
+# The split-out components (mcp-server, tunnel, audit-syslog-bridge, capture-sidecar, sftp)
+# are standalone modules outside go.work and have no go.work.sum to sync.
+
+name: dependabot go.work.sum
+
+on:
+  pull_request:
+    paths:
+      - "**/go.mod"
+      - "**/go.sum"
+      - ".github/workflows/dependabot-go-work-sum.yaml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependabot-go-work-sum-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: sync go.work.sum
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      # Same setup and commands as the "codegen drift" job in ci.yaml, so the diff here is
+      # exactly the diff that job fails on.
+      - uses: ./.github/actions/go-cache
+        with:
+          key-suffix: codegen-drift
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
+      - name: regenerate deepcopy, CRDs, RBAC and chart CRD copies
+        run: make generate manifests
+      - name: go mod tidy across modules
+        run: make tidy
+
+      - name: diff
+        id: diff
+        run: |
+          git add -- go.work.sum ':(glob)**/go.mod' ':(glob)**/go.sum'
+          git diff --cached --binary > "$RUNNER_TEMP/go-work-sum.patch"
+          if [ -n "$(git diff --name-only)" ]; then
+            echo "::warning::Drift outside the go module files is not committed here; fix it by hand:"
+            git diff --stat
+          fi
+          if [ -s "$RUNNER_TEMP/go-work-sum.patch" ]; then
+            git diff --cached --stat
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "go.work.sum and the go module files are up to date."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.diff.outputs.changed == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: go-work-sum-patch
+          path: ${{ runner.temp }}/go-work-sum.patch
+          retention-days: 3
+          if-no-files-found: error
+
+  commit:
+    name: commit go.work.sum
+    needs: sync
+    if: >-
+      needs.sync.outputs.changed == 'true' &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.SCREENSHOT_BOT_PAT || github.token }}
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: go-work-sum-patch
+          path: ${{ runner.temp }}
+
+      - name: commit and push
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if [ "$(git rev-parse HEAD)" != "$HEAD_SHA" ]; then
+            echo "::notice::The branch moved since the sync ran; the run for the newer commit syncs it."
+            exit 0
+          fi
+          # The patch comes from running the bumped dependencies: push nothing but go module files.
+          outside=$(git apply --numstat "$RUNNER_TEMP/go-work-sum.patch" | cut -f3 |
+            grep -vE '^(go\.work\.sum|(.+/)?go\.(mod|sum))$' || true)
+          if [ -n "$outside" ]; then
+            echo "::error::The patch touches files other than go module files: $outside"
+            exit 1
+          fi
+          git apply --index "$RUNNER_TEMP/go-work-sum.patch"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -s -q -m "chore: sync go.work.sum for the dependency bump"
+          git push origin "HEAD:$HEAD_REF"
