@@ -72,7 +72,7 @@ func sftpClusterEnvtestHostKey(t *testing.T, name string) string {
 func sftpClusterEnvtestRegister(t *testing.T, prefix string) string {
 	t.Helper()
 	name := uniqueResourceName(prefix)
-	if _, err := kubeC.Clusters().Create(t.Context(), newCluster(name, map[string]any{}, nil), metav1.CreateOptions{}); err != nil {
+	if _, err := kubeC.Clusters().Create(t.Context(), newCluster(name, map[string]any{"kubeconfigSecret": map[string]any{"name": name + "-kubeconfig"}}, nil), metav1.CreateOptions{}); err != nil {
 		t.Fatalf("register cluster %s: %v", name, err)
 	}
 	t.Cleanup(func() {
