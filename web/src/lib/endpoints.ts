@@ -431,6 +431,63 @@ function filesBase(server: string): string {
   return `/servers/${encodeURIComponent(server)}/files`;
 }
 
+const ROOT_PATH = "/";
+
+/** The connection dropped before the server answered (no HTTP status). */
+export class UploadConnectionLostError extends Error {
+  constructor() {
+    super("connection lost");
+    this.name = "UploadConnectionLostError";
+  }
+}
+
+export interface StreamUploadOptions {
+  /** Aborting cancels the request; the server removes the part written so far. */
+  signal?: AbortSignal;
+  /** Byte offset to resume from (copies the first N bytes of the existing file). */
+  offset?: number;
+  /** Bytes sent so far for this request. */
+  onProgress?: (loaded: number, total: number) => void;
+}
+
+// streamUpload sends one raw PUT body with XMLHttpRequest, because fetch cannot
+// report upload progress. Rejects with APIError for an HTTP error,
+// UploadConnectionLostError when no response arrives, and an AbortError
+// DOMException when the signal fires.
+function streamUpload(url: string, headers: Record<string, string>, body: Blob, opts: StreamUploadOptions): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (opts.signal?.aborted) {
+      reject(new DOMException("upload cancelled", "AbortError"));
+      return;
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url, true);
+    xhr.withCredentials = true;
+    for (const [key, value] of Object.entries(headers)) xhr.setRequestHeader(key, value);
+    xhr.upload.onprogress = (e: ProgressEvent) => {
+      if (e.lengthComputable) opts.onProgress?.(e.loaded, e.total);
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+        return;
+      }
+      reject(new APIError(
+        xhr.status,
+        xhr.responseText,
+        xhr.statusText,
+        xhr.getResponseHeader("Content-Type") ?? undefined,
+        xhr.getResponseHeader("Retry-After"),
+      ));
+    };
+    xhr.onerror = () => reject(new UploadConnectionLostError());
+    xhr.ontimeout = () => reject(new UploadConnectionLostError());
+    xhr.onabort = () => reject(new DOMException("upload cancelled", "AbortError"));
+    opts.signal?.addEventListener("abort", () => xhr.abort(), { once: true });
+    xhr.send(body);
+  });
+}
+
 // Shared helper for the non-JSON file endpoints (read/write/mkdir/upload/
 // delete). The agent speaks raw bytes and multipart for these, which the
 // generic api<T>() helper can't express. Errors are still surfaced as
@@ -1042,6 +1099,26 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
         headers: csrfHeaders(),
         body: fd,
       });
+    },
+    // Streaming upload (OD-6): one raw PUT per file to files/stream, which the
+    // server writes to a temp file and commits by rename. dir is the folder the
+    // file goes into; the file keeps its own name.
+    uploadStream: (
+      server: string,
+      dir: string,
+      file: File,
+      opts: StreamUploadOptions = {},
+      ns?: string,
+    ): Promise<void> => {
+      const target = dir === ROOT_PATH ? `/${file.name}` : `${dir}/${file.name}`;
+      const offset = opts.offset && opts.offset > 0 ? `&offset=${opts.offset}` : "";
+      const url = withCluster(withNS(`${filesBase(server)}/stream?path=${encodeURIComponent(target)}${offset}`, ns));
+      const headers: Record<string, string> = {
+        ...csrfHeaders(),
+        "Content-Type": "application/octet-stream",
+        ...(expectedUID ? { "X-Gameplane-Server-UID": expectedUID } : {}),
+      };
+      return streamUpload(url, headers, file, opts);
     },
     archive: async (server: string, paths: string[], dest?: string, ns?: string): Promise<Blob | undefined> => {
       const query = new URLSearchParams(paths.map((path) => ["path", path]));

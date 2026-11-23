@@ -46,7 +46,11 @@ import { createResourceClient, type FileEntry } from "@/lib/endpoints";
 import { cn } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { FileDrafts } from "@/lib/fileDrafts";
+import { useDelayedLoading } from "@/lib/useDelayedLoading";
 import { FileTreeRows } from "./FileTreeRows";
+import { FilesStarting } from "./FilesStarting";
+import { UploadTray } from "./UploadTray";
+import { isFilesStartingError, type UploadItem } from "./uploadQueue";
 
 const ROOT = "/";
 
@@ -116,13 +120,24 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
   const [newFileOpen, setNewFileOpen] = useState(false);
 
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploads, setUploads] = useState<UploadItem[]>([]);
+  const uploadIdRef = useRef(0);
+  const uploadControllers = useRef(new Map<number, AbortController>());
 
   const dirty = serverContent !== null && editorValue !== serverContent;
 
   const { data: entries, error: listError, isFetching, refetch } = useQuery({
     queryKey: listKey(cwd),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Files.list(name, cwd, ns),
+    // The API waits up to 60 s for a file-only pod; retrying that wait only hides the timeout.
+    retry: (failureCount, err) => !isFilesStartingError(err) && failureCount < 3,
   });
+  // A stopped or asleep server's list can take a while to come up; only a wait
+  // that outlasts the delay shows the starting state.
+  const listWaiting = entries === undefined && listError == null;
+  const startingWait = useDelayedLoading(listWaiting, { showAfterMs: 1500, initialImmediate: false });
+  const startsTimedOut = isFilesStartingError(listError);
+  const filesStarting: "starting" | "timed_out" | null = startsTimedOut ? "timed_out" : startingWait ? "starting" : null;
 
   // Resolve the path itself. A large directory can have a truncated listing.
   useEffect(() => {
@@ -239,20 +254,71 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
     onError: (err: Error) => setOpError(err.message),
   });
 
-  const uploadMutation = useMutation({
-    mutationFn: (files: FileList) => Files.upload(name, cwd, files, ns),
-    onSuccess: async () => {
-      void qc.invalidateQueries({ queryKey: ["fleet"] });
-      await qc.invalidateQueries({ queryKey: listKey(cwd) });
-      setOpError(null);
-    },
-    onError: (err: Error) => setOpError(err.message),
-  });
+  // Uploads run one at a time through the streaming route (FR-018b). Each file
+  // keeps its own state so the tray can show progress, cancel and retry.
+  const uploadRunning = uploads.some((item) => item.status === "uploading");
+  useEffect(() => {
+    if (uploadRunning) return;
+    const next = uploads.find((item) => item.status === "waiting");
+    if (!next) {
+      if (uploads.length > 0 && uploads.every((item) => item.status === "done")) setUploads([]);
+      return;
+    }
+    const id = next.id;
+    const controller = new AbortController();
+    uploadControllers.current.set(id, controller);
+    setUploads((current) => current.map((item) => (item.id === id ? { ...item, status: "uploading", loaded: 0 } : item)));
+    const settle = (patch: Partial<UploadItem>) => {
+      uploadControllers.current.delete(id);
+      setUploads((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+    };
+    void Files.uploadStream(name, next.dir, next.file, {
+      signal: controller.signal,
+      onProgress: (loaded) => setUploads((current) => current.map((item) => (item.id === id && item.status === "uploading" ? { ...item, loaded } : item))),
+    }, ns)
+      .then(() => {
+        settle({ status: "done", loaded: next.file.size });
+        void qc.invalidateQueries({ queryKey: ["fleet"] });
+        void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "files", name, next.dir, ns) });
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") settle({ status: "cancelled" });
+        else settle({ status: "failed", error: err });
+      });
+    // Settling the upload changes uploads, which re-runs this effect for the next file.
+  }, [uploads, uploadRunning, Files, name, ns, qc, resourceTarget]);
+
+  // Leaving the browser (or switching server) cancels what is still in flight.
+  useEffect(() => {
+    const controllers = uploadControllers.current;
+    return () => { for (const controller of controllers.values()) controller.abort(); };
+  }, []);
+
+  function enqueueUploads(files: File[]) {
+    const items: UploadItem[] = files.map((file) => ({ id: ++uploadIdRef.current, file, dir: cwd, status: "waiting", loaded: 0 }));
+    // A new batch replaces the finished rows; cancelled rows stay until then.
+    setUploads((current) => [...current.filter((item) => item.status !== "done" && item.status !== "cancelled"), ...items]);
+  }
 
   function onUploadPicked(e: ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
-    if (canControl && files && files.length > 0) uploadMutation.mutate(files);
+    if (canControl && files && files.length > 0) enqueueUploads(Array.from(files));
     e.target.value = "";
+  }
+
+  function cancelUpload(id: number) {
+    const controller = uploadControllers.current.get(id);
+    if (controller) controller.abort();
+    else setUploads((current) => current.map((item) => (item.id === id && item.status === "waiting" ? { ...item, status: "cancelled" } : item)));
+  }
+
+  function cancelAllUploads() {
+    for (const controller of uploadControllers.current.values()) controller.abort();
+    setUploads((current) => current.map((item) => (item.status === "waiting" ? { ...item, status: "cancelled" } : item)));
+  }
+
+  function retryUpload(id: number) {
+    setUploads((current) => current.map((item) => (item.id === id && item.status === "failed" ? { ...item, status: "waiting", loaded: 0, error: undefined } : item)));
   }
 
   function downloadSelected() {
@@ -281,13 +347,9 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
             variant="secondary"
             size="sm"
             onPress={() => uploadInputRef.current?.click()}
-            isDisabled={!canControl || uploadMutation.isPending}
+            isDisabled={!canControl || filesStarting !== null}
           >
-            {uploadMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4" />
-            )} {intl.formatMessage({ id: "web.routes.tabs.files.upload", defaultMessage: "Upload", description: "Files tab: button that uploads a file to the current folder; shows a spinner while the upload runs; keep it short" })}</Button>
+            <Upload className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.tabs.files.upload", defaultMessage: "Upload", description: "Files tab: button that uploads a file to the current folder; shows a spinner while the upload runs; keep it short" })}</Button>
           <input
             ref={uploadInputRef}
             type="file"
@@ -310,7 +372,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
 
       {opError && <ErrorBanner err={opError} onDismiss={() => setOpError(null)} />}
       {loadedFile?.error && <ErrorBanner err={loadedFile.error} />}
-      {listError && <ErrorBanner err={listError} />}
+      {listError && !startsTimedOut && <ErrorBanner err={listError} />}
       {checked.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span>{intl.formatMessage({ id: "web.routes.tabs.files.selected_count", defaultMessage: "{count} selected", description: "Number of checked file paths." }, { count: checked.length })}</span>
@@ -332,6 +394,11 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
           }}><X aria-hidden="true" className="size-3" /></button>
         </div>)}
       </nav>}
+      {filesStarting ? (
+        <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-divider bg-surface">
+          <FilesStarting state={filesStarting} intl={intl} error={listError} onRetry={() => void refetch()} />
+        </div>
+      ) : (
       <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-divider bg-surface">
         <aside
           className={cn(
@@ -448,6 +515,17 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
           )}
         </main>
       </div>
+      )}
+
+      {uploads.length > 0 && (
+        <UploadTray
+          items={uploads}
+          intl={intl}
+          onCancel={cancelUpload}
+          onCancelAll={cancelAllUploads}
+          onRetry={retryUpload}
+        />
+      )}
 
       {confirmDelete && (
         <ConfirmDialog

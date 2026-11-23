@@ -92,8 +92,8 @@
 ### Implementation for User Story 2
 
 - [X] T029 [US2] Write-side VFS in `sftp/internal/vfs/write.go` implementing `FileWriter` and `FileCmder`: one `files/stream` call per open handle fed by a pipe, resume on a first write at offset N > 0, rename (incl. `posix-rename@openssh.com`), mkdir, remove, rmdir, `SETSTAT` per FR-017, per-user transfer cap.
-- [ ] T030 [US2] Dashboard streaming upload (FR-018b) after T004 sign-off: `web/src/routes/tabs/Files.tsx` uploads each file with `PUT files/stream` using `XMLHttpRequest` upload progress, per-file progress and cancel per the design; `uploadStream` in `web/src/lib/api.ts`; i18n strings in the web pack.
-- [ ] T031 [US2] Vitest `web/src/routes/tabs/Files_stream.test.tsx`: progress, cancel, error states, size-limit message.
+- [X] T030 [US2] Dashboard streaming upload (FR-018b) after T004 sign-off: `web/src/routes/tabs/Files.tsx` uploads each file with `PUT files/stream` using `XMLHttpRequest` upload progress, per-file progress and cancel per the design; `uploadStream` in `web/src/lib/api.ts`; i18n strings in the web pack.
+- [X] T031 [US2] Vitest `web/src/routes/tabs/Files_stream.test.tsx`: progress, cancel, error states, size-limit message.
 - [X] T032 [US2] Helm `files.maxUploadSize` (default `20Gi`) in `charts/gameplane/values.yaml`, passed to the operator (agent flag `--max-upload-bytes`, built in `buildAgentContainer` in `operator/internal/controller/gameserver_controller.go`), the API and the gateway; keep the multipart `files/upload` route for one release.
 
 **Checkpoint**: US1 and US2 both work; P1 scope is shippable.
@@ -160,7 +160,7 @@
 - [X] T047 [US5] Start ordering in `desiredReplicas` in `operator/internal/controller/gameserver_controller.go`: delete the file-only pod and requeue until it is gone before scaling up; file access never sets a wake.
 - [X] T048 [US5] NetworkPolicy in `charts/gameplane/templates/networkpolicies.yaml` allowing API, operator and gateway ingress to `gameplane-files` pods on 8090 only.
 - [X] T049 [US5] Ensure-files in the API file routes in `api/internal/ws/dialer.go` (new helper `api/internal/ws/ensure_files.go`): when the server is stopped or asleep, patch the annotation, wait up to 60 s for the agent Service, otherwise `503 server.files.starting`; works for remote clusters through the registry client.
-- [ ] T050 [US5] Files tab "files are starting" state after T004 sign-off in `web/src/routes/tabs/Files.tsx`, Vitest `web/src/routes/tabs/Files_starting.test.tsx`.
+- [X] T050 [US5] Files tab "files are starting" state after T004 sign-off in `web/src/routes/tabs/Files.tsx`, Vitest `web/src/routes/tabs/Files_starting.test.tsx`.
 
 **Checkpoint**: all five stories work independently.
 

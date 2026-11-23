@@ -9059,6 +9059,10 @@
     "defaultMessage": "Cancel",
     "description": "Files tab: button in the name prompt dialog that closes it without creating anything; keep it short"
   },
+  "web.routes.tabs.files.cancel_all": {
+    "defaultMessage": "Cancel all",
+    "description": "Upload tray: cancels every waiting and running upload"
+  },
   "web.routes.tabs.files.close_file": {
     "defaultMessage": "Close {path}",
     "description": "Close a file tab after saving its edits."
@@ -9179,6 +9183,10 @@
     "defaultMessage": "Refresh",
     "description": "Files tab: icon-only button that reloads the file list; read by screen readers; keep it short"
   },
+  "web.routes.tabs.files.retry": {
+    "defaultMessage": "Retry",
+    "description": "Retry a failed action such as an upload or a files-starting request; keep it short"
+  },
   "web.routes.tabs.files.root_crumb": {
     "defaultMessage": "/",
     "description": "Files: breadcrumb button that jumps to the server data root, shown as a slash"
@@ -9199,9 +9207,93 @@
     "defaultMessage": "{count} selected",
     "description": "Number of checked file paths."
   },
+  "web.routes.tabs.files.starting_body": {
+    "defaultMessage": "The server is stopped or asleep. Its files open in a short-lived file-only pod so you can edit them. The game does not start, and players cannot reach the pod.",
+    "description": "Files tab: explains that a stopped server's files open in a file-only pod and the game does not start"
+  },
+  "web.routes.tabs.files.starting_hint": {
+    "defaultMessage": "Usually ready in a few seconds. The list appears as soon as the pod is ready.",
+    "description": "Files tab: reassurance that the file list appears once the file-only pod is ready"
+  },
+  "web.routes.tabs.files.starting_preparing": {
+    "defaultMessage": "Preparing files…",
+    "description": "Files tab: caption under the indeterminate bar while the file-only pod starts"
+  },
+  "web.routes.tabs.files.starting_timed_out_detail": {
+    "defaultMessage": "Files are starting, try again.",
+    "description": "Files tab: fallback text when the files pod did not become ready and the server gave no message"
+  },
+  "web.routes.tabs.files.starting_timed_out_nothing": {
+    "defaultMessage": "Nothing was started. The server stays stopped, and no file was changed.",
+    "description": "Files tab: reassurance after the files pod did not start; the server stays stopped and files are unchanged"
+  },
+  "web.routes.tabs.files.starting_timed_out_title": {
+    "defaultMessage": "Files did not start",
+    "description": "Files tab: heading shown when the file-only pod was not ready in time"
+  },
+  "web.routes.tabs.files.starting_title": {
+    "defaultMessage": "Files are starting",
+    "description": "Files tab: heading shown while the file-only pod for a stopped server starts"
+  },
   "web.routes.tabs.files.upload": {
     "defaultMessage": "Upload",
     "description": "Files tab: button that uploads a file to the current folder; shows a spinner while the upload runs; keep it short"
+  },
+  "web.routes.tabs.files.upload_cancel": {
+    "defaultMessage": "Cancel",
+    "description": "Upload tray: cancels one upload"
+  },
+  "web.routes.tabs.files.upload_cancelled": {
+    "defaultMessage": "Cancelled",
+    "description": "Upload tray row for a file the user cancelled"
+  },
+  "web.routes.tabs.files.upload_connection_lost": {
+    "defaultMessage": "Connection to the server was lost. The old file is unchanged. Retry to upload again.",
+    "description": "Upload error: the connection dropped mid-upload; the previous file is kept and the user can retry"
+  },
+  "web.routes.tabs.files.upload_done": {
+    "defaultMessage": "Done",
+    "description": "Upload tray row for a file that finished uploading"
+  },
+  "web.routes.tabs.files.upload_failed": {
+    "defaultMessage": "Upload failed.",
+    "description": "Upload error when the cause is not known"
+  },
+  "web.routes.tabs.files.upload_failed_at": {
+    "defaultMessage": "Failed at {percent}%",
+    "description": "Upload tray row for a failed file: whole percent sent before it failed"
+  },
+  "web.routes.tabs.files.upload_no_space": {
+    "defaultMessage": "Not uploaded: {name} does not fit in the free space on the server's volume. Nothing was written.",
+    "description": "Upload error: the volume has too little free space for the file; {name} is the file name"
+  },
+  "web.routes.tabs.files.upload_note": {
+    "defaultMessage": "Uploads go straight to the server volume. Cancelling removes the part written so far, and the old file stays.",
+    "description": "Upload tray footnote explaining that uploads write directly to the volume and what cancelling does"
+  },
+  "web.routes.tabs.files.upload_progress": {
+    "defaultMessage": "{loaded} of {total} · {percent}%",
+    "description": "Upload tray row while a file uploads: bytes sent, total size and whole percent"
+  },
+  "web.routes.tabs.files.upload_too_large": {
+    "defaultMessage": "Not uploaded: {name} is over the upload size limit (files.maxUploadSize).",
+    "description": "Upload error: the file is larger than the server's upload limit; {name} is the file name"
+  },
+  "web.routes.tabs.files.upload_tray": {
+    "defaultMessage": "Upload progress",
+    "description": "Accessible name of the bottom-right tray that lists file uploads and their progress"
+  },
+  "web.routes.tabs.files.upload_waiting": {
+    "defaultMessage": "Waiting",
+    "description": "Upload tray row for a file queued behind the one that is uploading"
+  },
+  "web.routes.tabs.files.uploads_failed": {
+    "defaultMessage": "Uploads · {count} failed",
+    "description": "Upload tray title when every remaining upload has failed; {count} is the number of failed files"
+  },
+  "web.routes.tabs.files.uploads_title": {
+    "defaultMessage": "Uploads · {count, plural, one {# file} other {# files}}",
+    "description": "Upload tray title with the number of files in the batch"
   },
   "web.routes.tabs.files.working": {
     "defaultMessage": "Working…",

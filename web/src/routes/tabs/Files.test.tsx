@@ -472,8 +472,8 @@ describe("FilesTab", () => {
     fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {
       if (url.startsWith("/servers/mc-survival/files/list")) return jsonRes(ROOT_ENTRIES);
       if (
-        url.startsWith("/servers/mc-survival/files/upload") &&
-        init?.method === "POST"
+        url.startsWith("/servers/mc-survival/files/stream") &&
+        init?.method === "PUT"
       ) {
         return new Response("disk full", { status: 507 });
       }
@@ -585,8 +585,8 @@ describe("FilesTab", () => {
     fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {
       if (url.startsWith("/servers/mc-survival/files/list")) return jsonRes(ROOT_ENTRIES);
       if (
-        url.startsWith("/servers/mc-survival/files/upload") &&
-        init?.method === "POST"
+        url.startsWith("/servers/mc-survival/files/stream") &&
+        init?.method === "PUT"
       ) {
         uploadCalled = true;
         return new Response(null, { status: 204 });
