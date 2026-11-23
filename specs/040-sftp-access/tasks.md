@@ -8,7 +8,7 @@
 
 **Organization**: by user story in spec priority order: US1, US2 (P1), then US3, US4, US5 (P2).
 
-**Delivery** (plan.md): stacked PRs from this thread, each green before the next merges: agent `feat/040-sftp-agent`, operator `feat/040-sftp-files-pod`, API `feat/040-sftp-api`, `GameplanePanel/sftp` `feat/initial-server`, design `design/040-sftp`, web `feat/040-sftp-ui`, chart/docs/E2E `feat/040-sftp-chart`. Implementation runs through `Workflow` scripts (Principle V): haiku agents with an explicit `model:`, then one diff review per batch one tier up.
+**Delivery** (plan.md, valgul 2026-11-23): one Gameplane PR on `feat/040-sftp-access` (agent, operator, API, design, web, chart, docs, E2E as separate commits) plus one `GameplanePanel/sftp` PR on `feat/initial-server`, which merges first. Implementation runs through `Workflow` scripts (Principle V): haiku agents with an explicit `model:`, then one diff review per batch one tier up.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -22,7 +22,7 @@
 
 **Purpose**: branches, test sign-off, the new repository, and the one design pass every UI task depends on.
 
-- [ ] T001 Confirm PR #1066 (spec 040 quickstart) is merged to `master`; create the branches named in **Delivery** from fresh `master` (Gameplane) and `main` (sftp); record base SHAs in each PR description.
+- [ ] T001 Confirm PR #1066 (spec 040 quickstart) is merged to `master`; create the two branches named in **Delivery** from fresh `master` (Gameplane) and `main` (sftp); record base SHAs in each PR description.
 - [ ] T002 List every existing test that encodes behaviour this spec changes (file, test name, assertion, needed change) and get valgul's written sign-off before editing any, in `specs/040-sftp-access/T002-test-signoff.md`. Candidates: `agent/internal/files/*_test.go` (route table, upload caps), operator envtests asserting the `<name>-agent` Service selector in `operator/internal/controller/`, `api/internal/gateway/*_test.go` (operation allow-list), `api/internal/audit/*_test.go` (row shape, webhook/S3 payload), `api/internal/rbac/*_test.go` (route rules), `web/src/routes/tabs/Files*.test.tsx` (multipart upload), `test/e2e/optional_components_e2e_test.go`. Write "none needed" with the reason for each file that needs no change.
 - [ ] T003 Scaffold `GameplanePanel/sftp` like `GameplanePanel/mcp`: `sftp/go.mod` (module `github.com/GameplanePanel/sftp`), `sftp/.github/workflows/ci.yaml` calling Gameplane's `go-component.yaml` pinned by SHA, `sftp/.testcoverage.yml`, `sftp/CLAUDE.md`, `sftp/AGENTS.md`, `sftp/specs.md` (empty sections), `sftp/Dockerfile` copying `sftp/...` from the Gameplane build context, `sftp/cmd/main.go` stub that builds.
 - [ ] T004 Design in `design.fig` through OpenPencil (never edit the file directly): profile SFTP section (address, port, `<user>` and `<user>+<server>` username forms, host key fingerprint, keys list, add-key dialog, generate-password dialog with a 20–40 length picker and one-time display, regenerate and revoke confirms), admin SFTP panel on Users, Clusters SFTP token dialog and endpoint fields, Files tab per-file upload progress with cancel (OD-6), Files tab "files are starting" state (OD-4). Run `hack/design/fig-export.ts`, commit `assets/design-export/` with `design.fig` on `design/040-sftp`, and get valgul's sign-off before any React task (T030, T035, T036, T042, T050).
@@ -196,7 +196,7 @@
 
 ### Within Each User Story
 
-- Tests are written alongside implementation in the same PR; CI must be green before the next stacked PR merges.
+- Tests are written alongside implementation in the same PR; CI must be green on both PRs before they merge (sftp repo PR first).
 - API before web; design sign-off before web.
 
 ### Parallel Opportunities
@@ -242,4 +242,4 @@ Task: "API test ensure_files_test.go"                     (T044)
 6. US5 → stopped and sleeping servers.
 7. Polish → E2E, docs, changelog, quickstart run.
 
-Each step maps onto the stacked PRs in **Delivery**; no step breaks the previous ones.
+Each step is one or more commits in the Gameplane PR (the sftp server in its repo PR); no step breaks the previous ones.
