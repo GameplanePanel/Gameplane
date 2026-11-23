@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -227,6 +228,14 @@ func (h securitySettingsHandler) put(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Resolve the client before the flip row, so a row is never written for a
+	// change that cannot even be attempted.
+	c, err := securitySettingsClient(h.reg, cl)
+	if err != nil {
+		httperr.WriteCode(w, req, http.StatusBadGateway, err)
+		return
+	}
+
 	target := "security/" + cl
 	reason := fmt.Sprintf("%s:%s->%s", securitySettingsKey, onOff(current), onOff(want))
 	if err := h.writeSecurityAudit(req.Context(), target, reason, http.StatusOK); err != nil {
@@ -235,11 +244,6 @@ func (h securitySettingsHandler) put(w http.ResponseWriter, req *http.Request) {
 	}
 	audit.MarkRecorded(req.Context())
 
-	c, err := securitySettingsClient(h.reg, cl)
-	if err != nil {
-		httperr.WriteCode(w, req, http.StatusBadGateway, err)
-		return
-	}
 	updated := cm.DeepCopy()
 	if updated.Data == nil {
 		updated.Data = map[string]string{}
@@ -247,8 +251,11 @@ func (h securitySettingsHandler) put(w http.ResponseWriter, req *http.Request) {
 	updated.Data[securitySettingsKey] = onOff(want)
 	if _, err := c.Typed.CoreV1().ConfigMaps(ns).Update(req.Context(), updated, metav1.UpdateOptions{}); err != nil {
 		// The change was attempted and not stored: record that too. If this row
-		// cannot be written the first row stands; the reply does not change.
-		_ = h.writeSecurityAudit(req.Context(), target, "security_save_failed", http.StatusBadGateway)
+		// cannot be written the first row stands, the error is logged, and the
+		// reply does not change (contracts/audit-events.md, write order).
+		if werr := h.writeSecurityAudit(req.Context(), target, "security_save_failed", http.StatusBadGateway); werr != nil {
+			slog.Warn("security_save_failed audit row not written", "target", target, "err", werr)
+		}
 		httperr.WriteCode(w, req, http.StatusBadGateway, fmt.Errorf("update %s/%s: %w", ns, securitySettingsConfigMap, err))
 		return
 	}

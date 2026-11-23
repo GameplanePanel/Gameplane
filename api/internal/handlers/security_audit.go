@@ -187,6 +187,16 @@ func securityRiskyNames(ctx context.Context, k *kube.Client, templateName string
 		}
 		return out
 	}
+	return securityRiskyFromTemplate(tmpl)
+}
+
+// securityRiskyFromTemplate returns the security settings tmpl marks risky
+// (spec.security.risky.<setting> present).
+func securityRiskyFromTemplate(tmpl *unstructured.Unstructured) map[string]bool {
+	out := map[string]bool{}
+	if tmpl == nil {
+		return out
+	}
 	risky, found, _ := unstructured.NestedMap(tmpl.Object, "spec", "security", "risky")
 	if !found {
 		return out
@@ -199,9 +209,29 @@ func securityRiskyNames(ctx context.Context, k *kube.Client, templateName string
 	return out
 }
 
+// securityPinnedRiskyNames returns the risky marks of the template revision
+// live is pinned to (the effective-template-revision snapshot, or the catalog
+// template when no revision is pinned). A template that cannot be read marks
+// nothing; the row is still written.
+func securityPinnedRiskyNames(ctx context.Context, k *kube.Client, live *unstructured.Unstructured) map[string]bool {
+	if k == nil {
+		return map[string]bool{}
+	}
+	tmpl, err := k.EffectiveGameTemplate(ctx, live)
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			slog.Warn("security audit: read pinned template for risky marks", "server", live.GetName(), "err", err)
+		}
+		return map[string]bool{}
+	}
+	return securityRiskyFromTemplate(tmpl)
+}
+
 // securityChangeReason returns the change-row reason for saving desired over
 // live (live is nil on create and clone), or "" when spec.security does not
-// change. The pinned template is read only when a setting changed.
+// change. The template is read only when a setting changed: on an update
+// that keeps the server's template, the revision the server is pinned to; on
+// create, clone or a template change, the catalog template.
 func securityChangeReason(ctx context.Context, k *kube.Client, desired, live *unstructured.Unstructured) string {
 	before := securityBlock(live)
 	after := securityBlock(desired)
@@ -216,8 +246,11 @@ func securityChangeReason(ctx context.Context, k *kube.Client, desired, live *un
 		return ""
 	}
 	templateName, _, _ := unstructured.NestedString(desired.Object, "spec", "templateRef", "name")
-	if templateName == "" && live != nil {
-		templateName, _, _ = unstructured.NestedString(live.Object, "spec", "templateRef", "name")
+	if live != nil {
+		liveName, _, _ := unstructured.NestedString(live.Object, "spec", "templateRef", "name")
+		if templateName == "" || templateName == liveName {
+			return buildSecurityReason(before, after, false, securityPinnedRiskyNames(ctx, k, live))
+		}
 	}
 	return buildSecurityReason(before, after, live == nil, securityRiskyNames(ctx, k, templateName))
 }
