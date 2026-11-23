@@ -65,7 +65,7 @@
       "type": "FRAME",
       "x": 260,
       "y": 0,
-      "width": 700,
+      "width": 1180,
       "height": 900,
       "fills": [{"type": "SOLID", "color": "#121114"}],
       "layout": {
@@ -85,7 +85,7 @@
           "type": "INSTANCE",
           "x": 0,
           "y": 0,
-          "width": 700,
+          "width": 1180,
           "height": 64,
           "component": "Gameplane/Top Bar",
           "componentId": "1:281",
@@ -109,7 +109,7 @@
           "type": "FRAME",
           "x": 0,
           "y": 64,
-          "width": 700,
+          "width": 1180,
           "height": 836,
           "fills": [{"type": "SOLID", "color": "#121114"}],
           "layout": {
@@ -129,7 +129,7 @@
               "type": "FRAME",
               "x": 24,
               "y": 24,
-              "width": 652,
+              "width": 1132,
               "height": 53,
               "fills": [{"type": "SOLID", "color": "#121114"}],
               "layout": {
@@ -188,7 +188,7 @@
                 {
                   "name": "phActions",
                   "type": "FRAME",
-                  "x": 417,
+                  "x": 897,
                   "y": 6.5,
                   "width": 235,
                   "height": 40,
@@ -252,7 +252,7 @@
               "type": "INSTANCE",
               "x": 24,
               "y": 101,
-              "width": 652,
+              "width": 1132,
               "height": 40,
               "component": "Gameplane/RBAC Filter Row",
               "componentId": "1:3048",
@@ -272,7 +272,7 @@
               "type": "FRAME",
               "x": 24,
               "y": 165,
-              "width": 652,
+              "width": 1132,
               "height": 240,
               "fills": [{"type": "SOLID", "color": "#17151A"}],
               "cornerRadius": 20,
@@ -293,7 +293,7 @@
                   "type": "FRAME",
                   "x": 4,
                   "y": 0,
-                  "width": 644,
+                  "width": 1124,
                   "height": 36,
                   "fills": [{"type": "SOLID", "color": "#17151A"}],
                   "strokes": [{"type": "SOLID", "color": "#232227"}],
@@ -314,7 +314,7 @@
                       "type": "INSTANCE",
                       "x": 0,
                       "y": 0,
-                      "width": 210,
+                      "width": 690,
                       "height": 36,
                       "component": "Table Column",
                       "componentId": "1:1264",
@@ -334,7 +334,7 @@
                     {
                       "name": "Table Column",
                       "type": "INSTANCE",
-                      "x": 210,
+                      "x": 690,
                       "y": 0,
                       "width": 140,
                       "height": 36,
@@ -355,7 +355,7 @@
                     {
                       "name": "Table Column",
                       "type": "INSTANCE",
-                      "x": 350,
+                      "x": 830,
                       "y": 0,
                       "width": 120,
                       "height": 36,
@@ -376,7 +376,7 @@
                     {
                       "name": "Table Column",
                       "type": "INSTANCE",
-                      "x": 470,
+                      "x": 950,
                       "y": 0,
                       "width": 110,
                       "height": 36,
@@ -397,7 +397,7 @@
                     {
                       "name": "Table Column",
                       "type": "INSTANCE",
-                      "x": 580,
+                      "x": 1060,
                       "y": 0,
                       "width": 64,
                       "height": 36,
@@ -421,7 +421,7 @@
                   "type": "FRAME",
                   "x": 4,
                   "y": 36,
-                  "width": 644,
+                  "width": 1124,
                   "height": 200,
                   "cornerRadius": 16,
                   "layout": {
@@ -441,7 +441,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 644,
+                      "width": 1124,
                       "height": 100,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -458,7 +458,7 @@
                           "type": "FRAME",
                           "x": 0,
                           "y": 0,
-                          "width": 210,
+                          "width": 690,
                           "height": 58,
                           "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                           "strokes": [{"type": "SOLID", "color": "#232227"}],
@@ -601,7 +601,7 @@
                         {
                           "name": "Table Cell",
                           "type": "FRAME",
-                          "x": 210,
+                          "x": 690,
                           "y": 0,
                           "width": 140,
                           "height": 100,
@@ -646,7 +646,7 @@
                         {
                           "name": "Table Cell",
                           "type": "FRAME",
-                          "x": 350,
+                          "x": 830,
                           "y": 0,
                           "width": 120,
                           "height": 100,
@@ -692,7 +692,7 @@
                         {
                           "name": "Table Cell",
                           "type": "INSTANCE",
-                          "x": 470,
+                          "x": 950,
                           "y": 0,
                           "width": 110,
                           "height": 100,
@@ -716,7 +716,7 @@
                         {
                           "name": "Table Cell",
                           "type": "FRAME",
-                          "x": 580,
+                          "x": 1060,
                           "y": 0,
                           "width": 64,
                           "height": 100,
@@ -762,7 +762,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 100,
-                      "width": 644,
+                      "width": 1124,
                       "height": 100,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -779,7 +779,7 @@
                           "type": "FRAME",
                           "x": 0,
                           "y": 0,
-                          "width": 210,
+                          "width": 690,
                           "height": 58,
                           "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                           "strokes": [{"type": "SOLID", "color": "#232227"}],
@@ -900,7 +900,7 @@
                         {
                           "name": "Table Cell",
                           "type": "FRAME",
-                          "x": 210,
+                          "x": 690,
                           "y": 0,
                           "width": 140,
                           "height": 100,
@@ -945,7 +945,7 @@
                         {
                           "name": "Table Cell",
                           "type": "FRAME",
-                          "x": 350,
+                          "x": 830,
                           "y": 0,
                           "width": 120,
                           "height": 100,
@@ -991,7 +991,7 @@
                         {
                           "name": "Table Cell",
                           "type": "INSTANCE",
-                          "x": 470,
+                          "x": 950,
                           "y": 0,
                           "width": 110,
                           "height": 100,
@@ -1015,7 +1015,7 @@
                         {
                           "name": "Table Cell",
                           "type": "FRAME",
-                          "x": 580,
+                          "x": 1060,
                           "y": 0,
                           "width": 64,
                           "height": 100,
@@ -1065,24 +1065,34 @@
       ]
     },
     {
+      "name": "Backdrop",
+      "type": "RECTANGLE",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#000000", "opacity": 0.5}],
+      "absolute": true
+    },
+    {
       "name": "Gameplane/Dialog/Users · SFTP access (smoke-collab)",
       "type": "FRAME",
       "x": 960,
       "y": 0,
       "width": 480,
-      "height": 350,
+      "height": 900,
       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
       "strokeWeight": 1,
-      "cornerRadius": 12,
       "layout": {
         "mode": "VERTICAL",
         "gap": 16,
         "padding": [20, 20, 20, 20],
         "primary": "MIN",
         "counter": "MIN",
-        "sizing": ["HUG", "FIXED"]
+        "sizing": ["FIXED", "FIXED"]
       },
+      "absolute": true,
       "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
       "children": [
         {
@@ -1106,7 +1116,6 @@
           "width": 440,
           "height": 21,
           "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-          "layoutGrow": 1,
           "layoutAlignSelf": "STRETCH",
           "text": "Remove a key or revoke the password. The user keeps their account.",
           "font": ["Geist", 400, 14],
@@ -1340,7 +1349,7 @@
           "name": "Footer",
           "type": "FRAME",
           "x": 20,
-          "y": 294,
+          "y": 844,
           "width": 440,
           "height": 36,
           "layout": {
@@ -1352,35 +1361,14 @@
             "sizing": ["FIXED", "HUG"]
           },
           "layoutAlignSelf": "STRETCH",
+          "absolute": true,
           "children": [
-            {
-              "name": "Gameplane/Button/Outline",
-              "type": "INSTANCE",
-              "x": 255,
-              "y": 0,
-              "width": 86,
-              "height": 32,
-              "component": "Gameplane/Button/Outline",
-              "componentId": "1:770",
-              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
-              "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
-              "strokeWeight": 1,
-              "layout": {
-                "mode": "HORIZONTAL",
-                "gap": 0,
-                "padding": [0, 0, 0, 0],
-                "primary": "CENTER",
-                "counter": "CENTER",
-                "sizing": ["HUG", "HUG"]
-              },
-              "texts": ["Cancel"]
-            },
             {
               "name": "Gameplane/Button/Default",
               "type": "INSTANCE",
-              "x": 349,
+              "x": 373,
               "y": 0,
-              "width": 91,
+              "width": 67,
               "height": 36,
               "component": "Gameplane/Button/Default",
               "componentId": "1:306",
