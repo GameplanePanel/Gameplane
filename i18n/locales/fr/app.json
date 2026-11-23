@@ -5296,7 +5296,7 @@
     "description": "Backups: empty state when the backup list could not be loaded"
   },
   "web.routes.backups.no_backup_destinations_configured_add": {
-    "defaultMessage": "Aucune destination de sauvegarde configurée. Ajoutez-en une dans",
+    "defaultMessage": "Aucune destination de sauvegarde configurée.",
     "description": "Back up now dialog: the selected server has no backup destinations"
   },
   "web.routes.backups.no_backups_match_the_current_filters": {
@@ -7056,7 +7056,7 @@
     "description": "Backups tab: hint under the Back up now button when several backup destinations exist; points to the dashboard Backups page to choose one"
   },
   "web.routes.tabs.backups.backup_now_hint_no_destination": {
-    "defaultMessage": "Aucune destination de backup configurée. Ajoutez-en une dans les paramètres d'administration.",
+    "defaultMessage": "Aucune destination de sauvegarde configurée. Consultez Paramètres → Sauvegardes planifiées sur ce serveur.",
     "description": "Backups tab: directs the user to the server settings section with the destination management link"
   },
   "web.routes.tabs.backups.backups": {
@@ -8976,7 +8976,7 @@
     "description": "Networking: warning title shown when the cluster has no address manager; the line below says the pool and address preference will be saved but not applied"
   },
   "web.routes.tabs.settings.networking.nodeport_hostname_hint": {
-    "defaultMessage": "Utilisez un nom DNS qui pointe vers un nœud accessible aux joueurs. Laissez ce champ vide pour utiliser l’adresse IP externe d’un nœud si elle est disponible.",
+    "defaultMessage": "Laissez ce champ vide pour utiliser le nom d’hôte du modèle ou l’adresse IP externe d’un nœud.",
     "description": "Networking: explains how the optional hostname determines the address advertised for a NodePort server"
   },
   "web.routes.tabs.settings.networking.one_cidr_per_line_restricts_which": {
