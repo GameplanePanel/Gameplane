@@ -238,7 +238,10 @@ type rule struct {
 	segment string
 	prefix  string // strings.HasPrefix(path, prefix)
 	suffix  string // strings.HasSuffix(path, suffix)
-	perm    string // required permission; "" = any authenticated user
+	// contains narrows a rule to paths with this substring in the middle
+	// (e.g. /users/{id}/sftp/keys/{keyId}), where prefix and suffix cannot.
+	contains string
+	perm     string // required permission; "" = any authenticated user
 }
 
 var rules = []rule{
@@ -273,6 +276,11 @@ var rules = []rule{
 	{method: "DELETE", segment: "users", prefix: "/users/me/sftp/keys/", perm: ""},
 	{method: "POST", segment: "users", suffix: "/users/me/sftp/password", perm: ""},
 	{method: "DELETE", segment: "users", suffix: "/users/me/sftp/password", perm: ""},
+	// Admin SFTP view and revokes of another user's credentials (spec 040 US3): users:manage, not users:read.
+	// These must precede the generic users rules below.
+	{method: "GET", segment: "users", suffix: "/sftp", perm: "users:manage"},
+	{method: "DELETE", segment: "users", contains: "/sftp/keys/", perm: "users:manage"},
+	{method: "DELETE", segment: "users", suffix: "/sftp/password", perm: "users:manage"},
 	{method: "GET", segment: "users", perm: "users:read"},
 	{segment: "users", perm: "users:manage"},
 
@@ -417,6 +425,9 @@ func match(method, path string) (rule, bool) {
 			continue
 		}
 		if r.suffix != "" && !strings.HasSuffix(path, r.suffix) {
+			continue
+		}
+		if r.contains != "" && !strings.Contains(path, r.contains) {
 			continue
 		}
 		return r, true

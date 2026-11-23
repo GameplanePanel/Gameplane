@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -48,6 +51,11 @@ func mountSFTPRoutes(r chi.Router, sessions *auth.SessionStore, store *db.Store)
 	r.Delete("/me/sftp/keys/{id}", h.deleteKey)
 	r.Post("/me/sftp/password", h.generatePassword)
 	r.Delete("/me/sftp/password", h.revokePassword)
+	// Admin view and revoke of another user's SFTP credentials (users:manage in rbac.go).
+	admin := &sftpAdminHandler{sessions: sessions}
+	r.Get("/{id}/sftp", admin.get)
+	r.Delete("/{id}/sftp/keys/{keyId}", admin.deleteKey)
+	r.Delete("/{id}/sftp/password", admin.revokePassword)
 }
 
 type sftpSelfHandler struct {
@@ -218,6 +226,137 @@ func (h *sftpSelfHandler) revokePassword(w http.ResponseWriter, req *http.Reques
 		return
 	}
 	if err := h.sessions.DeleteSFTPPassword(req.Context(), uid); err != nil {
+		if errors.Is(err, auth.ErrSFTPNotFound) {
+			httperr.WriteMessage(w, req, messages.New("server.sftp.password_not_found", nil))
+			return
+		}
+		httperr.Write(w, req, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// sftpAdminHandler serves the admin routes on another user's SFTP credentials. Every route needs users:manage.
+type sftpAdminHandler struct {
+	sessions *auth.SessionStore
+}
+
+// sftpAdminKey is the admin view of one key: no public key body, and the algorithm name in place of it.
+type sftpAdminKey struct {
+	ID          int64      `json:"id"`
+	Name        string     `json:"name"`
+	Type        string     `json:"type"`
+	Fingerprint string     `json:"fingerprint"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	LastUsedAt  *time.Time `json:"lastUsedAt"`
+}
+
+// sftpKeyAlgorithm returns the algorithm name, the first field of a normalized "<type> <base64>" key.
+func sftpKeyAlgorithm(normalized string) string {
+	if fields := strings.Fields(normalized); len(fields) > 0 {
+		return fields[0]
+	}
+	return ""
+}
+
+// adminUser returns the username of userID and true. For an unknown user it answers 404 user_not_found and
+// reports false.
+func (h *sftpAdminHandler) adminUser(w http.ResponseWriter, req *http.Request, userID int64) (string, bool) {
+	name, err := h.sessions.SFTPUsername(req.Context(), userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		httperr.WriteMessage(w, req, messages.New("server.common.user_not_found", nil))
+		return "", false
+	}
+	if err != nil {
+		httperr.Write(w, req, err)
+		return "", false
+	}
+	return name, true
+}
+
+// get returns one user's keys and password metadata. The password hash and key bodies are never included.
+func (h *sftpAdminHandler) get(w http.ResponseWriter, req *http.Request) {
+	if refuseNonSession(w, req) {
+		return
+	}
+	userID, ok := parseIDParam(w, req, "id")
+	if !ok {
+		return
+	}
+	username, ok := h.adminUser(w, req, userID)
+	if !ok {
+		return
+	}
+	ctx := req.Context()
+	keys, err := h.sessions.ListSFTPKeys(ctx, userID)
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	out := make([]sftpAdminKey, 0, len(keys))
+	for _, k := range keys {
+		out = append(out, sftpAdminKey{
+			ID:          k.ID,
+			Name:        k.Name,
+			Type:        sftpKeyAlgorithm(k.PublicKey),
+			Fingerprint: k.Fingerprint,
+			CreatedAt:   k.CreatedAt,
+			LastUsedAt:  k.LastUsedAt,
+		})
+	}
+	info, found, err := h.sessions.GetSFTPPasswordInfo(ctx, userID)
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	var password any
+	if found {
+		password = info
+	}
+	writeJSON(w, map[string]any{
+		"userId":   userID,
+		"username": username,
+		"keys":     out,
+		"password": password,
+	})
+}
+
+// deleteKey removes one of the user's keys and revokes the sessions that used it.
+func (h *sftpAdminHandler) deleteKey(w http.ResponseWriter, req *http.Request) {
+	if refuseNonSession(w, req) {
+		return
+	}
+	userID, ok := parseIDParam(w, req, "id")
+	if !ok {
+		return
+	}
+	keyID, ok := parseIDParam(w, req, "keyId")
+	if !ok {
+		return
+	}
+	if _, ok := h.adminUser(w, req, userID); !ok {
+		return
+	}
+	if err := h.sessions.DeleteSFTPKey(req.Context(), userID, keyID); err != nil {
+		writeSFTPErr(w, req, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// revokePassword deletes the user's SFTP password and revokes its sessions.
+func (h *sftpAdminHandler) revokePassword(w http.ResponseWriter, req *http.Request) {
+	if refuseNonSession(w, req) {
+		return
+	}
+	userID, ok := parseIDParam(w, req, "id")
+	if !ok {
+		return
+	}
+	if _, ok := h.adminUser(w, req, userID); !ok {
+		return
+	}
+	if err := h.sessions.DeleteSFTPPassword(req.Context(), userID); err != nil {
 		if errors.Is(err, auth.ErrSFTPNotFound) {
 			httperr.WriteMessage(w, req, messages.New("server.sftp.password_not_found", nil))
 			return

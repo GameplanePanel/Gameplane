@@ -303,6 +303,16 @@ func (s *SessionStore) GetSFTPPasswordInfo(ctx context.Context, userID int64) (S
 	return info, true, nil
 }
 
+// SFTPUsername returns the username of userID for the admin SFTP routes. The wrapped error is
+// sql.ErrNoRows when no such user exists.
+func (s *SessionStore) SFTPUsername(ctx context.Context, userID int64) (string, error) {
+	var name string
+	if err := s.db.DB.QueryRowContext(ctx, `SELECT username FROM users WHERE id = ?`, userID).Scan(&name); err != nil {
+		return "", fmt.Errorf("sftp username: %w", err)
+	}
+	return name, nil
+}
+
 // DeleteSFTPPassword deletes the row and revokes "password" sessions. ErrSFTPNotFound if none.
 func (s *SessionStore) DeleteSFTPPassword(ctx context.Context, userID int64) error {
 	tx, err := s.db.DB.BeginTx(ctx, nil)
