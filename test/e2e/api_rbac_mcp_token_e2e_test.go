@@ -14,8 +14,9 @@ import (
 
 // TestAPI_RBAC_MCPTokenReads proves that a personal MCP token carries exactly
 // the caller's own RBAC: reads follow the user's namespace grant, writes are
-// refused by the token guard, and revocation, removing the grant, and an
-// admin password reset each cut the token off. Budget: two logins (the
+// refused by the token guard, an admin can list (without secrets) and revoke
+// the user's tokens, and revocation, removing the grant, and an admin password
+// reset each cut the token off. Budget: two logins (the
 // e2e-admin fixture and the throwaway user).
 func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 	t.Parallel()
@@ -96,7 +97,7 @@ func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 
 	// Create all tokens while the session is valid; the admin's later
 	// binding removal and password reset end that session.
-	_, tokenRead := mcpTokenReadsCreate(t, user, fmt.Sprintf("e2e-mcp-read-%d", suffix))
+	readID, tokenRead := mcpTokenReadsCreate(t, user, fmt.Sprintf("e2e-mcp-read-%d", suffix))
 	revokeID, tokenRevoke := mcpTokenReadsCreate(t, user, fmt.Sprintf("e2e-mcp-revoke-%d", suffix))
 	_, tokenReset := mcpTokenReadsCreate(t, user, fmt.Sprintf("e2e-mcp-reset-%d", suffix))
 
@@ -171,6 +172,48 @@ func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 	// answer (FR-021: 400 cluster not permitted).
 	if status != http.StatusBadRequest && status != http.StatusForbidden {
 		t.Errorf("GET /pods after grant removed: status=%d want a 400/403 refusal body=%s", status, b)
+	}
+
+	// --- Admin lists the user's tokens and revokes one -----------------------
+	resp, body, err = admin.Get("/users/" + userID + "/mcp-tokens")
+	if err != nil {
+		t.Fatalf("admin list tokens: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("admin list tokens: status=%d want 200 body=%s", resp.StatusCode, body)
+	}
+	if strings.Contains(string(body), tokenRead) {
+		t.Errorf("admin list tokens: response contains a token secret")
+	}
+	var listed struct {
+		Items []struct {
+			ID int64 `json:"id"`
+		} `json:"items"`
+	}
+	if err := json.Unmarshal(body, &listed); err != nil {
+		t.Fatalf("admin list tokens: decode: %v body=%s", err, body)
+	}
+	found := false
+	for _, it := range listed.Items {
+		if it.ID == readID {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("admin list tokens: token %d missing from body=%s", readID, body)
+	}
+	resp, body, err = admin.Delete(fmt.Sprintf("/users/%s/mcp-tokens/%d", userID, readID))
+	if err != nil {
+		t.Fatalf("admin revoke token: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("admin revoke token: status=%d want 204 body=%s", resp.StatusCode, body)
+	}
+	status, b = mcpTokenReadsCall(t, user.BaseURL, tokenRead, http.MethodGet, "/users/me")
+	if status != http.StatusUnauthorized {
+		t.Errorf("GET /users/me with admin-revoked token: status=%d want 401 body=%s", status, b)
 	}
 
 	// --- Admin password reset ends remaining tokens --------------------------
