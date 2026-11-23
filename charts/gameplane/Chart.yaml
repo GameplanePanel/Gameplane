@@ -16,9 +16,3 @@ keywords:
   - control-panel
 maintainers:
   - name: Gameplane contributors
-dependencies:
-  # Vendored locally so installs never fetch another chart. Helm resolves this
-  # condition before installing native CRDs, including on a fresh cluster.
-  - name: gameplane-crds
-    version: 0.4.3
-    condition: operator.enabled

@@ -45,8 +45,8 @@ make manifests   # regenerates operator/config/crd/*.yaml, operator/config/rbac/
 
 **Critical:** The chart also syncs these. After `make manifests`, verify all three locations are updated:
 - `operator/config/crd/` (YAML source)
-- `charts/gameplane/charts/gameplane-crds/crds/` (native Helm CRDs, gated by `operator.enabled`)
-- `charts/gameplane/crd-manifests/` (chart copy for pre-upgrade hook)
+- `charts/gameplane/charts/gameplane-crds/crds/` (the separately published `gameplane-crds` chart)
+- `charts/gameplane/crd-manifests/` (chart copy the pre-install/pre-upgrade hook applies)
 
 Do NOT manually edit any generated file. Never touch:
 - `operator/api/v1alpha1/zz_generated.deepcopy.go`

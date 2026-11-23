@@ -40,7 +40,7 @@ bucket_operator() { cat <<'EOF'
 TestHelmInstall_AllPodsReady
 TestHelmInstall_OperatorSecretNamespaceBoundary
 TestHelmInstall_AllCRDsPresent
-TestHelmInstall_CRDApplyHookSkippedOnFreshInstall
+TestHelmInstall_CRDApplyHookRunsOnFreshInstall
 TestHelmInstall_APIHealthz
 TestHelmInstall_MetricsNotOnPublicPort
 TestHelmInstall_APIServerEgressPolicy_AllowsPrivateRanges

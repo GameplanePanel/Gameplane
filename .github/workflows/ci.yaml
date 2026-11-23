@@ -1617,7 +1617,11 @@ jobs:
                       ('PersistentVolumeClaim', 'gameplane-api-data')}
           assert required <= resources, f"reuse-values removed existing resources: {required - resources}"
           crds = {name for kind, name in resources if kind == 'CustomResourceDefinition'}
-          assert len(crds) == 9, f"reuse-values disabled the bundled CRDs: {crds}"
+          assert not crds, f"the chart rendered native CRDs; the crd-apply hook installs them: {crds}"
+          assert ('Job', 'gameplane-crd-apply') in resources, "reuse-values disabled the crd-apply hook"
+          manifests = next(d for d in docs if d['kind'] == 'ConfigMap' and d['metadata']['name'] == 'gameplane-crd-manifests')
+          hook_crds = {yaml.safe_load(v)['metadata']['name'] for v in manifests['data'].values()}
+          assert len(hook_crds) == 9, f"reuse-values dropped CRDs from the crd-apply hook: {hook_crds}"
           assert ('Deployment', 'gameplane-gateway') not in resources
           assert ('NetworkPolicy', 'allow-api-to-agent') in resources
           assert ('NetworkPolicy', 'allow-api-to-capture') not in resources, "legacy values without capture enabled its ingress"
@@ -1656,12 +1660,10 @@ jobs:
         # against a drift that would apply stale CRDs on upgrade.
         run: diff -r charts/gameplane/charts/gameplane-crds/crds charts/gameplane/crd-manifests
       - name: chart CRDs carry the current bundle-hash stamp (F-218)
-        # crd-apply-hook.yaml fires on pre-install only when the live CRDs'
-        # gameplane.local/crd-bundle-sha256 differs from the chart's. A stale
-        # stamp (CRDs hand-copied without `make manifests`) would make a fresh
-        # install skip the hook over CRDs that are actually out of date, so
-        # regenerate the chart copies from operator/config/crd and fail on any
-        # difference.
+        # Every chart CRD carries gameplane.local/crd-bundle-sha256, the hash
+        # of the whole generated CRD set, which records which set a live CRD
+        # came from. Regenerate the chart copies from operator/config/crd and
+        # fail on any difference (CRDs hand-copied without `make manifests`).
         run: |
           hack/sync-chart-crds.sh
           git diff --exit-code -- charts/gameplane/charts/gameplane-crds/crds charts/gameplane/crd-manifests

@@ -212,7 +212,6 @@ jobs:
           sed -i "s/^version: .*/version: ${GITHUB_REF_NAME#v}/" charts/gameplane/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: ${GITHUB_REF_NAME#v}/" charts/gameplane/Chart.yaml
           sed -i "s/^version: .*/version: ${GITHUB_REF_NAME#v}/" charts/gameplane/charts/gameplane-crds/Chart.yaml
-          sed -i "/- name: gameplane-crds/,/version:/ s/version: .*/version: ${GITHUB_REF_NAME#v}/" charts/gameplane/Chart.yaml
       # gameplane-crds is also published on its own, for GitOps setups where a
       # separate Application owns the CRDs (docs/argocd.md).
       - name: helm package

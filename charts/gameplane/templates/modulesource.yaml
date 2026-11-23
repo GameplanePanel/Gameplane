@@ -1,3 +1,16 @@
+{{- /*
+The chart's ModuleSources. With the CRD apply hook on (the default), the CRDs
+do not exist yet when Helm checks the release's objects on a fresh install,
+so these are NOT release objects: a hook Job server-side applies them right
+after the CRDs (see crd-apply-hook.yaml), stamped helm.sh/resource-policy=keep
+so the upgrade that moves them out of the release does not delete them (and
+the Modules they own). With the hook off (crds.autoApply.enabled=false, e.g.
+the Argo CD profile, where CRDs come from elsewhere first) they stay ordinary
+release objects.
+*/}}
+{{- define "gameplane.moduleSources" }}
+{{- $keep := .keep }}
+{{- with .root }}
 {{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 {{- if .Values.defaultModuleSource.enabled }}
 {{- $src := .Values.defaultModuleSource }}
@@ -8,6 +21,10 @@ metadata:
   name: {{ $src.name | default "default" }}
   labels:
     {{- include "gameplane.labels" . | nindent 4 }}
+  {{- if $keep }}
+  annotations:
+    helm.sh/resource-policy: keep
+  {{- end }}
 spec:
   type: {{ $type }}
   refreshInterval: {{ $src.refreshInterval | default "1h" }}
@@ -47,9 +64,18 @@ metadata:
   name: {{ .Values.uploadModuleSource.name | default "uploads" }}
   labels:
     {{- include "gameplane.labels" . | nindent 4 }}
+  {{- if $keep }}
+  annotations:
+    helm.sh/resource-policy: keep
+  {{- end }}
 spec:
   type: upload
   refreshInterval: {{ .Values.uploadModuleSource.refreshInterval | default "1h" }}
 {{- end }}
 
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if not (include "gameplane.crdHookEnabled" .) }}
+{{- include "gameplane.moduleSources" (dict "root" . "keep" false) }}
 {{- end }}
