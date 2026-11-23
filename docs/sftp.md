@@ -44,6 +44,9 @@ The chart also creates a Secret named `gameplane-sftp-host-key` with the SSH
 host key. It is created once and kept when you uninstall, so clients do not
 see a changed key after an upgrade. To bring your own key, set
 `sftp.hostKeySecret` to a Secret with a `host_key` entry in PEM format.
+For GitOps or offline renders (`helm template`, Argo CD), set `sftp.hostKeySecret`
+and the service token secret explicitly, because the chart cannot look up
+existing Secrets there and would otherwise generate new values on every render.
 
 Check that the pod is running:
 

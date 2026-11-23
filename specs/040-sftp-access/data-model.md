@@ -33,7 +33,7 @@ Regenerate replaces the row in one transaction; revoke deletes it. No expiry (OD
 | Column | Type | Notes |
 |---|---|---|
 | id | BIGINT PK | |
-| cluster | TEXT NOT NULL | cluster the endpoint serves; `default` for the panel's own cluster |
+| cluster | TEXT NOT NULL | cluster the endpoint serves; `local` for the panel's own cluster (`scope.DefaultCluster`) |
 | digest | TEXT NOT NULL UNIQUE | SHA-256 hex of `gpsftps_…` |
 | prefix | TEXT NOT NULL | first 12 chars, for display |
 | created_at | TEXT NOT NULL | |

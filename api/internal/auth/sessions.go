@@ -246,8 +246,8 @@ func (s *SessionStore) RevalidateStreams(isStream func(*http.Request) bool, inte
 				return
 			}
 			initial := UserFromContext(req.Context())
-			cookie, err := req.Cookie(sessionCookie)
-			if err != nil || initial == nil {
+			recheck, ok := s.streamRecheck(req)
+			if !ok || initial == nil {
 				httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 				return
 			}
@@ -262,8 +262,8 @@ func (s *SessionStore) RevalidateStreams(isStream func(*http.Request) bool, inte
 						return
 					case <-ticker.C:
 						check, stop := context.WithTimeout(ctx, interval)
-						active, _, err := s.lookup(check, cookie.Value)
-						valid := err == nil && active.ID == initial.ID && active.Role == initial.Role &&
+						active, found := recheck(check)
+						valid := found && active.ID == initial.ID && active.Role == initial.Role &&
 							reflect.DeepEqual(active.Perms, initial.Perms) && grantValid(check, active.ID)
 						stop()
 						if !valid {
@@ -276,6 +276,36 @@ func (s *SessionStore) RevalidateStreams(isStream func(*http.Request) bool, inte
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}
+}
+
+// streamRecheck returns the lookup RevalidateStreams repeats for a stream: the browser session cookie,
+// or, for an SFTP session transfer, the bearer SFTP session token the request was authenticated with.
+// SFTP requests carry no cookie, so their transfers are re-checked against the SFTP session row, which
+// revocation, expiry and the owner's session epoch all reach. ok is false when the request carries
+// neither credential.
+func (s *SessionStore) streamRecheck(req *http.Request) (func(context.Context) (*User, bool), bool) {
+	if caller, isSFTP := SFTPCallerFromContext(req.Context()); isSFTP && caller.SessionID != 0 {
+		raw, ok := bearerSFTPSession(req)
+		if !ok {
+			return nil, false
+		}
+		sessionID := caller.SessionID
+		return func(ctx context.Context) (*User, bool) {
+			u, sess, err := s.LookupSFTPSessionToken(ctx, raw)
+			if err != nil || sess.ID != sessionID {
+				return nil, false
+			}
+			return u, true
+		}, true
+	}
+	cookie, err := req.Cookie(sessionCookie)
+	if err != nil {
+		return nil, false
+	}
+	return func(ctx context.Context) (*User, bool) {
+		u, _, err := s.lookup(ctx, cookie.Value)
+		return u, err == nil
+	}, true
 }
 
 func (s *SessionStore) lookup(ctx context.Context, token string) (*User, string, error) {

@@ -593,6 +593,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 	// A file-only pod must be gone before the game starts (spec 040 FR-013c).
+	// The hold may zero replicas while that pod drains; the pre-hold value
+	// says a start is pending, so the files pod is not recreated meanwhile.
+	startWanted := replicas > 0
 	replicas, stopRequeue, err = r.holdStartForFilesPod(ctx, &gs, replicas, stopRequeue)
 	if err != nil {
 		logger.Error(err, "hold start for files pod")
@@ -605,7 +608,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile StatefulSet")
 		return ctrl.Result{}, err
 	}
-	filesRequeue, err := r.reconcileFilesPod(ctx, &gs, &tmpl, ver, replicas)
+	filesRequeue, err := r.reconcileFilesPod(ctx, &gs, &tmpl, ver, replicas, startWanted)
 	if err != nil {
 		logger.Error(err, "reconcile files pod")
 		return ctrl.Result{}, err

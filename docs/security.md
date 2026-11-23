@@ -720,7 +720,8 @@ second internet-facing listener, so it gets the same treatment as the dashboard:
   the Files tab, and records it in the audit log with `source: sftp`. For a
   stopped server, the operator's file-only pod (agent `--files-only`, no host
   ports, removed after `--files-idle-timeout`) serves the same files; file access
-  never starts the game.
+  never starts the game. Enabling SFTP grants the operator `pods: create, delete`
+  in game namespaces so it can run that file-only pod.
 - **Revocation and disable** end open sessions within 60 seconds and refuse new
   logins (FR-007, SC-006).
 - **Transfers.** Uploads are capped by `files.maxUploadSize` and the volume's

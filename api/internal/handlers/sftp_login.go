@@ -172,9 +172,15 @@ func (h *sftpLoginHandler) login(w http.ResponseWriter, req *http.Request) {
 			refuse("no-access")
 			return
 		}
+		// A namespace-level servers:read passes Allow for any name, so the server must exist too.
+		exists, err := h.targetServerExists(ctx, user, caller.Cluster, target.Namespace, target.Server)
+		if err != nil || !exists {
+			refuse("no-access")
+			return
+		}
 	}
 
-	token, expires, err := h.sessions.IssueSFTPSession(ctx, user.ID, caller.Cluster, credential, epoch)
+	token, expires, err := h.sessions.IssueSFTPSessionForToken(ctx, user.ID, caller.Cluster, credential, epoch, caller.ServiceTokenID)
 	if err != nil {
 		refuse("issue")
 		return
@@ -205,6 +211,22 @@ func (h *sftpLoginHandler) auditLoginFailure(ctx context.Context, req *http.Requ
 		return
 	}
 	audit.MarkRecorded(ctx)
+}
+
+// targetServerExists reports whether the named server exists on cluster and is visible to user. The file
+// checker has no direct server getter, so it uses the visible-server listing, which covers every server
+// the user may reach through a namespace grant or through ownership.
+func (h *sftpLoginHandler) targetServerExists(ctx context.Context, user *auth.User, cluster, ns, name string) (bool, error) {
+	refs, err := h.files.VisibleServers(ctx, user, cluster)
+	if err != nil {
+		return false, fmt.Errorf("list sftp target servers: %w", err)
+	}
+	for _, ref := range refs {
+		if ref.Namespace == ns && ref.Name == name {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // check reports which of the endpoint's session tokens are no longer valid. Never audited.

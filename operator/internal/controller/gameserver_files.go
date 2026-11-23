@@ -201,16 +201,20 @@ func (r *GameServerReconciler) buildFilesPod(
 // idle timeout, and no lifecycle owner holds the volumes. It is created only
 // after the game pod is gone, because the data volume is ReadWriteOnce. It
 // returns how long until the idle timeout could expire, or zero.
+//
+// startWanted is the replica count before holdStartForFilesPod ran. When a
+// start is wanted, replicas may already be zero only because the hold is
+// waiting for the files pod to drain, so no file-only pod is created then.
 func (r *GameServerReconciler) reconcileFilesPod(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
-	ver *gameplanev1alpha1.GameVersion, replicas int32,
+	ver *gameplanev1alpha1.GameVersion, replicas int32, startWanted bool,
 ) (time.Duration, error) {
 	pod, err := r.getFilesPod(ctx, gs)
 	if err != nil {
 		return 0, err
 	}
 	fresh, remaining := filesRequestFresh(gs, time.Now(), r.filesTimeout())
-	if replicas != 0 || !fresh || !filesSafeToMount(gs) {
+	if replicas != 0 || startWanted || !fresh || !filesSafeToMount(gs) {
 		stale := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: filesPodName(gs), Namespace: gs.Namespace}}
 		if err := r.deleteIfControlledBy(ctx, gs, stale); err != nil {
 			return 0, fmt.Errorf("delete files pod: %w", err)

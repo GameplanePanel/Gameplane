@@ -52,7 +52,9 @@ var errSFTPSeedFormat = errors.New("sftp service token has the wrong format")
 // SeedSFTPServiceToken registers a service token supplied by the deployment (the chart's local SFTP
 // token, spec 040) for cluster, so the SFTP pod in the panel's own cluster can log in without an admin
 // step. It is idempotent: a digest already stored, revoked or not, is left alone, so a token an admin
-// revoked stays revoked across restarts. At the per-cluster active limit it logs and returns nil; the
+// revoked stays revoked across restarts. A new digest replaces the cluster's previously seeded token
+// (and its sessions) in the same transaction, so offline renders that generate a fresh secret never
+// count twice against the active limit. At the per-cluster active limit it logs and returns nil; the
 // seeded token then stays unusable until an admin revokes one.
 func (s *SessionStore) SeedSFTPServiceToken(ctx context.Context, cluster, raw string) error {
 	if !validSFTPToken(raw, SFTPServicePrefix) {
@@ -66,7 +68,7 @@ func (s *SessionStore) SeedSFTPServiceToken(ctx context.Context, cluster, raw st
 	if exists {
 		return nil
 	}
-	if _, err := s.InsertSFTPServiceToken(ctx, cluster, digest, raw[:sftpTokenPrefixLen]); err != nil {
+	if _, err := s.insertServiceToken(ctx, cluster, digest, raw[:sftpTokenPrefixLen], true); err != nil {
 		if errors.Is(err, ErrSFTPServiceTokenLimit) {
 			slog.Warn("sftp: seeded service token not stored, the cluster is at its active token limit; revoke one to use it", "cluster", cluster)
 			return nil
@@ -99,12 +101,18 @@ func (s *SessionStore) AuthenticateSFTPService(ctx context.Context, raw string) 
 // "key:<keyID>". epoch is the users.session_epoch read with the credential check. It returns the token
 // and its expiry (now + 15 minutes).
 func (s *SessionStore) IssueSFTPSession(ctx context.Context, userID int64, cluster, credential string, epoch int64) (string, time.Time, error) {
+	return s.IssueSFTPSessionForToken(ctx, userID, cluster, credential, epoch, 0)
+}
+
+// IssueSFTPSessionForToken is IssueSFTPSession for a login made with service token serviceTokenID
+// (0 for none). Revoking that service token ends the session.
+func (s *SessionStore) IssueSFTPSessionForToken(ctx context.Context, userID int64, cluster, credential string, epoch, serviceTokenID int64) (string, time.Time, error) {
 	if credential == "" {
 		return "", time.Time{}, fmt.Errorf("issue sftp session: empty credential")
 	}
 	token := newSFTPToken(SFTPSessionTokenPrefix)
 	expires := time.Now().Add(sftpSessionTTL)
-	if _, err := s.InsertSFTPSession(ctx, userID, cluster, credential, sessionDigest(token), epoch, expires); err != nil {
+	if _, err := s.InsertSFTPSessionForToken(ctx, userID, cluster, credential, sessionDigest(token), epoch, expires, serviceTokenID); err != nil {
 		return "", time.Time{}, fmt.Errorf("issue sftp session: %w", err)
 	}
 	return token, expires, nil

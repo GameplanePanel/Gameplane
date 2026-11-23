@@ -222,16 +222,20 @@ func (p *proxy) filesRename() http.HandlerFunc {
 				httperr.Write(w, req, err)
 				return
 			}
+			cl := scope.RequestedCluster(req)
+			server := chi.URLParam(req, "name")
 			ctx, err := selected.files.AllowBound(req.Context(), u, rbac.FileRename, rbac.FileTarget{
-				Cluster:   scope.RequestedCluster(req),
+				Cluster:   cl,
 				Namespace: ns,
-				Server:    chi.URLParam(req, "name"),
+				Server:    server,
 				Paths:     []string{body.From, body.To},
 			})
 			if err != nil {
 				httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 				return
 			}
+			// Audit rows name both paths of the rename (spec 040 FR-020).
+			auth.SetAuditTarget(ctx, cl+"/"+ns+"/"+server+" "+body.From+" -> "+body.To)
 			req = req.WithContext(ctx)
 			req.Body = io.NopCloser(bytes.NewReader(raw))
 			req.ContentLength = int64(len(raw))
@@ -368,7 +372,8 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 		resp, err := p.transport.Do(req.Context(), agentRequest{
 			target: target, method: req.Method, path: agentPath,
 			rawQuery: rawQuery, header: req.Header,
-			body: http.MaxBytesReader(w, req.Body, maxBody),
+			body:          http.MaxBytesReader(w, req.Body, maxBody),
+			contentLength: req.ContentLength,
 		})
 		if err != nil {
 			// The body cap trips mid-copy when no (or a false) Content-Length was sent.

@@ -181,6 +181,7 @@ func (t *gatewayAgentTransport) Do(ctx context.Context, operation agentRequest) 
 	if err != nil {
 		return nil, fmt.Errorf("build gateway agent request: %w", err)
 	}
+	operation.applyContentLength(req)
 	copyProxyHeaders(req.Header, operation.header)
 	client := t.http
 	if gatewayprotocol.LongRunningOperation(operation.method, operation.path) {
