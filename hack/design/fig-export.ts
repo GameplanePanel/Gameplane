@@ -287,7 +287,7 @@ async function writeIfChanged(path: string, data: Uint8Array | string): Promise<
 let rendered = 0
 
 async function exportNode(node: SceneNode, name: string): Promise<ScreenEntry> {
-  const hash = hashOf(node)
+  const hash = hashes.get(node.id) ?? hashOf(node)
   const entry = { file: name, figId: node.id, name: node.name, width: round(node.width), height: round(node.height), hash }
   const files = paths(name)
   const known = previousByFile.get(name)
@@ -312,14 +312,6 @@ async function exportNode(node: SceneNode, name: string): Promise<ScreenEntry> {
   return entry
 }
 
-const screens: ScreenEntry[] = []
-for (const node of graph.getChildren(page.id)) {
-  if ((node.type !== 'FRAME' && node.type !== 'INSTANCE') || EXCLUDED.test(node.name)) continue
-  screens.push(await exportNode(node, fileByFigId.get(node.id) ?? node.id.replace(':', '-')))
-}
-await writeIfChanged(listPath, `${JSON.stringify(screens, null, 2)}\n`)
-console.log(`${screens.length} screens, ${rendered} rendered`)
-
 /** Every layer on the page that is not inside an instance, so each name has one owner. */
 function ownLayers(id: string, out: SceneNode[] = []): SceneNode[] {
   for (const child of graph.getChildren(id)) {
@@ -329,18 +321,34 @@ function ownLayers(id: string, out: SceneNode[] = []): SceneNode[] {
   return out
 }
 
-const wanted: Pick<ScreenEntry, 'file' | 'name'>[] = previousParts
+const screenNodes = graph
+  .getChildren(page.id)
+  .filter((node) => (node.type === 'FRAME' || node.type === 'INSTANCE') && !EXCLUDED.test(node.name))
+
+const layers = ownLayers(page.id).filter((node) => node.type !== 'INSTANCE')
+const partNodes = previousParts.map(({ file: name, name: layerName }) => {
+  const top = graph.getChildren(page.id).filter((node) => node.name === layerName)
+  const matches = top.length === 1 ? top : layers.filter((node) => node.name === layerName)
+  if (matches.length !== 1)
+    throw new Error(`parts.json: ${matches.length} layers are named ${JSON.stringify(layerName)}`)
+  return { name, node: matches[0] as SceneNode }
+})
+
+// Hash everything before rendering anything: rendering loads fonts and lays text out again,
+// which would make the hashes of later screens depend on what was rendered before them.
+const hashed = [...screenNodes, ...partNodes.map((part) => part.node)]
+const hashes = new Map(hashed.map((node) => [node.id, hashOf(node)]))
+
+const screens: ScreenEntry[] = []
+for (const node of screenNodes)
+  screens.push(await exportNode(node, fileByFigId.get(node.id) ?? node.id.replace(':', '-')))
+await writeIfChanged(listPath, `${JSON.stringify(screens, null, 2)}\n`)
+console.log(`${screens.length} screens, ${rendered} rendered`)
+
 const parts: ScreenEntry[] = []
-if (wanted.length) {
+if (partNodes.length) {
   rendered = 0
-  const layers = ownLayers(page.id).filter((node) => node.type !== 'INSTANCE')
-  for (const { file: name, name: layerName } of wanted) {
-    const top = graph.getChildren(page.id).filter((node) => node.name === layerName)
-    const matches = top.length === 1 ? top : layers.filter((node) => node.name === layerName)
-    if (matches.length !== 1)
-      throw new Error(`parts.json: ${matches.length} layers are named ${JSON.stringify(layerName)}`)
-    parts.push(await exportNode(matches[0] as SceneNode, name))
-  }
+  for (const { name, node } of partNodes) parts.push(await exportNode(node, name))
   await writeIfChanged(partsPath, `${JSON.stringify(parts, null, 2)}\n`)
   console.log(`${parts.length} parts, ${rendered} rendered`)
 }
