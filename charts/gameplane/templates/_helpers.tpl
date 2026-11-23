@@ -280,3 +280,13 @@ install/upgrade time, so re-run helm upgrade if the API endpoint moves.
 - ipBlock: { cidr: {{ . | quote }} }
 {{- end -}}
 {{- end -}}
+
+{{- /*
+"true" when the crds.autoApply hook Job runs (and so installs the CRDs and
+applies the chart's ModuleSources), otherwise empty.
+*/ -}}
+{{- define "gameplane.crdHookEnabled" -}}
+{{- if and (not .Values.api.standalone) .Values.crds.autoApply.enabled -}}
+true
+{{- end -}}
+{{- end -}}

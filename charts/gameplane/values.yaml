@@ -44,33 +44,29 @@ image:
   pullPolicy: IfNotPresent
   pullSecrets: []
 
-# Native CRDs live in the bundled gameplane-crds subchart, enabled by
-# operator.enabled. Dependency gating happens before Helm installs CRDs, so
-# operator.enabled=false omits them from a standalone central panel install.
-# CRD lifecycle. Helm installs the files under the subchart's crds/ on first install
-# and NEVER updates them on `helm upgrade` (a documented Helm limitation). This
-# hook closes that gap: a pre-UPGRADE Job runs `kubectl apply --server-side`
-# over the CRDs, so a plain `helm upgrade` always brings the CRD schema up to
-# date. First installs get the CRDs from Helm's native crds/ (no pod), so the
-# hook normally runs only on upgrades — air-gapped first installs need no
-# extra image. The exception: a `helm install` onto CRDs an earlier,
-# uninstalled release left behind (crds/ skips existing CRDs), detected by the
-# bundle-hash annotation `make manifests` stamps on every CRD; the hook then
-# also runs on that install (F-218). It never deletes CRDs, so
-# `helm uninstall` still leaves your GameServers intact.
+# CRD lifecycle. The chart installs and updates its CRDs with a hook Job that
+# runs `kubectl apply --server-side` over crd-manifests/ on pre-INSTALL and
+# pre-UPGRADE (Helm's own crds/ phase never updates CRDs on upgrade). Once the
+# CRDs are served, the same Job applies the chart's ModuleSources
+# (defaultModuleSource, uploadModuleSource) with helm.sh/resource-policy=keep,
+# since Helm cannot create objects of a kind that does not exist yet. It never
+# deletes CRDs, so `helm uninstall` leaves your GameServers intact; the
+# ModuleSources stay too. With enabled=false (for example the Argo CD profile)
+# you install the CRDs yourself first, from the gameplane-crds chart or
+# charts/gameplane/charts/gameplane-crds/crds, and the ModuleSources render as
+# ordinary release objects.
 crds:
   autoApply:
     enabled: true
-    # The upgrade hook must be schedulable before new Deployments roll out.
+    # The hook must be schedulable before new Deployments roll out.
     nodeSelector: {}
     tolerations: []
     affinity: {}
     topologySpreadConstraints: []
     priorityClassName: ""
     # kubectl image the apply Job runs. Any image with kubectl on PATH works;
-    # retag to a private mirror for air-gapped installs (needed at upgrade
-    # time, and also on an install over CRDs an earlier, uninstalled release
-    # left behind — a genuinely fresh first install doesn't run the hook).
+    # retag to a private mirror for air-gapped installs (needed on every
+    # install and upgrade).
     image: registry.k8s.io/kubectl:v1.36.3
     # Pull policy for the kubectl image above. Kept separate from image.pullPolicy
     # so tracking :edge components (image.pullPolicy=Always) doesn't force a

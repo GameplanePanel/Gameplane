@@ -3,15 +3,10 @@
 # subchart and the parent's crd-manifests/, stamping each with a bundle hash.
 #
 # Purpose:
-#   The chart's crds.autoApply hook (templates/crd-apply-hook.yaml) must fire
-#   on `helm install` when the cluster already holds CRDs an earlier,
-#   uninstalled release left behind (Helm's crds/ install silently skips
-#   existing CRDs), but NOT on a genuinely fresh install, where crds/ has just
-#   created current CRDs a moment before the hook is rendered (F-218). A plain
-#   "does the CRD exist" lookup cannot tell those apart. The stamp can: the
-#   hook compares the live CRD's `gameplane.local/crd-bundle-sha256`
-#   annotation with the one in crd-manifests/, and only a mismatch (or a
-#   missing stamp, i.e. a CRD from a release that predates it) is stale.
+#   crd-manifests/ is what the chart's crds.autoApply hook applies; the
+#   subchart copy is the separately published gameplane-crds chart (the parent
+#   chart no longer bundles it). The stamp `gameplane.local/crd-bundle-sha256`
+#   records which generated CRD set a live CRD came from.
 #
 #   The hash covers every generated CRD file, so a schema change to ANY
 #   Gameplane CRD changes the stamp on all of them.

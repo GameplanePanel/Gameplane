@@ -46,13 +46,12 @@ flowchart TD
   release["helm install or upgrade gameplane"] --> opq{"operator.enabled"}
   release --> apiq{"api.enabled"}
   release --> monq{"serviceMonitors, prometheusRules or grafanaDashboards"}
-  opq -- "true (default)" --> crds["gameplane-crds subchart (Helm crds/ phase)"]
   opq -- "true (default)" --> op["Operator Deployment, RBAC and NetworkPolicies"]
-  opq -- "true (default)" --> vap["Admission policies and default ModuleSource"]
+  opq -- "true (default)" --> vap["Admission policies"]
   apiq -- "true (default)" --> api["API Deployment, Service and data PVC"]
   apiq -- "web.enabled (default)" --> web["Web dashboard"]
   apiq -- "ingress.enabled" --> ing["Ingress"]
-  release -- "not api.standalone and crds.autoApply.enabled" --> hook["CRD apply hook Job"]
+  release -- "not api.standalone and crds.autoApply.enabled" --> hook["CRD apply hook Job: CRDs, then the default ModuleSource"]
   apiq -- "api.telemetry.receiver.enabled and empty endpoint" --> tr["Telemetry receiver"]
   apiq -- "syslogBridge.enabled and empty webhook URL" --> asb["Audit syslog bridge"]
   monq -- "opt-in" --> mon["ServiceMonitor, PodMonitor, PrometheusRule and dashboard ConfigMap"]
@@ -255,7 +254,7 @@ RoleBindings can still widen access and must be removed separately.
 Top-level knobs (see `values.yaml` for the full list):
 
 - `image.registry` / `image.tag` — container image pinning
-- `operator.enabled` — enable the workload operator and bundled native CRDs (default `true`). Set to `false` for a standalone central panel; the CRD subchart is excluded before Helm installs CRDs.
+- `operator.enabled` — enable the workload operator and the chart's ModuleSources (default `true`). Set to `false` for a standalone central panel. The CRDs come from the `crds.autoApply` hook (see [Helm CRD caveat](#helm-crd-caveat)).
 - `api.enabled` — enable the central API and dashboard (default `true`). Set to `false` on a remote operator/gateway installation.
 - `api.standalone` — store management records and encrypted credentials in SQL without a local cluster (default `false`). Requires `operator.enabled=false` and one API replica. The standalone profile omits native CRDs and the CRD apply hook/RBAC without an additional CLI flag. See the [standalone guide](standalone-panel.md).
 - `operator.replicas` — leader-elected, safe at 2+
@@ -950,75 +949,61 @@ remote workloads running. Keep cookie jars and kubeconfig files private.
 ### Helm CRD caveat
 
 This section applies to combined and remote workload installations. A standalone
-central Helm release uses `operator.enabled=false` to exclude the bundled
-`gameplane-crds` subchart and `api.standalone=true` to skip the CRD apply hook and
-its RBAC. No `--skip-crds` argument is needed; follow its
+central Helm release uses `api.standalone=true`, which skips the CRD apply hook
+and its RBAC, and `operator.enabled=false`, which leaves out the operator and
+its ModuleSources. No `--skip-crds` argument is needed; follow its
 [panel profile](standalone-panel.md#central-panel-on-kubernetes).
 
-With the default `operator.enabled=true`, the subchart supplies CRDs through
-Helm's native `crds/` phase before the release's custom resources are installed.
-CRDs already present on the cluster remain in place when switching to a profile
-that omits them; this setting does not delete CRDs or their custom resources.
-Combined API-only installs retain the existing apply hook when
-`api.standalone=false` and `crds.autoApply.enabled=true`.
+**The chart installs its CRDs with a hook, not Helm's `crds/` phase.** Helm
+never updates `crds/` files on `helm upgrade`, and carrying them in the chart
+as well as in the hook doubled its packaged size. So `crds.autoApply`
+(enabled by default) ships a **pre-install/pre-upgrade hook Job** that runs
+`kubectl apply --server-side --field-manager=helm` over
+`charts/gameplane/crd-manifests/` on every `helm install` and `helm upgrade`.
+The `Cluster` CRD, and every other Gameplane CRD, stays in step with the chart
+automatically. **No manual `kubectl apply` step is needed.** Every install
+and upgrade pulls the hook's `kubectl` image, so mirror
+`crds.autoApply.image` on an air-gapped cluster.
 
-**`helm upgrade` never updates CRDs.** That is a documented Helm limitation,
-not a Gameplane one: files under a chart's `crds/` directory are installed on
-first install and ignored on every upgrade thereafter.
+Helm checks every release object's kind before it runs pre-install hooks, and
+a ModuleSource can't be created before its CRD exists. So once the CRDs are
+Established, the same Job server-side applies the chart's ModuleSources
+(`defaultModuleSource`, `uploadModuleSource`) with the annotation
+`helm.sh/resource-policy: keep`. They are not release objects: `helm
+uninstall` leaves them in place, and turning `defaultModuleSource.enabled` off
+later does not delete the existing one (`kubectl delete modulesource default`
+does). On the first upgrade from a release that still owned the ModuleSource,
+the Job sets that annotation before Helm compares the releases, so Helm keeps
+the ModuleSource and its Modules instead of deleting them.
 
-The chart works around this for you. `crds.autoApply` (enabled by default)
-ships a **pre-install/pre-upgrade hook** that runs `kubectl apply
---server-side` over the current CRDs on every `helm upgrade`, and also on a
-`helm install` that lands on top of CRDs an earlier, uninstalled release left
-behind, so the `Cluster` CRD — and every other Gameplane CRD — stays in step
-with the chart automatically. **No manual `kubectl apply` step is needed.**
+CRDs are never owned or deleted by Helm here, so `helm uninstall` leaves your
+GameServers intact.
 
 You only need to apply CRDs by hand if you have deliberately disabled the
-hook:
+hook, for example in the [Argo CD profile](argocd.md). Then the ModuleSources
+render as ordinary release objects, so the CRDs must exist before the release
+is installed:
 
 ```sh
 # only when crds.autoApply.enabled=false
-kubectl apply --server-side -f charts/gameplane/crd-manifests/
+kubectl apply --server-side --field-manager=helm -f charts/gameplane/crd-manifests/
 ```
 
-The hook fires on pre-upgrade always. On `helm install` it fires only when
-the cluster already holds Gameplane CRDs from a different chart version, i.e.
-ones an earlier, uninstalled release left behind (Helm's `crds/` install
-silently skips existing CRDs). It tells those apart by content: `make
-manifests` stamps every chart CRD with a `gameplane.local/crd-bundle-sha256`
-annotation, a hash over the whole CRD set, and the hook compares the live
-`gameservers.gameplane.local` CRD's stamp with the chart's. On a genuinely
-fresh cluster, Helm's `crds/` step creates the CRDs, carrying this chart's
-stamp, before the hook is evaluated, so the stamps match and the hook does
-not run. A fresh install therefore never depends on pulling the hook's
-`kubectl` image; an install over leftover CRDs does, so mirror
-`crds.autoApply.image` if you reinstall on an air-gapped cluster. CRDs are
-never owned or deleted by Helm here, so `helm uninstall` leaves your
-GameServers intact.
-
-With Helm 3, the hook's events on `helm install` depend on the live CRD stamp:
+The same CRDs are published on their own as the
+`oci://ghcr.io/gameplanepanel/charts/gameplane-crds` chart.
 
 ```mermaid
 flowchart TD
-  start["helm install or helm upgrade"] --> up{"Release.IsUpgrade?"}
-  up -- yes --> pre["pre-upgrade hook: kubectl apply --server-side"]
-  up -- no --> live{"gameservers CRD present with a different stamp?"}
-  live -- "no: fresh cluster, stamps match" --> none["No hook Job; crds/ created the CRDs"]
-  live -- "yes: leftover CRDs" --> pi["pre-install and pre-upgrade hook applies crd-manifests/"]
+  start["helm install or helm upgrade"] --> hook["pre-install/pre-upgrade hook Job"]
+  hook --> crds["kubectl apply --server-side crd-manifests/"]
+  crds --> wait["kubectl wait: CRDs Established"]
+  wait --> ms["kubectl apply --server-side the chart's ModuleSources (resource-policy keep)"]
+  ms --> rel["Helm installs or upgrades the release objects"]
 ```
 
-**Helm 4** installs `crds/` with a server-side apply under the field manager
-`helm` instead of skipping existing CRDs, so a `helm install` over leftover
-CRDs updates them itself (stamp included) and the hook stays pre-upgrade
-only. The hook applies under the same `helm` field manager so that apply
-never conflicts with it. Releases up to and including `0.2.0-beta.8` applied under <!-- doc-versions: historical -->
-kubectl's default manager (`kubectl`); if CRDs such a release upgraded were
-left behind, a Helm 4 `helm install` stops with `conflict with "kubectl" …
-.spec.versions`. Re-run it with `--force-conflicts` to take them over:
-
-```sh
-helm install gameplane charts/gameplane -n gameplane-system --create-namespace --force-conflicts
-```
+Releases up to and including `0.2.0-beta.8` applied CRDs under kubectl's <!-- doc-versions: historical -->
+default manager (`kubectl`). The hook takes those fields over with
+`--force-conflicts`.
 
 ### RBAC and permissions
 
@@ -1052,7 +1037,7 @@ helm upgrade gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
   --reuse-values
 ```
 
-CRDs are brought up to date automatically by the chart's pre-upgrade hook —
+CRDs are brought up to date automatically by the chart's pre-install/pre-upgrade hook —
 see [Helm CRD caveat](#helm-crd-caveat).
 
 **A caution on `--reuse-values`:** it replays your previous values *and skips

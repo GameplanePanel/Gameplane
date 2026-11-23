@@ -8,3 +8,7 @@ testdata/
 tests/
 # Dev container dependency list, read by hack/need.sh from the repository.
 system-deps.toml
+# The CRD subchart stays in Git (it is published on its own as
+# gameplane-crds) but is not part of this chart: the crd-apply hook installs
+# the same CRDs from crd-manifests/, so bundling both doubled the package.
+charts/

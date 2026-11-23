@@ -437,7 +437,7 @@ These aren't code dependencies of any component; they're invoked by
 - **`docker buildx bake`** (`containers/docker-bake.hcl`, `docker/bake-action@v7.3.0`) — builds the operator/api/agent e2e images concurrently with a shared GitHub Actions layer cache (`.github/actions/e2e-images`); also builds the `e2e-gameprobe` headless bot image used only by the game-bot CI job.
 - **`docker/build-push-action@v7.4.0` + `docker/metadata-action@v6.2.0`** — the actual multi-arch (`linux/amd64,linux/arm64`) image builds and GHCR tagging in `publish-edge.yaml` (main → `:edge`) and `release.yaml` (`v*` tags → versioned images + `oci://ghcr.io/<owner>/charts` Helm push).
 
-The Helm chart itself (`charts/gameplane/Chart.yaml`) declares one vendored subchart dependency, `gameplane-crds` (condition `operator.enabled`), under `charts/gameplane/charts/gameplane-crds`.
+The Helm chart itself (`charts/gameplane/Chart.yaml`) declares no chart dependencies. `charts/gameplane/charts/gameplane-crds` is published as its own chart and is excluded from the parent by `charts/gameplane/.helmignore`.
 
 ## Notable policies
 
