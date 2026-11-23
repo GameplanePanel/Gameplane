@@ -36,6 +36,9 @@ type AgentGatewayOptions struct {
 	Namespace      string
 	Files          *rbac.FileChecker
 	MaxUploadBytes int64
+	// AgentHost overrides the in-cluster agent host:port of the direct transport. Tests
+	// use it to reach a local TLS server; nil keeps the service DNS name.
+	AgentHost func(name, namespace string) string
 }
 
 type agentGatewayResolver struct {

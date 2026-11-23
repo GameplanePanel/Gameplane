@@ -80,6 +80,9 @@ crds:
 operator:
   # Bound, rotating agent-only token; 600 supports short rotation drills.
   agentTokenExpirationSeconds: 3600
+  # How long a stopped server's file-only pod (spec 040) stays up after its last
+  # file operation before the operator removes it. Must be a positive duration.
+  filesIdleTimeout: 10m
   # Disable the operator and bundled native CRDs for a standalone central panel.
   enabled: true
   replicas: 1
@@ -786,6 +789,43 @@ mcpServer:
   resources:
     requests: { cpu: 50m, memory: 32Mi }
     limits:   { cpu: 200m, memory: 128Mi }
+
+# File transfer settings shared by the dashboard Files tab and SFTP (spec 040).
+files:
+  # Maximum size of one file upload. Binary or decimal Kubernetes quantity
+  # (Ki/Mi/Gi/Ti, K/M/G/T) or a plain byte count. Passed to the operator
+  # (agent --max-upload-bytes), the API and the gateway.
+  maxUploadSize: 20Gi
+
+# SFTP endpoint for game server files (spec 040). Off by default. Every login and
+# file operation is authorised by the Gameplane API as the signed-in user.
+sftp:
+  enabled: false
+  port: 2222
+  # Empty => {image.registry}/sftp:{image tag}. Set a full reference to pin.
+  image: ""
+  serviceType: ClusterIP
+  # Address shown to users in the profile (host or host:port). Empty = unknown.
+  publicAddress: ""
+  # Remote clusters: central API URL, optional CA bundle Secret (key ca.crt) and an existing Secret
+  # with key `token` holding the service token created in the central panel.
+  apiURL: ""
+  caSecret: ""
+  serviceTokenSecret: ""
+  # Existing Secret with a `host_key` PEM; empty => chart generates one once (kept on uninstall).
+  hostKeySecret: ""
+  idleTimeout: 15m
+  maxSessionsPerUser: 4
+  maxTransfersPerUser: 8
+  replicas: 1
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits:   { cpu: 500m, memory: 256Mi }
 
 # Informational release-channel label shown read-only in the dashboard's
 # Admin Settings → Updates section. Nothing consumes it — Gameplane is

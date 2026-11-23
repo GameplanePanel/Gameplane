@@ -81,6 +81,13 @@ type GameServerReconciler struct {
 	// to info and existing StatefulSets don't roll on operator upgrade.
 	AgentLogLevel string
 
+	// AgentMaxUploadBytes, when positive, is passed to every agent as
+	// --max-upload-bytes (Helm files.maxUploadSize). Zero keeps the agent default.
+	AgentMaxUploadBytes int64
+	// FilesIdleTimeout is how long a stopped server's file-only pod lives
+	// after its last file operation. Zero or less uses DefaultFilesIdleTimeout.
+	FilesIdleTimeout time.Duration
+
 	// Auxiliary resources are complete install-level overrides. Nil uses the
 	// built-in requests; a non-nil empty object explicitly clears them.
 	AgentResources    *corev1.ResourceRequirements
@@ -566,11 +573,22 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "compute desired replicas")
 		return ctrl.Result{}, err
 	}
+	// A file-only pod must be gone before the game starts (spec 040 FR-013c).
+	replicas, stopRequeue, err = r.holdStartForFilesPod(ctx, &gs, replicas, stopRequeue)
+	if err != nil {
+		logger.Error(err, "hold start for files pod")
+		return ctrl.Result{}, err
+	}
 	if err := r.reconcileStatefulSet(ctx, &gs, &tmpl, ver, mc, replicas, &wipeState); err != nil {
 		if apierrors.IsConflict(err) {
 			return requeueOnConflict(ctrl.Result{}, err)
 		}
 		logger.Error(err, "reconcile StatefulSet")
+		return ctrl.Result{}, err
+	}
+	filesRequeue, err := r.reconcileFilesPod(ctx, &gs, &tmpl, ver, replicas)
+	if err != nil {
+		logger.Error(err, "reconcile files pod")
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileModpackRollout(ctx, &gs); err != nil {
@@ -653,7 +671,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// the sleep deadline or the next wake window; take whichever comes first,
 	// or nothing fires the transition until an unrelated event happens to
 	// wake the reconciler.
-	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry, modpackKeyRequeue(&gs)}
+	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry, modpackKeyRequeue(&gs), filesRequeue}
 	if _, held, _ := lifecycleOwner(&gs); held {
 		hints = append(hints, 5*time.Second)
 	}
@@ -1304,17 +1322,26 @@ func (r *GameServerReconciler) reconcileAgentService(
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: gs.Name + "-agent", Namespace: gs.Namespace},
 	}
-	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, svc, func() error {
+	// A file-only pod (spec 040) serves the agent while the server is stopped.
+	serving, err := r.filesPodServing(ctx, gs)
+	if err != nil {
+		return err
+	}
+	selector := map[string]string{
+		"app.kubernetes.io/name":     "gameplane-game",
+		"app.kubernetes.io/instance": gs.Name,
+	}
+	if serving {
+		selector = filesPodLabels(gs)
+	}
+	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, svc, func() error {
 		svc.Spec.Type = corev1.ServiceTypeClusterIP
 		// The agent must be reachable while the game container is still
 		// starting (console/files/logs during long world generation), so
 		// don't gate endpoints on whole-pod readiness — the game's
 		// readiness probe would otherwise hold the agent hostage.
 		svc.Spec.PublishNotReadyAddresses = true
-		svc.Spec.Selector = map[string]string{
-			"app.kubernetes.io/name":     "gameplane-game",
-			"app.kubernetes.io/instance": gs.Name,
-		}
+		svc.Spec.Selector = selector
 		svc.Spec.Ports = []corev1.ServicePort{
 			{
 				Name:       "agent",
@@ -2016,7 +2043,9 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		ss.Spec.Template.Annotations = ann
 		ss.Spec.Template.Spec.Containers = []corev1.Container{
 			buildGameContainer(gs, tmpl, image, ver, mc),
-			buildAgentContainer(gs, tmpl, ver, r.AgentImage, r.AgentLogLevel, r.AgentImagePullPolicy, r.AgentResources),
+			withAgentTransferFlags(
+				buildAgentContainer(gs, tmpl, ver, r.AgentImage, r.AgentLogLevel, r.AgentImagePullPolicy, r.AgentResources),
+				r.AgentMaxUploadBytes, false),
 		}
 		volumes := []corev1.Volume{
 			{

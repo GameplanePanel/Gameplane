@@ -294,6 +294,12 @@ var entries = []Entry{
 		Description: "Shown when an admin picks an instance default language that is not offered (missing or below the completeness threshold). language = the tag.",
 		Status:      http.StatusBadRequest,
 	},
+	{
+		ID:          "server.files.starting",
+		English:     "files are starting, try again in a moment",
+		Description: "API error when a stopped or asleep server's file-only pod is not ready within 60 s (ws/ensure_files.go:ensureFiles); retry after a short wait.",
+		Status:      http.StatusServiceUnavailable,
+	},
 }
 
 // parsedEntry is a registry entry with its English text parsed once.

@@ -58,6 +58,9 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 		if opts.MaxUploadBytes > 0 {
 			p.maxUploadBytes = opts.MaxUploadBytes
 		}
+		if d, ok := transport.(*directAgentTransport); ok && opts.AgentHost != nil {
+			d.hostFn = opts.AgentHost
+		}
 		if opts.Namespace != "" && reg != nil {
 			p.gateway = &agentGatewayResolver{registry: reg, namespace: opts.Namespace}
 		}
@@ -75,19 +78,20 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 	// before the game's own log file exists. Mounted unconditionally.
 	mountPodLogs(r, reg)
 	r.Route("/servers/{name}/files", func(r chi.Router) {
-		r.Get("/list", p.agentHTTP("/files/list"))
-		r.Get("/stat", p.agentHTTP("/files/stat"))
-		r.Get("/read", p.agentHTTP("/files/read"))
-		r.Get("/download", p.agentHTTP("/files/download"))
-		r.Get("/archive", p.agentHTTP("/files/archive"))
-		r.Post("/archive", p.agentHTTP("/files/archive"))
-		r.Post("/write", p.agentHTTP("/files/write"))
-		r.Post("/create", p.agentHTTP("/files/create"))
-		r.Post("/upload", p.agentHTTP("/files/upload"))
-		r.Post("/mkdir", p.agentHTTP("/files/mkdir"))
+		// File routes start a file-only pod for a stopped server first (ensure_files.go).
+		r.Get("/list", p.filesRoute("/files/list", defaultBodyLimit))
+		r.Get("/stat", p.filesRoute("/files/stat", defaultBodyLimit))
+		r.Get("/read", p.filesRoute("/files/read", defaultBodyLimit))
+		r.Get("/download", p.filesRoute("/files/download", defaultBodyLimit))
+		r.Get("/archive", p.filesRoute("/files/archive", defaultBodyLimit))
+		r.Post("/archive", p.filesRoute("/files/archive", defaultBodyLimit))
+		r.Post("/write", p.filesRoute("/files/write", defaultBodyLimit))
+		r.Post("/create", p.filesRoute("/files/create", defaultBodyLimit))
+		r.Post("/upload", p.filesRoute("/files/upload", defaultBodyLimit))
+		r.Post("/mkdir", p.filesRoute("/files/mkdir", defaultBodyLimit))
 		r.Post("/rename", p.filesRename())
-		r.Put("/stream", p.agentHTTPLimit("/files/stream", p.maxUploadBytes))
-		r.Delete("/delete", p.agentHTTP("/files/delete"))
+		r.Put("/stream", p.filesRoute("/files/stream", p.maxUploadBytes))
+		r.Delete("/delete", p.filesRoute("/files/delete", defaultBodyLimit))
 	})
 	r.Route("/servers/{name}/players", func(r chi.Router) {
 		// Hydrated with Steam display names when a resolver is configured;
@@ -191,6 +195,9 @@ func (p *proxy) filesRename() http.HandlerFunc {
 		proxyRename := selected.httpProxyLimit("/files/rename", 1<<20)
 		return func(w http.ResponseWriter, req *http.Request) {
 			if selected.files == nil {
+				if !selected.ensureFiles(w, req) {
+					return
+				}
 				proxyRename(w, req)
 				return
 			}
@@ -227,6 +234,10 @@ func (p *proxy) filesRename() http.HandlerFunc {
 			req = req.WithContext(ctx)
 			req.Body = io.NopCloser(bytes.NewReader(raw))
 			req.ContentLength = int64(len(raw))
+			// Only an authorized rename may start a file-only pod.
+			if !selected.ensureFiles(w, req) {
+				return
+			}
 			proxyRename(w, req)
 		}
 	})
@@ -300,8 +311,11 @@ func copyWS(req *http.Request, src, dst *websocket.Conn) error {
 // cap — enough for modest uploads through the file-browser proxy while
 // blocking unbounded spam.
 func (p *proxy) httpProxy(agentPath string) http.HandlerFunc {
-	return p.httpProxyLimit(agentPath, 64<<20)
+	return p.httpProxyLimit(agentPath, defaultBodyLimit)
 }
+
+// defaultBodyLimit is the request-body cap of httpProxy.
+const defaultBodyLimit int64 = 64 << 20
 
 // httpProxyLimit is httpProxy with an explicit request-body cap, for the
 // few routes that legitimately carry more (mod uploads).

@@ -63,6 +63,7 @@ func main() {
 		cliPipe        string
 		logLevel       string
 		maxUploadBytes int64
+		filesOnly      bool
 	)
 	flag.StringVar(&addr, "addr", ":8090", "HTTP listen address")
 	flag.StringVar(&metricsAddr, "metrics-addr", envOr("GAMEPLANE_METRICS_ADDR", ":9090"),
@@ -99,6 +100,8 @@ func main() {
 		"log verbosity: debug, info, warn, or error")
 	flag.Int64Var(&maxUploadBytes, "max-upload-bytes", files.DefaultMaxUploadBytes,
 		"size limit in bytes for one /files/stream upload (Helm files.maxUploadSize)")
+	flag.BoolVar(&filesOnly, "files-only", false,
+		"serve only /files/*, /healthz and metrics (file-only pod for a stopped server)")
 	flag.Parse()
 
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: parseLogLevel(logLevel)}))
@@ -187,57 +190,53 @@ func main() {
 	// cert would also unlock.
 
 	statusSource := status.New(rconClient, statusSpec)
-	mountProtected := func(protected chi.Router) {
-
-		// Console/Logs open long-lived WebSockets and Mods installs can run
-		// well past a short request deadline (a large download bounded by
-		// its own HTTP client timeout, not the router's). None of these are
-		// ordinary bounded REST calls, so they're mounted without
-		// middleware.Timeout (F-103): applying a request-scoped deadline to
-		// them force-closes the socket / aborts the download every time the
-		// deadline elapses, regardless of whether the stream is still healthy.
-		logs.Mount(protected, dataRoot, gameLogPath)
-		console.Mount(protected, rconClient)
-		mods.Mount(protected, dataRoot, modsSpec)
-		files.Mount(protected, dataRoot, files.WithMaxUploadBytes(maxUploadBytes))
-
-		protected.Group(func(bounded chi.Router) {
-			bounded.Use(middleware.Timeout(30 * time.Second))
-			players.Mount(bounded, rconClient, gameName, playerActions, dataRoot)
-			quiesce.Mount(bounded, commands, gameName, quiesceSpec)
-			lifecycle.Mount(bounded, rconClient, gameName, lifecycleSpec)
-			actions.Mount(bounded, rconClient, gameName, actionSpecs)
-			statusSource.Mount(bounded)
-		})
+	routes := protectedRoutes{
+		dataRoot:       dataRoot,
+		gameLogPath:    gameLogPath,
+		maxUploadBytes: maxUploadBytes,
+		rconClient:     rconClient,
+		commands:       commands,
+		gameName:       gameName,
+		modsSpec:       modsSpec,
+		playerActions:  playerActions,
+		quiesceSpec:    quiesceSpec,
+		lifecycleSpec:  lifecycleSpec,
+		actionSpecs:    actionSpecs,
+		statusSource:   statusSource,
+		filesOnly:      filesOnly,
 	}
 	r.Group(func(protected chi.Router) {
 		protected.Use(authCheck.Middleware)
-		mountProtected(protected)
+		routes.mount(protected)
 	})
 	r.Route("/v1/targets/{uid}", func(protected chi.Router) {
 		protected.Use(authCheck.Middleware, target.Guard(serverUID))
-		mountProtected(protected)
+		routes.mount(protected)
 	})
-	// Backups bind save-off/save-on to the process they prepared. The service
-	// may already route to a replacement pod, which must reject the old UID.
-	for _, version := range []string{"v1", "v2"} {
-		r.Route("/"+version+"/pods/{uid}", func(protected chi.Router) {
-			protected.Use(authCheck.Middleware, target.Guard(envOr("GAMEPLANE_POD_UID", "")), middleware.Timeout(30*time.Second))
-			protected.Get("/identity", func(w http.ResponseWriter, _ *http.Request) {
-				if version == "v2" && flushOnly {
-					w.Header().Set("Gameplane-Backup-Mode", "flush-only")
+	// A file-only pod serves no game routes, so the pod-bound backup routes
+	// (quiesce, identity) are not mounted there either.
+	if !filesOnly {
+		// Backups bind save-off/save-on to the process they prepared. The service
+		// may already route to a replacement pod, which must reject the old UID.
+		for _, version := range []string{"v1", "v2"} {
+			r.Route("/"+version+"/pods/{uid}", func(protected chi.Router) {
+				protected.Use(authCheck.Middleware, target.Guard(envOr("GAMEPLANE_POD_UID", "")), middleware.Timeout(30*time.Second))
+				protected.Get("/identity", func(w http.ResponseWriter, _ *http.Request) {
+					if version == "v2" && flushOnly {
+						w.Header().Set("Gameplane-Backup-Mode", "flush-only")
+					}
+					w.WriteHeader(http.StatusNoContent)
+				})
+				if version == "v2" {
+					quiesce.MountVerified(protected, commands, gameName, quiesceSpec)
+					if flushOnly {
+						quiesce.MountMinecraftFlush(protected, commands)
+					}
+				} else {
+					quiesce.Mount(protected, commands, gameName, quiesceSpec)
 				}
-				w.WriteHeader(http.StatusNoContent)
 			})
-			if version == "v2" {
-				quiesce.MountVerified(protected, commands, gameName, quiesceSpec)
-				if flushOnly {
-					quiesce.MountMinecraftFlush(protected, commands)
-				}
-			} else {
-				quiesce.Mount(protected, commands, gameName, quiesceSpec)
-			}
-		})
+		}
 	}
 
 	srv := &http.Server{
@@ -264,39 +263,43 @@ func main() {
 	})
 	go usageReader.MonitorDisk(ctx)
 
-	// Prometheus metrics for per-server resource usage and player counts.
-	// Registered with the default registry so promhttp.Handler() picks it up.
-	m := metrics.New()
-	prometheus.MustRegister(statusSource)
-	go statusSource.Run(ctx)
+	// A file-only pod runs next to a stopped game: it must not poll RCON,
+	// write status.agent or heartbeat for a server that is not running.
+	if !filesOnly {
+		// Prometheus metrics for per-server resource usage and player counts.
+		// Registered with the default registry so promhttp.Handler() picks it up.
+		m := metrics.New()
+		prometheus.MustRegister(statusSource)
+		go statusSource.Run(ctx)
 
-	// Resource usage: in proc mode (the operator shares the pod's PID
-	// namespace and sets GAMEPLANE_USAGE_PROC) the agent reports the game
-	// process's CPU/memory from /proc and uses the operator-supplied limits
-	// as the denominator; otherwise it falls back to its own cgroup.
-	go heartbeat.Run(ctx, heartbeat.Config{
-		ServerName: serverName,
-		Template:   templateName,
-		Game:       gameName,
-		Version:    Version,
-		RCON:       rconClient,
-		Interval:   20 * time.Second,
-		PlayerList: func() *caps.PlayerList {
-			if playerActions != nil {
-				return playerActions.List
-			}
-			return nil
-		}(),
-		PlayerQuery: func() *caps.PlayerQuery {
-			if playerActions != nil {
-				return playerActions.Query
-			}
-			return nil
-		}(),
-		QueryHost: rconHost,
-		Usage:     usageReader,
-		Metrics:   m,
-	})
+		// Resource usage: in proc mode (the operator shares the pod's PID
+		// namespace and sets GAMEPLANE_USAGE_PROC) the agent reports the game
+		// process's CPU/memory from /proc and uses the operator-supplied limits
+		// as the denominator; otherwise it falls back to its own cgroup.
+		go heartbeat.Run(ctx, heartbeat.Config{
+			ServerName: serverName,
+			Template:   templateName,
+			Game:       gameName,
+			Version:    Version,
+			RCON:       rconClient,
+			Interval:   20 * time.Second,
+			PlayerList: func() *caps.PlayerList {
+				if playerActions != nil {
+					return playerActions.List
+				}
+				return nil
+			}(),
+			PlayerQuery: func() *caps.PlayerQuery {
+				if playerActions != nil {
+					return playerActions.Query
+				}
+				return nil
+			}(),
+			QueryHost: rconHost,
+			Usage:     usageReader,
+			Metrics:   m,
+		})
+	}
 
 	go func() {
 		logger.Info("agent listening", "addr", addr, "tls", srv.TLSConfig != nil, "version", Version)
@@ -345,6 +348,54 @@ func main() {
 	if metricsSrv != nil {
 		_ = metricsSrv.Shutdown(shutdownCtx)
 	}
+}
+
+// protectedRoutes carries what the mTLS-protected control routes are built
+// from. It exists so the same mounting code serves the full agent and the
+// --files-only pod, and can be exercised by tests without running main.
+type protectedRoutes struct {
+	dataRoot       string
+	gameLogPath    string
+	maxUploadBytes int64
+	rconClient     rcon.Executor
+	commands       *rcon.Commands
+	gameName       string
+	modsSpec       *caps.Mods
+	playerActions  *caps.PlayerActions
+	quiesceSpec    *caps.Quiesce
+	lifecycleSpec  *caps.Lifecycle
+	actionSpecs    []caps.ServerAction
+	statusSource   *status.Source
+	filesOnly      bool
+}
+
+// mount registers the protected routes on protected. A files-only pod stops
+// after the file browser: console, logs, mods, players, quiesce, lifecycle,
+// actions and status are not served there.
+func (p protectedRoutes) mount(protected chi.Router) {
+	// Console/Logs open long-lived WebSockets and Mods installs can run
+	// well past a short request deadline (a large download bounded by
+	// its own HTTP client timeout, not the router's). None of these are
+	// ordinary bounded REST calls, so they're mounted without
+	// middleware.Timeout (F-103): applying a request-scoped deadline to
+	// them force-closes the socket / aborts the download every time the
+	// deadline elapses, regardless of whether the stream is still healthy.
+	files.Mount(protected, p.dataRoot, files.WithMaxUploadBytes(p.maxUploadBytes))
+	if p.filesOnly {
+		return
+	}
+	logs.Mount(protected, p.dataRoot, p.gameLogPath)
+	console.Mount(protected, p.rconClient)
+	mods.Mount(protected, p.dataRoot, p.modsSpec)
+
+	protected.Group(func(bounded chi.Router) {
+		bounded.Use(middleware.Timeout(30 * time.Second))
+		players.Mount(bounded, p.rconClient, p.gameName, p.playerActions, p.dataRoot)
+		quiesce.Mount(bounded, p.commands, p.gameName, p.quiesceSpec)
+		lifecycle.Mount(bounded, p.rconClient, p.gameName, p.lifecycleSpec)
+		actions.Mount(bounded, p.rconClient, p.gameName, p.actionSpecs)
+		p.statusSource.Mount(bounded)
+	})
 }
 
 // errTLSFlagsUnpaired reports that only one of --tls-cert / --tls-key was set.

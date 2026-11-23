@@ -333,6 +333,8 @@ spec:
             - --agent-client-cert=/etc/gameplane/agent-client/tls.crt
             - --agent-client-key=/etc/gameplane/agent-client/tls.key
             {{- end }}
+            {{- /* Shared with the dashboard Files tab; also applies on standalone installs. */}}
+            - {{ printf "--files-max-upload-bytes=%s" (include "gameplane.quantityBytes" ((.Values.files | default dict).maxUploadSize | default "20Gi")) | quote }}
             {{- if gt (int .Values.api.audit.retentionDays) 0 }}
             - --audit-retention-days={{ .Values.api.audit.retentionDays }}
             {{- end }}
@@ -427,6 +429,14 @@ spec:
             {{- if and (not .Values.api.standalone) .Values.clusterOps.enabled }}
             - name: GAMEPLANE_CLUSTER_OPS
               value: "true"
+            {{- end }}
+            {{- /* Local SFTP endpoint (spec 040): the API seeds this service token so the in-cluster pod can log in. */}}
+            {{- if and (.Values.sftp | default dict).enabled (not (.Values.sftp | default dict).apiURL) }}
+            - name: GAMEPLANE_SFTP_LOCAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gameplane-sftp-service-token
+                  key: token
             {{- end }}
             {{- if .Values.api.oidc.enabled }}
             - name: GAMEPLANE_OIDC_CLIENT_SECRET

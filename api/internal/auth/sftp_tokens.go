@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -43,6 +44,36 @@ func newSFTPToken(prefix string) string {
 // It runs before any query, so malformed bearer values never reach the database.
 func validSFTPToken(raw, prefix string) bool {
 	return strings.HasPrefix(raw, prefix) && len(raw) == len(prefix)+sftpTokenBodyLen
+}
+
+// errSFTPSeedFormat is returned by SeedSFTPServiceToken for a value that is not a generated service token.
+var errSFTPSeedFormat = errors.New("sftp service token has the wrong format")
+
+// SeedSFTPServiceToken registers a service token supplied by the deployment (the chart's local SFTP
+// token, spec 040) for cluster, so the SFTP pod in the panel's own cluster can log in without an admin
+// step. It is idempotent: a digest already stored, revoked or not, is left alone, so a token an admin
+// revoked stays revoked across restarts. At the per-cluster active limit it logs and returns nil; the
+// seeded token then stays unusable until an admin revokes one.
+func (s *SessionStore) SeedSFTPServiceToken(ctx context.Context, cluster, raw string) error {
+	if !validSFTPToken(raw, SFTPServicePrefix) {
+		return fmt.Errorf("seed sftp service token: %w", errSFTPSeedFormat)
+	}
+	digest := sessionDigest(raw)
+	exists, err := sftpExists(ctx, s.db.DB, `SELECT 1 FROM sftp_service_tokens WHERE digest = ?`, digest)
+	if err != nil {
+		return fmt.Errorf("seed sftp service token: lookup: %w", err)
+	}
+	if exists {
+		return nil
+	}
+	if _, err := s.InsertSFTPServiceToken(ctx, cluster, digest, raw[:sftpTokenPrefixLen]); err != nil {
+		if errors.Is(err, ErrSFTPServiceTokenLimit) {
+			slog.Warn("sftp: seeded service token not stored, the cluster is at its active token limit; revoke one to use it", "cluster", cluster)
+			return nil
+		}
+		return fmt.Errorf("seed sftp service token: %w", err)
+	}
+	return nil
 }
 
 // CreateSFTPServiceToken makes a service token for cluster (e.g. "local"). The token is returned once.

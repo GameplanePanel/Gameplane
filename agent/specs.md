@@ -156,6 +156,7 @@ Mode: In-pod HTTP/HTTPS sidecar (runs as a container sidecar or as a pod share-p
 | `--log-level` | `info` (from env) | `GAMEPLANE_LOG_LEVEL` | Log verbosity: `debug`, `info`, `warn`, `error` |
 | `--cli-pipe` | `/var/run/gameplane/console.pipe` (from env) | `GAMEPLANE_CLI_PIPE` | Named FIFO pipe used by the `cli` RCON protocol to drive commands via container stdin/PTY |
 | `--max-upload-bytes` | `21474836480` (20 GiB) | — | Size limit in bytes for one `/files/stream` upload, counting the resume offset plus the body (Helm `files.maxUploadSize`) |
+| `--files-only` | `false` | — | Serve only `/files/*`, `/healthz` and metrics; console, logs, mods, players, RCON-backed routes, status, quiesce and the heartbeat are not started (see the file-only pod paragraph below) |
 
 Resource usage env vars (set by the operator):
 
@@ -164,6 +165,8 @@ Resource usage env vars (set by the operator):
 | `GAMEPLANE_USAGE_PROC` | When `"1"`, enables proc mode (reads game process CPU/memory from `/proc`); otherwise falls back to cgroup mode |
 | `GAMEPLANE_CPU_LIMIT_MILLICORES` | Game container's CPU limit (for usage percentage calculation) |
 | `GAMEPLANE_MEM_LIMIT_BYTES` | Game container's memory limit |
+
+**File-only pod (`--files-only`, spec 040):** while a GameServer is stopped, the operator may run a short-lived pod `<gs>-files` whose agent is started with `--files-only`. That mode mounts only the file routes (`/files/*`), `/healthz` and the metrics listener, and runs no heartbeat, RCON polling or status writer, so it never patches `status.agent` of a server that is not running. The pod mounts the data volume, the agent TLS Secret and the active mod volume; it has no RCON password or mod-portal credentials and no service-account token.
 
 ### Endpoint groups (from mounted routes in cmd/main.go; openapi.yaml documents a subset)
 

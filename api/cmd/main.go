@@ -283,6 +283,13 @@ func main() {
 	authRegistry.AttachAuditWriteSyncFunc(auditor.WriteSync)
 	sessions.AttachMCPAudit(auditor.WriteSync)
 	sessions.AttachSFTPAudit(auditor.WriteSync)
+	// Local SFTP endpoint (spec 040): the chart passes the service token its SFTP pod uses in
+	// this cluster. A seeding failure is logged, not fatal: the panel still starts.
+	if tok := os.Getenv("GAMEPLANE_SFTP_LOCAL_SERVICE_TOKEN"); tok != "" {
+		if err := sessions.SeedSFTPServiceToken(ctx, scope.DefaultCluster, tok); err != nil {
+			logger.Error("seed sftp service token", "err", err)
+		}
+	}
 
 	// Notification delivery: watch CRD status transitions (server health,
 	// backup/restore outcomes) and push matching events to the sinks

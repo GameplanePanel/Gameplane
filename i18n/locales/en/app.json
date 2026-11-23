@@ -939,6 +939,10 @@
     "defaultMessage": "empty body",
     "description": "API error when a route that expects a JSON body receives none."
   },
+  "server.files.starting": {
+    "defaultMessage": "files are starting, try again in a moment",
+    "description": "API error when a stopped or asleep server's file-only pod is not ready within 60 s (ws/ensure_files.go:ensureFiles); retry after a short wait."
+  },
   "server.forbidden": {
     "defaultMessage": "forbidden",
     "description": "API error when the caller, or the API's service identity in Kubernetes, is not allowed to perform the operation."

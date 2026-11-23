@@ -50,9 +50,9 @@
 - [X] T017 `POST /sftp/v1/login` and `POST /sftp/v1/sessions/check` in `api/internal/handlers/sftp_login.go` per contracts/api.md: service-token auth, split at the last `+`, target checked with the T015 helper (`Allow` list), generic 401 (`server.sftp.login_failed`), shared login rate limiter from `api/internal/auth/ratelimit.go`, audit rows for success and failure.
 - [X] T018 Self-service credential routes `GET /users/me/sftp`, `POST|DELETE /users/me/sftp/keys[/{id}]`, `POST|DELETE /users/me/sftp/password` in `api/internal/handlers/sftp.go`, mounted from `MountUsers`; refused for session-token and MCP-token requests.
 - [X] T019 API tests in new files: `api/internal/auth/sftp_test.go` (key types, password alphabet and length distribution, hash, token digests, epoch), `api/internal/auth/sftp_guard_test.go` (allow-list, cluster forcing), `api/internal/audit/audit_source_test.go`, `api/internal/handlers/sftp_login_envtest_test.go` (login matrix, rate limit, generic refusals), migration test on SQLite and PostgreSQL.
-- [ ] T020 [P] API client in `sftp/internal/apiclient/client.go`: login, session check, `GET /sftp/v1/servers`, `files/list`, `files/stat`, `files/download` with `Range`, `files/stream`, `files/rename`, `files/mkdir`, `files/delete`; API errors mapped to SFTP status codes; optional CA bundle.
-- [ ] T021 SSH server in `sftp/internal/sshserver/server.go` and `sftp/cmd/main.go`: host key from a mounted Secret file, password and public-key callbacks that call `/sftp/v1/login`, SFTP subsystem only (no shell, exec, port forwarding or SCP, FR-004), idle timeout, per-user session cap, 30 s `sessions/check` loop closing revoked sessions, Prometheus metrics (sessions, logins by result, bytes) (FR-022).
-- [ ] T022 Minimal chart template `charts/gameplane/templates/sftp.yaml` and `values.yaml` keys `sftp.enabled` (false), `sftp.port` (2222), `sftp.image`: Deployment, ClusterIP Service, host key Secret generated once (`lookup`, `helm.sh/resource-policy: keep`), local service token Secret shared with the API; NetworkPolicy in `charts/gameplane/templates/networkpolicies.yaml` for SFTP ingress and egress to the API only.
+- [X] T020 [P] API client in `sftp/internal/apiclient/client.go`: login, session check, `GET /sftp/v1/servers`, `files/list`, `files/stat`, `files/download` with `Range`, `files/stream`, `files/rename`, `files/mkdir`, `files/delete`; API errors mapped to SFTP status codes; optional CA bundle.
+- [X] T021 SSH server in `sftp/internal/sshserver/server.go` and `sftp/cmd/main.go`: host key from a mounted Secret file, password and public-key callbacks that call `/sftp/v1/login`, SFTP subsystem only (no shell, exec, port forwarding or SCP, FR-004), idle timeout, per-user session cap, 30 s `sessions/check` loop closing revoked sessions, Prometheus metrics (sessions, logins by result, bytes) (FR-022).
+- [X] T022 Minimal chart template `charts/gameplane/templates/sftp.yaml` and `values.yaml` keys `sftp.enabled` (false), `sftp.port` (2222), `sftp.image`: Deployment, ClusterIP Service, host key Secret generated once (`lookup`, `helm.sh/resource-policy: keep`), local service token Secret shared with the API; NetworkPolicy in `charts/gameplane/templates/networkpolicies.yaml` for SFTP ingress and egress to the API only.
 - [ ] T023 Add the `sftp` submodule: `.gitmodules` entry with `component = true`, path filters for `hack/submodules.sh check`, `IMAGES += sftp` and `image-sftp` in `Makefile`, release image list and cosign signing.
 
 **Checkpoint**: an SFTP server deploys, logs a seeded user in, and can call the API; user story phases can start.
@@ -67,12 +67,12 @@
 
 ### Tests for User Story 1
 
-- [ ] T024 [P] [US1] Component tests in `sftp/internal/vfs/read_test.go` against an `httptest` API: tree `/<server>` and `/_namespaces/<ns>/<server>`, per-server login root, dotfiles absent, root and server folders read-only, download from an offset.
-- [ ] T025 [P] [US1] Component tests in `sftp/internal/sshserver/server_test.go`: shell, exec and forwarding refused; revoked session closed after the check loop; session cap.
+- [X] T024 [P] [US1] Component tests in `sftp/internal/vfs/read_test.go` against an `httptest` API: tree `/<server>` and `/_namespaces/<ns>/<server>`, per-server login root, dotfiles absent, root and server folders read-only, download from an offset.
+- [X] T025 [P] [US1] Component tests in `sftp/internal/sshserver/server_test.go`: shell, exec and forwarding refused; revoked session closed after the check loop; session cap.
 
 ### Implementation for User Story 1
 
-- [ ] T026 [US1] Read-side VFS in `sftp/internal/vfs/vfs.go` implementing `pkg/sftp` `FileLister` and `FileReader`: root from `GET /sftp/v1/servers` (the helper's `VisibleServers`) (default games namespace at the top, others under `/_namespaces/`), per-server login rooted at one server, `Stat`/`Lstat` via `files/stat`, `ReadAt` via ranged `files/download`; mkdir/rename/remove at the root or a server folder return permission denied (FR-012).
+- [X] T026 [US1] Read-side VFS in `sftp/internal/vfs/vfs.go` implementing `pkg/sftp` `FileLister` and `FileReader`: root from `GET /sftp/v1/servers` (the helper's `VisibleServers`) (default games namespace at the top, others under `/_namespaces/`), per-server login rooted at one server, `Stat`/`Lstat` via `files/stat`, `ReadAt` via ranged `files/download`; mkdir/rename/remove at the root or a server folder return permission denied (FR-012).
 
 **Checkpoint**: US1 works on its own against a running server.
 
@@ -86,15 +86,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T027 [P] [US2] Component tests in `sftp/internal/vfs/write_test.go`: sequential write streams once, first write at offset N resumes, out-of-order write returns `SSH_FX_OP_UNSUPPORTED`, temp-and-rename, `SETSTAT` mode/time no-op and owner refused, write on a read-only server refused, transfer cap.
-- [ ] T028 [P] [US2] Envtest `api/internal/handlers/files_stream_envtest_test.go`: stream, rename and stat through the API with read-only, write, owner and collaborator users; body limit; audit `source`.
+- [X] T027 [P] [US2] Component tests in `sftp/internal/vfs/write_test.go`: sequential write streams once, first write at offset N resumes, out-of-order write returns `SSH_FX_OP_UNSUPPORTED`, temp-and-rename, `SETSTAT` mode/time no-op and owner refused, write on a read-only server refused, transfer cap.
+- [X] T028 [P] [US2] Envtest `api/internal/handlers/files_stream_envtest_test.go`: stream, rename and stat through the API with read-only, write, owner and collaborator users; body limit; audit `source`.
 
 ### Implementation for User Story 2
 
-- [ ] T029 [US2] Write-side VFS in `sftp/internal/vfs/write.go` implementing `FileWriter` and `FileCmder`: one `files/stream` call per open handle fed by a pipe, resume on a first write at offset N > 0, rename (incl. `posix-rename@openssh.com`), mkdir, remove, rmdir, `SETSTAT` per FR-017, per-user transfer cap.
+- [X] T029 [US2] Write-side VFS in `sftp/internal/vfs/write.go` implementing `FileWriter` and `FileCmder`: one `files/stream` call per open handle fed by a pipe, resume on a first write at offset N > 0, rename (incl. `posix-rename@openssh.com`), mkdir, remove, rmdir, `SETSTAT` per FR-017, per-user transfer cap.
 - [ ] T030 [US2] Dashboard streaming upload (FR-018b) after T004 sign-off: `web/src/routes/tabs/Files.tsx` uploads each file with `PUT files/stream` using `XMLHttpRequest` upload progress, per-file progress and cancel per the design; `uploadStream` in `web/src/lib/api.ts`; i18n strings in the web pack.
 - [ ] T031 [US2] Vitest `web/src/routes/tabs/Files_stream.test.tsx`: progress, cancel, error states, size-limit message.
-- [ ] T032 [US2] Helm `files.maxUploadSize` (default `20Gi`) in `charts/gameplane/values.yaml`, passed to the operator (agent flag `--max-upload-bytes`, built in `buildAgentContainer` in `operator/internal/controller/gameserver_controller.go`), the API and the gateway; keep the multipart `files/upload` route for one release.
+- [X] T032 [US2] Helm `files.maxUploadSize` (default `20Gi`) in `charts/gameplane/values.yaml`, passed to the operator (agent flag `--max-upload-bytes`, built in `buildAgentContainer` in `operator/internal/controller/gameserver_controller.go`), the API and the gateway; keep the multipart `files/upload` route for one release.
 
 **Checkpoint**: US1 and US2 both work; P1 scope is shippable.
 
@@ -150,16 +150,16 @@
 
 ### Tests for User Story 5
 
-- [ ] T043 [P] [US5] Operator envtest `operator/internal/controller/gameserver_files_envtest_test.go`: pod created only while replicas are 0 and the annotation is fresh, `<name>-agent` selector switched both ways, idle teardown, start while active waits for deletion, asleep server not woken, server delete removes the pod, no host ports.
-- [ ] T044 [P] [US5] API test `api/internal/ws/ensure_files_test.go`: annotation patched at most once a minute, 60 s wait, `503 server.files.starting`.
+- [X] T043 [P] [US5] Operator envtest `operator/internal/controller/gameserver_files_envtest_test.go`: pod created only while replicas are 0 and the annotation is fresh, `<name>-agent` selector switched both ways, idle teardown, start while active waits for deletion, asleep server not woken, server delete removes the pod, no host ports.
+- [X] T044 [P] [US5] API test `api/internal/ws/ensure_files_test.go`: annotation patched at most once a minute, 60 s wait, `503 server.files.starting`.
 
 ### Implementation for User Story 5
 
-- [ ] T045 [US5] Agent files-only mode flag `--files-only` in `agent/cmd/main.go`: mount only `/files/*`, `/healthz` and metrics.
-- [ ] T046 [US5] Reconciler `operator/internal/controller/gameserver_files.go`: file-only Pod (labels `app.kubernetes.io/name: gameplane-files`, `app.kubernetes.io/instance: <name>`, server volumes, agent container from `buildAgentContainer` with `--files-only`, owned by the GameServer, no host ports) while replicas are 0 and `gameplane.local/files-requested-at` is younger than `--files-idle-timeout`; switch the `<name>-agent` Service selector in `reconcileAgentService`; delete on idle or server delete; flag in `operator/cmd/main.go`, Helm `operator.filesIdleTimeout` (`10m`).
-- [ ] T047 [US5] Start ordering in `desiredReplicas` in `operator/internal/controller/gameserver_controller.go`: delete the file-only pod and requeue until it is gone before scaling up; file access never sets a wake.
-- [ ] T048 [US5] NetworkPolicy in `charts/gameplane/templates/networkpolicies.yaml` allowing API, operator and gateway ingress to `gameplane-files` pods on 8090 only.
-- [ ] T049 [US5] Ensure-files in the API file routes in `api/internal/ws/dialer.go` (new helper `api/internal/ws/ensure_files.go`): when the server is stopped or asleep, patch the annotation, wait up to 60 s for the agent Service, otherwise `503 server.files.starting`; works for remote clusters through the registry client.
+- [X] T045 [US5] Agent files-only mode flag `--files-only` in `agent/cmd/main.go`: mount only `/files/*`, `/healthz` and metrics.
+- [X] T046 [US5] Reconciler `operator/internal/controller/gameserver_files.go`: file-only Pod (labels `app.kubernetes.io/name: gameplane-files`, `app.kubernetes.io/instance: <name>`, server volumes, agent container from `buildAgentContainer` with `--files-only`, owned by the GameServer, no host ports) while replicas are 0 and `gameplane.local/files-requested-at` is younger than `--files-idle-timeout`; switch the `<name>-agent` Service selector in `reconcileAgentService`; delete on idle or server delete; flag in `operator/cmd/main.go`, Helm `operator.filesIdleTimeout` (`10m`).
+- [X] T047 [US5] Start ordering in `desiredReplicas` in `operator/internal/controller/gameserver_controller.go`: delete the file-only pod and requeue until it is gone before scaling up; file access never sets a wake.
+- [X] T048 [US5] NetworkPolicy in `charts/gameplane/templates/networkpolicies.yaml` allowing API, operator and gateway ingress to `gameplane-files` pods on 8090 only.
+- [X] T049 [US5] Ensure-files in the API file routes in `api/internal/ws/dialer.go` (new helper `api/internal/ws/ensure_files.go`): when the server is stopped or asleep, patch the annotation, wait up to 60 s for the agent Service, otherwise `503 server.files.starting`; works for remote clusters through the registry client.
 - [ ] T050 [US5] Files tab "files are starting" state after T004 sign-off in `web/src/routes/tabs/Files.tsx`, Vitest `web/src/routes/tabs/Files_starting.test.tsx`.
 
 **Checkpoint**: all five stories work independently.
