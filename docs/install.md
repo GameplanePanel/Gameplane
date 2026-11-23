@@ -415,6 +415,9 @@ Top-level knobs (see `values.yaml` for the full list):
   Each server gets a contiguous block, kept for its life. Use it when servers
   are reached through a relay or an edge that forwards ports, as games whose
   clients send no hostname must be. See [Networking](networking.md#port-pools).
+- `operator.templateHostnames` — default player hostnames keyed by GameTemplate
+  name for NodePort and LoadBalancer servers. Each server can override its
+  template default in Networking settings. See [Default player hostname per game template](networking.md#default-player-hostname-per-game-template).
 - `capture.enabled` — the optional network packet capture sidecar [optional] for GameServers
   (default `false`). When enabled cluster-wide, admins can opt individual GameServers
   into live AF_PACKET capture with BPF filtering and download PCAPNG files. Captures
