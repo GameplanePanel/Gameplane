@@ -5,7 +5,7 @@
     "name": "Gameplane/Provenance Badge/Not configured",
     "width": 115,
     "height": 17,
-    "hash": "a6f27ccd0b656891b879e269fc4519f94f84e5d757b6f175e1a76e3c31828dd8"
+    "hash": "90ba3c20f56470574c986c2e7f311c7d6ede1f1b836a519abd4d299e16a7cea2"
   },
   {
     "file": "CqaSq",
@@ -13,7 +13,7 @@
     "name": "Gameplane/Role Editor Modal",
     "width": 480,
     "height": 513,
-    "hash": "84074a4bff6843913b570a41b29129580ba75e93446d12a4ce5c0b4fd986c77b"
+    "hash": "167f98c1ac00aec40e55916070c11a0b17e07d837723f0e11dafcc106188c031"
   },
   {
     "file": "DMnEi",
@@ -21,7 +21,7 @@
     "name": "Gameplane/Dialog/Add Module Source",
     "width": 480,
     "height": 885,
-    "hash": "d1d6a53e8e6159e41d70ee22e329caa730dc32f5b64693e7f2c2be7dcd3bb4c4"
+    "hash": "ca3037ce0d185a6c6a970f2a0887ab7ca97735de00b533adc3f58da3a73f2979"
   },
   {
     "file": "E9EEv0",
@@ -29,7 +29,7 @@
     "name": "Gameplane/Dialog/Restore Backup",
     "width": 480,
     "height": 389,
-    "hash": "345bd0fb094d2c6fb34b3274e3be40373faafacc2d0dddb1c439944ab3da7c2f"
+    "hash": "9eda1e5f990da49cb6ca33369dc36ba7bf3021756356d3a498af33a2a007df02"
   },
   {
     "file": "Kp48V",
@@ -45,7 +45,7 @@
     "name": "Gameplane/Dialog/Reset Password",
     "width": 480,
     "height": 215,
-    "hash": "a1be31f2325f39a981c0ffea5d8aa316c8906d170dbf8eef6ec4215622a18776"
+    "hash": "f01c5ea45f0085a5fe132d0a34fbc87927bdec63d882fcd19006a2af4fa25804"
   },
   {
     "file": "NLDDv",
@@ -53,7 +53,7 @@
     "name": "Gameplane/Dialog/Invite User",
     "width": 480,
     "height": 516,
-    "hash": "5c925f6f8b526d7db1fffc4c845b71080d90355a727d71bf169a8dc9074691d2"
+    "hash": "24eb3554200b847199caaeaa3152e4f407666248e0c91092bbfc9afd898361a8"
   },
   {
     "file": "R65Xyx",
@@ -61,7 +61,7 @@
     "name": "Gameplane/Provenance Badge/Overridden",
     "width": 169,
     "height": 17,
-    "hash": "9c947b27daea5d068defa7a80d369efb305847d7c7b816095e6e60463210a734"
+    "hash": "f9191c3fb79a87c89f8e7fa016b7369143866f8374b403cf3f78d37b8bb775d3"
   },
   {
     "file": "Rwnu3",
@@ -69,7 +69,7 @@
     "name": "Gameplane/Provenance Badge/From Helm",
     "width": 127,
     "height": 17,
-    "hash": "719375922644cd74eb532ab5f11c28e28dadd1c47c1662f7ff516568dfe65a4e"
+    "hash": "da8e9cc4a602054d79c5e087c8ade02ffd0e028f44f5f26512f4b316b63f64f2"
   },
   {
     "file": "S7SCDc",
@@ -85,7 +85,7 @@
     "name": "Gameplane/Dialog/Share Link Created",
     "width": 480,
     "height": 380,
-    "hash": "d7394f521d89b4bbee760c5ecdd6092d4f1202c0c460764a698b270089ffaaeb"
+    "hash": "2bb7c4817914fb650f1388db5f3cb2919ee645bbbc803a9d7b87c573c44ed7b3"
   },
   {
     "file": "XL5ZU",
@@ -93,7 +93,7 @@
     "name": "Gameplane/Removable Group Chip/Orange",
     "width": 83,
     "height": 23,
-    "hash": "c56c7aabe9b203a303654c881edad7d4998e690f0a0a7352b689fdd8e4418229"
+    "hash": "d0f732437f659f8af9331cdbe52097ab9c6a28ce4dd05fa1439e2a1699e4ebd1"
   },
   {
     "file": "atqRh",
@@ -101,7 +101,7 @@
     "name": "Gameplane/Dialog/Create Share Link",
     "width": 480,
     "height": 302,
-    "hash": "484193102fad9e2b9416575ec71fd292e36cfd89bc5f06901fafaae0172432e0"
+    "hash": "ca9ab9c4adfb2fd581bc40d669e423826a04f256794fa8932d5eb5509c75aeaf"
   },
   {
     "file": "bHJy6",
@@ -117,7 +117,7 @@
     "name": "Integrity Banner (Broken)",
     "width": 1132,
     "height": 64,
-    "hash": "7da873f667c4bd5b142a69f9ea01421366cccf93a81c9a3831f651eb5bb49d1a"
+    "hash": "72db58c0d54bc99bc37d71d0f7679c2f9d530a71231b910443bd2432a37d9ce7"
   },
   {
     "file": "t3IY3u",
@@ -125,7 +125,7 @@
     "name": "Gameplane/Dialog/Edit User",
     "width": 480,
     "height": 558,
-    "hash": "a6b7934776a545d8898996d067d258c6e5634eb4763dc950210d021b4d93b659"
+    "hash": "f64d8fd07763d2d8c30aa177d3186cbd9a11e7ae16815cb1acd975b638843b23"
   },
   {
     "file": "uw0dB",
@@ -133,7 +133,7 @@
     "name": "Gameplane/Removable Group Chip/Secondary",
     "width": 77,
     "height": 23,
-    "hash": "c0d186b39901b1bd17bcf57adb85a44cdee6a1af9067e0690aa312b342da4590"
+    "hash": "6959522d0bb443cfccf5136c576b22a41843aae77582351a74f0891143b500aa"
   },
   {
     "file": "vStkb",
@@ -141,7 +141,7 @@
     "name": "Gameplane/Removable Group Chip/Violet",
     "width": 77,
     "height": 23,
-    "hash": "9e9eee6302f18bfb85c24c139d628eea1203125bd2e5d4130c9147f8a78cfaf3"
+    "hash": "930971de322ebfebe0e447e440cb018e009ce60cb508eda6a58bced989716be7"
   },
   {
     "file": "zhLZN",
@@ -149,7 +149,47 @@
     "name": "Gameplane/Backup Detail Drawer",
     "width": 440,
     "height": 760,
-    "hash": "5f661235dd27985a2fbfb7292b68cb3c364ee40d7d37e821b9ad26571b0b070f"
+    "hash": "39411551a5833b8a60b919ef6e52ab7b38f61db4648681e9777c032957e335d2"
+  },
+  {
+    "file": "security-advanced",
+    "figId": "1344695818:183",
+    "name": "Gameplane/Security Advanced",
+    "width": 860,
+    "height": 651,
+    "hash": "83f49a80d3bb7cbe63f14cb5f6deeb6ce67ccd98397ba6d028b8d8a1820a564e"
+  },
+  {
+    "file": "security-advanced-mobile",
+    "figId": "1344695818:343",
+    "name": "Gameplane/Security Advanced/Mobile",
+    "width": 327,
+    "height": 891,
+    "hash": "bc7cd0e6f699c6c3d18e4b309aba852fb5cfd665230d7d0e80da544906d694ec"
+  },
+  {
+    "file": "dialog-risky-security-value",
+    "figId": "1344695818:344",
+    "name": "Gameplane/Dialog/Risky Security Value",
+    "width": 480,
+    "height": 271,
+    "hash": "220166db07fea752ec41c0c514619067fdaf0625786b928e2f04f27b2a9be207"
+  },
+  {
+    "file": "dialog-security-file-access",
+    "figId": "1344695818:363",
+    "name": "Gameplane/Dialog/Security File Access Warning",
+    "width": 480,
+    "height": 286,
+    "hash": "a1046cf96a3fe71a0e224c5410d064ca838be92ae992ebd9df77f97af6250fac"
+  },
+  {
+    "file": "cluster-security-panel",
+    "figId": "1344695818:414",
+    "name": "Gameplane/Cluster Security Panel",
+    "width": 1132,
+    "height": 209,
+    "hash": "d0bc64736eaf66503edcf7b984ec01720afa598ed07d1227e82b13b0da5f95ae"
   },
   {
     "file": "UserMenu",
@@ -157,6 +197,6 @@
     "name": "Gameplane/Top Bar — User Menu",
     "width": 232,
     "height": 181,
-    "hash": "26806925bb1e863c648b974cde4cb459f39fcc87582a194d4a03ade661c597bb"
+    "hash": "30533515c59a99fcc4c9ec2861ad5bbfa4ea0a0c7b87f7afef0a81b0abe64725"
   }
 ]

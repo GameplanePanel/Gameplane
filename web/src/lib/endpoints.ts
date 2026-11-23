@@ -20,6 +20,7 @@ import type {
   CustomColorConfig,
   ExtendedUser,
   GameServer,
+  GameServerSecuritySpec,
   GameTemplate,
   InstalledMod,
   ModID,
@@ -42,6 +43,7 @@ import type {
   Restore,
   Role,
   RoleBinding,
+  SecuritySettingsResponse,
   ServerEvent,
   StatusReading,
   ThemePresetId,
@@ -97,6 +99,7 @@ export interface ServerCreate {
   };
   resources?: unknown;
   nodeSelector?: Record<string, string>;
+  security?: GameServerSecuritySpec;
 }
 
 function gameServerEnvelope(input: ServerCreate) {
@@ -132,7 +135,7 @@ export interface NamespacesResponse {
 export const Clusters = {
   // The local cluster is present only on combined installations.
   list: () => api<List<ClusterRegistry>>("/clusters"),
-  register: (body: { name: string; displayName: string; kubeconfig: string }) =>
+  register: (body: { name: string; displayName: string; kubeconfig: string; controlPlaneNamespace?: string }) =>
     api<ClusterRegistry>("/clusters", { method: "POST", body }),
   remove: (name: string) => api<void>(`/clusters/${encodeURIComponent(name)}`, { method: "DELETE" }),
 };
@@ -940,6 +943,12 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
       api<void>(`/backup-destinations/${name}`, { method: "DELETE" }),
   };
 
+  // Spec 030: cluster-wide root-override switch (no resourceVersion; PUT replaces the flag).
+  const SecuritySettings = {
+    get: (cluster?: string, signal?: AbortSignal) => api<SecuritySettingsResponse>("/security-settings", { cluster, signal }),
+    put: (allowRootOverrides: boolean, cluster?: string) => api<SecuritySettingsResponse>("/security-settings", { method: "PUT", body: { allowRootOverrides }, cluster }),
+  };
+
   const Players = {
     snapshot: (server: string, ns?: string) => api<PlayersResp>(withNS(`/servers/${server}/players`, ns)),
     banned: (server: string, ns?: string) =>
@@ -1075,7 +1084,7 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
     podStreamPath: (server: string, ns?: string) =>
       withCluster(withNS(`/ws/servers/${encodeURIComponent(server)}/logs/pod?from=start`, ns)),
   };
-  return { Servers, Templates, Namespaces, Cluster, Backups, Schedules, Restores, BackupDestinations, Players, Files, Logs, Captures: request.Captures, Shares: request.Shares };
+  return { Servers, Templates, Namespaces, Cluster, Backups, Schedules, Restores, BackupDestinations, SecuritySettings, Players, Files, Logs, Captures: request.Captures, Shares: request.Shares };
 }
 
 /** Capture cluster/namespace once before starting any asynchronous operation. */
@@ -1092,6 +1101,6 @@ export type ResourceClient = ReturnType<typeof makeResourceEndpoints> & {
 };
 
 // Legacy standalone endpoints are explicitly local unless a method accepts an explicit cluster.
-export const { Servers, Templates, Namespaces, Cluster, Backups, Schedules, Restores, BackupDestinations, Players, Files, Logs } = makeResourceEndpoints({
+export const { Servers, Templates, Namespaces, Cluster, Backups, Schedules, Restores, BackupDestinations, SecuritySettings, Players, Files, Logs } = makeResourceEndpoints({
   api, url: (path) => withClusterParam(path), raw: (path, init) => fetch(path, init), Captures, Shares,
 });

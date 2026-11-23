@@ -341,6 +341,26 @@ func (r *GameServerReconciler) reconcileStatus(
 		ports:        extra.portAllocation,
 	})
 
+	// SecurityAllowed (spec 030, OD-4): a saved root override the cluster does
+	// not allow is reported, for a stopped server and a running one.
+	securityRunning := ssExists && ss.Spec.Replicas != nil && *ss.Spec.Replicas > 0
+	gs.Status.Conditions = r.applySecurityAllowedCondition(ctx, gs.Status.Conditions, gs, securityRunning)
+
+	// status.security (T021): desired is what the next start uses, from the
+	// effective template (the pin, D16) and this server's overrides. applied is
+	// what the data volume was last set up with, read from the observed record
+	// (nil before the first start). Both live in this one merge patch.
+	appliedSecurity, err := readAppliedSecurity(ctx, r.wipeReader(), gs)
+	if err != nil {
+		return 0, fmt.Errorf("read applied security: %w", err)
+	}
+	desiredSecurity := resolveGameSecurity(tmpl, gs).settings()
+	gs.Status.Security = &gameplanev1alpha1.GameServerSecurityStatus{
+		Desired: &desiredSecurity,
+		Applied: appliedSecurity,
+		Pending: securityPending(desiredSecurity, appliedSecurity),
+	}
+
 	if !reflect.DeepEqual(orig, &gs.Status) {
 		if err := r.Status().Patch(ctx, gs, client.MergeFrom(base)); err != nil {
 			return 0, err

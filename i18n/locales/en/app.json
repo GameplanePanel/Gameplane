@@ -891,6 +891,10 @@
     "defaultMessage": "bad request",
     "description": "API error for a malformed request that does not fit a more specific message."
   },
+  "server.cluster.security_settings_missing": {
+    "defaultMessage": "the security settings ConfigMap is missing on this cluster; run helm upgrade to recreate it",
+    "description": "API error from the cluster security settings API (security_settings.go) when the gameplane-security-settings ConfigMap is not found on the cluster. Nothing is written."
+  },
   "server.cluster_forbidden": {
     "defaultMessage": "cluster not permitted",
     "description": "API error when the ?cluster= query value names a cluster the caller may not use or that is unknown."
@@ -1130,6 +1134,18 @@
   "server.roles.role_not_found": {
     "defaultMessage": "role not found",
     "description": "API error from the roles API (roles.go:del, roles.go:update)."
+  },
+  "server.security.forbidden": {
+    "defaultMessage": "changing security settings requires the servers:security permission",
+    "description": "API error from the GameServer save path (security_overrides.go) when a caller without servers:security changes spec.security."
+  },
+  "server.security.invalid": {
+    "defaultMessage": "invalid security override: {detail}",
+    "description": "API error from the GameServer save path when spec.security has an invalid shape. Argument setting names the offending setting; argument detail says what is wrong."
+  },
+  "server.security.root_disabled": {
+    "defaultMessage": "root values (user 0, group 0, filesystem group 0, or the image default for user or group) are not allowed on this cluster until an administrator allows root overrides in that cluster's Configuration",
+    "description": "API error from the GameServer save path when a new or changed root value is saved while the cluster's allow-root-overrides setting is off. Argument setting names the first offending setting."
   },
   "server.shares.expires_at_in_past": {
     "defaultMessage": "expiresAt must be in the future",
@@ -1470,6 +1486,70 @@
   "web.cluster_detail.unavailable": {
     "defaultMessage": "Cluster unavailable",
     "description": "Cluster detail requested registration is absent or inaccessible"
+  },
+  "web.clusters.control_plane_namespace_detail_label": {
+    "defaultMessage": "Control-plane namespace",
+    "description": "Cluster overview: label for the namespace where this remote cluster's Gameplane operator runs"
+  },
+  "web.clusters.control_plane_namespace_field_label": {
+    "defaultMessage": "Control-plane namespace (optional)",
+    "description": "Register cluster dialog: label for the namespace field where the cluster's Gameplane operator runs"
+  },
+  "web.clusters.control_plane_namespace_help": {
+    "defaultMessage": "Namespace where this cluster's Gameplane operator runs. Leave gameplane unless it was installed elsewhere; a wrong value shows the cluster's root setting as missing.",
+    "description": "Register cluster dialog: help text under the control-plane namespace field; gameplane is the default namespace name, not translated"
+  },
+  "web.clusters.control_plane_namespace_invalid": {
+    "defaultMessage": "Use a lowercase DNS label: lowercase letters, digits and dashes, starting and ending with a letter or digit, at most 63 characters.",
+    "description": "Register cluster dialog: validation error when the control-plane namespace is not a lowercase DNS label; DNS label is a technical term, usually left untranslated"
+  },
+  "web.clusters.security_denied": {
+    "defaultMessage": "You don't have permission to view this cluster's security settings.",
+    "description": "Cluster security settings: access denied when the user cannot read configuration"
+  },
+  "web.clusters.security_load_error": {
+    "defaultMessage": "Couldn't load this cluster's security settings.",
+    "description": "Cluster security settings: error shown when the settings cannot be fetched; a retry button appears below it"
+  },
+  "web.clusters.security_loading": {
+    "defaultMessage": "Loading security settings…",
+    "description": "Cluster security settings: loading text while the settings are fetched"
+  },
+  "web.clusters.security_loading_permissions": {
+    "defaultMessage": "Loading permissions…",
+    "description": "Cluster security settings: identity loading state"
+  },
+  "web.clusters.security_missing_body": {
+    "defaultMessage": "This cluster's security settings were not found. Run helm upgrade for Gameplane on this cluster, then reload this page.",
+    "description": "Cluster security settings: warning body when the security settings are missing; helm upgrade is a command name, usually left untranslated"
+  },
+  "web.clusters.security_missing_title": {
+    "defaultMessage": "Security settings missing",
+    "description": "Cluster security settings: warning title when the cluster's security ConfigMap is not found"
+  },
+  "web.clusters.security_permissions_error": {
+    "defaultMessage": "Couldn't load your permissions.",
+    "description": "Cluster security settings: identity loading failure"
+  },
+  "web.clusters.security_root_help": {
+    "defaultMessage": "Lets server owners run a game as root (user or group 0), or with the image's default user. Off by default, set per cluster.",
+    "description": "Cluster security settings: help text under the allow root overrides switch"
+  },
+  "web.clusters.security_root_label": {
+    "defaultMessage": "Allow root overrides",
+    "description": "Cluster security settings: label of the switch that allows game servers to run as root or the image default user"
+  },
+  "web.clusters.security_root_note": {
+    "defaultMessage": "Turning this off does not stop running servers on this cluster. Stopped servers that hold a root override will not start until the override is cleared or this is turned back on.",
+    "description": "Cluster security settings: note explaining that disabling root overrides does not stop running servers but blocks stopped servers with a root override from starting"
+  },
+  "web.clusters.security_subtitle": {
+    "defaultMessage": "How game servers on this cluster may run.",
+    "description": "Cluster security settings: subtitle under the Security section title"
+  },
+  "web.clusters.security_title": {
+    "defaultMessage": "Security",
+    "description": "Cluster security settings: title of the section card for one cluster"
   },
   "web.common.close_glyph": {
     "defaultMessage": "×",
@@ -6843,6 +6923,14 @@
     "defaultMessage": "Address preference ignored",
     "description": "Create server: warning title of a notice shown when an address pool or requested address is set but Expose is not LoadBalancer"
   },
+  "web.routes.create_server.advanced_invalid": {
+    "defaultMessage": "Fix the Advanced security values before continuing.",
+    "description": "Create server: reason the Configure step cannot continue because a security override is not a whole number from 0 to 4294967295"
+  },
+  "web.routes.create_server.advanced_refused_title": {
+    "defaultMessage": "Not created: security settings refused",
+    "description": "Create server: error title when the API refuses the Advanced security overrides"
+  },
   "web.routes.create_server.back": {
     "defaultMessage": "Back",
     "description": "Create server: footer button that returns to the previous wizard step; keep it short"
@@ -8234,6 +8322,194 @@
   "web.routes.server_detail.wake": {
     "defaultMessage": "Wake",
     "description": "Server detail: header button that wakes a sleeping server; disabled without control access; keep it short"
+  },
+  "web.routes.server_settings.security_advanced_title": {
+    "defaultMessage": "Advanced security",
+    "description": "Advanced security: title of the collapsible security section on the server settings and create-server pages"
+  },
+  "web.routes.server_settings.security_applied": {
+    "defaultMessage": "Applied: {value}",
+    "description": "Advanced security: status line showing the value the running server applied; {value} is the value, a number or a word such as image default"
+  },
+  "web.routes.server_settings.security_check_built_in": {
+    "defaultMessage": "Only when wrong (built-in)",
+    "description": "Advanced security: module default text for the volume ownership check when the module sets none; the built-in Gameplane default is Only when wrong"
+  },
+  "web.routes.server_settings.security_check_every_start": {
+    "defaultMessage": "Every start",
+    "description": "Advanced security: volume ownership check that runs on every start"
+  },
+  "web.routes.server_settings.security_check_only_when_wrong": {
+    "defaultMessage": "Only when wrong",
+    "description": "Advanced security: volume ownership check that runs only when the data volume's group is wrong"
+  },
+  "web.routes.server_settings.security_description": {
+    "defaultMessage": "Who the game runs as, and how the data volume's group is fixed. Leave a setting on Module default unless the game needs something else.",
+    "description": "Advanced security: description under the Advanced security title"
+  },
+  "web.routes.server_settings.security_file_warning_body": {
+    "defaultMessage": "This server already has data. After the next restart the game runs with the new user or group. Files written before keep their old owner; if the game cannot read or change them, set a filesystem group or clear the override. Saving does not restart the server.",
+    "description": "Settings: body of the confirmation shown before saving a new run-as user or group on a server that already has data; explains files keep their old owner and saving does not restart"
+  },
+  "web.routes.server_settings.security_file_warning_confirm": {
+    "defaultMessage": "Save anyway",
+    "description": "Settings: confirm button label in the run-as user or group warning, saving the change despite the existing files"
+  },
+  "web.routes.server_settings.security_file_warning_title": {
+    "defaultMessage": "Change who the game runs as?",
+    "description": "Settings: title of the confirmation shown before saving a new run-as user or group on a server that already has data"
+  },
+  "web.routes.server_settings.security_fs_group": {
+    "defaultMessage": "Filesystem group",
+    "description": "Advanced security: label of the setting for the group that owns the data volume"
+  },
+  "web.routes.server_settings.security_fs_group_help": {
+    "defaultMessage": "Group that owns the data volume, so the game can write to it.",
+    "description": "Advanced security: help text under the Filesystem group label"
+  },
+  "web.routes.server_settings.security_held_back_running_body": {
+    "defaultMessage": "A root override is set, and root overrides are off on this cluster. The server keeps running. It will not start again until the override is cleared or an administrator allows root overrides in that cluster's Configuration.",
+    "description": "Advanced security: default warning body when a running server holds a root override the cluster does not allow"
+  },
+  "web.routes.server_settings.security_held_back_running_title": {
+    "defaultMessage": "Keeps running, but will not start again",
+    "description": "Advanced security: warning title when a server with a root override is running but cannot start again because root overrides are off"
+  },
+  "web.routes.server_settings.security_held_back_stopped_body": {
+    "defaultMessage": "A root override is set, and root overrides are off on this cluster. Clear the override, or ask an administrator to allow root overrides in that cluster's Configuration.",
+    "description": "Advanced security: default warning body when a stopped server holds a root override the cluster does not allow"
+  },
+  "web.routes.server_settings.security_held_back_stopped_title": {
+    "defaultMessage": "Will not start: root override not allowed",
+    "description": "Advanced security: warning title when a stopped server has a root override that the cluster does not allow"
+  },
+  "web.routes.server_settings.security_id_range_error": {
+    "defaultMessage": "Enter a whole number from 0 to 4294967295.",
+    "description": "Advanced security: error under a numeric ID box when the entry is not a whole number from 0 to 4294967295"
+  },
+  "web.routes.server_settings.security_mode_custom_value": {
+    "defaultMessage": "Custom value",
+    "description": "Advanced security: option in the setting's dropdown that lets the owner type a numeric ID"
+  },
+  "web.routes.server_settings.security_mode_module_default": {
+    "defaultMessage": "Module default",
+    "description": "Advanced security: option in the setting's dropdown that keeps the module's default value"
+  },
+  "web.routes.server_settings.security_mode_use_image_default": {
+    "defaultMessage": "Use image default",
+    "description": "Advanced security: option in the setting's dropdown that uses the container image's default user or group"
+  },
+  "web.routes.server_settings.security_module_default_value": {
+    "defaultMessage": "Module default: {value}",
+    "description": "Advanced security: line under a setting that shows the value the game module sets; {value} is a number or the words image default"
+  },
+  "web.routes.server_settings.security_next_start": {
+    "defaultMessage": "Next start: {value}",
+    "description": "Advanced security: status line showing the value the server will use on its next start, before it has ever started; {value} is the value"
+  },
+  "web.routes.server_settings.security_no_fs_group": {
+    "defaultMessage": "No effect: no filesystem group",
+    "description": "Advanced security: chip on the volume ownership check when no filesystem group applies, so the check does nothing"
+  },
+  "web.routes.server_settings.security_override_count": {
+    "defaultMessage": "{count, plural, one {# override} other {# overrides}}",
+    "description": "Advanced security: chip with the number of settings the owner has overridden; {count} is the number"
+  },
+  "web.routes.server_settings.security_pending": {
+    "defaultMessage": "Pending: {value} · applies on the next restart",
+    "description": "Advanced security: warning chip for a saved value that is not applied yet; {value} is the saved value; the middle dot separates it from the rest of the sentence"
+  },
+  "web.routes.server_settings.security_read_only": {
+    "defaultMessage": "Read-only",
+    "description": "Advanced security: chip shown when the user can see the security settings but not change them"
+  },
+  "web.routes.server_settings.security_read_only_note": {
+    "defaultMessage": "You can see these settings. Changing them needs the servers:security permission.",
+    "description": "Advanced security: note shown to users who can see but not change the security settings; servers:security is a permission name, keep it unchanged"
+  },
+  "web.routes.server_settings.security_restart_body": {
+    "defaultMessage": "Saving never restarts the server. Pending values take effect the next time it starts.",
+    "description": "Advanced security: notice body saying saving does not restart the server and pending values apply on the next start"
+  },
+  "web.routes.server_settings.security_restart_title": {
+    "defaultMessage": "Applies on the next restart",
+    "description": "Advanced security: accent notice title saying saved security values take effect when the server next starts"
+  },
+  "web.routes.server_settings.security_risky": {
+    "defaultMessage": "Risky",
+    "description": "Advanced security: warning chip on a setting the module marks as risky when the owner has overridden it"
+  },
+  "web.routes.server_settings.security_risky_confirm": {
+    "defaultMessage": "Keep value",
+    "description": "Advanced security: confirm button label in the risky value dialog, keeping the value the owner entered"
+  },
+  "web.routes.server_settings.security_risky_intro": {
+    "defaultMessage": "The module marks this setting as risky.",
+    "description": "Advanced security: confirmation dialog sentence saying the module marks the setting as risky, used when the module gives no reason"
+  },
+  "web.routes.server_settings.security_risky_intro_reason": {
+    "defaultMessage": "The module marks this setting as risky. Its reason:",
+    "description": "Advanced security: confirmation dialog sentence before the module's plain-text reason for marking a setting risky"
+  },
+  "web.routes.server_settings.security_risky_outro": {
+    "defaultMessage": "The server may fail to start with this value. You can clear the override later to go back to the module default.",
+    "description": "Advanced security: confirmation dialog sentence warning the server may fail to start and how to undo the override"
+  },
+  "web.routes.server_settings.security_risky_title": {
+    "defaultMessage": "Keep a risky value for {setting}?",
+    "description": "Advanced security: confirmation dialog title before keeping a value the module marks as risky; {setting} is the setting name, such as Run-as user"
+  },
+  "web.routes.server_settings.security_run_as_group": {
+    "defaultMessage": "Run-as group",
+    "description": "Advanced security: label of the setting for the group ID the game process runs as"
+  },
+  "web.routes.server_settings.security_run_as_group_help": {
+    "defaultMessage": "Group ID the game process runs as.",
+    "description": "Advanced security: help text under the Run-as group label"
+  },
+  "web.routes.server_settings.security_run_as_user": {
+    "defaultMessage": "Run-as user",
+    "description": "Advanced security: label of the setting for the user ID the game process runs as"
+  },
+  "web.routes.server_settings.security_run_as_user_help": {
+    "defaultMessage": "User ID the game process runs as.",
+    "description": "Advanced security: help text under the Run-as user label"
+  },
+  "web.routes.server_settings.security_source_built_in_default": {
+    "defaultMessage": "Built-in default",
+    "description": "Advanced security: source chip for the default built into Gameplane"
+  },
+  "web.routes.server_settings.security_source_image_default": {
+    "defaultMessage": "Image default",
+    "description": "Advanced security: source chip for the container image's default user or group"
+  },
+  "web.routes.server_settings.security_source_image_default_override": {
+    "defaultMessage": "Image default (override)",
+    "description": "Advanced security: source chip for an override that asks for the container image's default user or group"
+  },
+  "web.routes.server_settings.security_source_module_default": {
+    "defaultMessage": "Module default",
+    "description": "Advanced security: source chip for a value that comes from the game module's default"
+  },
+  "web.routes.server_settings.security_source_override": {
+    "defaultMessage": "Override",
+    "description": "Advanced security: source chip for a value the server owner overrode"
+  },
+  "web.routes.server_settings.security_value_image_default": {
+    "defaultMessage": "image default",
+    "description": "Advanced security: value shown when a security ID is the container image's default, not a number"
+  },
+  "web.routes.server_settings.security_value_input_label": {
+    "defaultMessage": "{setting} value",
+    "description": "Advanced security: accessible label of the number box for a setting's numeric ID; {setting} is the setting name, such as Run-as user"
+  },
+  "web.routes.server_settings.security_volume_ownership_check": {
+    "defaultMessage": "Volume ownership check",
+    "description": "Advanced security: label of the setting that decides when the data volume's group is fixed on start"
+  },
+  "web.routes.server_settings.security_volume_ownership_check_help": {
+    "defaultMessage": "When the data volume's group is fixed on start.",
+    "description": "Advanced security: help text under the Volume ownership check label"
   },
   "web.routes.servers.actions": {
     "defaultMessage": "Actions",
@@ -10902,6 +11178,10 @@
   "web.routes.tabs.settings.section_scheduled_backups": {
     "defaultMessage": "Scheduled backups",
     "description": "Settings: name of the Scheduled backups section in the settings tab list"
+  },
+  "web.routes.tabs.settings.section_security": {
+    "defaultMessage": "Security",
+    "description": "Settings: name of the Security section in the settings tab list"
   },
   "web.routes.tabs.settings.section_share_links": {
     "defaultMessage": "Share links",

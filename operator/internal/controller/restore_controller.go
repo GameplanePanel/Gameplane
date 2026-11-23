@@ -274,7 +274,12 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		job.Spec.ActiveDeadlineSeconds = &deadline
 		job.Annotations = map[string]string{restoreTargetAnnotation: rs.Annotations[restoreTargetAnnotation]}
 		job.Spec.Template.Labels = map[string]string{backupRestoreJobLabel: backupRestoreJobValue, restoreUIDLabel: string(rs.UID)}
-		job.Spec.Template.Spec = r.buildRestorePodSpec(&rs, &src, &tmpl)
+		// The restore writes into the data volume as the server last set it up (spec 030, FR-011).
+		appliedFSGroup, err := appliedBackupFSGroup(ctx, r.apiReader(), &gs, &tmpl)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		job.Spec.Template.Spec = r.buildRestorePodSpec(&rs, &src, &tmpl, appliedFSGroup)
 		if err := r.GameWorkloadPolicy.placeFirstVolumeConsumer(ctx, r.apiReader(), &gs, &tmpl, &job.Spec.Template.Spec); err != nil {
 			var rejected workloadPolicyRejection
 			if errors.As(err, &rejected) {
@@ -423,14 +428,14 @@ func (r *RestoreReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // buildRestorePodSpec mirrors backup_controller.buildBackupPodSpec but
 // runs `restic restore <id>` and mounts the data PVC read-write.
 func (r *RestoreReconciler) buildRestorePodSpec(
-	rs *gameplanev1alpha1.Restore, src *gameplanev1alpha1.Backup, tmpl *gameplanev1alpha1.GameTemplate,
+	rs *gameplanev1alpha1.Restore, src *gameplanev1alpha1.Backup, tmpl *gameplanev1alpha1.GameTemplate, appliedFSGroup ...*int64,
 ) corev1.PodSpec {
 	nonRoot := true
 	roRootFS := true
 	noPrivEsc := false
 	uid := int64(65532)
 	spec := corev1.PodSpec{
-		SecurityContext: buildBackupPodSecurityContext(tmpl),
+		SecurityContext: buildBackupPodSecurityContext(tmpl, appliedFSGroup...),
 		Containers: []corev1.Container{{
 			Name:                     "restic",
 			TerminationMessagePolicy: corev1.TerminationMessageFallbackToLogsOnError,

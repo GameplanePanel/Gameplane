@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — About",
   "type": "FRAME",
   "x": 0,
-  "y": 90486,
+  "y": 94369,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

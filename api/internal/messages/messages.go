@@ -139,6 +139,12 @@ var entries = []Entry{
 		Status:      http.StatusNotImplemented,
 	},
 	{
+		ID:          "server.cluster.security_settings_missing",
+		English:     "the security settings ConfigMap is missing on this cluster; run helm upgrade to recreate it",
+		Description: "API error from the cluster security settings API (security_settings.go) when the gameplane-security-settings ConfigMap is not found on the cluster. Nothing is written.",
+		Status:      http.StatusConflict,
+	},
+	{
 		ID:          "server.auth.invalid_credentials",
 		English:     "invalid credentials",
 		Description: "Login error. It is generic on purpose, so it never reveals whether an account exists.",

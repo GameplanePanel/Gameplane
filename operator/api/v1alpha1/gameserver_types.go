@@ -36,6 +36,14 @@ const (
 	// Absent once a wipe has succeeded and been acked.
 	GameServerConditionDataWipe = "DataWipe"
 
+	// GameServerConditionSecurityAllowed reports whether spec.security may
+	// start this server. False with Reason GameServerReasonRootOverrideDisallowed
+	// while the cluster's "allow root overrides" setting is off and the
+	// override is a root override (uid or gid 0, or use image default for a
+	// run-as id). A stopped server is not started while False; a running one
+	// is left untouched.
+	GameServerConditionSecurityAllowed = "SecurityAllowed"
+
 	// GameServerConditionPortAllocation reports the Service ports a server
 	// holds in its template's port pool (operator --port-pool): True with
 	// Reason "Allocated", or False with Reason "PoolExhausted" when the pool
@@ -63,6 +71,36 @@ const (
 	// kept with status.modpack.applied when the removal's backup fails so a
 	// retry (new requestId) runs it again.
 	ModpackRemoveAnnotation = "gameplane.local/modpack-remove"
+)
+
+// GameServer condition reasons for GameServerConditionSecurityAllowed.
+const (
+	// GameServerReasonRootOverrideDisallowed is the SecurityAllowed=False reason
+	// used while the cluster does not allow root overrides.
+	GameServerReasonRootOverrideDisallowed = "RootOverrideDisallowed"
+)
+
+// SecuritySource records where a resolved security setting came from.
+// +kubebuilder:validation:Enum=ModuleDefault;Override;ImageDefaultOverride;ImageDefault;BuiltInDefault
+type SecuritySource string
+
+const (
+	// SecuritySourceModuleDefault means the value is the GameTemplate's spec.security default.
+	SecuritySourceModuleDefault SecuritySource = "ModuleDefault"
+
+	// SecuritySourceOverride means the value is the GameServer's spec.security override.
+	SecuritySourceOverride SecuritySource = "Override"
+
+	// SecuritySourceImageDefaultOverride means the server overrides the setting with
+	// "use image default", so no value is applied even if the module sets one.
+	SecuritySourceImageDefaultOverride SecuritySource = "ImageDefaultOverride"
+
+	// SecuritySourceImageDefault means nothing is applied and the image's own default is used.
+	SecuritySourceImageDefault SecuritySource = "ImageDefault"
+
+	// SecuritySourceBuiltInDefault means the value is the operator's built-in default
+	// (used only for the volume ownership check).
+	SecuritySourceBuiltInDefault SecuritySource = "BuiltInDefault"
 )
 
 // GameServerSpec is the desired state of a single game server instance.
@@ -188,12 +226,59 @@ type GameServerSpec struct {
 	// +optional
 	Capture *CaptureConfiguration `json:"capture,omitempty"`
 
+	// Security overrides the module's security defaults (GameTemplate
+	// spec.security) for this GameServer. Absent means no override. Saving a
+	// change never restarts a running server; it applies at the next start.
+	// +optional
+	Security *GameServerSecuritySpec `json:"security,omitempty"`
+
 	// Modpack is the modpack this server runs. Absent means no pack. The
 	// operator renders the pack's env from this field (it never lives in
 	// spec.env) and applies changes through status.modpack. Remove deletes
 	// this field and sets the gameplane.local/modpack-remove annotation.
 	// +optional
 	Modpack *GameServerModpackSpec `json:"modpack,omitempty"`
+}
+
+// GameServerSecuritySpec overrides the module security defaults for one GameServer.
+type GameServerSecuritySpec struct {
+	// RunAsUser overrides the uid the game container runs as.
+	// +kubebuilder:validation:XValidation:rule="has(self.value) != has(self.useImageDefault)",message="security.runAsUser: set exactly one of value or useImageDefault"
+	// +kubebuilder:validation:XValidation:rule="!has(self.useImageDefault) || self.useImageDefault == true",message="security.runAsUser.useImageDefault must be true when set"
+	// +optional
+	RunAsUser *SecurityIDOverride `json:"runAsUser,omitempty"`
+
+	// RunAsGroup overrides the gid the game container runs as.
+	// +kubebuilder:validation:XValidation:rule="has(self.value) != has(self.useImageDefault)",message="security.runAsGroup: set exactly one of value or useImageDefault"
+	// +kubebuilder:validation:XValidation:rule="!has(self.useImageDefault) || self.useImageDefault == true",message="security.runAsGroup.useImageDefault must be true when set"
+	// +optional
+	RunAsGroup *SecurityIDOverride `json:"runAsGroup,omitempty"`
+
+	// FSGroup overrides the gid the kubelet chowns the data volume to.
+	// +kubebuilder:validation:XValidation:rule="has(self.value) != has(self.useImageDefault)",message="security.fsGroup: set exactly one of value or useImageDefault"
+	// +kubebuilder:validation:XValidation:rule="!has(self.useImageDefault) || self.useImageDefault == true",message="security.fsGroup.useImageDefault must be true when set"
+	// +optional
+	FSGroup *SecurityIDOverride `json:"fsGroup,omitempty"`
+
+	// VolumeOwnershipCheck overrides the module's ownership check policy.
+	// Omitted means the module's value, else OnlyWhenWrong.
+	// +kubebuilder:validation:Enum=EveryStart;OnlyWhenWrong
+	// +optional
+	VolumeOwnershipCheck VolumeOwnershipCheck `json:"volumeOwnershipCheck,omitempty"`
+}
+
+// SecurityIDOverride is a per-server override for a uid or gid. Exactly one of
+// Value and UseImageDefault is set. UseImageDefault, when set, is always true.
+type SecurityIDOverride struct {
+	// Value is the uid or gid to apply.
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=4294967295
+	// +optional
+	Value *int64 `json:"value,omitempty"`
+
+	// UseImageDefault applies no value for this id, even if the module sets one.
+	// +optional
+	UseImageDefault *bool `json:"useImageDefault,omitempty"`
 }
 
 // ModpackRef identifies one modpack version from a registry.
@@ -767,6 +852,11 @@ type GameServerStatus struct {
 	// +optional
 	Capture *CaptureStatus `json:"capture,omitempty"`
 
+	// Security reports the desired and last-applied security settings for this
+	// GameServer. Written only by the reconciler, as a merge patch of this field.
+	// +optional
+	Security *GameServerSecurityStatus `json:"security,omitempty"`
+
 	// TunnelEndpoints are the per-port addresses reported by the tunnel pod.
 	// For frp/tailscale these are computed from the spec at reconcile time;
 	// for playit they arrive asynchronously as the pod discovers assignments.
@@ -780,6 +870,63 @@ type GameServerStatus struct {
 	// Missing-download files are not stored here; the API reads them live.
 	// +optional
 	Modpack *GameServerModpackStatus `json:"modpack,omitempty"`
+}
+
+// GameServerSecurityStatus is the reconciler's read model of spec.security.
+type GameServerSecurityStatus struct {
+	// Desired is what the next start will use: the server override over the
+	// module default over nothing. Set after the first reconcile.
+	// +optional
+	Desired *SecuritySettings `json:"desired,omitempty"`
+
+	// Applied is what the pod last started with, read from the StatefulSet
+	// annotation written once a pod's volumes were set up. Omitted before the
+	// first start.
+	// +optional
+	Applied *SecuritySettings `json:"applied,omitempty"`
+
+	// Pending is true when Applied exists and any value differs from Desired.
+	// A change of source with the same value is not pending.
+	// +optional
+	Pending bool `json:"pending,omitempty"`
+}
+
+// SecuritySettings is one full set of resolved security settings.
+type SecuritySettings struct {
+	// RunAsUser is the resolved game container uid.
+	RunAsUser SecurityIDStatus `json:"runAsUser"`
+
+	// RunAsGroup is the resolved game container gid.
+	RunAsGroup SecurityIDStatus `json:"runAsGroup"`
+
+	// FSGroup is the resolved volume filesystem group.
+	FSGroup SecurityIDStatus `json:"fsGroup"`
+
+	// VolumeOwnershipCheck is the resolved ownership check policy.
+	VolumeOwnershipCheck SecurityCheckStatus `json:"volumeOwnershipCheck"`
+}
+
+// SecurityIDStatus is a resolved uid or gid and where it came from.
+type SecurityIDStatus struct {
+	// Value is the applied id. Absent when no id is applied (image default).
+	// +optional
+	Value *int64 `json:"value,omitempty"`
+
+	// Source records where the value came from.
+	// +kubebuilder:validation:Required
+	Source SecuritySource `json:"source"`
+}
+
+// SecurityCheckStatus is a resolved volume ownership check policy and its source.
+type SecurityCheckStatus struct {
+	// Value is EveryStart or OnlyWhenWrong.
+	// +kubebuilder:validation:Enum=EveryStart;OnlyWhenWrong
+	// +kubebuilder:validation:Required
+	Value VolumeOwnershipCheck `json:"value"`
+
+	// Source records where the value came from.
+	// +kubebuilder:validation:Required
+	Source SecuritySource `json:"source"`
 }
 
 // IdleStatus is the observed state of idle auto-sleep. It is a read model:

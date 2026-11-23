@@ -49,6 +49,10 @@ func TestMain(m *testing.M) {
 		},
 		ErrorIfCRDPathMissing: true,
 	}
+	// Namespaces are never deleted in envtest (no namespace controller), so
+	// every Service the suite creates keeps its ClusterIP. The default /24
+	// range runs out once the suite passes ~250 Services; a /16 leaves room.
+	testEnv.ControlPlane.GetAPIServer().Configure().Set("service-cluster-ip-range", "10.0.0.0/16")
 
 	var err error
 	cfg, err = testEnv.Start()

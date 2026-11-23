@@ -1,0 +1,235 @@
+{
+  "file": "cluster-security-panel",
+  "name": "Gameplane/Cluster Security Panel",
+  "type": "COMPONENT",
+  "x": 1591,
+  "y": 10411,
+  "width": 1132,
+  "height": 209,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "cornerRadius": 24,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 12,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/3xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "heading",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 1092,
+      "height": 23,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "Security",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "description",
+      "type": "TEXT",
+      "x": 20,
+      "y": 55,
+      "width": 1092,
+      "height": 20,
+      "fills": [{"type": "SOLID", "color": "#6E5262"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "How game servers on this cluster may run.",
+      "font": ["Geist", 400, 14],
+      "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+    },
+    {
+      "name": "missingSettings",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 640,
+      "height": 76,
+      "visible": false,
+      "component": "Gameplane/Inline Notice/Warning",
+      "fills": [{"type": "SOLID", "color": "#FEF3C7"}],
+      "cornerRadius": 12,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [12, 16, 12, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "warning/soft"},
+      "texts": [
+        "Security settings missing",
+        "This cluster's security settings were not found in namespace gameplane. Run helm upgrade for Gameplane on this cluster, then reload this page."
+      ]
+    },
+    {
+      "name": "allowRootRow",
+      "type": "FRAME",
+      "x": 20,
+      "y": 87,
+      "width": 1092,
+      "height": 41,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "switchOff",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 36,
+          "height": 20,
+          "component": "Gameplane/Switch/Off",
+          "componentId": "1:1470",
+          "fills": [{"type": "SOLID", "color": "#EFC3D6"}],
+          "cornerRadius": 24,
+          "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "border/border"}
+        },
+        {
+          "name": "switchOn",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 36,
+          "height": 20,
+          "visible": false,
+          "component": "Gameplane/Switch/On",
+          "componentId": "1:1532",
+          "fills": [{"type": "SOLID", "color": "#DB2777"}],
+          "cornerRadius": 24,
+          "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"}
+        },
+        {
+          "name": "allowRootText",
+          "type": "FRAME",
+          "x": 48,
+          "y": 0,
+          "width": 1044,
+          "height": 41,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 4,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "children": [
+            {
+              "name": "label",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 1044,
+              "height": 20,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "text": "Allow root overrides",
+              "font": ["Geist", 400, 14],
+              "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "name": "help",
+              "type": "TEXT",
+              "x": 0,
+              "y": 24,
+              "width": 1044,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "Lets server owners run a game as root (user or group 0), or with the image's default user. Off by default, set per cluster.",
+              "font": ["Geist", 400, 12],
+              "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "offNote",
+      "type": "TEXT",
+      "x": 20,
+      "y": 140,
+      "width": 1092,
+      "height": 17,
+      "fills": [{"type": "SOLID", "color": "#6E5262"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "Turning this off does not stop running servers on this cluster. Stopped servers that hold a root override will not start until the override is cleared or this is turned back on.",
+      "font": ["Geist", 400, 12],
+      "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+    },
+    {
+      "name": "namespaceRow",
+      "type": "FRAME",
+      "x": 20,
+      "y": 169,
+      "width": 1092,
+      "height": 20,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 24,
+        "padding": [0, 0, 0, 0],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "Namespace label",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 1016,
+          "height": 20,
+          "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+          "layoutGrow": 1,
+          "text": "Control-plane namespace",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+        },
+        {
+          "name": "Namespace value",
+          "type": "TEXT",
+          "x": 1016,
+          "y": 1,
+          "width": 76,
+          "height": 18,
+          "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+          "text": "gameplane",
+          "font": ["JetBrains Mono", 400, 14],
+          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+        }
+      ]
+    }
+  ]
+}

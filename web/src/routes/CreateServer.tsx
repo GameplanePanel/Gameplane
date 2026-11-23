@@ -7,6 +7,8 @@ import { GameIcon } from "@/components/ui/GameIcon";
 import { ResourceInput } from "@/components/ui/ResourceInput";
 import { PortOverridesEditor } from "@/components/server/PortOverridesEditor";
 import { ConfigFields } from "@/components/server/ConfigFields";
+import { SecurityAdvanced, securityIsValid } from "@/components/SecurityAdvanced";
+import { useMe, can } from "@/lib/auth";
 import { assignGameCodesForTemplates } from "@/lib/gameIcon";
 import { useFleetPlacements, type FleetPlacement } from "@/lib/fleet";
 import { serverLink } from "@/lib/resourceTarget";
@@ -26,7 +28,7 @@ import {
 import { parseCpuQuantity, cpuCores, parseMemQuantity, memBytes, cpuQuantityCores, memQuantityBytes } from "@/lib/quantity";
 import { cn, ignoreRejection } from "@/lib/utils";
 import { categoryFilters, categoryLabel, matchesCategory, resolveCategories } from "@/lib/games";
-import type { GameTemplate, PortOverride, GameServerTunnel } from "@/types";
+import type { GameTemplate, PortOverride, GameServerTunnel, GameServerSecuritySpec } from "@/types";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { moduleIds, useModuleText, useModuleTexts, type ModuleText } from "@/lib/i18n/moduleText";
 import { defineMessages, type IntlShape, type MessageDescriptor } from "react-intl";
@@ -82,11 +84,16 @@ interface WizardState {
   playitTunnelName: string;
   addressPool: string;
   requestedAddress: string;
+  // Spec 030: optional per-server security overrides (omitted when empty).
+  security?: GameServerSecuritySpec;
+  // False while a typed security value in the Advanced section is not a valid ID.
+  securityDraftValid?: boolean;
 }
 
 const initial: WizardState = {
   name: "", description: "",
   template: null, version: "", config: {},
+  security: undefined,
   cpuLimit: "2", memoryLimit: "4Gi",
   reserveLess: false, cpuRequest: "2", memoryRequest: "4Gi",
   storageSize: "20Gi", nodePlacement: "auto",
@@ -232,6 +239,8 @@ function buildCreateBody(state: WizardState): ServerCreate {
       limits: { cpu: state.cpuLimit, memory: state.memoryLimit },
     },
     ...(nodeSelector ? { nodeSelector } : {}),
+    // Spec 030: omitted entirely when no override is set (module defaults apply).
+    ...(state.security && Object.keys(state.security).length ? { security: state.security } : {}),
   };
 }
 
@@ -286,6 +295,9 @@ function validateStep(
     if (cfgErrors.length > 0) {
       return { ok: false, reason: cfgErrors[0].message };
     }
+    if (state.securityDraftValid === false || !securityIsValid(state.security)) {
+      return { ok: false, reason: intl.formatMessage({ id: "web.routes.create_server.advanced_invalid", defaultMessage: "Fix the Advanced security values before continuing.", description: "Create server: reason the Configure step cannot continue because a security override is not a whole number from 0 to 4294967295" }) };
+    }
     return { ok: true };
   }
   if (key === "network") {
@@ -327,6 +339,12 @@ function validateStep(
 
 function errorMessage(err: unknown, name: string, intl: IntlShape): { title: string; body: string } {
   if (err instanceof APIError) {
+    if (err.messageId?.startsWith("server.security.")) {
+      return {
+        title: intl.formatMessage({ id: "web.routes.create_server.advanced_refused_title", defaultMessage: "Not created: security settings refused", description: "Create server: error title when the API refuses the Advanced security overrides" }),
+        body: errorTextIntl(intl, err),
+      };
+    }
     if (err.status === 409) {
       return {
         title: intl.formatMessage({ id: "web.routes.create_server.error_name_taken_title", defaultMessage: "A server named {name} already exists", description: "Create server: error title when a server with the same name exists; {name} is the server name" }, { name }),
@@ -379,6 +397,8 @@ function PlacedServerWizard({ placement, choices, onPlacementChange, partial }: 
   const nav = useNavigate();
   const qc = useQueryClient();
   const templateText = useModuleTexts(placement.templates.map((t) => t.metadata.name), clusterId);
+  const me = useMe();
+  const canSecurity = can(me.data, "servers:security", placement.namespace, placement.cluster);
   // Cancel/Close just leave the wizard; a rejected navigation (e.g. the
   // route change was interrupted) has nothing useful to show, but must not
   // become an unhandled promise rejection.
@@ -493,7 +513,7 @@ function PlacedServerWizard({ placement, choices, onPlacementChange, partial }: 
           <fieldset disabled={create.isPending} className="min-w-0">
             {currentKey === "template" && <PickTemplate templates={placement.templates} state={state} setState={setState} gameCodes={gameCodes} byName={byName} templateText={templateText} />}
             {currentKey === "version" && <PickVersion state={state} setState={setState} cluster={clusterId} />}
-            {currentKey === "configure" && <Configure caps={caps} state={state} setState={setState} cluster={clusterId} />}
+            {currentKey === "configure" && <Configure caps={caps} state={state} setState={setState} cluster={clusterId} canSecurity={canSecurity} />}
             {currentKey === "network" && <Network state={state} setState={setState} />}
             {currentKey === "review" && (
               <Review
@@ -678,7 +698,17 @@ function PickTemplate({
           return (
             <button
               key={t.metadata.name}
-              onClick={() => setState({ ...state, template: t, config: {}, version: defaultVersionId(t) ?? "" })}
+              onClick={() =>
+                setState({
+                  ...state,
+                  template: t,
+                  config: {},
+                  version: defaultVersionId(t) ?? "",
+                  // Overrides were chosen (and any risky value confirmed)
+                  // against the previous module, so a new template starts clean.
+                  ...(active ? {} : { security: undefined, securityDraftValid: undefined }),
+                })
+              }
               className={cn(
                 "rounded-lg border p-4 text-left transition-colors",
                 active ? "border-primary bg-primary/5"
@@ -754,7 +784,7 @@ function PickVersion({ state, setState, cluster }: { state: WizardState; setStat
  * CPU and memory (capped at the largest node) with the optional reservation
  * below the limit, storage size and node placement.
  */
-function Configure({ state, setState, caps, cluster }: { state: WizardState; setState: (s: WizardState) => void; caps: { maxCpu: number; maxMemGi: number }; cluster: string }) {
+function Configure({ state, setState, caps, cluster, canSecurity }: { state: WizardState; setState: (s: WizardState) => void; caps: { maxCpu: number; maxMemGi: number }; cluster: string; canSecurity: boolean }) {
   const intl = useOptionalIntl();
   const text = useModuleText(state.template?.metadata.name, cluster);
   const fields = state.template?.spec.configSchema ?? [];
@@ -919,6 +949,14 @@ function Configure({ state, setState, caps, cluster }: { state: WizardState; set
           />
         </div>
       )}
+
+      <SecurityAdvanced
+        value={state.security}
+        onChange={(security) => setState({ ...state, security })}
+        template={state.template ?? undefined}
+        readOnly={!canSecurity}
+        onValidityChange={(securityDraftValid) => { if (state.securityDraftValid !== securityDraftValid) setState({ ...state, securityDraftValid }); }}
+      />
     </div>
   );
 }
