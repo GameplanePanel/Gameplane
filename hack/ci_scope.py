@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 EDGE_IMAGES = [
     {"component": component} for component in (
         "operator", "api", "web", "agent", "audit-syslog-bridge",
-        "telemetry-receiver", "sentinel", "capture-sidecar", "mcp-server",
+        "telemetry-receiver", "sentinel", "capture-sidecar", "mcp-server", "sftp",
     )
 ] + [
     {"component": f"tunnel-{name}", "dockerfile": f"tunnel/Dockerfile.{name}"}

@@ -53,7 +53,7 @@
 - [X] T020 [P] API client in `sftp/internal/apiclient/client.go`: login, session check, `GET /sftp/v1/servers`, `files/list`, `files/stat`, `files/download` with `Range`, `files/stream`, `files/rename`, `files/mkdir`, `files/delete`; API errors mapped to SFTP status codes; optional CA bundle.
 - [X] T021 SSH server in `sftp/internal/sshserver/server.go` and `sftp/cmd/main.go`: host key from a mounted Secret file, password and public-key callbacks that call `/sftp/v1/login`, SFTP subsystem only (no shell, exec, port forwarding or SCP, FR-004), idle timeout, per-user session cap, 30 s `sessions/check` loop closing revoked sessions, Prometheus metrics (sessions, logins by result, bytes) (FR-022).
 - [X] T022 Minimal chart template `charts/gameplane/templates/sftp.yaml` and `values.yaml` keys `sftp.enabled` (false), `sftp.port` (2222), `sftp.image`: Deployment, ClusterIP Service, host key Secret generated once (`lookup`, `helm.sh/resource-policy: keep`), local service token Secret shared with the API; NetworkPolicy in `charts/gameplane/templates/networkpolicies.yaml` for SFTP ingress and egress to the API only.
-- [ ] T023 Add the `sftp` submodule: `.gitmodules` entry with `component = true`, path filters for `hack/submodules.sh check`, `IMAGES += sftp` and `image-sftp` in `Makefile`, release image list and cosign signing.
+- [X] T023 Add the `sftp` submodule: `.gitmodules` entry with `component = true`, path filters for `hack/submodules.sh check`, `IMAGES += sftp` and `image-sftp` in `Makefile`, release image list and cosign signing.
 
 **Checkpoint**: an SFTP server deploys, logs a seeded user in, and can call the API; user story phases can start.
 

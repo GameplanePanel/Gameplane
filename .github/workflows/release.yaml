@@ -35,6 +35,7 @@ jobs:
           - component: sentinel
           - component: capture-sidecar
           - component: mcp-server
+          - component: sftp
           - component: tunnel-frp
             dockerfile: tunnel/Dockerfile.frp
           - component: tunnel-tailscale

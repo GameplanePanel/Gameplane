@@ -238,6 +238,7 @@ jobs:
               - 'audit-syslog-bridge'
               - 'tunnel'
               - 'capture-sidecar'
+              - 'sftp'
               - 'hack/trivy-scan-images.sh'
               - 'hack/check-image-scan_test.sh'
             # Narrower than e2etree on purpose: this backs a job that only
@@ -271,6 +272,7 @@ jobs:
               - 'audit-syslog-bridge'
               - 'tunnel'
               - 'capture-sidecar'
+              - 'sftp'
               - '.gitmodules'
               - 'hack/submodules.sh'
               - 'hack/check-submodule-freshness.sh'
@@ -320,6 +322,7 @@ jobs:
               - 'audit-syslog-bridge'
               - 'tunnel'
               - 'capture-sidecar'
+              - 'sftp'
               - '.hadolint.yaml'
               - 'hack/check-hadolint_test.sh'
               - 'hack/testdata/hadolint/**'

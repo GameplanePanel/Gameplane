@@ -38,6 +38,7 @@ telemetry-receiver/  usage telemetry ingest
 sentinel/            wake-on-connect proxy for sleeping pods
 capture-sidecar/     SUBMODULE GameplanePanel/capture-sidecar (AF_PACKET BPF capture sidecar; own go.mod, not in go.work; image still built here)
 mcp-server/          SUBMODULE GameplanePanel/mcp (read-only MCP server; own go.mod, not in go.work; image still built here)
+sftp/                SUBMODULE GameplanePanel/sftp (SFTP endpoint for game server files, spec 040; own go.mod, not in go.work; image still built here)
 tunnel/              SUBMODULE GameplanePanel/tunnel (relay client supervisor: frp, Tailscale, playit; own go.mod, not in go.work; image still built here)
 web/                 React 19 + strict TS + Vite dashboard; src/{routes,components,lib,router,styles,test}/
 modules/             SUBMODULE GameplanePanel/module (OCI game templates)
@@ -53,7 +54,7 @@ go.work              links all 12 Go modules (incl. test/e2e)
 Makefile             canonical task runner
 ```
 
-After cloning: `git submodule update --init modules` (required for `make dev-up`) and `hack/submodules.sh init` (the split component submodules mcp-server, audit-syslog-bridge, tunnel, capture-sidecar; `make images`/`make dev-up` also init them on demand); add `git submodule update --init website` only when working on the website.
+After cloning: `git submodule update --init modules` (required for `make dev-up`) and `hack/submodules.sh init` (the split component submodules mcp-server, audit-syslog-bridge, tunnel, capture-sidecar, sftp; `make images`/`make dev-up` also init them on demand); add `git submodule update --init website` only when working on the website.
 
 ## Commands (via Makefile; compile checks excepted, see rule 8)
 
