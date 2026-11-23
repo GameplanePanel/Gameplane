@@ -74,7 +74,7 @@ jobs:
         id: diff
         run: |
           git add -- go.work.sum ':(glob)**/go.mod' ':(glob)**/go.sum'
-          git diff --cached --binary > "$RUNNER_TEMP/go-work-sum.patch"
+          git diff --cached --binary --no-renames > "$RUNNER_TEMP/go-work-sum.patch"
           if [ -n "$(git diff --name-only)" ]; then
             echo "::warning::Drift outside the go module files is not committed here; fix it by hand:"
             git diff --stat
@@ -126,13 +126,15 @@ jobs:
             exit 0
           fi
           # The patch comes from running the bumped dependencies: push nothing but go module files.
-          outside=$(git apply --numstat "$RUNNER_TEMP/go-work-sum.patch" | cut -f3 |
+          # Check what the applied patch staged, not the patch's own path list: a rename lists
+          # only its destination there, so it could delete any file under a go.mod name.
+          git apply --index "$RUNNER_TEMP/go-work-sum.patch"
+          outside=$(git diff --cached --name-only --no-renames |
             grep -vE '^(go\.work\.sum|(.+/)?go\.(mod|sum))$' || true)
           if [ -n "$outside" ]; then
             echo "::error::The patch touches files other than go module files: $outside"
             exit 1
           fi
-          git apply --index "$RUNNER_TEMP/go-work-sum.patch"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -s -q -m "chore: sync go.work.sum for the dependency bump"
