@@ -36,6 +36,7 @@ func runGateway(ctx context.Context, args []string) error {
 	flags.Int64Var(&cfg.CaptureMaxRetentionSeconds, "capture-max-retention", 604800, "this site's maximum capture retention in seconds")
 	flags.Int64Var(&cfg.CaptureDefaultMaxDurationSecs, "capture-default-max-duration", 300, "this site's default capture duration in seconds")
 	flags.Int64Var(&cfg.CaptureDefaultMaxSizeBytes, "capture-default-max-size", 943718400, "this site's capture size ceiling in bytes")
+	flags.Int64Var(&cfg.FilesMaxUploadBytes, "files-max-upload-bytes", 20<<30, "maximum size of one file uploaded through files/stream in bytes")
 	if err := flags.Parse(args); err != nil {
 		return fmt.Errorf("gateway flags: %w", err)
 	}

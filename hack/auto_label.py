@@ -58,6 +58,7 @@ AREA_BY_DIR = {
     "sentinel": "area: optional-components",
     "capture-sidecar": "area: optional-components",
     "mcp-server": "area: optional-components",
+    "sftp": "area: optional-components",
     "tunnel": "area: optional-components",
     "audit-syslog-bridge": "area: optional-components",
     "telemetry-receiver": "area: optional-components",

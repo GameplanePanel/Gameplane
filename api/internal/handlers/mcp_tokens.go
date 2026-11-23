@@ -48,9 +48,12 @@ type createMCPTokenResp struct {
 }
 
 // refuseTokenCaller writes 403 and reports true when the request was
-// authenticated by an MCP token rather than a session.
+// authenticated by an MCP token or by an SFTP session (spec 040) rather than a
+// session.
 func refuseTokenCaller(w http.ResponseWriter, req *http.Request) bool {
-	if _, ok := auth.MCPTokenFromContext(req.Context()); ok {
+	_, isMCP := auth.MCPTokenFromContext(req.Context())
+	_, isSFTP := auth.SFTPCallerFromContext(req.Context())
+	if isMCP || isSFTP {
 		httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 		return true
 	}

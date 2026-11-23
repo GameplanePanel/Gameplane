@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Telemetry (none)",
   "type": "FRAME",
   "x": 8200,
-  "y": 87754,
+  "y": 93117,
   "width": 1440,
   "height": 605,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -176,7 +176,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 220,
-                  "height": 356,
+                  "height": 492,
                   "component": "Gameplane/Admin Settings Nav",
                   "componentId": "1:3419",
                   "layout": {
@@ -188,8 +188,12 @@
                     "sizing": ["HUG", "FIXED"]
                   },
                   "texts": [
-                    "General",
+                    "ACCOUNT",
                     "Theme",
+                    "MCP tokens",
+                    "SFTP",
+                    "SERVER",
+                    "General",
                     "Authentication",
                     "Module sources",
                     "Mod registries",

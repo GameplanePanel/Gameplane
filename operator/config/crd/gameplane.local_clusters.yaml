@@ -80,6 +80,16 @@ spec:
                 - tlsSecretRef
                 - url
                 type: object
+              controlPlaneNamespace:
+                default: gameplane
+                description: |-
+                  ControlPlaneNamespace is the namespace of this cluster's operator
+                  control plane. The API reads the cluster's security settings ConfigMap
+                  (gameplane-security-settings) in this namespace. Empty or absent means
+                  "gameplane". Must match the namespace of the remote install.
+                maxLength: 63
+                pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                type: string
               displayName:
                 description: DisplayName is an optional human-readable name for the
                   cluster.

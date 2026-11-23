@@ -302,12 +302,40 @@ created before the upgrade that introduced it. A hostname that doesn't
 resolve to its server would now be shown to players, so before upgrading,
 check each such hostname, or clear it where it isn't the name players use.
 
+### Default player hostname per game template
+
+Set `operator.templateHostnames` in your Helm values to advertise a shared
+hostname for servers using a particular GameTemplate. This example gives
+Minecraft Java and Valheim separate hostnames.
+
+```yaml
+operator:
+  templateHostnames:
+    minecraft-java: mc.example.net
+    valheim: val.example.net
+```
+
+The operator also accepts a repeated `--template-hostname=<template>=<hostname>`
+flag. Use the name from `spec.templateRef.name`. Each NodePort server advertises
+the name with its allocated NodePort. Each LoadBalancer server advertises it
+with its Service ports once the load balancer has an address.
+
+A server's **Settings → Networking → Hostname** overrides the template default.
+Clearing the field restores inheritance. Changes to the mapping apply to existing
+servers on reconciliation. Removing a mapping restores normal address discovery
+for servers using that default.
+
+Point each shared DNS name at the node, load balancer or forwarding edge that
+serves those games. Template defaults only supply player-facing addresses.
+External-dns annotations still come from individual Service settings, and a
+published tunnel endpoint keeps its provider's host and port.
+
 ### Connecting to a NodePort server
 
 The dashboard's **External Address** shows and copies the game host and
 the NodePort Kubernetes assigned, for example `play.example.net:31042`.
 Set **Settings → Networking → Hostname** (`spec.networking.hostname`) to a
-name that players can resolve and reach on that port. With no hostname,
+name that players can resolve and reach on that port. With no server or template hostname,
 Gameplane uses a Kubernetes `ExternalIP` on the node serving the game or
 its wake proxy. IPv6 addresses appear in brackets, as in
 `[2001:db8::42]:31042`.

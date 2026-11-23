@@ -180,7 +180,7 @@ func (s *WebhookSink) post(ctx context.Context, e Event) {
 	}
 	body, err := json.Marshal(webhookPayload{
 		TS: e.TS, Actor: e.Actor, Method: e.Method, Path: e.Path,
-		Target: e.Target, Status: e.Status, IP: e.IP, Reason: e.Reason,
+		Target: e.Target, Status: e.Status, IP: e.IP, Reason: e.Reason, Source: e.Source,
 	})
 	if err != nil {
 		webhookEvents.WithLabelValues("failed").Inc()
@@ -225,6 +225,7 @@ type webhookPayload struct {
 	Status int    `json:"status"`
 	IP     string `json:"ip,omitempty"`
 	Reason string `json:"reason,omitempty"`
+	Source string `json:"source,omitempty"`
 }
 
 // New returns an Auditor configured with options.
@@ -335,8 +336,14 @@ func canonicalize(e Event) []byte {
 	field(e.IP)
 	// Only include Reason in the canonical form if it is non-empty.
 	// Empty Reason must serialize identically to pre-migration rows (no Reason field at all).
-	if e.Reason != "" {
+	// Source (spec 040) is appended after the Reason slot. When Source is set the Reason
+	// slot is always written, even if empty ("0:"), so Reason="sftp" and Source="sftp" can
+	// never canonicalize to the same bytes. Rows without Source are unchanged.
+	if e.Reason != "" || e.Source != "" {
 		field(e.Reason)
+	}
+	if e.Source != "" {
+		field(e.Source)
 	}
 	return buf.Bytes()
 }
@@ -359,9 +366,22 @@ func computeHash(prevHash string, e Event) string {
 //
 // chainTransaction bounds local waiters and serializes PostgreSQL writers across API replicas.
 func (a *Auditor) insertChained(ctx context.Context, ts, actor, method, path, target, reason string, status int, ip string) error {
+	return a.insertChainedEvent(ctx, Event{TS: ts, Actor: actor, Method: method, Path: path, Target: target, Status: status, IP: ip, Reason: reason})
+}
+
+// insertChainedEvent is insertChained for a fully populated Event (including Source).
+func (a *Auditor) insertChainedEvent(ctx context.Context, e Event) error {
 	return a.chainTransaction(ctx, "insert", 2*time.Second, func(ctx context.Context, tx *sql.Tx) error {
-		return a.appendEvent(ctx, tx, Event{TS: ts, Actor: actor, Method: method, Path: path, Target: target, Status: status, IP: ip, Reason: reason})
+		return a.appendEvent(ctx, tx, e)
 	})
+}
+
+// nullIfEmpty binds an empty string as SQL NULL, so dashboard rows keep source NULL.
+func nullIfEmpty(s string) any {
+	if s == "" {
+		return nil
+	}
+	return s
 }
 
 func (a *Auditor) appendEvent(ctx context.Context, tx *sql.Tx, e Event) error {
@@ -373,9 +393,9 @@ func (a *Auditor) appendEvent(ctx context.Context, tx *sql.Tx, e Event) error {
 	hash := computeHash(prevHash, e)
 
 	if _, err := tx.ExecContext(ctx,
-		`INSERT INTO audit_events(ts, actor, method, path, target, status, ip, reason, prev_hash, hash)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		e.TS, e.Actor, e.Method, e.Path, e.Target, e.Status, e.IP, e.Reason, prevHash, hash,
+		`INSERT INTO audit_events(ts, actor, method, path, target, status, ip, reason, source, prev_hash, hash)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		e.TS, e.Actor, e.Method, e.Path, e.Target, e.Status, e.IP, e.Reason, nullIfEmpty(e.Source), prevHash, hash,
 	); err != nil {
 		return fmt.Errorf("insert audit event: %w", err)
 	}
@@ -487,7 +507,7 @@ func (a *Auditor) Verify(ctx context.Context) (VerifyResult, error) {
 	}
 
 	rows, err := tx.QueryContext(ctx,
-		`SELECT id, ts, actor, method, path, COALESCE(target,''), status, COALESCE(ip,''), COALESCE(reason,''), COALESCE(prev_hash,''), COALESCE(hash,'')
+		`SELECT id, ts, actor, method, path, COALESCE(target,''), status, COALESCE(ip,''), COALESCE(reason,''), COALESCE(source,''), COALESCE(prev_hash,''), COALESCE(hash,'')
 		 FROM audit_events
 		 WHERE id > ? AND hash IS NOT NULL AND hash <> ''
 		 ORDER BY id ASC`, afterID,
@@ -501,7 +521,7 @@ func (a *Auditor) Verify(ctx context.Context) (VerifyResult, error) {
 	for rows.Next() {
 		var e Event
 		var prevHash, hash string
-		if err := rows.Scan(&e.ID, &e.TS, &e.Actor, &e.Method, &e.Path, &e.Target, &e.Status, &e.IP, &e.Reason, &prevHash, &hash); err != nil {
+		if err := rows.Scan(&e.ID, &e.TS, &e.Actor, &e.Method, &e.Path, &e.Target, &e.Status, &e.IP, &e.Reason, &e.Source, &prevHash, &hash); err != nil {
 			return VerifyResult{}, fmt.Errorf("scan audit row: %w", err)
 		}
 		checked++
@@ -637,7 +657,14 @@ func Middleware(a *Auditor) func(http.Handler) http.Handler {
 				// context the audit middleware can't see, so this stays nil.
 				actor = u.Username
 			}
+			// source is "sftp" for requests authenticated by an SFTP session (spec 040).
+			// A handler may record a more specific target (SFTP file routes name the
+			// cluster, namespace, server and paths); dashboard rows keep the ?name= query.
+			source := holder.Source()
 			target := req.URL.Query().Get("name")
+			if t := holder.Target(); t != "" {
+				target = t
+			}
 			// Stamp once so the DB row, stdout line, and webhook payload all
 			// agree on the event time.
 			ts := time.Now().UTC().Format(time.RFC3339)
@@ -671,23 +698,29 @@ func Middleware(a *Auditor) func(http.Handler) http.Handler {
 				writeCtx, cancel = context.WithDeadline(writeCtx, deadline)
 				defer cancel()
 			}
-			_ = a.insertChained(writeCtx, ts, actor, req.Method, path, target, "", rw.status, clientIP)
+			ev := Event{
+				TS: ts, Actor: actor, Method: req.Method, Path: path,
+				Target: target, Status: rw.status, IP: clientIP, Source: source,
+			}
+			if source == "" {
+				_ = a.insertChained(writeCtx, ts, actor, req.Method, path, target, "", rw.status, clientIP)
+			} else {
+				_ = a.insertChainedEvent(writeCtx, ev)
+			}
 			if a.sink != nil {
-				a.sink.Info("audit",
+				attrs := []any{
 					"actor", actor, "method", req.Method, "path", path,
-					"target", target, "status", rw.status, "ip", clientIP)
+					"target", target, "status", rw.status, "ip", clientIP}
+				if source != "" {
+					attrs = append(attrs, "source", source)
+				}
+				a.sink.Info("audit", attrs...)
 			}
 			if a.webhook != nil {
-				a.webhook.Enqueue(Event{
-					TS: ts, Actor: actor, Method: req.Method, Path: path,
-					Target: target, Status: rw.status, IP: clientIP,
-				})
+				a.webhook.Enqueue(ev)
 			}
 			if a.s3 != nil {
-				a.s3.Enqueue(Event{
-					TS: ts, Actor: actor, Method: req.Method, Path: path,
-					Target: target, Status: rw.status, IP: clientIP,
-				})
+				a.s3.Enqueue(ev)
 			}
 		})
 	}
@@ -714,6 +747,25 @@ func (a *Auditor) WriteSync(ctx context.Context, method, path, target, reason st
 	if u := auth.UserFromContext(ctx); u != nil && u.Username != "" {
 		actor = u.Username
 	}
+	return a.writeSync(ctx, actor, method, path, target, reason, status)
+}
+
+// WriteSyncAs is WriteSync with an explicit actor, for unauthenticated routes that still know who
+// acted (the SFTP login names the account in the request body). Source is derived like WriteSync.
+func (a *Auditor) WriteSyncAs(ctx context.Context, actor, method, path, target, reason string, status int) error {
+	if actor == "" {
+		actor = "anonymous"
+	}
+	return a.writeSync(ctx, actor, method, path, target, reason, status)
+}
+
+// writeSync is the shared body of WriteSync and WriteSyncAs. A request whose context carries an
+// SFTP caller (spec 040) is recorded with source "sftp"; every other row keeps source empty.
+func (a *Auditor) writeSync(ctx context.Context, actor, method, path, target, reason string, status int) error {
+	source := ""
+	if _, ok := auth.SFTPCallerFromContext(ctx); ok {
+		source = "sftp"
+	}
 
 	// Extract client IP from context (set by ClientIPFromXFF middleware).
 	// WriteSync relies on the client IP already being in the context; records
@@ -723,27 +775,29 @@ func (a *Auditor) WriteSync(ctx context.Context, method, path, target, reason st
 	// Generate timestamp once so the audit row has a consistent time.
 	ts := time.Now().UTC().Format(time.RFC3339)
 
-	if err := a.insertChained(ctx, ts, actor, method, path, target, reason, status, clientIP); err != nil {
+	ev := Event{
+		TS: ts, Actor: actor, Method: method, Path: path,
+		Target: target, Status: status, IP: clientIP, Reason: reason, Source: source,
+	}
+	if err := a.insertChainedEvent(ctx, ev); err != nil {
 		return fmt.Errorf("audit write: %w", err)
 	}
 
 	// Best-effort fan-out to external sinks (same as Middleware).
 	if a.sink != nil {
-		a.sink.Info("audit",
+		attrs := []any{
 			"actor", actor, "method", method, "path", path,
-			"target", target, "status", status, "ip", clientIP, "reason", reason)
+			"target", target, "status", status, "ip", clientIP, "reason", reason}
+		if source != "" {
+			attrs = append(attrs, "source", source)
+		}
+		a.sink.Info("audit", attrs...)
 	}
 	if a.webhook != nil {
-		a.webhook.Enqueue(Event{
-			TS: ts, Actor: actor, Method: method, Path: path,
-			Target: target, Status: status, IP: clientIP, Reason: reason,
-		})
+		a.webhook.Enqueue(ev)
 	}
 	if a.s3 != nil {
-		a.s3.Enqueue(Event{
-			TS: ts, Actor: actor, Method: method, Path: path,
-			Target: target, Status: status, IP: clientIP, Reason: reason,
-		})
+		a.s3.Enqueue(ev)
 	}
 
 	return nil
@@ -756,6 +810,12 @@ func shouldLog(req *http.Request) bool {
 	}
 	switch {
 	case req.URL.Path == "/healthz", req.URL.Path == "/metrics":
+		return false
+	case req.URL.Path == "/sftp/v1/sessions/check":
+		// Endpoints poll this route every 30 seconds; it is not an audit event.
+		return false
+	case req.URL.Path == "/sftp/v1/sessions/end":
+		// Session housekeeping by the endpoint, like sessions/check.
 		return false
 	case strings.HasPrefix(req.URL.Path, "/auth/oidc/"):
 		// Login events are audited only on success via the session
@@ -827,6 +887,8 @@ type Event struct {
 	Status int    `json:"status"`
 	IP     string `json:"ip,omitempty"`
 	Reason string `json:"reason,omitempty"`
+	// Source is the request source: "sftp" for SFTP endpoint requests, empty for dashboard requests.
+	Source string `json:"source,omitempty"`
 }
 
 // Page returns the most recent events, oldest-first within the page.
@@ -838,7 +900,7 @@ func (a *Auditor) Page(req *http.Request, limit int, before int64) ([]Event, err
 		pageSize = DefaultAuditPageSize
 	}
 	rows, err := a.db.DB.QueryContext(req.Context(),
-		`SELECT id, ts, actor, method, path, COALESCE(target,''), status, COALESCE(ip,''), COALESCE(reason,'')
+		`SELECT id, ts, actor, method, path, COALESCE(target,''), status, COALESCE(ip,''), COALESCE(reason,''), COALESCE(source,'')
 		 FROM audit_events
 		 WHERE (? = 0 OR id < ?)
 		 ORDER BY id DESC
@@ -851,7 +913,7 @@ func (a *Auditor) Page(req *http.Request, limit int, before int64) ([]Event, err
 	out := make([]Event, 0, pageSize)
 	for rows.Next() {
 		var e Event
-		if err := rows.Scan(&e.ID, &e.TS, &e.Actor, &e.Method, &e.Path, &e.Target, &e.Status, &e.IP, &e.Reason); err != nil {
+		if err := rows.Scan(&e.ID, &e.TS, &e.Actor, &e.Method, &e.Path, &e.Target, &e.Status, &e.IP, &e.Reason, &e.Source); err != nil {
 			return nil, err
 		}
 		out = append(out, e)
@@ -890,7 +952,7 @@ func likeEscape(s string) string {
 func (a *Auditor) Stream(ctx context.Context, f StreamFilter, fn func(Event) error) error {
 	actorPattern := "%" + likeEscape(strings.ToLower(f.Actor)) + "%"
 	rows, err := a.db.DB.QueryContext(ctx,
-		`SELECT id, ts, actor, method, path, COALESCE(target,''), status, COALESCE(ip,''), COALESCE(reason,'')
+		`SELECT id, ts, actor, method, path, COALESCE(target,''), status, COALESCE(ip,''), COALESCE(reason,''), COALESCE(source,'')
 		 FROM audit_events
 		 WHERE (? = '' OR ts >= ?) AND (? = '' OR ts <= ?)
 		   AND (? = '' OR LOWER(actor) LIKE ? ESCAPE '\')
@@ -908,7 +970,7 @@ func (a *Auditor) Stream(ctx context.Context, f StreamFilter, fn func(Event) err
 	defer func() { _ = rows.Close() }()
 	for rows.Next() {
 		var e Event
-		if err := rows.Scan(&e.ID, &e.TS, &e.Actor, &e.Method, &e.Path, &e.Target, &e.Status, &e.IP, &e.Reason); err != nil {
+		if err := rows.Scan(&e.ID, &e.TS, &e.Actor, &e.Method, &e.Path, &e.Target, &e.Status, &e.IP, &e.Reason, &e.Source); err != nil {
 			return err
 		}
 		if err := fn(e); err != nil {

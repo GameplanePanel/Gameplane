@@ -33,7 +33,7 @@ Regenerate replaces the row in one transaction; revoke deletes it. No expiry (OD
 | Column | Type | Notes |
 |---|---|---|
 | id | BIGINT PK | |
-| cluster | TEXT NOT NULL | cluster the endpoint serves; `default` for the panel's own cluster |
+| cluster | TEXT NOT NULL | cluster the endpoint serves; `local` for the panel's own cluster (`scope.DefaultCluster`) |
 | digest | TEXT NOT NULL UNIQUE | SHA-256 hex of `gpsftps_…` |
 | prefix | TEXT NOT NULL | first 12 chars, for display |
 | created_at | TEXT NOT NULL | |
@@ -53,9 +53,22 @@ At most 2 active per cluster (rotation).
 | digest | TEXT NOT NULL UNIQUE | SHA-256 of `gpsftp_…` session token |
 | session_epoch | BIGINT NOT NULL | copied from `users.session_epoch` |
 | expires_at | TEXT NOT NULL | now + 15 min, extended on use (sliding, at most once a minute) |
-| revoked_at | TEXT | set when the credential is removed or regenerated |
+| revoked_at | TEXT | set when the credential is removed or regenerated, or when the SFTP server ends a session it turned away (`POST /sftp/v1/sessions/end`) |
 
 Expired rows are swept with the MCP token sweeper.
+
+## sftp_cluster_endpoints
+
+Migration `025_sftp_cluster_endpoints.sql`. The SFTP endpoint of each registered remote cluster, set by `PUT /clusters/{name}/sftp`. The panel's own cluster has no row: its address comes from chart values and its fingerprint from the host key Secret.
+
+| Column | Type | Notes |
+|---|---|---|
+| cluster | TEXT PK | cluster name |
+| address | TEXT NOT NULL | `host` or `host:port`, shown to users |
+| host_key_fingerprint | TEXT NOT NULL | OpenSSH `SHA256:` fingerprint of the endpoint's host key |
+| updated_at | TEXT NOT NULL | RFC 3339 UTC |
+
+Removing a cluster registration leaves its row behind; it is harmless and is replaced if the cluster is registered again.
 
 ## audit_events (changed)
 

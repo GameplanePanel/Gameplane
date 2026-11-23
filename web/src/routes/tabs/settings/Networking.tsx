@@ -49,6 +49,12 @@ const EXPOSE_OPTIONS: Array<{ value: Expose; label: MessageDescriptor }> = [
   { value: "Hostport", label: EXPOSE_LABELS.hostport },
 ];
 
+const HOSTNAME_HINTS = defineMessages({
+  NodePort: { id: "web.routes.tabs.settings.networking.nodeport_hostname_hint", defaultMessage: "Leave blank for the template hostname or a node’s external IP.", description: "Networking: explains how the optional hostname determines the address advertised for a NodePort server" },
+  LoadBalancer: { id: "web.routes.tabs.settings.networking.load_balancer_hostname_hint", defaultMessage: "Leave blank for the template hostname or load balancer address.", description: "Networking: explains which hostname a LoadBalancer server advertises when no override is set" },
+  other: { id: "web.routes.tabs.settings.networking.optional_dns_name_for_ingress_external", defaultMessage: "Optional DNS name for ingress / external-dns annotations.", description: "Networking: hint under the Hostname field of the general network settings, saying it is an optional DNS name for ingress or external-dns annotations" },
+});
+
 const TUNNEL_PROVIDER_OPTIONS: Array<{ value: "frp" | "tailscale" | "playit"; label: string }> = [
   { value: "frp", label: "frp" },
   { value: "tailscale", label: "Tailscale" },
@@ -453,9 +459,7 @@ export function NetworkingSection({ draft, onChange, onValidityChange }: Section
 
       <Field
         label={intl.formatMessage({ id: "web.routes.tabs.settings.networking.hostname", defaultMessage: "Hostname", description: "Networking: field label for an optional hostname, used for Tailscale or for ingress and external-dns annotations" })}
-        hint={net.expose === "NodePort"
-          ? intl.formatMessage({ id: "web.routes.tabs.settings.networking.nodeport_hostname_hint", defaultMessage: "Use a DNS name that points to a node players can reach. Leave blank to use a node’s external IP when available.", description: "Networking: explains how the optional hostname determines the address advertised for a NodePort server" })
-          : intl.formatMessage({ id: "web.routes.tabs.settings.networking.optional_dns_name_for_ingress_external", defaultMessage: "Optional DNS name for ingress / external-dns annotations.", description: "Networking: hint under the Hostname field of the general network settings, saying it is an optional DNS name for ingress or external-dns annotations" })}
+        hint={intl.formatMessage(HOSTNAME_HINTS[net.expose === "NodePort" || net.expose === "LoadBalancer" ? net.expose : "other"])}
       >
         <Input
           value={net.hostname ?? ""}

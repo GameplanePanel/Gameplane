@@ -278,7 +278,10 @@ func mountHomeClientRoutes(t *testing.T, r chi.Router, home *kube.Client, reg *k
 	MountNotifications(r, notify.New(store, home, controlNS), home, controlNS)
 	MountAuthProviderSecrets(r, home, controlNS)
 	MountClusterActions(r, home, true, "")
-	MountClusters(r, reg, home, controlNS)
+	MountClustersWithSFTP(r, reg, home, controlNS, SFTPClusterMount{
+		Sessions: auth.NewSessionStore(store), Kube: home, Namespace: controlNS,
+		HostKeySecret: "gameplane-sftp-host-key", Enabled: true,
+	})
 	MountSystemLogs(r, home, controlNS)
 	MountRegistrySecrets(r, home, controlNS)
 	MountRegistryShareWithOptions(r, home, controlNS, RegistryShareOptions{})

@@ -32,6 +32,9 @@ type Config struct {
 	CaptureMaxRetentionSeconds     int64
 	CaptureDefaultMaxDurationSecs  int64
 	CaptureDefaultMaxSizeBytes     int64
+	// FilesMaxUploadBytes caps one files/stream body. Zero selects
+	// gatewayprotocol.DefaultStreamBodyLimit.
+	FilesMaxUploadBytes int64
 }
 
 type httpTransport = http.Transport
@@ -49,6 +52,12 @@ func NewHandler(cfg Config, client *kube.Client) (http.Handler, error) {
 	}
 	if cfg.MaxRequestDuration < 0 {
 		return nil, errors.New("gateway request duration must not be negative")
+	}
+	if cfg.FilesMaxUploadBytes < 0 {
+		return nil, errors.New("gateway upload limit must not be negative")
+	}
+	if cfg.FilesMaxUploadBytes == 0 {
+		cfg.FilesMaxUploadBytes = gatewayprotocol.DefaultStreamBodyLimit
 	}
 	if cfg.CaptureDefaultRetentionSeconds == 0 {
 		cfg.CaptureDefaultRetentionSeconds = 86400
@@ -97,6 +106,9 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if !allowed {
 		http.NotFound(w, req)
 		return
+	}
+	if agentPath == "/files/stream" {
+		maxBody = h.cfg.FilesMaxUploadBytes
 	}
 	upgrade := req.Header.Get("Upgrade")
 	if gatewayprotocol.Streaming(agentPath) != strings.EqualFold(upgrade, "websocket") || (upgrade != "" && !strings.EqualFold(upgrade, "websocket")) {

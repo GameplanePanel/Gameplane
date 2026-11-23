@@ -29,6 +29,7 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | **Telemetry-Receiver** | `telemetry-receiver/specs.md` | Ingests and processes anonymous usage telemetry from the API. |
 | **Telemetryschema** | `telemetryschema/specs.md` | Shared telemetry report contract (types, enumerations, strict decode, official module catalog, report signing) used by the API and the telemetry-receiver. |
 | **MCP-Server** | `mcp-server/specs.md` (submodule `GameplanePanel/mcp`) | Read-only Model Context Protocol server exposing cluster state to AI tools. |
+| **SFTP** | `sftp/specs.md` (submodule `GameplanePanel/sftp`) | Optional SFTP endpoint for game server files. Every login and file operation goes to the API as the signed-in user ([`docs/sftp.md`](sftp.md)). |
 
 ## Shared Libraries & Tooling
 
@@ -61,8 +62,10 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | Change the website | `website/AGENTS.md` (submodule) |
 | Add a DB migration | `api/specs.md`, `api/internal/db/migrations/README.md` |
 | Change CI or a workflow | `docs/contributing.md` ("CI and workflows", "How CI picks tests") |
-| Change personal MCP tokens or the MCP read routes (`api/internal/auth/mcptokens.go`, `api/internal/handlers/mcp_tokens.go`, `api/internal/handlers/pods.go`) | `api/specs.md`, `docs/security.md` ("mcp-server (optional)") |
+| Server security overrides (run-as user or group, fsGroup, ownership check, root rule, per-cluster allow-root setting) | `docs/security.md` ("Server security overrides"), `docs/module-authoring.md` ("Security context"), `operator/specs.md`, `api/specs.md`, `operator/internal/controller/security_overrides.go`, `operator/internal/controller/security_settings.go`, `api/internal/handlers/security_overrides.go`, `api/internal/handlers/security_settings.go`, `web/src/components/SecurityAdvanced.tsx`, `web/src/components/clusters/SecuritySettingsPanel.tsx` |
+| Change personal MCP tokens or the MCP read routes (`api/internal/auth/mcptokens.go`, `api/internal/handlers/mcp_tokens.go`, `api/internal/handlers/pods.go`, `web/src/routes/McpTokens.tsx`, the MCP tokens dialog in `web/src/routes/Users.tsx`) | `api/specs.md`, `web/specs.md`, `docs/security.md` ("mcp-server (optional)") |
 | Change MCP server RBAC or namespace scope (`charts/gameplane/templates/mcp-server.yaml`, `charts/gameplane/tests/mcp-server-rbac.sh`) | `docs/security.md` ("mcp-server (optional)"), `mcp-server/specs.md` |
+| Change SFTP access (`sftp/`, `api/internal/auth/sftp*.go`, `api/internal/handlers/sftp*.go`, `charts/gameplane/templates/sftp.yaml`, the SFTP profile page and Clusters drawer) | `docs/sftp.md`, `sftp/specs.md`, `specs/040-sftp-access/` |
 | Decide where new code goes | `docs/layout.md` |
 
 ## How to use this index

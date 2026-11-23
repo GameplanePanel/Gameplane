@@ -1,14 +1,14 @@
 # Implementation Plan: SFTP access to game servers
 
-**Branch**: `spec-039/sftp-access` | **Date**: 2026-11-22 | **Spec**: [spec.md](spec.md)
+**Branch**: `spec-040/sftp-access` | **Date**: 2026-11-22 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/039-sftp-access/spec.md`
+**Input**: Feature specification from `specs/040-sftp-access/spec.md`
 
 **Open decisions**: OD-1 to OD-6 are settled (OD-6 B: one streaming upload path and limit for SFTP and the dashboard). OD-7 A: the SFTP server lives in a new split repository `GameplanePanel/sftp`, submodule `sftp/`. No decision is open. See [OPEN-DECISIONS.md](OPEN-DECISIONS.md).
 
 ## Summary
 
-Each cluster can run an optional SFTP endpoint (OD-3). It accepts SSH keys or a generated SFTP password (OD-2), and sends every login and file operation to the central Gameplane API (OD-1, OD-5), which applies the Files tab's permissions, writes the audit log and reaches the server's agent through its existing local proxy or remote gateway. A login as `<user>` shows a tree of the cluster's servers; `<user>+<server>` opens one server. The agent gains stat, rename and a streaming upload with resume, which the dashboard Files tab also switches to, under one Helm upload limit (OD-6). For a stopped or asleep server the operator runs a short-lived file-only pod with the server's volumes and points the `<name>-agent` Service at it, so the API and gateway reach it unchanged (OD-4); the Files tab uses it too. Details: [research.md](research.md), [data-model.md](data-model.md), [contracts/api.md](contracts/api.md).
+Each cluster can run an optional SFTP endpoint (OD-3). It accepts SSH keys or a generated SFTP password (OD-2), and sends every login and file operation to the central Gameplane API (OD-1, OD-5), which applies the Files tab's permissions, writes the audit log and reaches the server's agent through its existing local proxy or remote gateway. A login as `<user>` shows a tree of the cluster's servers; `<user>+<server>` opens one server. The agent gains stat, rename and a streaming upload with resume, which the dashboard Files tab also switches to, under one Helm upload limit (OD-6). For a stopped or asleep server the operator runs a short-lived file-only pod with the server's volumes and points the `<name>-agent` Service at it, so the API and gateway reach it unchanged (OD-4); the Files tab uses it too. Every file permission decision, for SFTP and the Files tab, goes through one `FileAccess` helper in the API, so spec 039's per-server roles can replace its rules later without touching SFTP code (R8). Details: [research.md](research.md), [data-model.md](data-model.md), [contracts/api.md](contracts/api.md); manual validation: [quickstart.md](quickstart.md).
 
 ## Technical Context
 
@@ -48,13 +48,14 @@ Each cluster can run an optional SFTP endpoint (OD-3). It accepts SSH keys or a 
 ### Documentation (this feature)
 
 ```
-specs/039-sftp-access/
+specs/040-sftp-access/
 ├── spec.md
 ├── OPEN-DECISIONS.md
 ├── plan.md
 ├── research.md
 ├── data-model.md
 ├── contracts/api.md
+├── quickstart.md
 ├── tasks.md
 └── checklists/requirements.md
 ```
@@ -70,7 +71,8 @@ operator/cmd/main.go         --files-idle-timeout
 api/internal/db/migrations/common/024_sftp_credentials.sql
 api/internal/auth/sftp.go    keys, passwords, service tokens, sessions, guard (+ tests)
 api/internal/handlers/sftp.go  profile, admin, cluster token routes (+ envtest)
-api/internal/handlers/sftp_login.go  /sftp/v1/login, /sftp/v1/sessions/check
+api/internal/handlers/sftp_login.go  /sftp/v1/login, /sftp/v1/sessions/check, /sftp/v1/sessions/end
+api/internal/rbac/fileaccess.go  FileAccess helper: the one place file permissions are decided (R8)
 api/internal/ws/dialer.go    mount files/stat, files/rename, files/stream; ensure file-only access on stopped servers
 api/internal/gatewayprotocol/  stat, rename, stream as allowed operations; stream long-running
 api/internal/audit/audit.go  source column
@@ -82,15 +84,11 @@ test/e2e/sftp_test.go, test/e2e/buckets.sh, test/e2e/multicluster_sftp_test.go
 docs/sftp.md, docs/security.md, docs/architecture.md; changelog/unreleased/<PR>-sftp-access.md
 ```
 
-### Delivery (stacked PRs, each green in CI before the next merges)
+### Delivery (one Gameplane PR plus one sftp repo PR; valgul 2026-11-23)
 
-1. **Spec PR** (docs only): this folder.
-2. **Agent PR**: stat, rename, stream + `agent/specs.md`.
-3. **Operator PR**: file-only pod, selector switch, start ordering, NetworkPolicy for `gameplane-files`.
-4. **API PR**: migration, credentials, SFTP login/session, guard, new file routes, ensure-files, gateway protocol, audit source.
-5. **SFTP component PR** in `GameplanePanel/sftp` (OD-7 A).
-6. **Design PR** then **Web PR**: profile section, admin revoke, cluster token, Files tab starting state (after design sign-off).
-7. **Chart + docs + E2E PR**: `sftp.yaml`, values, submodule add/pointer, Makefile image, docs, changelog, E2E buckets.
+1. **Spec PRs** (docs only, merged): #1065, #1066, #1068.
+2. **Gameplane PR** `feat/040-sftp-access`: agent, operator, API, design then web (after design sign-off), chart, docs, changelog, E2E buckets and the `sftp` submodule pointer, as separate commits in that order.
+3. **SFTP component PR** in `GameplanePanel/sftp` (OD-7 A), branch `feat/initial-server` to `main`. It merges first; the Gameplane PR then points the `sftp` submodule at the merged commit.
 
 ## Complexity Tracking
 
@@ -100,3 +98,4 @@ docs/sftp.md, docs/security.md, docs/architecture.md; changelog/unreleased/<PR>-
 | File-only pod and selector switch | OD-4: files of stopped servers | Scaling the StatefulSet with a files-only flag would roll the game pod spec and fight the stop/sleep logic |
 | Streaming upload route next to multipart upload for one release | OD-6: uploads above 64 MiB with resume, for SFTP and the dashboard | Raising the multipart cap still buffers through `ParseMultipartForm` and has no resume; removing multipart at once breaks API clients without notice |
 | New split repository | OD-7: matches the other optional components | In-tree module conflicts with the #995 split |
+| `FileAccess` helper in front of the existing RBAC rules | Spec 039 will change how file permissions are decided; SFTP must follow without edits (R8) | Testing `servers:read`/`servers:write` at each call site would need every site rewritten when 039 lands |

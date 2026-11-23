@@ -11,6 +11,7 @@ import (
 // transaction: the account's SSO links, preferences, sessions, API tokens,
 // role bindings, and telemetry notice acks are deleted, and the share links
 // it created are revoked (revocation, not a delete, keeps their audit trail).
+// The account's SFTP keys, SFTP password and SFTP sessions (spec 040) are deleted too.
 // The rows are removed explicitly rather than left to ON DELETE CASCADE,
 // because the shipped SQLite DSN runs with foreign keys off. Deleting an
 // unknown id is a no-op.
@@ -44,6 +45,9 @@ func (s *Store) DeleteUserTx(ctx context.Context, tx *sql.Tx, userID int64) erro
 		`DELETE FROM sessions WHERE user_id = ?`,
 		`DELETE FROM api_tokens WHERE user_id = ?`,
 		`DELETE FROM mcp_tokens WHERE user_id = ?`,
+		`DELETE FROM sftp_ssh_keys WHERE user_id = ?`,
+		`DELETE FROM sftp_passwords WHERE user_id = ?`,
+		`DELETE FROM sftp_sessions WHERE user_id = ?`,
 	} {
 		if _, err := tx.ExecContext(ctx, stmt, userID); err != nil {
 			return fmt.Errorf("delete user: %s: %w", stmt, err)

@@ -406,12 +406,14 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
 
 3. **Backups Tab** (`web/src/routes/tabs/Backups.tsx`, 290 lines)
    - Per-server backup list (snapshots created via the /backups page or on-demand)
+   - Users with schedule write access can edit or delete standalone schedules here. The **Managed by server settings** action opens the selected server’s **Settings → Scheduled backups**, where users with server write access can edit its inline backup policy.
    - Table columns: backup name, phase (Pending/Succeeded/Failed), size, completion time, actions
    - Open backup detail drawer, trigger restore dialog, delete backup
    - Uses HeroUI Table, Button, Modal (restore trigger), ui/ PhaseChip
 
 4. **Settings Tab** (`web/src/routes/tabs/Settings.tsx`, 396 lines)
    - Sub-section navigation tabs (11 sections below) via HeroUI Tabs
+   - Opening Settings from the tab bar starts in **General**. The managed schedule action passes `initialSection="backups"` to start in **Scheduled backups**.
    - Layout: left sidebar with section buttons, right panel for section content
    - Each section maintains independent form state, save/discard flow, per-field validation
 
@@ -880,6 +882,7 @@ package.json                # @gameplane/web v0.4.3; dev: vite, npm scripts for 
 8. **Users** (`/users`) → `UsersPage` (gated by `users:manage` permission)
    - Create/edit/delete users and OIDC links
    - Manage role bindings per namespace
+   - Row menu "MCP tokens" opens a dialog listing the selected user's personal MCP tokens (`GET /users/{id}/mcp-tokens`, query key `["user-mcp-tokens", id]`): name, prefix, expiry, last used, and an Active / Expired / Revoked state; no secrets. Revoke appears per active row only for viewers with `users:manage` (`DELETE /users/{id}/mcp-tokens/{tokenId}`), and the list refetches after a revoke. The dialog refreshes the Expired state each minute
 
 9. **AdminSettings** (`/admin`) → `AdminSettingsPage` (gated by `config:manage` permission)
    - Sections: General (version), Telemetry (destination, tiers, install ID, preview, status), Authentication (OIDC providers), Mod registries (API keys),
@@ -1012,6 +1015,13 @@ The warning is shown regardless of how many groups are being added (single or mu
     - Uses HeroUI Card, Button, Chip, Spinner; brand header with ShieldCheck icon; address copy button
     - Built directly from HeroUI primitives; no ui/ atom components
 
+14. **MCP tokens** (`/settings/mcp-tokens`) → `McpTokensPage` (`web/src/routes/McpTokens.tsx`)
+    - No permission gate: every signed-in user manages their own tokens (spec 037, OD-5). Reached from the user menu and from the settings sub-nav (item under Theme)
+    - List via `GET /users/me/mcp-tokens` (query key `["mcp-tokens"]`) with loading, error and empty states; the empty state shows only after a successful load
+    - Rows show name, prefix, created, expiry, last used (relative, or "Never") and an Active / Expired / Revoked state. Expired and revoked rows are greyed with a badge and have no Revoke
+    - Create dialog: name required, lifetime 7, 30, 90 or 365 days, default 30. Success moves to a one-time reveal with Copy buttons for the token and for an MCP client config snippet that uses the panel origin, plus a copy-failure hint when the clipboard refuses. The secret is dropped from component state and from the mutation cache on Done (`gcTime: 0`)
+    - Revoke asks for confirmation, calls `DELETE /users/me/mcp-tokens/{id}`, and refetches the list
+
 ## ServerDetail Tabs
 
 Visible tab set depends on server template + active version:
@@ -1072,11 +1082,23 @@ Save fetches the latest server and applies only the changes from the original ba
 10. **RBAC & access** — Server owner + collaborator list, permission inheritance. The `setCollaborators` mutation runs unconditionally at component render (not gated by an early return), so hook invocation order is consistent. The mutation's namespace is derived from the GameServer's `metadata.namespace` (or `gameplane-games` as fallback); when no server is loaded, the mutation returns early without calling the API. On success, the mutation invalidates the `["server", gs.metadata.name]` query cache, clears input state, and resets errors; on error, it sets a locally-rendered error message and does not clear input, allowing retry.
 11. **Danger zone** — Wipe world data (confirm-dialog), transfer ownership (confirm-dialog), delete server (confirm-dialog); no Clone action (`web/src/routes/tabs/settings/Danger.tsx`)
 
-**Share links (T179):** Mounted in `Settings.tsx` by slice 5 (`ShareLinksSection`). `ShareLinksSection` (`web/src/routes/tabs/settings/ShareLinks.tsx`). Create/list/revoke share links per server; table shows Created, Expires, Can start capability (view-only vs. can-start), Status (Active/Expired/Revoked). The status shows Revoked when revokedAt is set, regardless of expiry state. Create dialog opens to set expiry and start permission; success shows Created dialog with full URL and one-time copy prompt (token hashed server-side and unrecoverable after close). Revoke dialog (AlertDialog danger) confirms destruction. Empty state when no links exist. Visible only to users with the API-enforced permission (owner/admin create/revoke, viewers see list read-only if API permits). Uses HeroUI Modal/ModalBackdrop/ModalContainer/ModalDialog/ModalHeader/ModalHeading/ModalBody/ModalFooter, AlertDialog family, Button, Table, Select, ListBox, ListBoxItem, Label, Description, Switch, Chip. Only Active links show a Revoke button; Expired and Revoked rows show "—" (design xCJlu).
+**Share links (T179):** `ShareLinksSection` in `web/src/routes/tabs/settings/ShareLinks.tsx` lets the server owner create, list, edit and revoke links. The table shows each link's non-secret ID, creation date, expiry, wake permission and status. An active row has a **Can start** switch and a **Revoke** button. Changing the switch updates wake access for everyone with the existing URL. Expired and revoked rows show a read-only capability chip. Revocation takes precedence over expiry. The create dialog sets expiry and wake permission, then shows the same link ID alongside the URL and its one-time copy prompt. The revoke dialog confirms revocation. An empty state appears when the server has no links (design xCJlu).
 
 **Configurable expiry (feature 017, `ShareLinks.tsx`):** The expiry selector offers exactly six choices — 15 days, 30 days, 60 days, 90 days, No expiry, Custom (date picker) — with 30 days pre-selected, replacing the old fixed 24h/7d/30d/90d menu and its "Maximum 90 days" help text. Selecting "No expiry" shows the warning "This link works until you revoke it." and sends `neverExpires: true`. Selecting "Custom" shows a date picker restricted to dates strictly after today (no maximum); choosing a date 365 days or more out additionally shows "Long-lived link — it stays valid for over a year unless you revoke it." Presets and the custom date are converted client-side to an absolute RFC3339 instant (a custom date is valid through 23:59:59 in the owner's local time) and sent as `expiresAt`; the dialog never sends the deprecated `expiresIn`. The Expires column renders "Never" for a link with `expiresAt: null`, and such a link is never shown as "Expired".
 
 **Capture types (`src/types.ts`, built):** `CaptureConfiguration` (`{ enabled?, retentionSeconds? }`, mirrors `spec.capture` — `retentionSeconds` is bounded by the CRD's authoritative `+kubebuilder:validation:Minimum=60 / Maximum=604800` on `operator/api/v1alpha1/gameserver_types.go`'s `CaptureConfiguration.RetentionSeconds`, omit to use cluster default (86400)), `CaptureStatus` (mirrors `status.capture`: `ready`, `activeCapture`/`lastCaptureTime` typed nullable since the API's `formatOptionalTime` never omits the key), `CapturePhase` (`"Pending" | "Running" | "Completed" | "Failed" | "Expired"`), `NetworkCapture` (one capture record — merges the API's start/stop/list/get response shapes) and `NetworkCaptureList` (the `:captures` list envelope). All are implemented in the tree; the `CaptureWidget` component and `Captures` endpoint namespace are live (see Tabs and API Client sections above).
+
+## Server security overrides (spec 030)
+
+One shared editor, `SecurityAdvanced` (`web/src/components/SecurityAdvanced.tsx`), edits `spec.security` on a GameServer: `runAsUser`, `runAsGroup` and `fsGroup` (each a whole number 0 to 4294967295, or "use image default" where the image's own user is kept) and `volumeOwnershipCheck` (`EveryStart` or `OnlyWhenWrong`). It shows each module default from the template's `spec.security` next to the override, the desired and applied values from `status.security`, and a root-override notice. A setting shows "Applied: X" once the server has an applied record, and "Next start: X" (the desired value) before it has ever started. The "Pending: X · applies on the next restart" chip appears only when an applied record exists and the desired value differs from it, so a server that has never started shows no Pending chip (FR-009). It exports `isValidSecurityId`, `securityOverrideCount` and `securityIsValid`. The operator decides what applies; the component only edits the spec. Unset fields are left out of the payload, and an empty override is omitted entirely.
+
+Three places mount it:
+
+- **Create server wizard** (`web/src/routes/CreateServer.tsx`, Configure step): an "Advanced" section below the other fields. The Configure step cannot continue while a typed value is not a valid ID (`securityDraftValid`). Picking a different template clears the overrides, since they were chosen (and any risky value confirmed) against the previous module. Its `server.security.*` refusals show as a "Not created: security settings refused" error with the API's message. The section is read-only when the session lacks `servers:security` (`can(me, "servers:security", ...)`).
+- **Server Settings, Security section** (`web/src/routes/tabs/settings/Security.tsx`, `SecuritySection`; registered in `web/src/routes/tabs/Settings.tsx` as the `security` section, with `Lock` icon): it wraps `SecurityAdvanced` in the settings draft. The section is read-only without `servers:security`, and the tab's Save footer applies it like any other section. Saving a changed `runAsUser` or `runAsGroup` on a server whose `status.security.applied` is set (it has already started, so it has data) opens a confirmation (`needsFileAccessWarning`): files written earlier keep their old owner, and saving does not restart the server.
+- **Cluster Security panel** (`web/src/components/clusters/SecuritySettingsPanel.tsx`, mounted in `ClusterConfiguration.tsx` for every cluster): the cluster-wide `allowRootOverrides` switch. Without `config:read` the section shows a no-permission note instead of the switch, and the switch is editable only with `config:manage`. It reads and writes `GET`/`PUT /security-settings?cluster=<id>` through `SecuritySettings` in `web/src/lib/endpoints.ts`. A 409 or the `server.cluster.security_settings_missing` message ID (or a response with `present: false`) shows a "Security settings missing" alert and disables the switch. Register Cluster (`RegisterClusterDialog.tsx`) has an optional control-plane namespace field (lowercase DNS label, default `gameplane`) sent as `controlPlaneNamespace` only when it differs from `gameplane`, and the cluster overview shows that namespace for remote clusters.
+
+Permission checks here are display only. The API and the operator enforce `servers:security` and the root rule.
 
 ## External Interface / API Client
 

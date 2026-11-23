@@ -20,6 +20,7 @@ import type {
   CustomColorConfig,
   ExtendedUser,
   GameServer,
+  GameServerSecuritySpec,
   GameTemplate,
   InstalledMod,
   ModID,
@@ -42,6 +43,7 @@ import type {
   Restore,
   Role,
   RoleBinding,
+  SecuritySettingsResponse,
   ServerEvent,
   StatusReading,
   ThemePresetId,
@@ -97,6 +99,7 @@ export interface ServerCreate {
   };
   resources?: unknown;
   nodeSelector?: Record<string, string>;
+  security?: GameServerSecuritySpec;
 }
 
 function gameServerEnvelope(input: ServerCreate) {
@@ -132,7 +135,7 @@ export interface NamespacesResponse {
 export const Clusters = {
   // The local cluster is present only on combined installations.
   list: () => api<List<ClusterRegistry>>("/clusters"),
-  register: (body: { name: string; displayName: string; kubeconfig: string }) =>
+  register: (body: { name: string; displayName: string; kubeconfig: string; controlPlaneNamespace?: string }) =>
     api<ClusterRegistry>("/clusters", { method: "POST", body }),
   remove: (name: string) => api<void>(`/clusters/${encodeURIComponent(name)}`, { method: "DELETE" }),
 };
@@ -429,6 +432,63 @@ export interface FileEntry {
 
 function filesBase(server: string): string {
   return `/servers/${encodeURIComponent(server)}/files`;
+}
+
+const ROOT_PATH = "/";
+
+/** The connection dropped before the server answered (no HTTP status). */
+export class UploadConnectionLostError extends Error {
+  constructor() {
+    super("connection lost");
+    this.name = "UploadConnectionLostError";
+  }
+}
+
+export interface StreamUploadOptions {
+  /** Aborting cancels the request; the server removes the part written so far. */
+  signal?: AbortSignal;
+  /** Byte offset to resume from (copies the first N bytes of the existing file). */
+  offset?: number;
+  /** Bytes sent so far for this request. */
+  onProgress?: (loaded: number, total: number) => void;
+}
+
+// streamUpload sends one raw PUT body with XMLHttpRequest, because fetch cannot
+// report upload progress. Rejects with APIError for an HTTP error,
+// UploadConnectionLostError when no response arrives, and an AbortError
+// DOMException when the signal fires.
+function streamUpload(url: string, headers: Record<string, string>, body: Blob, opts: StreamUploadOptions): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (opts.signal?.aborted) {
+      reject(new DOMException("upload cancelled", "AbortError"));
+      return;
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url, true);
+    xhr.withCredentials = true;
+    for (const [key, value] of Object.entries(headers)) xhr.setRequestHeader(key, value);
+    xhr.upload.onprogress = (e: ProgressEvent) => {
+      if (e.lengthComputable) opts.onProgress?.(e.loaded, e.total);
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+        return;
+      }
+      reject(new APIError(
+        xhr.status,
+        xhr.responseText,
+        xhr.statusText,
+        xhr.getResponseHeader("Content-Type") ?? undefined,
+        xhr.getResponseHeader("Retry-After"),
+      ));
+    };
+    xhr.onerror = () => reject(new UploadConnectionLostError());
+    xhr.ontimeout = () => reject(new UploadConnectionLostError());
+    xhr.onabort = () => reject(new DOMException("upload cancelled", "AbortError"));
+    opts.signal?.addEventListener("abort", () => xhr.abort(), { once: true });
+    xhr.send(body);
+  });
 }
 
 // Shared helper for the non-JSON file endpoints (read/write/mkdir/upload/
@@ -906,15 +966,19 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
         body: envelope("BackupSchedule", ident, spec),
       });
     },
-    // Read-modify-write: fetches the current object, applies changes to its
-    // spec, and PUTs the merged result. Used for the suspend toggle.
-    patchSpec: async (name: string, patch: Partial<BackupSchedule["spec"]>, ns?: string) => {
+    // The GET supplies the current resourceVersion for the conditional PUT.
+    patchSpec: async (name: string, patch: Partial<BackupSchedule["spec"]> | ((current: BackupSchedule) => BackupSchedule["spec"]), ns?: string) => {
       const current = await api<BackupSchedule>(withNS(`/schedules/${name}`, ns));
-      const next = { ...current, spec: { ...current.spec, ...patch } };
+      const next = { ...current, spec: typeof patch === "function" ? patch(current) : { ...current.spec, ...patch } };
       return api<BackupSchedule>(withNS(`/schedules/${name}`, ns), { method: "PUT", body: next });
     },
-    remove: (name: string, ns?: string) =>
-      api<void>(withNS(`/schedules/${name}`, ns), { method: "DELETE" }),
+    remove: (name: string, ns?: string, confirmed?: Pick<BackupSchedule["metadata"], "uid" | "resourceVersion">) => {
+      const query = confirmed && new URLSearchParams({
+        expectedUID: confirmed.uid ?? "",
+        expectedResourceVersion: confirmed.resourceVersion ?? "",
+      });
+      return api<void>(withNS(`/schedules/${name}${query ? "?" + query : ""}`, ns), { method: "DELETE" });
+    },
   };
 
   const Restores = {
@@ -934,6 +998,12 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
       api<BackupDestination>("/backup-destinations", { method: "POST", body }),
     remove: (name: string) =>
       api<void>(`/backup-destinations/${name}`, { method: "DELETE" }),
+  };
+
+  // Spec 030: cluster-wide root-override switch (no resourceVersion; PUT replaces the flag).
+  const SecuritySettings = {
+    get: (cluster?: string, signal?: AbortSignal) => api<SecuritySettingsResponse>("/security-settings", { cluster, signal }),
+    put: (allowRootOverrides: boolean, cluster?: string) => api<SecuritySettingsResponse>("/security-settings", { method: "PUT", body: { allowRootOverrides }, cluster }),
   };
 
   const Players = {
@@ -1043,6 +1113,26 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
         body: fd,
       });
     },
+    // Streaming upload (OD-6): one raw PUT per file to files/stream, which the
+    // server writes to a temp file and commits by rename. dir is the folder the
+    // file goes into; the file keeps its own name.
+    uploadStream: (
+      server: string,
+      dir: string,
+      file: File,
+      opts: StreamUploadOptions = {},
+      ns?: string,
+    ): Promise<void> => {
+      const target = dir === ROOT_PATH ? `/${file.name}` : `${dir}/${file.name}`;
+      const offset = opts.offset && opts.offset > 0 ? `&offset=${opts.offset}` : "";
+      const url = withCluster(withNS(`${filesBase(server)}/stream?path=${encodeURIComponent(target)}${offset}`, ns));
+      const headers: Record<string, string> = {
+        ...csrfHeaders(),
+        "Content-Type": "application/octet-stream",
+        ...(expectedUID ? { "X-Gameplane-Server-UID": expectedUID } : {}),
+      };
+      return streamUpload(url, headers, file, opts);
+    },
     archive: async (server: string, paths: string[], dest?: string, ns?: string): Promise<Blob | undefined> => {
       const query = new URLSearchParams(paths.map((path) => ["path", path]));
       if (dest) query.set("dest", dest);
@@ -1071,7 +1161,7 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
     podStreamPath: (server: string, ns?: string) =>
       withCluster(withNS(`/ws/servers/${encodeURIComponent(server)}/logs/pod?from=start`, ns)),
   };
-  return { Servers, Templates, Namespaces, Cluster, Backups, Schedules, Restores, BackupDestinations, Players, Files, Logs, Captures: request.Captures, Shares: request.Shares };
+  return { Servers, Templates, Namespaces, Cluster, Backups, Schedules, Restores, BackupDestinations, SecuritySettings, Players, Files, Logs, Captures: request.Captures, Shares: request.Shares };
 }
 
 /** Capture cluster/namespace once before starting any asynchronous operation. */
@@ -1088,6 +1178,6 @@ export type ResourceClient = ReturnType<typeof makeResourceEndpoints> & {
 };
 
 // Legacy standalone endpoints are explicitly local unless a method accepts an explicit cluster.
-export const { Servers, Templates, Namespaces, Cluster, Backups, Schedules, Restores, BackupDestinations, Players, Files, Logs } = makeResourceEndpoints({
+export const { Servers, Templates, Namespaces, Cluster, Backups, Schedules, Restores, BackupDestinations, SecuritySettings, Players, Files, Logs } = makeResourceEndpoints({
   api, url: (path) => withClusterParam(path), raw: (path, init) => fetch(path, init), Captures, Shares,
 });

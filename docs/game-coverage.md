@@ -33,6 +33,7 @@ Every Gameplane-shipped game module is listed here with its join-protocol covera
 | `ark-survival-evolved` | ARK: Survival Evolved | blocked-doc | QUERY | TestGameServer_ArkSurvivalEvolvedBot_Query | bot-heavy | — | Unreal Engine 4 custom net driver; A2S query verified but ShooterGame client login handshake requires reverse-engineering | documentation |
 | `arma-reforger` | Arma Reforger | blocked-doc | QUERY | TestGameServer_ArmaReforgerBot_Query | bot-heavy | — | Bohemia Interactive Enfusion engine proprietary network protocol; A2S query verified but backend authentication format undocumented | documentation |
 | `squad` | Squad | blocked-doc | QUERY | TestGameServer_SquadBot_Query | bot-heavy | — | Unreal Engine 4 network stack; Steam A2S query verified but client connection handshake format undocumented | documentation |
+| `minecraft-proxy` | Minecraft Proxy (Velocity, Waterfall, BungeeCord) | out-of-scope-by-design | — | — | — | — | A proxy has no world of its own; a join is forwarded to a backend Minecraft server, so the join protocol is the minecraft-java one already covered | architectural |
 
 ## Covered (in CI)
 
@@ -83,3 +84,4 @@ These modules encounter architectural constraints that prevent a headless automa
 
 - **valheim**: Joins route exclusively through Steam Datagram Relay, a platform-specific UDP relay transport. There is no direct-UDP join path for a standalone headless client; Steam authentication is mandatory at the platform level. No headless client is possible.
 - **dayz**: BattlEye anti-cheat validation is gated before the login handshake completes. Even a fully correct protocol implementation cannot join without a real game binary running the anti-cheat kernel module. No headless client is possible.
+- **minecraft-proxy**: Velocity, Waterfall and BungeeCord only forward a player's login to a backend Minecraft server. A join test would need a backend server behind it and would exercise the same Minecraft Java login already covered by `TestGameServer_MinecraftJavaBot_Joined`, so the proxy has no join test of its own.

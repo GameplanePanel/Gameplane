@@ -38,6 +38,7 @@ telemetry-receiver/  usage telemetry ingest
 sentinel/            wake-on-connect proxy for sleeping pods
 capture-sidecar/     SUBMODULE GameplanePanel/capture-sidecar (AF_PACKET BPF capture sidecar; own go.mod, not in go.work; image still built here)
 mcp-server/          SUBMODULE GameplanePanel/mcp (read-only MCP server; own go.mod, not in go.work; image still built here)
+sftp/                SUBMODULE GameplanePanel/sftp (SFTP endpoint for game server files, spec 040; own go.mod, not in go.work; image still built here)
 tunnel/              SUBMODULE GameplanePanel/tunnel (relay client supervisor: frp, Tailscale, playit; own go.mod, not in go.work; image still built here)
 web/                 React 19 + strict TS + Vite dashboard; src/{routes,components,lib,router,styles,test}/
 modules/             SUBMODULE GameplanePanel/module (OCI game templates)
@@ -53,7 +54,7 @@ go.work              links all 12 Go modules (incl. test/e2e)
 Makefile             canonical task runner
 ```
 
-After cloning: `git submodule update --init modules` (required for `make dev-up`) and `hack/submodules.sh init` (the split component submodules mcp-server, audit-syslog-bridge, tunnel, capture-sidecar; `make images`/`make dev-up` also init them on demand); add `git submodule update --init website` only when working on the website.
+After cloning: `git submodule update --init modules` (required for `make dev-up`) and `hack/submodules.sh init` (the split component submodules mcp-server, audit-syslog-bridge, tunnel, capture-sidecar, sftp; `make images`/`make dev-up` also init them on demand); add `git submodule update --init website` only when working on the website.
 
 ## Commands (via Makefile; compile checks excepted, see rule 8)
 
@@ -61,7 +62,7 @@ After cloning: `git submodule update --init modules` (required for `make dev-up`
 - **Build:** `make build` (all Go + web), `make build-go` (11 modules in GO_MODULES, all but test/e2e), `make build-web` (`npm ci && npm run build`), `make images`.
 - **Codegen:** `make generate` (deepcopy), `make manifests` (CRD/RBAC YAML, synced to `charts/gameplane/charts/gameplane-crds/crds/` and `charts/gameplane/crd-manifests/`), `make modules-push`, `make tidy`.
 - **Dev containers:** `make devcontainers` (regenerate every profile and the `website/` and `modules/` copies after editing `.devcontainer/versions.toml`, `.devcontainer/profiles.toml`, `.devcontainer/devcontainer-lock.json`, `.devcontainer/setup.sh` or a `system-deps.toml`), `make check-devcontainers` (drift check). Profile table: `docs/contributing.md`.
-- **Tests (CI only — never run locally, see Rule 8):** `make test`, `make test-integration` (envtest operator+api), `make test-e2e` (~10–20 min), `make test-e2e-bucket BUCKET=(operator|api-auth|api-roles|api-rbac|api-agent|api-mods|ratelimit|bot-fast|bot-heavy|multicluster|upgrade|postgres-availability|postgres-pitr|postgres-ha|telemetry|capture-overhead|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery|standalone)`.
+- **Tests (CI only — never run locally, see Rule 8):** `make test`, `make test-integration` (envtest operator+api), `make test-e2e` (~10–20 min), `make test-e2e-bucket BUCKET=(operator|api-auth|api-roles|api-rbac|api-agent|api-mods|ratelimit|bot-fast|bot-heavy|multicluster|upgrade|postgres-availability|postgres-pitr|postgres-ha|telemetry|capture-overhead|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery|standalone|sftp)`.
 - **E2E conventions:** register new tests in `test/e2e/buckets.sh`; `t.Parallel()` + unique names; guard shared resources (`ociPushMu` for module pushes, `ensureResticRepo(t)` for shared backup repos). Rate limits per cluster: IP burst 10 (5/min), user burst 6 (3/min) — cap an API bucket at ~7 admin logins.
 - **Lint:** `make lint` runs `check-doc-versions`, `check-links`, `check-features-sync`, `check-specs`, `check-telemetry-catalog`, `check-i18n`, `check-dev-load-images`, `check-coverage-gaps`, `check-devcontainers`, `test-up-registry`, `lint-go` and `lint-web`.
 
@@ -69,7 +70,7 @@ After cloning: `git submodule update --init modules` (required for `make dev-up`
 
 ## Core rules
 
-1. **Design-first UI:** dashboard changes are designed in `design.fig` before React code, website changes in `website/website.fig`, telemetry dashboard changes in `telemetry-receiver/telemetry-dashboard.fig` (OpenPencil: the desktop app or its MCP server `openpencil-mcp`, or headless `openpencil eval -w`/`tool call` from the [ValgulNecron/open-pencil](https://github.com/ValgulNecron/open-pencil) `master` build; Figma also opens them). After every design change run `hack/design/fig-export.ts` (see its header) and commit the regenerated export with the change: `assets/design-export/{fig,json,screenshots}/` with `screens.json` and `parts.json`, `telemetry-receiver/design-export/`, or `website/website-export/`.
+1. **Design-first UI:** dashboard changes are designed in `design.fig` before React code, website changes in `website/website.fig`, telemetry dashboard changes in `telemetry-receiver/telemetry-dashboard.fig` (OpenPencil: the desktop app or its MCP server `openpencil-mcp`, or headless `openpencil eval -w`/`tool call` from the [ValgulNecron/open-pencil](https://github.com/ValgulNecron/open-pencil) `master` build; Figma also opens them). After every design change run `hack/design/fig-export.ts` (see its header; it renders only changed screens, `--all` renders every one) and commit the regenerated export with the change (on same-repository PRs the `design export` workflow commits what is missing for `design.fig` and `telemetry-dashboard.fig`): `assets/design-export/{fig,json,screenshots}/` with `screens.json` and `parts.json`, `telemetry-receiver/design-export/`, or `website/website-export/`.
 2. **Never hand-edit design files:** `.fig` is binary; no edit/delete/`Read`/`Grep`/`cat`/`sed` on it. Change it only through OpenPencil (app, MCP or CLI) or Figma. Read the design through the export's JSON and screenshots; inspect `.fig` diffs only via `git diff --stat`.
 3. **Login privacy:** `/login` and unauthenticated views never expose cluster names, versions, server counts, or account-existence errors — generic messages ("invalid credentials").
 4. **Fix, don't silence:** no `//nolint`, `eslint-disable`, or loosened configs. Allowed: `_test.go` exempt from `errcheck`/`gosec`/`unparam`; `operator/internal/controller/` exempt from revive `exported:`.

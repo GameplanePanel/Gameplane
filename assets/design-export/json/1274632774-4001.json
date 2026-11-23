@@ -3,7 +3,7 @@
   "name": "Screen/Admin Settings — Mod registries (Share CurseForge key)",
   "type": "FRAME",
   "x": 3280,
-  "y": 85089,
+  "y": 90452,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -804,7 +804,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 220,
-                  "height": 356,
+                  "height": 492,
                   "component": "Gameplane/Admin Settings Nav",
                   "componentId": "1:3419",
                   "layout": {
@@ -816,8 +816,12 @@
                     "sizing": ["HUG", "FIXED"]
                   },
                   "texts": [
-                    "General",
+                    "ACCOUNT",
                     "Theme",
+                    "MCP tokens",
+                    "SFTP",
+                    "SERVER",
+                    "General",
                     "Authentication",
                     "Module sources",
                     "Mod registries",

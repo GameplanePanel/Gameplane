@@ -133,6 +133,8 @@ func main() {
 		tunnelPlayitImage                string
 		restrictTunnelEgress             bool
 		agentLogLevel                    string
+		agentMaxUploadBytes              int64
+		filesIdleTimeout                 time.Duration
 		agentCABundle                    string
 		agentClientCert                  string
 		agentClientKey                   string
@@ -254,6 +256,10 @@ func main() {
 	flag.StringVar(&agentLogLevel, "agent-log-level", "",
 		"Log level (debug, info, warn, or error) injected into agent sidecars as GAMEPLANE_LOG_LEVEL. "+
 			"Empty injects nothing (the agent defaults to info) and avoids rolling existing pods.")
+	flag.DurationVar(&filesIdleTimeout, "files-idle-timeout", controller.DefaultFilesIdleTimeout,
+		"Remove a stopped server's file-only pod after this long without a file operation; must be positive.")
+	flag.Int64Var(&agentMaxUploadBytes, "agent-max-upload-bytes", 0,
+		"Per-upload size limit passed to every agent as --max-upload-bytes; 0 keeps the agent default (20 GiB).")
 	flag.StringVar(&moduleNamespace, "module-namespace", "gameplane-system",
 		"Namespace where ModuleSource credential Secrets live.")
 	flag.StringVar(&moduleConfigMapNamespace, "module-configmap-namespace", "",
@@ -312,6 +318,8 @@ func main() {
 	flag.Var(&portPoolTemplateFlags, "port-pool-template",
 		"<template>=<pool>: the template's servers get Service ports from the pool, a contiguous block "+
 			"each. Repeatable; a template draws from at most one pool.")
+	templateHostnames := templateHostnameMap{}
+	flag.Func("template-hostname", "Default player-facing hostname for a game template (<template>=<hostname>). Repeatable.", templateHostnames.set)
 	flag.Var(&probeIngressFromCIDR, "probe-ingress-from-cidr",
 		"Kubelet source CIDR admitted by the probe NetworkPolicy. Repeatable. Defaults to "+
 			"10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 and 169.254.0.0/16 when not supplied.")
@@ -323,6 +331,14 @@ func main() {
 	opts := zap.Options{Development: true}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+	if filesIdleTimeout <= 0 {
+		fmt.Fprintln(os.Stderr, "--files-idle-timeout must be positive")
+		os.Exit(1)
+	}
+	if agentMaxUploadBytes < 0 {
+		fmt.Fprintln(os.Stderr, "--agent-max-upload-bytes must not be negative")
+		os.Exit(1)
+	}
 	if wakeStartLimit < 0 || wakeStartLimit > 128 {
 		fmt.Fprintln(os.Stderr, "--wake-start-limit must be between 0 and 128")
 		os.Exit(1)
@@ -545,11 +561,14 @@ func main() {
 		TunnelPlayitImage:      tunnelPlayitImage,
 		RestrictTunnelEgress:   restrictTunnelEgress,
 		AgentLogLevel:          agentLogLevel,
+		AgentMaxUploadBytes:    agentMaxUploadBytes,
+		FilesIdleTimeout:       filesIdleTimeout,
 		AgentCASecretName:      agentCASecretName,
 		AgentCASecretNamespace: agentCASecretNamespace,
 		WakeStartLimit:         wakeStartLimit,
 		WakeStartNamespace:     controlPlaneNamespaceDefault,
 		ControlPlaneNamespace:  controlPlaneNamespace,
+		EventRecorder:          mgr.GetEventRecorder("gameserver-controller"),
 		AgentClient:            agentClient,
 		OperationQuiescer:      agentClient,
 		PodAttacher: &controller.StopAttachClient{
@@ -558,6 +577,7 @@ func main() {
 		},
 		AddressManager:              addressManager,
 		PortPools:                   portPools,
+		TemplateHostnames:           templateHostnames,
 		MetalLBNamespace:            metalLBNamespace,
 		GameIngressPolicyEnabled:    gameIngressPolicy,
 		GameIngressFromCIDRs:        gameIngressFromCIDR,

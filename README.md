@@ -170,6 +170,7 @@ legacy default for custom deployments. See [storage and recovery](docs/standalon
 | `audit-syslog-bridge/` | Go | Submodule (`GameplanePanel/audit-syslog-bridge`): HTTP-JSON to syslog relay [optional] for audit logging infrastructure. |
 | `telemetry-receiver/` | Go | Collector [optional] for anonymous daily usage reports. |
 | `mcp-server/` | Go | Submodule (`GameplanePanel/mcp`): strictly read-only Model Context Protocol server [optional] for AI tools. |
+| `sftp/` | Go | Submodule (`GameplanePanel/sftp`): optional SFTP endpoint for game server files; every login and file operation goes through the Gameplane API. |
 
 ### Custom Resource Definitions (CRDs)
 
@@ -210,6 +211,7 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 ├── audit-syslog-bridge/  # Submodule: optional syslog relay for audit logs
 ├── telemetry-receiver/   # Optional anonymous usage telemetry receiver
 ├── mcp-server/           # Submodule: optional read-only MCP server (GameplanePanel/mcp)
+├── sftp/                 # Submodule: optional SFTP endpoint for game server files (GameplanePanel/sftp)
 ├── charts/gameplane/     # Helm deployment chart
 ├── deploy/kind/          # Local dev environment bootstrap scripts
 ├── deploy/standalone/    # API + dashboard Docker Compose deployment
@@ -273,7 +275,7 @@ Ed25519 key and do not have transparency log entries — verify them with
 Requires: Go 1.27+, Node 20+, Docker, kind, kubectl, helm,
 [oras](https://oras.land/docs/installation) (>= 1.2.0).
 
-The game modules and the split components live in separate `GameplanePanel/*` repos, wired in here as submodules: `modules/` (`GameplanePanel/module`) and the component submodules `mcp-server/`, `audit-syslog-bridge/`, `tunnel/` and `capture-sidecar/` (`GameplanePanel/mcp`, `/audit-syslog-bridge`, `/tunnel`, `/capture-sidecar`). Clone with submodules (or initialize them after):
+The game modules and the split components live in separate `GameplanePanel/*` repos, wired in here as submodules: `modules/` (`GameplanePanel/module`) and the component submodules `mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/` and `sftp/` (`GameplanePanel/mcp`, `/audit-syslog-bridge`, `/tunnel`, `/capture-sidecar`, `/sftp`). Clone with submodules (or initialize them after):
 
 ```sh
 git clone --recurse-submodules <repo-url>
@@ -325,6 +327,7 @@ Translations are welcome. Translate in the browser on
 pack by hand.
 
 ## License
+
 
 [AGPL-3.0-or-later](./LICENSE). Any network-accessible deployment of a
 modified version must make its source available to users.

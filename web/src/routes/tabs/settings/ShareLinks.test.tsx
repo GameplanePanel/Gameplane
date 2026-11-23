@@ -1,7 +1,7 @@
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { ReactNode } from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { setupServer } from "msw/node";
@@ -149,11 +149,9 @@ describe("ShareLinksSection", () => {
     });
   });
 
-  it("displays can-start capability as 'Can start' chip", async () => {
+  it("displays can-start capability as a chip on inactive links", async () => {
     render(<ShareLinksSection name="mc-survival" />, { wrapper: Wrapper });
-    await waitFor(() => {
-      expect(screen.getByText("Can start")).toBeInTheDocument();
-    });
+    expect(await screen.findByRole("gridcell", { name: "Can start" })).toBeInTheDocument();
   });
 
   it("displays view-only capability as 'View only' chip", async () => {
@@ -171,6 +169,61 @@ describe("ShareLinksSection", () => {
     });
     // The two expired links show a muted dash instead of a Revoke button.
     expect(screen.getAllByText("—")).toHaveLength(2);
+  });
+
+  it("changes only the selected link when active links have the same dates and permission", async () => {
+    const user = userEvent.setup();
+    let canStart = true;
+    const updates: boolean[] = [];
+    server.use(
+      http.get(/\/servers\/[^/]+:shares$/, () =>
+        HttpResponse.json([mockLinks[0], { ...mockLinks[0], id: "link-other", canStart }, ...mockLinks.slice(1)])),
+      http.patch("/servers/mc-survival/shares/link-other", async ({ request }) => {
+        const body = await request.json() as { canStart: boolean };
+        canStart = body.canStart;
+        updates.push(canStart);
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    render(<ShareLinksSection name="mc-survival" />, { wrapper: Wrapper });
+    const other = await screen.findByRole("switch", { name: "Allow anyone with link link-1 to wake the server" });
+    const toggle = screen.getByRole("switch", { name: "Allow anyone with link link-other to wake the server" });
+    const row = screen.getByRole("row", { name: /link-other/ });
+    expect(within(row).getByText("link-other")).toBeVisible();
+    expect(within(row).getByRole("switch")).toBe(toggle);
+    expect(toggle).toBeChecked();
+    expect(screen.getAllByRole("switch")).toHaveLength(2);
+    for (const enabled of [false, true]) {
+      await user.click(toggle);
+      await waitFor(() => {
+        expect(toggle).toBeEnabled();
+        expect(toggle).toHaveProperty("checked", enabled);
+      });
+      expect(other).toBeChecked();
+    }
+    expect(updates).toEqual([false, true]);
+  });
+
+  it("keeps the current permission visible when the API rejects an edit", async () => {
+    server.use(http.patch("/servers/:name/shares/:id", () =>
+      HttpResponse.json({ error: "Permission denied" }, { status: 403 })));
+    render(<ShareLinksSection name="mc-survival" />, { wrapper: Wrapper });
+    const toggle = await screen.findByRole("switch", { name: "Allow anyone with link link-1 to wake the server" });
+    await userEvent.setup().click(toggle);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Permission denied");
+    expect(toggle).toBeChecked();
+  });
+
+  it("keeps the capability read-only for a non-owner", async () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ResourceTargetProvider target={{ cluster: "local", name: "mc-survival" }} access={{ canWrite: true, canControl: true, canConsole: true, canDelete: true, isOwner: false, isCollaborator: false }}>
+          <ShareLinksSection name="mc-survival" />
+        </ResourceTargetProvider>
+      </QueryClientProvider>
+    );
+    expect(await screen.findByText("Active")).toBeInTheDocument();
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   });
 
   // Create dialog tests
@@ -276,8 +329,17 @@ describe("ShareLinksSection", () => {
   });
 
   // Created dialog tests
-  it("displays created link URL in created dialog", async () => {
+  it("shows the URL once and the same management ID in the created dialog and the table", async () => {
     const user = userEvent.setup();
+    const created = { ...mockLinks[0], id: "friends-link", token: "friends-token" };
+    let rows = mockLinks;
+    server.use(
+      http.get(/\/servers\/[^/]+:shares$/, () => HttpResponse.json(rows)),
+      http.post(/\/servers\/[^/]+:shares$/, () => {
+        rows = [{ ...mockLinks[0], id: created.id }, ...mockLinks];
+        return HttpResponse.json(created);
+      }),
+    );
     render(<ShareLinksSection name="mc-survival" />, { wrapper: Wrapper });
     const createBtn = screen.getByRole("button", { name: /Create link/ });
     await user.click(createBtn);
@@ -290,6 +352,14 @@ describe("ShareLinksSection", () => {
       expect(screen.getByText("Share link created")).toBeInTheDocument();
       expect(screen.getByText(/You will not see this link again/)).toBeInTheDocument();
     });
+    const dialog = screen.getByRole("dialog", { name: "Share link created" });
+    expect(within(dialog).getByText(/\/share\/friends-token$/)).toBeVisible();
+    expect(within(dialog).getByText("friends-link")).toBeVisible();
+    await user.click(within(dialog).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
+    expect(await screen.findByRole("switch", { name: "Allow anyone with link friends-link to wake the server" })).toBeInTheDocument();
+    expect(screen.getByText("friends-link")).toBeVisible();
+    expect(screen.queryByText(/friends-token/)).not.toBeInTheDocument();
   });
 
   it("copies link URL to clipboard", async () => {
@@ -497,6 +567,7 @@ describe("ShareLinksSection", () => {
     expect(screen.queryByText("Active")).not.toBeInTheDocument();
     expect(screen.queryByText("Expired")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Revoke" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   });
 
   // T029: expiry-choice request shapes, warnings, and client-side blocking.

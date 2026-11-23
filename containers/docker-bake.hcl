@@ -4,7 +4,7 @@
 # sequential `docker build`s. Tags match what `make e2e-images` produces
 # and what deploy/kind/e2e.sh loads.
 group "e2e" {
-  targets = ["e2e-operator", "e2e-api", "e2e-agent", "e2e-sentinel", "e2e-capture-sidecar", "e2e-telemetry-receiver", "e2e-fakeoidc", "e2e-mcp-server", "e2e-audit-syslog-bridge", "e2e-tunnel-frp"]
+  targets = ["e2e-operator", "e2e-api", "e2e-agent", "e2e-sentinel", "e2e-capture-sidecar", "e2e-telemetry-receiver", "e2e-fakeoidc", "e2e-mcp-server", "e2e-sftp", "e2e-audit-syslog-bridge", "e2e-tunnel-frp"]
 }
 
 target "e2e-operator" {
@@ -60,6 +60,14 @@ target "e2e-mcp-server" {
   context    = "."
   dockerfile = "mcp-server/Dockerfile"
   tags       = ["gameplane-test/mcp-server:e2e"]
+}
+
+# The SFTP endpoint (spec 040). Base "e2e" group so the sftp e2e bucket finds
+# it loaded in the cluster.
+target "e2e-sftp" {
+  context    = "."
+  dockerfile = "sftp/Dockerfile"
+  tags       = ["gameplane-test/sftp:e2e"]
 }
 
 # The RFC 5424 audit syslog forwarder (spec 013 US5). Base "e2e" group.

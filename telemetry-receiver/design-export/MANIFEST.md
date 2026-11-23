@@ -50,4 +50,4 @@ The frames keep the node IDs they had in the old `telemetry-dashboard.pen` as fi
 
 ## Regenerating
 
-`hack/design/fig-export.ts` writes the export from `telemetry-dashboard.fig`; its header gives the commands. The file was converted from `telemetry-dashboard.pen` with OpenPencil on 2026-11-22. The export made through Pencil MCP before then, and its log, are in git history.
+`hack/design/fig-export.ts` writes the export from `telemetry-dashboard.fig`; its header gives the commands. It renders only screens whose content changed since the last export (`--all` renders every screen), and the `design export` workflow commits a missing export on pull requests from branches of this repository. The file was converted from `telemetry-dashboard.pen` with OpenPencil on 2026-11-22. The export made through Pencil MCP before then, and its log, are in git history.

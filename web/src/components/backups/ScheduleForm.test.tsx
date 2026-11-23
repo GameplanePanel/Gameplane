@@ -4,9 +4,88 @@ import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "@/test/server";
 import { renderWithQuery } from "@/test/render";
+import { makeSchedule } from "@/test/factories";
 import { ScheduleForm } from "./ScheduleForm";
 
 describe("ScheduleForm", () => {
+  it.each([
+    { powerPolicy: "stop-copy-restart" as const },
+    { volumePolicy: "all-data" as const },
+  ])("explains why CSI is unavailable with %o", async (policy) => {
+    const schedule = makeSchedule();
+    schedule.spec = { ...schedule.spec, ...policy, repoRef: { name: "default", key: "repo" } };
+    renderWithQuery(<ScheduleForm existing={schedule} serverName="alpha" permissions={["*"]} onClose={() => {}} />);
+    expect(screen.getByText(/Volume snapshots require preserving server power/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Backup type/i }));
+    expect(await screen.findByRole("option", { name: /Volume snapshot \(CSI\)/i })).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("preserves a restic-only policy added while a switch to CSI is pending", async () => {
+    const schedule = makeSchedule();
+    schedule.spec.repoRef = { name: "default", key: "repo" };
+    const latest = { ...schedule, spec: { ...schedule.spec, volumePolicy: "all-data" } };
+    const writes = vi.fn();
+    server.use(
+      http.get("/schedules/alpha-daily", () => HttpResponse.json(latest)),
+      http.put("/schedules/alpha-daily", () => { writes(); return HttpResponse.json(latest); }),
+    );
+    renderWithQuery(<ScheduleForm existing={schedule} serverName="alpha" permissions={["*"]} onClose={() => {}} />);
+    await userEvent.click(screen.getByRole("button", { name: /Backup type/i }));
+    await userEvent.click(await screen.findByRole("option", { name: /Volume snapshot \(CSI\)/i }));
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText(/This schedule changed/)).toBeInTheDocument();
+    expect(writes).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["replacement", "after", "0 3 * * *"],
+    ["concurrent cron change", "before", "0 6 * * *"],
+  ])("keeps the editor open after a %s", async (_case, uid, schedule) => {
+    const original = makeSchedule({
+      metadata: { name: "nightly", uid: "before" },
+      spec: { serverRef: { name: "alpha" }, strategy: "volume-snapshot", schedule: "0 3 * * *" },
+    });
+    const latest = { ...original, metadata: { name: "nightly", uid }, spec: { ...original.spec, schedule } };
+    const writes = vi.fn();
+    const close = vi.fn();
+    server.use(
+      http.get("/schedules/nightly", () => HttpResponse.json(latest)),
+      http.put("/schedules/nightly", () => { writes(); return HttpResponse.json(latest); }),
+    );
+    renderWithQuery(<ScheduleForm existing={original} serverName="alpha" permissions={["schedules:write"]} onClose={close} />);
+    const cron = screen.getByDisplayValue("0 3 * * *");
+    await userEvent.clear(cron);
+    await userEvent.type(cron, "0 5 * * *");
+    const save = screen.getByRole("button", { name: /Save changes/ });
+    await userEvent.click(save);
+    expect(await screen.findByText(/This schedule changed/)).toBeInTheDocument();
+    expect(writes).not.toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
+  });
+
+  it("keeps an existing custom repository and clears the last retention bucket when edited", async () => {
+    const existing = makeSchedule({
+      metadata: { name: "custom", namespace: "games", uid: "schedule-1" },
+      spec: { serverRef: { name: "alpha" }, schedule: "0 11 * * *", repoRef: { name: "private-repo", key: "custom-key" }, retention: { keepWeekly: 2 } },
+    });
+    let updated: unknown;
+    const close = vi.fn();
+    server.use(
+      http.get("/schedules/custom", () => HttpResponse.json(existing)),
+      http.put("/schedules/custom", async ({ request }) => {
+        updated = await request.json();
+        return HttpResponse.json(existing);
+      }),
+    );
+    renderWithQuery(<ScheduleForm existing={existing} serverName="alpha" permissions={["schedules:read", "schedules:write"]} onClose={close} />);
+    expect(screen.getByDisplayValue("custom-key")).toBeInTheDocument();
+    expect(screen.getByLabelText("Weekly")).toHaveValue(2);
+    await userEvent.clear(screen.getByLabelText("Weekly"));
+    await userEvent.click(screen.getByRole("button", { name: /Save changes/ }));
+    await waitFor(() => expect(close).toHaveBeenCalledOnce());
+    expect(updated).toEqual({ metadata: existing.metadata, spec: { serverRef: existing.spec.serverRef, schedule: existing.spec.schedule, repoRef: existing.spec.repoRef }, status: existing.status });
+  });
+
   it("does not query destinations when only schedule write access is granted", async () => {
     let requests = 0;
     server.use(http.get("/backup-destinations", () => {

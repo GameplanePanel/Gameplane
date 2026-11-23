@@ -341,6 +341,8 @@ still sees the stored values; restrict that with cluster RBAC.
 
 ## Share links
 
+The server owner can change an active link's **Can start** permission under **Settings → Share links**. Use the **Link ID** shown at creation to identify its row later. Enabling wake access lets anyone who already has that URL wake the server from idle sleep. Disabling it removes that permission on the next request. The URL and expiry stay the same.
+
 Share links (`api/internal/db/shares.go`, schema in `api/internal/db/migrations/sqlite/006_share_links.sql`, Postgres twin in `migrations/postgres/`) grant unauthenticated, token-bearing access to a single GameServer's status and connection address, optionally with permission to wake it. Because they are unauthenticated, their security rests entirely on the token being both hard to guess and hard to recover if the database or a backup leaks.
 
 **Storage.** Only a SHA-256 hash of the token is persisted (`token_hash`, indexed for O(1) lookup); the raw 32-byte random token is generated at creation, returned exactly once in the create response, and never stored, logged, or recoverable afterwards.
@@ -630,6 +632,70 @@ that pod, including other players' packets. This access is admin-only and fully
 audited (every capture operation is logged). Default capture retention is 24 hours,
 reducing the exposure window for captured data.
 
+### Server security overrides
+
+A module sets default run-as ids, the filesystem group and the ownership check in
+`spec.security` of its `GameTemplate` (see [`module-authoring.md`](module-authoring.md#security-context)).
+A server owner can override these per server in `GameServer.spec.security`. An
+override never changes a running pod: the new values apply at the server's next
+start, and the dashboard shows the value as pending until then.
+
+**Who may override.** Writing `spec.security` needs the `servers:security`
+permission, which the admin role holds by default. A user without it gets 403 on
+create and update.
+
+**The root rule.** A root value is `runAsUser` or `runAsGroup` set to `0` or to
+the image default, or `fsGroup` set to `0`. Root values are refused unless the
+cluster allows them. The setting is `allowRootOverrides`, and it is separate for
+each cluster and off by default. An administrator sets it under Clusters, the
+cluster, Configuration, with `PUT /security-settings?cluster=<id>` and body
+`{"allowRootOverrides": true}`. `GET /security-settings?cluster=<id>` reads it and
+needs `config:read`; the PUT needs `config:manage`.
+
+The value is stored in one ConfigMap per cluster, `gameplane-security-settings`,
+in that cluster's operator control-plane namespace. Its key `allowRootOverrides`
+is `"true"` or `"false"`. Any other value, a missing key or a missing ConfigMap
+reads as off. The operator's Helm chart creates the ConfigMap with `"false"` and
+the annotation `helm.sh/resource-policy: keep`, so an uninstall keeps it. On
+upgrade the chart reads the current value back, so an upgrade never flips the
+setting. The API never creates the ConfigMap. If it is deleted, the setting reads
+as off until the next `helm upgrade`. For a remote cluster, the API uses the
+namespace recorded on its registration, `Cluster.spec.controlPlaneNamespace`
+(default `gameplane`). A wrong namespace cannot turn the setting on. The ConfigMap
+is then not found, GET reports `present: false`, and PUT returns 409
+`server.cluster.security_settings_missing`.
+
+Two layers enforce the rule, and both fail closed:
+
+- The API refuses a create or update that saves a new or changed root value
+  while the setting is off, with 403 `server.security.root_disabled`.
+- The operator does not start a stopped server that holds a saved root override
+  while the setting is off. Its replicas stay at zero, and the condition
+  `SecurityAllowed` is `False` with reason `RootOverrideDisallowed`. A server
+  that is already running keeps running.
+
+**Applied filesystem group for backups.** Backup and restore jobs use the
+filesystem group the server last started with, not the value it will start with
+next. A pending change to `fsGroup` therefore does not change how a backup reads
+the data volume.
+
+**Ownership check trade-off.** `EveryStart` re-applies the group to every file on
+each start, which is always correct and slow on large volumes. `OnlyWhenWrong`
+starts faster but leaves files deeper in the volume with their current owner.
+See the module authoring guide for the built-in default.
+
+**Audit trail.** Create, update, clone and refusal of an override write an audit
+row, and so does each flip of `allowRootOverrides` (target `security/<cluster id>`,
+reason `allowRootOverrides:false->true` or `true->false`). If the flip is recorded
+but the ConfigMap update fails, a second row with reason `security_save_failed`
+is written and the API returns 502. The audit schema is unchanged.
+
+**Writers that bypass the API.** Anyone with Kubernetes write access to a
+`GameServer` or to the `gameplane-security-settings` ConfigMap can set these values
+without the API checks or audit rows. The operator still applies the root hold to
+every server it reconciles, so write access to the ConfigMap is equivalent to the
+setting itself. Restrict it with Kubernetes RBAC.
+
 ## Module supply chain
 
 A `GameTemplate` materialized from a module chooses the container image,
@@ -691,6 +757,39 @@ earlier:
 
 The mods package confines its own paths separately (`ConfinePath`/`ConfineRelPath`)
 and does not use this descriptor walk.
+
+## SFTP endpoint (spec 040, optional)
+
+The SFTP endpoint (`sftp.enabled`, off by default; see [sftp.md](sftp.md)) is a
+second internet-facing listener, so it gets the same treatment as the dashboard:
+
+- **Authentication is decided by the API.** The SFTP pod holds no password
+  hashes and no key store. Each login (`POST /sftp/v1/login`) is checked by the
+  API against the user's own SSH public keys or generated password. The login
+  limiter is the same one the dashboard uses, so guessing is throttled per IP
+  and per username. A refused login returns one generic refusal, so the client
+  cannot tell a wrong password from a server the user cannot read.
+- **Service tokens are per cluster.** The SFTP pod authenticates to the API with
+  a `gpsftps_` token minted under **Clusters**. Each cluster has at most two
+  active tokens, shown once, stored only as a digest, and revocable. A token
+  identifies a cluster endpoint; it does not identify a user and grants no
+  file access by itself.
+- **Host key.** The SSH host key lives in the `gameplane-sftp-host-key` Secret,
+  created once by the chart and kept on uninstall. Users see its fingerprint on
+  their profile page and every client pins it. A bring-your-own key replaces the
+  Secret's `host_key` entry (`sftp.hostKeySecret`).
+- **File-only pod.** The SFTP pod keeps no game data and mounts no game
+  volume. Every file operation is a request to the API, which runs it through the
+  agent as the signed-in user, with the same RBAC, ownership and dotfile rules as
+  the Files tab, and records it in the audit log with `source: sftp`. For a
+  stopped server, the operator's file-only pod (agent `--files-only`, no host
+  ports, removed after `--files-idle-timeout`) serves the same files; file access
+  never starts the game. Enabling SFTP grants the operator `pods: create, delete`
+  in game namespaces so it can run that file-only pod.
+- **Revocation and disable** end open sessions within 60 seconds and refuse new
+  logins (FR-007, SC-006).
+- **Transfers.** Uploads are capped by `files.maxUploadSize` and the volume's
+  free space. Idle sessions close after `sftp.idleTimeout`.
 
 ## Runtime mod installs (agent)
 

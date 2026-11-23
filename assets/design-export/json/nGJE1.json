@@ -4,7 +4,7 @@
   "name": "Server Detail · Settings · Networking · Tunnel disabled",
   "type": "FRAME",
   "x": 1640,
-  "y": 43788,
+  "y": 45919,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -250,6 +250,7 @@
                     "Scheduled backups",
                     "Network capture",
                     "Placement",
+                    "Security",
                     "RBAC & access",
                     "Share links",
                     "Danger zone"
@@ -455,7 +456,7 @@
                                       "width": 200,
                                       "height": 32,
                                       "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-                                      "text": "Optional DNS name for ingress / external-dns annotations.",
+                                      "text": "Leave blank for the template hostname or load balancer address.",
                                       "font": ["Geist", 400, 12],
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     }

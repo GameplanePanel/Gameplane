@@ -135,7 +135,7 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - Fleet bounds and failures: `limit` is 1–2,000 (default 2,000); four workers, at most 128 work scopes, 200 objects per page, 2,000 scanned per resource scope, 10,000 scanned objects per request, a ten-second overall deadline and five-second scope deadlines. Metrics have a one-second sub-deadline. Inventory caps node/PV lists at 2,000 each; placements cap emitted template copies at 2,000. Discovery lists at most 2,000 registrations, while an exact filter directly looks up its registration. Limits/deadlines never become silent empty totals: HTTP 200 retains successful reads with `partial:true` and safe issues (`unavailable`, `forbidden`, `limit`). Issue `cluster:""` denotes a collection-wide limit/discovery problem; raw Kubernetes errors and credentials are never included. Hidden ownership-only scan failures may set `partial` without revealing a scope. Optional Cluster-CRD absence alone permits local discovery fallback; other discovery failures are reported as partial coverage.
 - `/servers/{name}/access` — GET: existing selected-server read/owner/collaborator authorization, rechecked against the live object. Returns the same server access flags, explicit `target` and exact namespaced `permissions` for deep links; no global administration permissions are inferred. This avoids finding a server in a capped list just to decide which detail actions to show.
 - `/servers/{name}/capabilities` — GET: the same selected-server read authorization and live-UID check. Returns `{target,capture:{enabled,files,state,defaultRetentionSeconds,maxRetentionSeconds,defaultMaxDurationSeconds,defaultMaxSizeBytes}}`. State is `ready`, `unsupported` or `unavailable`; these are transport capabilities, not permissions. Local settings come from CaptureConfig; remote settings come from the authenticated selected gateway and never from central capture defaults.
-- `/servers` — GET, POST: list and create GameServer CRDs
+- `/servers` — GET, POST: list and create GameServer CRDs. POST and `:clone` reject a name that cannot name the server's Services (`<name>` and `<name>-agent` must be DNS-1035 labels, so a lowercase letter first and at most 57 characters) with 422 `server.lifecycle.name_invalid` before any other check; the apiserver alone would accept names such as `7d2d`.
 - `/servers/{name}` — GET, PUT, DELETE: manage GameServer CRDs; cluster-dispatch via `?cluster=`; multiplexed console/files. Every response that carries a GameServer (`/servers`, `/servers/{name}` incl. the POST/PUT replies, `:clone`, `/users/me/servers`, `/fleet/servers`, `/events`) replaces password-type `spec.config` values with the redaction marker; see "GameServer config password redaction".
 - `/servers/{name}/console` — WebSocket: RCON/exec; cluster-dispatch
 - `/servers/{name}:start`, `:stop`, `:restart` — actions (operator-handled)
@@ -155,7 +155,7 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - `/backups` — GET, POST: list and create Backup CRDs
 - `/backups/{name}` — GET, PUT, DELETE: manage Backup CRDs (namespaced, cluster-dispatch)
 - `/schedules` — GET, POST: list and create BackupSchedule CRDs
-- `/schedules/{name}` — GET, PUT, DELETE: manage BackupSchedule CRDs (namespaced, cluster-dispatch)
+- `/schedules/{name}` — GET, PUT, DELETE: manage BackupSchedule CRDs (namespaced, cluster-dispatch). DELETE accepts the optional query parameters `expectedUID` and `expectedResourceVersion` together. Kubernetes checks both against the live schedule and returns 409 if either changed.
 - `/restores` — GET, POST: list and create Restore CRDs
 - `/restores/{name}` — GET, PUT, DELETE: manage Restore CRDs (namespaced, cluster-dispatch)
 - `/backup-destinations` — GET, POST: list and create restic repo Secrets
@@ -337,6 +337,24 @@ trust assumptions, rotation behavior and surfaces outside this protocol.
   - **ASYMMETRY (US2 central design point):** Disabling stops accepting new capture-start requests and stops any running capture but the container lingers until the pod is next recreated (e.g., on node drain, replica restart, or manual delete)
   - Gated by `captures:manage` permission
   - Audit: synchronous write before response with reason "feature_disabled", "server_not_found", "terminating", "patch_failed", or "" on success
+
+### SFTP access (spec 040)
+
+**Personal credentials** (`api/internal/handlers/sftp.go`, mounted on `/users`, session callers only; SFTP-session and MCP-token callers are refused):
+- `GET /users/me/sftp`: the caller's SFTP view (keys, whether a password exists, address and host key fingerprint when SFTP is enabled).
+- `POST /users/me/sftp/keys`: add one public key (ed25519, ECDSA or RSA of at least 3072 bits; at most 20 per user; a key may belong to one account only). `DELETE /users/me/sftp/keys/{id}` removes it and ends sessions that used it.
+- `POST /users/me/sftp/password`: generate the one password (length 20 to 40). The plaintext is returned once; only a hash is stored. `DELETE /users/me/sftp/password` revokes it.
+- Admins with `users:manage`: `GET /users/{id}/sftp`, `DELETE /users/{id}/sftp/keys/{keyId}`, `DELETE /users/{id}/sftp/password`.
+
+**Remote endpoints and service tokens** (`sftp_cluster.go`, mounted under `/clusters`, `cluster:manage`):
+- `GET /clusters/{name}/sftp`: the endpoint (`local` for the panel's own cluster) and active service tokens. Token secrets are never listed; rows show the prefix only.
+- `PUT /clusters/{name}/sftp`: set `address` and `hostKeyFingerprint` (`SHA256:` form) for a remote cluster. Refused for `local` with `server.sftp.endpoint_local`; the local endpoint comes from Helm.
+- `POST /clusters/{name}/sftp-token`: mint a `gpsftps_` service token, returned once (201). At most two active per cluster; a third returns 409 `server.sftp.token_limit_reached`. Only the digest is stored.
+- `DELETE /clusters/{name}/sftp-token/{id}`: revoke (204). Tokens of other clusters are not found.
+
+**Endpoint-facing routes** (`sftp_login.go`, mounted under `/sftp/v1` outside the protected group, authenticated by the service token or the session token the endpoint holds, never by a dashboard cookie): `POST /sftp/v1/login` resolves username and credential to a session; `POST /sftp/v1/sessions/check` re-validates open sessions (revocation and user disable end them within 60 s, SC-006); `POST /sftp/v1/sessions/end`; `GET /sftp/v1/servers` lists the servers the session can read. Every file operation after login goes to the agent through the normal file routes as the signed-in user, with the same RBAC checks as the Files tab, and is audited with `source: sftp`.
+
+**Permissions:** reading needs `servers:read` (or ownership or collaborator access); writing, renaming and deleting need `servers:write` (or the same ownership or collaborator access). The data-root and server folders are read-only over SFTP.
 
 ### OIDC role mapping and Helm-seeded provider (install-time configuration)
 
@@ -550,6 +568,15 @@ audit:read, config:read, config:manage (cluster-scoped)
   - Tests: `TestMiddleware_OwnerOnlyOperationsNeedOwnerOrAdmin`, `TestMiddleware_ServerWithoutOwnerIsAdminOnlyForOwnerOnlyOperations`, `TestMiddleware_OtherServerWritesUnchangedForServersWriteHolders`, `TestMiddleware_OwnerOnlyOperationOnMissingServer`, `TestMiddleware_OwnerOnlyOperationWithoutFetcherFailsClosed` (`rbac/owner_only_test.go`); `TestOwnership_TransferRequiresOwnerOrAdmin`, `TestOwnership_SetCollaboratorsRequiresOwnerOrAdmin`, `TestLifecycle_WipeDataRequiresOwnerOrAdmin` (`handlers/owner_only_ops_test.go`); e2e `TestAPI_OwnerOnlyServerOperations_RequireOwnerOrAdmin` (bucket `api-mods`)
 - Fetch GameServer from `?cluster=` (cluster-gated in middleware)
 
+### Security overrides and security settings
+
+- **Routes:** `GET /security-settings?cluster=<id>` (needs `config:read`) and `PUT /security-settings?cluster=<id>` (needs `config:manage`), in `handlers/security_settings.go`, mounted with `MountSecuritySettings(r, reg, auditor)`. The cluster is resolved with `resolveCluster`, as `/backup-destinations` does. Rule-table entries sit next to the `/admin/config` rules in `rbac/rbac.go`.
+- **Setting store:** `allowRootOverrides` lives only in the ConfigMap `gameplane-security-settings` in the cluster's control-plane namespace. The home cluster uses `moduleConfigMapNS`. A remote cluster uses `Cluster.spec.controlPlaneNamespace` (default `gameplane`). The API reads and updates the ConfigMap by name through that cluster's registry client and never creates it. There is no config-table row and no start-up sync.
+- **GET body:** `{"cluster", "allowRootOverrides", "present"}`. A missing ConfigMap reads as `allowRootOverrides: false, present: false`. Any other read error is 502.
+- **PUT body:** `{"allowRootOverrides": bool}`. Empty body is 400 `server.empty_body`. Invalid JSON or a non-boolean value is 422. A missing ConfigMap is 409 `server.cluster.security_settings_missing` with no audit row. An unchanged value is 200 with no write and no audit row. A change writes the flip audit row (`target` `security/<cluster id>`, `reason` `allowRootOverrides:false->true` or the reverse) with `WriteSync` before the ConfigMap update. If the update fails, the API writes a `security_save_failed` row and returns 502. The PUT returns the GET body with `present: true`.
+- **Override checks:** `handlers/security_overrides.go` (replacing `resources_security.go`) checks the `servers:security` permission field by field on `spec.security` for create, update and clone, and applies the root rule. A new or changed root value is refused with 403 `server.security.root_disabled` unless the request's own cluster ConfigMap reads exactly `"true"`. Any read error or other value is off. The rule reads no config store, so `MountResources` needs no `*db.Store`. Clone writes the override audit row through the optional variadic auditor of `MountLifecycle`.
+- **Helm grant:** the API identity gets `get`, `update` and `patch` on that one ConfigMap by `resourceNames`. There is no `create` verb, because Kubernetes does not apply `resourceNames` to `create`. Remote chart grants use the same verbs in the registered namespace.
+
 ## Key invariants
 
 1. **Operator-authoritative:** every mutating request goes through K8s API (Create/Patch/Delete on CRDs); API waits for operator to reconcile status
@@ -632,6 +659,8 @@ Verify from `/api/go.mod`.
 **Public share power policy:** `GET /shares/{token}` includes `manuallyStopped` (the server's explicit stop setting) and `canStart` (the link permits waking and the server is not manually stopped). The existing `status` remains the observed phase. `POST /shares/{token}/start` is wake-only: an authorized link to a manually stopped server returns 409 with the stable generic JSON body `{"error":"server stopped"}` without stamping a wake or changing `spec.suspend`. Idle-asleep servers still receive a conditional wake annotation and 202; the operator owns reconciliation. Invalid and view-only start requests retain the identical neutral 404 response.
 
 **006_share_links.sql:** (unauthenticated server access tokens)
+- The owner's list includes active, expired and revoked links belonging to the current GameServer. It omits links minted for an earlier server with the same name, using the same UID and legacy creation-time checks as public resolution.
+- The server owner can send `PATCH /servers/{name}/shares/{id}` with a boolean `canStart` field to change an active link's wake permission. The response is 204. The update matches the cluster, namespace, server incarnation and link ID. Expired, revoked and unmatched links return 404. Everyone using the existing URL sees the new permission on their next request.
 - Creates `share_links` table: signed, revocable tokens for unauthenticated access to a single GameServer's status and connection address, optionally with start capability
 - Token never stored; only SHA-256 hash persisted and indexed for O(1) lookup
 - Revocation (`DELETE /servers/{name}/shares/{id}`, `db.Store.RevokeShareLink`) matches the link's cluster, namespace, server name and id; no match returns `db.ErrShareLinkNotFound`, which the handler answers with 404

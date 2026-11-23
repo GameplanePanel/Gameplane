@@ -356,6 +356,7 @@ Top-level knobs (see `values.yaml` for the full list):
   - `clusterOps.externalAddress` — external (node-routable) API server address, e.g. `1.2.3.4:6443` or `https://k8s.example.com:6443`, used in the join command and downloaded kubeconfig instead of the in-cluster ClusterIP; leave empty only when the in-cluster address is itself reachable from outside the cluster
 - `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](https://github.com/GameplanePanel/mcp/blob/main/README.md)
   - `mcpServer.replicas` — MCP server replicas (default 1)
+- `sftp.enabled` — optional SFTP endpoint for game server files (default off); see [sftp.md](sftp.md)
 - `updates.channel` — informational release-channel label (e.g., `stable`, `edge`) shown read-only in the dashboard's Admin Settings → Updates section; purely informational (Gameplane upgrades via Helm, not auto-update)
 - `podSecurity.enforceRestricted` — defaults to true on new installs. Enables the Restricted game/config-init profile and namespace admission. Templates require positive `security.runAsUser` and `security.fsGroup`; verify image compatibility and migrate existing file ownership before upgrading. Enabling it rolls existing Pods once.
   - `podSecurity.version` — pinned PSA minor, default `v1.34`; administrator override for a tested cluster version.
@@ -414,6 +415,9 @@ Top-level knobs (see `values.yaml` for the full list):
   Each server gets a contiguous block, kept for its life. Use it when servers
   are reached through a relay or an edge that forwards ports, as games whose
   clients send no hostname must be. See [Networking](networking.md#port-pools).
+- `operator.templateHostnames` — default player hostnames keyed by GameTemplate
+  name for NodePort and LoadBalancer servers. Each server can override its
+  template default in Networking settings. See [Default player hostname per game template](networking.md#default-player-hostname-per-game-template).
 - `capture.enabled` — the optional network packet capture sidecar [optional] for GameServers
   (default `false`). When enabled cluster-wide, admins can opt individual GameServers
   into live AF_PACKET capture with BPF filtering and download PCAPNG files. Captures

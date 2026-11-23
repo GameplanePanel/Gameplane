@@ -1,6 +1,6 @@
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import type { ReactElement } from "react";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -187,18 +187,23 @@ describe("BackupsTab", () => {
     expect(await screen.findByText(/multiple backup schedules/i)).toBeInTheDocument();
   });
 
-  it("shows 'Managed by server settings' badge for auto-managed schedule", async () => {
+  it("opens server backup settings for an auto-managed schedule and offers no standalone actions", async () => {
+    const openSettings = vi.fn();
     server.use(
       http.get("/schedules", () =>
         HttpResponse.json({
           items: [
-            makeSchedule({ metadata: { name: "alpha-auto" }, spec: { serverRef: { name: "alpha" }, schedule: "0 3 * * *" } }),
+            makeSchedule({ metadata: { name: "alpha-auto", ownerReferences: [{ kind: "GameServer", name: "alpha", uid: "server-1", controller: true }] }, spec: { serverRef: { name: "alpha" }, schedule: "0 3 * * *" } }),
           ],
         }),
       ),
     );
-    renderWithQuery(<BackupsTab name="alpha" />);
+    renderWithQuery(<BackupsTab name="alpha" onOpenBackupSettings={openSettings} />);
     expect(await screen.findByText(/Managed by server settings/i)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Managed by server settings" }));
+    expect(openSettings).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("button", { name: /^edit$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^delete$/i })).not.toBeInTheDocument();
   });
 
   it("does not show recent restores section when there are none", async () => {

@@ -26,3 +26,8 @@
 	url = https://github.com/GameplanePanel/capture-sidecar.git
 	branch = main
 	component = true
+[submodule "sftp"]
+	path = sftp
+	url = https://github.com/GameplanePanel/sftp.git
+	branch = main
+	component = true

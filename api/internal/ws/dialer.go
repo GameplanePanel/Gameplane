@@ -4,9 +4,12 @@
 package ws
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -18,8 +21,11 @@ import (
 	"github.com/coder/websocket"
 	"github.com/go-chi/chi/v5"
 
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
@@ -46,9 +52,19 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 		transport = newDirectAgentTransport(tlsCfg, 0)
 	}
 
-	p := &proxy{k: k, transport: transport, stdin: k, playerNames: names}
-	if len(gatewayOptions) > 0 && gatewayOptions[0].Namespace != "" && reg != nil {
-		p.gateway = &agentGatewayResolver{registry: reg, namespace: gatewayOptions[0].Namespace}
+	p := &proxy{k: k, transport: transport, stdin: k, playerNames: names, maxUploadBytes: defaultMaxUploadBytes}
+	if len(gatewayOptions) > 0 {
+		opts := gatewayOptions[0]
+		p.files = opts.Files
+		if opts.MaxUploadBytes > 0 {
+			p.maxUploadBytes = opts.MaxUploadBytes
+		}
+		if d, ok := transport.(*directAgentTransport); ok && opts.AgentHost != nil {
+			d.hostFn = opts.AgentHost
+		}
+		if opts.Namespace != "" && reg != nil {
+			p.gateway = &agentGatewayResolver{registry: reg, namespace: opts.Namespace}
+		}
 	}
 	r.Get("/ws/servers/{name}/console", p.agentWS("/console"))
 	r.Get("/ws/servers/{name}/logs", p.agentWS("/logs/tail"))
@@ -63,16 +79,20 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 	// before the game's own log file exists. Mounted unconditionally.
 	mountPodLogs(r, reg)
 	r.Route("/servers/{name}/files", func(r chi.Router) {
-		r.Get("/list", p.agentHTTP("/files/list"))
-		r.Get("/read", p.agentHTTP("/files/read"))
-		r.Get("/download", p.agentHTTP("/files/download"))
-		r.Get("/archive", p.agentHTTP("/files/archive"))
-		r.Post("/archive", p.agentHTTP("/files/archive"))
-		r.Post("/write", p.agentHTTP("/files/write"))
-		r.Post("/create", p.agentHTTP("/files/create"))
-		r.Post("/upload", p.agentHTTP("/files/upload"))
-		r.Post("/mkdir", p.agentHTTP("/files/mkdir"))
-		r.Delete("/delete", p.agentHTTP("/files/delete"))
+		// File routes start a file-only pod for a stopped server first (ensure_files.go).
+		r.Get("/list", p.filesRoute("/files/list", defaultBodyLimit))
+		r.Get("/stat", p.filesRoute("/files/stat", defaultBodyLimit))
+		r.Get("/read", p.filesRoute("/files/read", defaultBodyLimit))
+		r.Get("/download", p.filesRoute("/files/download", defaultBodyLimit))
+		r.Get("/archive", p.filesRoute("/files/archive", defaultBodyLimit))
+		r.Post("/archive", p.filesRoute("/files/archive", defaultBodyLimit))
+		r.Post("/write", p.filesRoute("/files/write", defaultBodyLimit))
+		r.Post("/create", p.filesRoute("/files/create", defaultBodyLimit))
+		r.Post("/upload", p.filesRoute("/files/upload", defaultBodyLimit))
+		r.Post("/mkdir", p.filesRoute("/files/mkdir", defaultBodyLimit))
+		r.Post("/rename", p.filesRename())
+		r.Put("/stream", p.filesRoute("/files/stream", p.maxUploadBytes))
+		r.Delete("/delete", p.filesRoute("/files/delete", defaultBodyLimit))
 	})
 	r.Route("/servers/{name}/players", func(r chi.Router) {
 		// Hydrated with Steam display names when a resolver is configured;
@@ -156,6 +176,76 @@ type proxy struct {
 	// playerNames, when non-nil, hydrates structured player lists with
 	// display names. It never reaches a moderation route (kick/ban/unban).
 	playerNames PlayerNameResolver
+	// files authorizes the rename body's two paths (nil disables the body check; the
+	// route-level check in rbac still applies). maxUploadBytes caps files/stream.
+	files          *rbac.FileChecker
+	maxUploadBytes int64
+}
+
+// defaultMaxUploadBytes is the upload cap when no option sets one (Helm files.maxUploadSize default).
+const defaultMaxUploadBytes int64 = 20 << 30
+
+// renameBodyLimit caps the JSON body of files/rename; the body is small and is read in full to
+// authorize both paths before it is proxied.
+const renameBodyLimit int64 = 64 << 10
+
+// filesRename is the rename route. The route-level check (rbac.MiddlewareWithFiles) sees only the
+// URL, so this handler reads the {from, to} body and authorizes both paths before proxying.
+func (p *proxy) filesRename() http.HandlerFunc {
+	return p.agentRoute(func(selected *proxy) http.HandlerFunc {
+		proxyRename := selected.httpProxyLimit("/files/rename", 1<<20)
+		return func(w http.ResponseWriter, req *http.Request) {
+			if selected.files == nil {
+				if !selected.ensureFiles(w, req) {
+					return
+				}
+				proxyRename(w, req)
+				return
+			}
+			raw, err := io.ReadAll(http.MaxBytesReader(w, req.Body, renameBodyLimit))
+			if err != nil {
+				httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
+				return
+			}
+			var body struct {
+				From      string `json:"from"`
+				To        string `json:"to"`
+				Overwrite bool   `json:"overwrite"`
+			}
+			if err := json.Unmarshal(raw, &body); err != nil {
+				httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
+				return
+			}
+			u := auth.UserFromContext(req.Context())
+			ns, err := scope.Resolve(req)
+			if err != nil {
+				httperr.Write(w, req, err)
+				return
+			}
+			cl := scope.RequestedCluster(req)
+			server := chi.URLParam(req, "name")
+			ctx, err := selected.files.AllowBound(req.Context(), u, rbac.FileRename, rbac.FileTarget{
+				Cluster:   cl,
+				Namespace: ns,
+				Server:    server,
+				Paths:     []string{body.From, body.To},
+			})
+			if err != nil {
+				httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
+				return
+			}
+			// Audit rows name both paths of the rename (spec 040 FR-020).
+			auth.SetAuditTarget(ctx, cl+"/"+ns+"/"+server+" "+body.From+" -> "+body.To)
+			req = req.WithContext(ctx)
+			req.Body = io.NopCloser(bytes.NewReader(raw))
+			req.ContentLength = int64(len(raw))
+			// Only an authorized rename may start a file-only pod.
+			if !selected.ensureFiles(w, req) {
+				return
+			}
+			proxyRename(w, req)
+		}
+	})
 }
 
 func (p *proxy) wsProxy(agentPath string) http.HandlerFunc {
@@ -226,8 +316,11 @@ func copyWS(req *http.Request, src, dst *websocket.Conn) error {
 // cap — enough for modest uploads through the file-browser proxy while
 // blocking unbounded spam.
 func (p *proxy) httpProxy(agentPath string) http.HandlerFunc {
-	return p.httpProxyLimit(agentPath, 64<<20)
+	return p.httpProxyLimit(agentPath, defaultBodyLimit)
 }
+
+// defaultBodyLimit is the request-body cap of httpProxy.
+const defaultBodyLimit int64 = 64 << 20
 
 // httpProxyLimit is httpProxy with an explicit request-body cap, for the
 // few routes that legitimately carry more (mod uploads).
@@ -266,6 +359,11 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 			httperr.WriteCode(w, req, http.StatusBadRequest, err)
 			return
 		}
+		// A declared length over the cap is refused before any upstream work.
+		if req.ContentLength > maxBody {
+			httperr.WriteCode(w, req, http.StatusRequestEntityTooLarge, errBodyTooLarge(maxBody))
+			return
+		}
 		// Forward only headers the agent actually consumes. Never proxy
 		// Cookie, Authorization, X-Gameplane-CSRF — those are the user's
 		// session material and the agent doesn't need them (mTLS is what
@@ -274,9 +372,16 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 		resp, err := p.transport.Do(req.Context(), agentRequest{
 			target: target, method: req.Method, path: agentPath,
 			rawQuery: rawQuery, header: req.Header,
-			body: http.MaxBytesReader(w, req.Body, maxBody),
+			body:          http.MaxBytesReader(w, req.Body, maxBody),
+			contentLength: req.ContentLength,
 		})
 		if err != nil {
+			// The body cap trips mid-copy when no (or a false) Content-Length was sent.
+			var tooLarge *http.MaxBytesError
+			if errors.As(err, &tooLarge) {
+				httperr.WriteCode(w, req, http.StatusRequestEntityTooLarge, errBodyTooLarge(maxBody))
+				return
+			}
 			writeUpstreamErr(w, req, err)
 			return
 		}
@@ -288,6 +393,11 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 		w.WriteHeader(resp.StatusCode)
 		_, _ = io.Copy(w, resp.Body)
 	}
+}
+
+// errBodyTooLarge is the caller-safe 413 detail for a request body over maxBody bytes.
+func errBodyTooLarge(maxBody int64) error {
+	return fmt.Errorf("request body exceeds the %d byte limit", maxBody)
 }
 
 // writeUpstreamErr maps transport-level failures on the API→agent leg

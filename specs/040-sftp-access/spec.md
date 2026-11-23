@@ -1,6 +1,6 @@
 # Feature Specification: SFTP access to game servers
 
-**Feature Branch**: `spec-039/sftp-access`
+**Feature Branch**: `spec-040/sftp-access`
 
 **Created**: 2026-11-22
 
@@ -46,7 +46,7 @@ A user with write access to a server uploads a mod jar, edits a config file in p
 **Acceptance Scenarios**:
 
 1. **Given** write access to A, **When** the user uploads a 2 GiB file, **Then** it lands in A complete, and a client that uploads to a temporary name and renames it at the end (WinSCP default) also succeeds.
-2. **Given** write access to A, **When** an upload is interrupted and the client resumes it, **Then** the finished file matches the source.
+2. **Given** write access to A, **When** an upload is interrupted, **Then** no partial file is left (an existing file keeps its old content), and when the client sends the file again the finished file matches the source. Uploads are atomic (amended 2026-11-23, valgul).
 3. **Given** read-only access to B, **When** the user tries to upload, rename, delete or make a folder in B, **Then** the client gets "permission denied" and B is unchanged.
 4. **Given** any user, **When** they try to create, rename or delete a top-level server folder, or reach a path outside the server's data root (`..`, symlinks, dotfiles), **Then** the request is refused.
 5. **Given** any write through SFTP, **When** an admin opens the audit log, **Then** the entry names the user, the server, the operation, the path and that it came from SFTP.
@@ -109,7 +109,7 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 - A server's volumes can only be attached to one node: the file-only pod lands where the volumes can attach.
 - Two servers share a name in different namespaces: they appear under different `/_namespaces/` paths, or one of them as `/<server>` when it is in the default games namespace (OD-3).
 - A server is created, deleted or renamed while a user is connected: the root listing reflects it on the next listing; operations on a deleted server fail cleanly.
-- The server's pod restarts mid-transfer: the transfer fails with a clear error and can be resumed.
+- The server's pod restarts mid-transfer: the transfer fails with a clear error; a download can be resumed, an upload leaves the target unchanged and is sent again.
 - A volume fills up during an upload: the client gets an error and no half-written file replaces the old one.
 - A user has hundreds of servers: listing the root still answers within the success criterion.
 - A path holds characters SFTP clients send in other encodings: names are treated as UTF-8 and invalid names are refused, not mangled.
@@ -140,10 +140,12 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 
 **Folder tree and permissions**
 
-- **FR-009**: After a login as `<user>`, the root MUST list one folder per game server on that endpoint's cluster that the user can read (`servers:read` in that cluster and namespace, or ownership/collaboration), and nothing else: `/<server>` for the cluster's default games namespace and `/_namespaces/<namespace>/<server>` for other namespaces (OD-3).
+- **FR-009**: After a login as `<user>`, the root MUST list one folder per game server on that endpoint's cluster that the file-access check (FR-011a) lets the user list, and nothing else: `/<server>` for the cluster's default games namespace and `/_namespaces/<namespace>/<server>` for other namespaces (OD-3).
 - **FR-009a**: A login as `<user>+<server>` or `<user>+<namespace>/<server>` MUST open directly in that server's files, with the same credentials and permission checks as FR-009. If the user cannot read that server, or it does not exist, the login MUST fail with the same generic message as a wrong password.
 - **FR-010**: Inside a server folder, the user MUST see exactly what the dashboard Files tab shows for that server: the same data root, with dotfiles hidden and symlink escapes refused.
-- **FR-011**: Reads MUST require the same permission as the Files tab read routes, and every change (upload, overwrite, rename, mkdir, delete) MUST require the same permission as the Files tab write routes. Permissions MUST be checked on every operation, not only at login.
+- **FR-011**: Every SFTP operation and every Files tab operation MUST be allowed or refused by the same file-access check (FR-011a), on every operation, not only at login.
+- **FR-011a**: All file permission decisions (which servers a user sees, and each list, stat, read, download, create, write, upload, rename, mkdir and delete, with the paths involved) MUST go through one shared file-access check in the API. Neither the SFTP component nor any route may test a permission key itself. Today the check maps reads to `servers:read` and changes to `servers:write` or ownership/collaboration, exactly as the Files tab does now; when spec 039 (per-server access) lands, its evaluator replaces that mapping inside the check, and SFTP follows without code changes.
+- **FR-011b**: Where the check can refuse single paths (spec 039 path grants), a folder listing MUST leave out entries the user may not list, and a rename MUST be allowed only when the user may remove the source and create or overwrite the destination.
 - **FR-012**: The root and the server folders themselves MUST be read-only: users cannot create, rename or delete them.
 - **FR-013**: When a server is stopped or asleep, opening its folder (or logging in to it directly) MUST make its files available through a short-lived file-only pod that the operator runs with the server's volumes and the agent's file API only: no game process, no console, no game ports (OD-4).
 - **FR-013a**: File access MUST NOT wake or start the game server, and the file-only pod MUST NOT be reachable by players.
@@ -154,7 +156,7 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 
 **File operations**
 
-- **FR-014**: The SFTP endpoint MUST support listing a folder, stat of one path, download with resume from an offset, upload, upload resume (write at an offset or append), overwrite, rename/move within one server, mkdir, delete of files and of empty folders, and recursive delete as the client requests it.
+- **FR-014**: The SFTP endpoint MUST support listing a folder, stat of one path, download with resume from an offset, upload, upload resume (write at an offset or append) onto a file that is already stored, overwrite, rename/move within one server, mkdir, delete of files and of empty folders, and recursive delete as the client requests it.
 - **FR-015**: The agent sidecar's file API MUST gain the operations FR-014 needs that it lacks today: stat, rename/move, read from an offset, and write at an offset or append. The new operations MUST keep the existing guarantees: rooted at the data root, no dotfiles, no symlink following, and safe against a path changing between check and use.
 - **FR-016**: An upload that fails or is cancelled MUST NOT leave a partly written file in place of an existing file of the same name.
 - **FR-017**: Changing file modes, owners and timestamps (`chmod`, `chown`, `utime`) MUST either be accepted as a no-op or refused consistently; it MUST NOT change ownership inside the volume.
@@ -187,8 +189,8 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 
 - **SC-001**: A user can go from "SFTP enabled" to browsing a server's files in a desktop SFTP client in under 3 minutes, following only the dashboard profile page.
 - **SC-002**: Listing the root for a user with 200 servers answers in under 2 seconds; listing a folder of 1,000 files answers in under 2 seconds.
-- **SC-003**: A 2 GiB upload and download each complete with matching checksums, and each resumes correctly after a forced disconnect at 50%.
-- **SC-004**: In a permission test matrix (read-only, write, owner, collaborator, no access, remote cluster), 100% of operations are allowed or refused exactly as the dashboard Files tab allows or refuses them.
+- **SC-003**: A 2 GiB upload and download each complete with matching checksums. A download resumes correctly after a forced disconnect at 50%; an upload cut at 50% leaves no partial file (an existing file keeps its old content), and sending it again completes with a matching checksum (amended 2026-11-23, valgul: uploads stay atomic).
+- **SC-004**: In a permission test matrix (read-only, write, owner, collaborator, no access, remote cluster), 100% of operations are allowed or refused exactly as the dashboard Files tab allows or refuses them, and a code search finds no permission key tested outside the file-access check.
 - **SC-005**: 100% of SFTP changes in the test run appear in the audit log with source `sftp`.
 - **SC-006**: A revoked credential or disabled user loses an open session within 60 seconds.
 - **SC-007**: A default install deploys no SFTP workload and exposes no new port.
@@ -196,7 +198,7 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 ## Assumptions
 
 - One address per cluster (OD-3) matches what the reporter asked for in #1051; dedicated per-server ports or port pools are a possible later spec.
-- File permissions reuse the existing catalog (`servers:read` to read, `servers:write` or ownership to change); no new permission is added.
+- File permissions reuse the existing catalog (`servers:read` to read, `servers:write` or ownership to change), behind the file-access check (FR-011a); no new permission is added. Reconciling with spec 039's per-server roles and `files.*` actions is deferred (valgul, 2026-11-23): 039 plugs its evaluator into the check, and adds an action for rename or keeps the delete-plus-create rule of FR-011b.
 - The SFTP component is optional and off by default, like the MCP server and the audit syslog bridge.
 - The dotfile, symlink and data-root rules are the same as the dashboard Files tab (the upload size limit is shared, OD-6); SFTP gets no wider view of the volume than the dashboard.
 - Host key type is a modern one (Ed25519) generated once at install and kept in a Secret.
