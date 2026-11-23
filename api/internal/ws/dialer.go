@@ -4,8 +4,10 @@
 package ws
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
@@ -18,8 +20,11 @@ import (
 	"github.com/coder/websocket"
 	"github.com/go-chi/chi/v5"
 
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
@@ -46,9 +51,16 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 		transport = newDirectAgentTransport(tlsCfg, 0)
 	}
 
-	p := &proxy{k: k, transport: transport, stdin: k, playerNames: names}
-	if len(gatewayOptions) > 0 && gatewayOptions[0].Namespace != "" && reg != nil {
-		p.gateway = &agentGatewayResolver{registry: reg, namespace: gatewayOptions[0].Namespace}
+	p := &proxy{k: k, transport: transport, stdin: k, playerNames: names, maxUploadBytes: defaultMaxUploadBytes}
+	if len(gatewayOptions) > 0 {
+		opts := gatewayOptions[0]
+		p.files = opts.Files
+		if opts.MaxUploadBytes > 0 {
+			p.maxUploadBytes = opts.MaxUploadBytes
+		}
+		if opts.Namespace != "" && reg != nil {
+			p.gateway = &agentGatewayResolver{registry: reg, namespace: opts.Namespace}
+		}
 	}
 	r.Get("/ws/servers/{name}/console", p.agentWS("/console"))
 	r.Get("/ws/servers/{name}/logs", p.agentWS("/logs/tail"))
@@ -64,6 +76,7 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 	mountPodLogs(r, reg)
 	r.Route("/servers/{name}/files", func(r chi.Router) {
 		r.Get("/list", p.agentHTTP("/files/list"))
+		r.Get("/stat", p.agentHTTP("/files/stat"))
 		r.Get("/read", p.agentHTTP("/files/read"))
 		r.Get("/download", p.agentHTTP("/files/download"))
 		r.Get("/archive", p.agentHTTP("/files/archive"))
@@ -72,6 +85,8 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 		r.Post("/create", p.agentHTTP("/files/create"))
 		r.Post("/upload", p.agentHTTP("/files/upload"))
 		r.Post("/mkdir", p.agentHTTP("/files/mkdir"))
+		r.Post("/rename", p.filesRename())
+		r.Put("/stream", p.agentHTTPLimit("/files/stream", p.maxUploadBytes))
 		r.Delete("/delete", p.agentHTTP("/files/delete"))
 	})
 	r.Route("/servers/{name}/players", func(r chi.Router) {
@@ -156,6 +171,65 @@ type proxy struct {
 	// playerNames, when non-nil, hydrates structured player lists with
 	// display names. It never reaches a moderation route (kick/ban/unban).
 	playerNames PlayerNameResolver
+	// files authorizes the rename body's two paths (nil disables the body check; the
+	// route-level check in rbac still applies). maxUploadBytes caps files/stream.
+	files          *rbac.FileChecker
+	maxUploadBytes int64
+}
+
+// defaultMaxUploadBytes is the upload cap when no option sets one (Helm files.maxUploadSize default).
+const defaultMaxUploadBytes int64 = 20 << 30
+
+// renameBodyLimit caps the JSON body of files/rename; the body is small and is read in full to
+// authorize both paths before it is proxied.
+const renameBodyLimit int64 = 64 << 10
+
+// filesRename is the rename route. The route-level check (rbac.MiddlewareWithFiles) sees only the
+// URL, so this handler reads the {from, to} body and authorizes both paths before proxying.
+func (p *proxy) filesRename() http.HandlerFunc {
+	return p.agentRoute(func(selected *proxy) http.HandlerFunc {
+		proxyRename := selected.httpProxyLimit("/files/rename", 1<<20)
+		return func(w http.ResponseWriter, req *http.Request) {
+			if selected.files == nil {
+				proxyRename(w, req)
+				return
+			}
+			raw, err := io.ReadAll(http.MaxBytesReader(w, req.Body, renameBodyLimit))
+			if err != nil {
+				httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
+				return
+			}
+			var body struct {
+				From      string `json:"from"`
+				To        string `json:"to"`
+				Overwrite bool   `json:"overwrite"`
+			}
+			if err := json.Unmarshal(raw, &body); err != nil {
+				httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
+				return
+			}
+			u := auth.UserFromContext(req.Context())
+			ns, err := scope.Resolve(req)
+			if err != nil {
+				httperr.Write(w, req, err)
+				return
+			}
+			ctx, err := selected.files.AllowBound(req.Context(), u, rbac.FileRename, rbac.FileTarget{
+				Cluster:   scope.RequestedCluster(req),
+				Namespace: ns,
+				Server:    chi.URLParam(req, "name"),
+				Paths:     []string{body.From, body.To},
+			})
+			if err != nil {
+				httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
+				return
+			}
+			req = req.WithContext(ctx)
+			req.Body = io.NopCloser(bytes.NewReader(raw))
+			req.ContentLength = int64(len(raw))
+			proxyRename(w, req)
+		}
+	})
 }
 
 func (p *proxy) wsProxy(agentPath string) http.HandlerFunc {

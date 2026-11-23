@@ -76,11 +76,25 @@ const (
 // one cluster never grants access to another — this prevents cross-cluster
 // privilege escalation.
 func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
+	return MiddlewareWithFiles(fetch, NewFileAccess(fetch, nil))
+}
+
+// MiddlewareWithFiles is Middleware with the server file routes authorized by files (see
+// fileaccess.go). Every other route keeps the rule table. A nil files is replaced by
+// NewFileAccess(fetch, nil).
+func MiddlewareWithFiles(fetch ServerFetcher, files *FileChecker) func(http.Handler) http.Handler {
+	if files == nil {
+		files = NewFileAccess(fetch, nil)
+	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			u := auth.UserFromContext(req.Context())
 			if u == nil {
 				httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
+				return
+			}
+			if action, server, isFile := FileActionForRoute(req.Method, req.URL.Path); isFile {
+				serveFileRoute(w, req, next, fetch, files, u, action, server)
 				return
 			}
 			r, ok := match(req.Method, req.URL.Path)
@@ -179,6 +193,41 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 	}
 }
 
+// serveFileRoute authorizes one /servers/{name}/files route through files. The refusal answers
+// match the rule-table path: namespace and cluster first, then server.forbidden, except that an
+// MCP token with no grant on the cluster gets server.cluster_forbidden.
+func serveFileRoute(w http.ResponseWriter, req *http.Request, next http.Handler, fetch ServerFetcher, files *FileChecker, u *auth.User, action FileAction, server string) {
+	ns, err := scope.Resolve(req)
+	if err != nil {
+		httperr.WriteMessage(w, req, messages.New("server.common.namespace_not_permitted", nil))
+		return
+	}
+	cl := scope.DefaultCluster
+	if fetch != nil {
+		// rbac.Middleware must be mounted with a non-nil fetcher: the cluster gates the
+		// permission check, so resolving it here keeps the check on the cluster that serves the request.
+		cl, err = scope.ResolveCluster(req, fetch)
+		if err != nil {
+			httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
+			return
+		}
+	}
+	ctx, err := files.AllowBound(req.Context(), u, action, FileTarget{Cluster: cl, Namespace: ns, Server: server})
+	if err != nil {
+		if _, isToken := auth.MCPTokenFromContext(req.Context()); isToken && !u.CanDiscoverCluster(cl) {
+			httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
+			return
+		}
+		httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
+		return
+	}
+	if _, isSFTP := auth.SFTPCallerFromContext(req.Context()); isSFTP {
+		// SFTP rows name the file target (spec 040 FR-020); the path is a query parameter on these routes.
+		auth.SetAuditTarget(req.Context(), cl+"/"+ns+"/"+server+" "+req.URL.Query().Get("path"))
+	}
+	next.ServeHTTP(w, req.WithContext(ctx))
+}
+
 // rule maps a request shape to the permission required to perform it.
 // The first matching rule wins. method "" matches any method; segment ""
 // matches any first path segment; prefix/suffix narrow further when a
@@ -218,6 +267,12 @@ var rules = []rule{
 	{method: "GET", segment: "users", suffix: "/users/me/mcp-tokens", perm: ""},
 	{method: "POST", segment: "users", suffix: "/users/me/mcp-tokens", perm: ""},
 	{method: "DELETE", segment: "users", prefix: "/users/me/mcp-tokens/", perm: ""},
+	// Personal SFTP credentials (spec 040): the same self-service split as MCP tokens.
+	{method: "GET", segment: "users", suffix: "/users/me/sftp", perm: ""},
+	{method: "POST", segment: "users", suffix: "/users/me/sftp/keys", perm: ""},
+	{method: "DELETE", segment: "users", prefix: "/users/me/sftp/keys/", perm: ""},
+	{method: "POST", segment: "users", suffix: "/users/me/sftp/password", perm: ""},
+	{method: "DELETE", segment: "users", suffix: "/users/me/sftp/password", perm: ""},
 	{method: "GET", segment: "users", perm: "users:read"},
 	{segment: "users", perm: "users:manage"},
 

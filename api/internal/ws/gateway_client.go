@@ -30,8 +30,13 @@ const gatewayCredentialsLabel = "gameplane.local/agent-gateway-credentials"
 var errGatewayUnavailable = errors.New("agent gateway not configured")
 
 // AgentGatewayOptions enables registered-cluster agent routes. Secrets are read
-// only from the central API's configured credentials namespace.
-type AgentGatewayOptions struct{ Namespace string }
+// only from the central API's configured credentials namespace. Files authorizes
+// the rename body (see filesRename); MaxUploadBytes caps files/stream (0 = 20 GiB).
+type AgentGatewayOptions struct {
+	Namespace      string
+	Files          *rbac.FileChecker
+	MaxUploadBytes int64
+}
 
 type agentGatewayResolver struct {
 	registry  *kube.Registry

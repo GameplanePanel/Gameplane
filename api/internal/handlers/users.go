@@ -49,6 +49,8 @@ func MountUsers(r chi.Router, store *db.Store, sessions *auth.SessionStore, clus
 		r.Delete("/{id}/bindings/{role}/{namespace}", h.deleteBinding)
 		// Personal MCP tokens: /me/* for the caller, /{id}/* for admins.
 		mountMCPTokenRoutes(r, sessions)
+		// Personal SFTP credentials (spec 040): /me/sftp/* for the caller only.
+		mountSFTPRoutes(r, sessions, store)
 	})
 }
 

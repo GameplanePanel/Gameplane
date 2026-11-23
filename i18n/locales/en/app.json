@@ -1127,6 +1127,50 @@
     "defaultMessage": "role not found",
     "description": "API error from the roles API (roles.go:del, roles.go:update)."
   },
+  "server.sftp.key_duplicate": {
+    "defaultMessage": "this key is already registered",
+    "description": "API error when an SFTP public key is already registered. It never says to whom (sftp.go:writeSFTPErr)."
+  },
+  "server.sftp.key_invalid": {
+    "defaultMessage": "not a valid SSH public key",
+    "description": "API error when an SFTP public key cannot be parsed as one authorized_keys line (sftp.go:writeSFTPErr)."
+  },
+  "server.sftp.key_limit_reached": {
+    "defaultMessage": "you already have 20 SFTP keys; remove one before adding another",
+    "description": "API error when a user already holds the maximum of 20 SFTP keys (sftp.go:writeSFTPErr)."
+  },
+  "server.sftp.key_name_in_use": {
+    "defaultMessage": "a key with this name already exists",
+    "description": "API error when the user already has an SFTP key with the same name (sftp.go:writeSFTPErr)."
+  },
+  "server.sftp.key_name_invalid": {
+    "defaultMessage": "name must be 1 to 64 characters",
+    "description": "API error when an SFTP key name is empty or longer than 64 characters (sftp.go:writeSFTPErr)."
+  },
+  "server.sftp.key_not_found": {
+    "defaultMessage": "SFTP key not found",
+    "description": "API error when an SFTP key to delete does not exist or belongs to another user (sftp.go:writeSFTPErr)."
+  },
+  "server.sftp.key_type_unsupported": {
+    "defaultMessage": "unsupported key type; use ed25519, ecdsa or RSA 3072 bits or more",
+    "description": "API error when an SFTP public key uses an unsupported algorithm (sftp.go:writeSFTPErr)."
+  },
+  "server.sftp.key_weak": {
+    "defaultMessage": "RSA keys must be at least 3072 bits",
+    "description": "API error when an SFTP RSA public key is shorter than 3072 bits (sftp.go:writeSFTPErr)."
+  },
+  "server.sftp.login_failed": {
+    "defaultMessage": "sftp login failed",
+    "description": "API error from the SFTP login (sftp_login.go:login) for every refusal cause; the body is identical whatever failed."
+  },
+  "server.sftp.password_length_invalid": {
+    "defaultMessage": "length must be 20 to 40",
+    "description": "API error when a generated SFTP password length is outside 20 to 40 (sftp.go:writeSFTPErr)."
+  },
+  "server.sftp.password_not_found": {
+    "defaultMessage": "no SFTP password is set",
+    "description": "API error when the user revokes an SFTP password that is not set (sftp.go:revokePassword)."
+  },
   "server.shares.expires_at_in_past": {
     "defaultMessage": "expiresAt must be in the future",
     "description": "API error from the share-links API (shares.go:createShareHandler)."

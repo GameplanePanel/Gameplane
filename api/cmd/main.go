@@ -282,6 +282,7 @@ func main() {
 	}
 	authRegistry.AttachAuditWriteSyncFunc(auditor.WriteSync)
 	sessions.AttachMCPAudit(auditor.WriteSync)
+	sessions.AttachSFTPAudit(auditor.WriteSync)
 
 	// Notification delivery: watch CRD status transitions (server health,
 	// backup/restore outcomes) and push matching events to the sinks
@@ -368,7 +369,13 @@ func main() {
 	})
 
 	// Public share link endpoints (unauthenticated, token-guessable)
+	// fileAccess decides which servers and file operations a caller may use. The route
+	// middleware, the SFTP listing and the rename body check all share it. It is declared
+	// before the public routes so the SFTP login routes (spec 040) can use it too.
+	fileAccess := rbac.NewFileAccess(reg, reg)
 	handlers.MountPublicShares(r, reg, store, auth.ShareLimiter)
+	// SFTP login (spec 040): service-token routes outside the protected group.
+	handlers.MountSFTPLogin(r, sessions, store, fileAccess, auditor)
 
 	// What the telemetry reporter and the admin preview both collect from.
 	telemetryDeps := telemetry.Deps{
@@ -397,11 +404,12 @@ func main() {
 	r.Group(func(p chi.Router) {
 		p.Use(sessions.Authenticate)
 		p.Use(sessions.MCPTokenGuard)
+		p.Use(sessions.SFTPSessionGuard)
 		// A broad per-IP cap on writes keeps one authenticated client from
 		// pegging the DB or k8s API. Reads go through unlimited (the main
 		// bottleneck there is the dashboard's own polling).
 		p.Use(mutationRateLimit)
-		p.Use(rbac.Middleware(reg))
+		p.Use(rbac.MiddlewareWithFiles(reg, fileAccess))
 		if store.Driver == "postgres" {
 			p.Use(sessions.RevalidateStreams(isStreamingRequest, 5*time.Second, rbac.StreamGrantValidator(reg)))
 		}
@@ -415,6 +423,7 @@ func main() {
 		handlers.MountShareLinks(p, reg, store)
 		handlers.MountOwnership(p, reg, store)
 		handlers.MountUsers(p, store, sessions, reg)
+		handlers.MountSFTPServers(p, fileAccess)
 		handlers.MountRolesWithHelm(p, store, helmPolicy)
 		handlers.MountAudit(p, auditor)
 		telemetrySettings := handlers.TelemetrySettings{Dest: telemetryDest, Interval: cfg.telemetryInterval, Deps: telemetryDeps}
@@ -471,7 +480,11 @@ func main() {
 		}
 		handlers.MountServerCapabilities(p, reg, ws.NewCaptureGatewayClient(reg, credentialsNS), captureConfig)
 		handlers.MountCapture(p, reg, auditor, captureConfig, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)
-		ws.MountWithPlayerNames(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, playerNames, ws.AgentGatewayOptions{Namespace: credentialsNS})
+		ws.MountWithPlayerNames(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, playerNames, ws.AgentGatewayOptions{
+			Namespace:      credentialsNS,
+			Files:          fileAccess,
+			MaxUploadBytes: cfg.filesMaxUploadBytes,
+		})
 	})
 
 	// Usage telemetry. Run returns at once when the resolved destination is
@@ -637,6 +650,8 @@ type config struct {
 	captureMaxRetentionSecs     int64
 	captureDefaultMaxDurationS  int
 	captureDefaultMaxSizeBytes  int64
+	// filesMaxUploadBytes caps one files/stream upload (Helm files.maxUploadSize).
+	filesMaxUploadBytes int64
 
 	gameDataStorageClass string
 
@@ -742,6 +757,8 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	c.captureMaxRetentionSecs = envOrInt64("GAMEPLANE_CAPTURE_MAX_RETENTION", 604800)
 	fs.IntVar(&c.captureDefaultMaxDurationS, "capture-default-max-duration", envOrInt("GAMEPLANE_CAPTURE_DEFAULT_MAX_DURATION", 300), "default max capture duration in seconds")
 	c.captureDefaultMaxSizeBytes = envOrInt64("GAMEPLANE_CAPTURE_DEFAULT_MAX_SIZE", 5368709120)
+	fs.Int64Var(&c.filesMaxUploadBytes, "files-max-upload-bytes", envOrInt64("GAMEPLANE_FILES_MAX_UPLOAD_BYTES", 20<<30),
+		"maximum size of one file uploaded through files/stream (bytes); Helm files.maxUploadSize")
 	fs.BoolVar(&c.standalone, "standalone", envOr("GAMEPLANE_STANDALONE", "") == "true", "run without a local Kubernetes cluster")
 	fs.BoolVar(&c.remoteClusters, "remote-clusters", true, "load remote cluster credentials and connect to registered clusters")
 	fs.StringVar(&c.panelKeyFile, "panel-key-file", envOr("GAMEPLANE_PANEL_KEY_FILE", "/data/panel.key"), "persistent standalone credential encryption key file")
@@ -912,15 +929,18 @@ func bodyLimit(maxBytes int64) func(http.Handler) http.Handler {
 // MaxBytesReader is authoritative (main.go's bodyLimit doc comment), so
 // leaving them capped at 1 MiB here makes the proxy's own 64 MiB
 // (httpProxy default, files/write) and 512 MiB (mods/upload) ceilings
-// dead code — see F-075.
+// dead code — see F-075. files/stream is exempt for the same reason; the
+// proxy caps it itself at the configured files.maxUploadSize
+// (MaxBytesReader in ws.httpProxyLimit).
 func isUploadPath(path string) bool {
 	if !strings.HasPrefix(path, "/servers/") {
 		return false
 	}
 	// /servers/{name}/files/upload, /servers/{name}/files/write,
-	// /servers/{name}/mods/upload
+	// /servers/{name}/files/stream, /servers/{name}/mods/upload
 	return strings.HasSuffix(path, "/files/upload") ||
 		strings.HasSuffix(path, "/files/write") ||
+		strings.HasSuffix(path, "/files/stream") ||
 		strings.HasSuffix(path, "/mods/upload")
 }
 
@@ -952,6 +972,12 @@ func secureHeaders(next http.Handler) http.Handler {
 func mutationRateLimit(next http.Handler) http.Handler {
 	mw := auth.MutationLimiter.Middleware(next)
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// SFTP session requests arrive from the SFTP pod's address, so they are limited per
+		// session by auth.SFTPSessionLimiter instead of this per-IP cap.
+		if _, ok := auth.SFTPCallerFromContext(req.Context()); ok {
+			next.ServeHTTP(w, req)
+			return
+		}
 		switch req.Method {
 		case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
 			mw.ServeHTTP(w, req)
@@ -1035,6 +1061,10 @@ func isLargeTransferPath(method, path string) bool {
 			strings.HasSuffix(path, "/files/write") ||
 			strings.HasSuffix(path, "/mods/upload") ||
 			strings.HasSuffix(path, "/mods/install")
+	}
+	if method == http.MethodPut && strings.HasPrefix(path, "/servers/") {
+		// files/stream streams one file body on req.Context() for as long as the client uploads.
+		return strings.HasSuffix(path, "/files/stream")
 	}
 	return false
 }

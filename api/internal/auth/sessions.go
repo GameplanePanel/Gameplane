@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"reflect"
@@ -62,6 +63,9 @@ type SessionStore struct {
 
 	// mcpAuditFn records MCP token events; nil until AttachMCPAudit runs.
 	mcpAuditFn func(ctx context.Context, method, path, target, reason string, status int) error
+
+	// sftpAuditFn records SFTP refusals; nil until AttachSFTPAudit runs.
+	sftpAuditFn func(ctx context.Context, method, path, target, reason string, status int) error
 }
 
 // NewSessionStore returns a new SessionStore.
@@ -145,10 +149,16 @@ func (s *SessionStore) DeleteForUser(ctx context.Context, userID int64) error {
 }
 
 // DeleteForUserWith deletes every session of userID through ex, so a caller
-// can end sessions inside its own transaction.
+// can end sessions inside its own transaction. It also revokes the user's SFTP
+// sessions (spec 040), so a privilege change ends SFTP access as well.
 func (s *SessionStore) DeleteForUserWith(ctx context.Context, ex db.Execer, userID int64) error {
-	_, err := ex.ExecContext(ctx, `DELETE FROM sessions WHERE user_id = ?`, userID)
-	return err
+	if _, err := ex.ExecContext(ctx, `DELETE FROM sessions WHERE user_id = ?`, userID); err != nil {
+		return err
+	}
+	if err := s.RevokeSFTPSessions(ctx, ex, userID, ""); err != nil {
+		return fmt.Errorf("delete sessions: sftp: %w", err)
+	}
+	return nil
 }
 
 func (s *SessionStore) gcOnce(ctx context.Context) {
@@ -171,6 +181,15 @@ func (s *SessionStore) gcOnce(ctx context.Context) {
 		`DELETE FROM mcp_tokens WHERE expires_at < ? OR revoked_at < ?`, mcpCutoff, mcpCutoff); err != nil {
 		slog.Warn("mcp token gc", "err", err)
 	}
+	// SFTP sessions: drop rows an hour after they expired or were revoked (the 30 s session check
+	// treats a missing row as revoked). Revoked service tokens are kept 30 days like MCP tokens.
+	sftpCutoff := now.Add(-time.Hour).Format(time.RFC3339)
+	if _, err := s.db.DB.ExecContext(ctx, `DELETE FROM sftp_sessions WHERE expires_at < ? OR revoked_at < ?`, sftpCutoff, sftpCutoff); err != nil {
+		slog.Warn("sftp session gc", "err", err)
+	}
+	if _, err := s.db.DB.ExecContext(ctx, `DELETE FROM sftp_service_tokens WHERE revoked_at < ?`, mcpCutoff); err != nil {
+		slog.Warn("sftp service token gc", "err", err)
+	}
 }
 
 // Authenticate is the middleware wrapping all protected routes.
@@ -182,6 +201,10 @@ func (s *SessionStore) Authenticate(next http.Handler) http.Handler {
 			// A request with a cookie never looks at the Authorization header.
 			if raw, ok := bearerMCPToken(req); ok {
 				s.serveMCPToken(w, req, raw, next)
+				return
+			}
+			if raw, ok := bearerSFTPSession(req); ok {
+				s.serveSFTPSession(w, req, raw, next)
 				return
 			}
 			httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
