@@ -370,6 +370,9 @@ var rules = []rule{
 	// (plural /clusters endpoint).
 	// Discovery filters each registration by the caller's grants. Namespace
 	// server readers may select their cluster without gaining node inventory.
+	// The SFTP endpoint drawer (spec 040) lists addresses and tokens, so its
+	// GET needs cluster:manage; it must come before the generic GET below.
+	{method: "GET", segment: "clusters", suffix: "/sftp", perm: "cluster:manage"},
 	{method: "GET", segment: "clusters", perm: ""},
 	{segment: "clusters", perm: "cluster:manage"},
 

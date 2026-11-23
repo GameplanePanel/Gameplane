@@ -1238,6 +1238,8 @@ jobs:
         run: bash charts/gameplane/tests/monitoring-rules.sh
       - name: check MCP server RBAC scope
         run: bash charts/gameplane/tests/mcp-server-rbac.sh
+      - name: check SFTP endpoint renders
+        run: bash charts/gameplane/tests/sftp.sh
 
   standalone-compose:
     name: standalone Compose smoke

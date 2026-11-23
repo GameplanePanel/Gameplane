@@ -57,6 +57,19 @@ At most 2 active per cluster (rotation).
 
 Expired rows are swept with the MCP token sweeper.
 
+## sftp_cluster_endpoints
+
+Migration `025_sftp_cluster_endpoints.sql`. The SFTP endpoint of each registered remote cluster, set by `PUT /clusters/{name}/sftp`. The panel's own cluster has no row: its address comes from chart values and its fingerprint from the host key Secret.
+
+| Column | Type | Notes |
+|---|---|---|
+| cluster | TEXT PK | cluster name |
+| address | TEXT NOT NULL | `host` or `host:port`, shown to users |
+| host_key_fingerprint | TEXT NOT NULL | OpenSSH `SHA256:` fingerprint of the endpoint's host key |
+| updated_at | TEXT NOT NULL | RFC 3339 UTC |
+
+Removing a cluster registration leaves its row behind; it is harmless and is replaced if the cluster is registered again.
+
 ## audit_events (changed)
 
 Add `source TEXT` (NULL for dashboard requests, `sftp` for SFTP session requests).

@@ -30,9 +30,24 @@ import (
 
 // MountClusters registers only local discovery when no remote client is supplied.
 func MountClusters(r chi.Router, reg *kube.Registry, k *kube.Client, ns string) {
+	MountClustersWithSFTP(r, reg, k, ns, SFTPClusterMount{})
+}
+
+// MountClustersWithSFTP is MountClusters plus the per-cluster SFTP endpoint routes (spec 040, US4). The SFTP
+// routes are registered for every install with a Sessions store, also when k is nil.
+func MountClustersWithSFTP(r chi.Router, reg *kube.Registry, k *kube.Client, ns string, sftp SFTPClusterMount) {
 	h := clustersHandler{reg: reg, k: k, namespace: ns}
 	r.Route("/clusters", func(r chi.Router) {
 		r.Get("/", h.list)
+		if sftp.Sessions != nil {
+			mountSFTPClusterRoutes(r, sftpClusterDeps{
+				sessions:         sftp.Sessions,
+				defaultCluster:   reg.DefaultID(),
+				localAddress:     sftp.PublicAddress,
+				exists:           clusterExists(reg.DefaultID(), k),
+				localFingerprint: localSFTPFingerprint(sftp.Kube, sftp.Namespace, sftp.HostKeySecret),
+			})
+		}
 		if k == nil {
 			return
 		}

@@ -133,6 +133,36 @@ var entries = []Entry{
 		Status:      http.StatusNotFound,
 	},
 	{
+		ID:          "server.sftp.token_limit_reached",
+		English:     "this cluster already has 2 active SFTP tokens; revoke one before creating another",
+		Description: "API error when a cluster already holds the maximum of 2 active SFTP service tokens (sftp_cluster.go:createToken).",
+		Status:      http.StatusConflict,
+	},
+	{
+		ID:          "server.sftp.token_not_found",
+		English:     "SFTP token not found",
+		Description: "API error when an SFTP service token to revoke does not exist, is already revoked, or belongs to another cluster (sftp_cluster.go:revokeToken).",
+		Status:      http.StatusNotFound,
+	},
+	{
+		ID:          "server.sftp.endpoint_invalid",
+		English:     "address must be a host or host:port",
+		Description: "API error when the SFTP endpoint address of a remote cluster is not a host or host:port (sftp_cluster.go:putEndpoint).",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.sftp.fingerprint_invalid",
+		English:     "host key fingerprint must be a SHA256 fingerprint",
+		Description: "API error when the SFTP host key fingerprint of a remote cluster is not an OpenSSH SHA256 fingerprint (sftp_cluster.go:putEndpoint).",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.sftp.endpoint_local",
+		English:     "this cluster's SFTP endpoint is set in the chart values",
+		Description: "API error when an admin tries to set the SFTP endpoint of the panel's own cluster through the API (sftp_cluster.go:putEndpoint).",
+		Status:      http.StatusBadRequest,
+	},
+	{
 		ID:          httperr.IDNamespaceForbidden,
 		English:     "namespace not permitted",
 		Description: "API error when the user's role does not cover the requested namespace.",

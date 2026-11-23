@@ -42,9 +42,26 @@ Only these routes accept a session token (guard like `MCPTokenGuard`); `cluster`
 | `POST /users/me/sftp/password` | signed in | generate or regenerate `{length: 20..40}` → `{password}` shown once |
 | `DELETE /users/me/sftp/password` | signed in | revoke |
 | `GET /users/{id}/sftp`, `DELETE /users/{id}/sftp/keys/{keyId}`, `DELETE /users/{id}/sftp/password` | `users:manage` | admin view and revoke |
-| `POST /clusters/{name}/sftp-token`, `DELETE /clusters/{name}/sftp-token/{id}` | `cluster:manage` | remote endpoint service token, shown once |
+| `GET /clusters/{name}/sftp` | `cluster:manage` | endpoint (address, host key fingerprint) and active service tokens of one cluster (drawer view, see below) |
+| `PUT /clusters/{name}/sftp` | `cluster:manage` | set a remote cluster's endpoint `{address, hostKeyFingerprint}` → `200 {cluster, address, hostKeyFingerprint, updatedAt}`; refused for the panel's own cluster (`server.sftp.endpoint_local`) |
+| `POST /clusters/{name}/sftp-token` | `cluster:manage` | new service token → `201 {id, cluster, prefix, createdAt, lastUsedAt, revokedAt, token}`; `token` is shown once; 409 `server.sftp.token_limit_reached` at 2 active tokens |
+| `DELETE /clusters/{name}/sftp-token/{id}` | `cluster:manage` | revoke one active token of that cluster; 404 `server.sftp.token_not_found` otherwise; `204` |
 
-Session-token requests are refused on all of these. Endpoint address and host key fingerprint per cluster come from Helm values the API reads (`sftp.publicAddress`, host key Secret) for the local cluster, and from the cluster registration for remote clusters (`PUT /clusters/{name}/sftp` `{address, hostKeyFingerprint}`).
+`GET /clusters/{name}/sftp` response, the same for every cluster:
+
+```json
+{
+  "cluster": "edge-1",
+  "local": false,
+  "address": "sftp.edge-1.example.com:2222",
+  "hostKeyFingerprint": "SHA256:…",
+  "tokens": [{"id": 12, "cluster": "edge-1", "prefix": "gpsftps_ab12…", "createdAt": "…", "lastUsedAt": null, "revokedAt": null}]
+}
+```
+
+`address` and `hostKeyFingerprint` are `null` when unset. `tokens` lists active tokens only, newest first. A token has no name column: the drawer labels it by `prefix` and `createdAt`. Unknown clusters answer 404 (`server.not_found`) on every cluster route.
+
+Session-token requests are refused on all of these (403 `server.forbidden`). The panel's own cluster (`local: true`) reads its address from Helm values (`sftp.publicAddress`, passed to the API as `GAMEPLANE_SFTP_PUBLIC_ADDRESS`) and its fingerprint from the host key Secret (`GAMEPLANE_SFTP_HOST_KEY_SECRET`, key `host_key`). Remote clusters read both from the stored endpoint (`PUT`), see data-model.md (`sftp_cluster_endpoints`). The fingerprint is the OpenSSH `SHA256:` form; `PUT` rejects anything else (`server.sftp.fingerprint_invalid`) and addresses that are not `host` or `host:port` (`server.sftp.endpoint_invalid`).
 
 ## Agent (mTLS, `/v1/targets/{uid}` prefix as today)
 

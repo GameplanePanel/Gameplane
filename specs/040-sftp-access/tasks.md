@@ -129,13 +129,13 @@
 
 ### Tests for User Story 4
 
-- [ ] T038 [P] [US4] Chart checks in new `charts/gameplane/tests/sftp.sh` (pattern of `charts/gameplane/tests/mcp-server-rbac.sh`): off renders nothing; on renders Deployment, Service (ClusterIP, NodePort, LoadBalancer variants), host key Secret with keep policy, NetworkPolicy.
-- [ ] T039 [P] [US4] Envtest `api/internal/handlers/sftp_cluster_envtest_test.go`: create/revoke service tokens with `cluster:manage`, endpoint address and fingerprint per cluster, a remote service token cannot list another cluster.
+- [X] T038 [P] [US4] Chart checks in new `charts/gameplane/tests/sftp.sh` (pattern of `charts/gameplane/tests/mcp-server-rbac.sh`): off renders nothing; on renders Deployment, Service (ClusterIP, NodePort, LoadBalancer variants), host key Secret with keep policy, NetworkPolicy.
+- [X] T039 [P] [US4] Envtest `api/internal/handlers/sftp_cluster_envtest_test.go`: create/revoke service tokens with `cluster:manage`, endpoint address and fingerprint per cluster, a remote service token cannot list another cluster.
 
 ### Implementation for User Story 4
 
-- [ ] T040 [US4] Chart exposure and remote mode in `charts/gameplane/templates/sftp.yaml` and `values.yaml`: `sftp.serviceType`, `sftp.nodePort`, `sftp.loadBalancerIP`, `sftp.publicAddress`, `sftp.apiURL`, `sftp.apiCASecret`, `sftp.serviceTokenSecret`, `sftp.maxSessionsPerUser` (4), `sftp.maxTransfersPerUser` (8); render on a gateway-only install.
-- [ ] T041 [US4] `POST /clusters/{name}/sftp-token`, `DELETE /clusters/{name}/sftp-token/{id}` and `PUT /clusters/{name}/sftp` in `api/internal/handlers/sftp_cluster.go`; local endpoint address and fingerprint read from Helm values and the host key Secret.
+- [X] T040 [US4] Chart exposure and remote mode in `charts/gameplane/templates/sftp.yaml` and `values.yaml`: `sftp.serviceType`, `sftp.nodePort`, `sftp.loadBalancerIP`, `sftp.publicAddress`, `sftp.apiURL`, `sftp.apiCASecret`, `sftp.serviceTokenSecret`, `sftp.maxSessionsPerUser` (4), `sftp.maxTransfersPerUser` (8); render on a gateway-only install.
+- [X] T041 [US4] `POST /clusters/{name}/sftp-token`, `DELETE /clusters/{name}/sftp-token/{id}` and `PUT /clusters/{name}/sftp` in `api/internal/handlers/sftp_cluster.go`; local endpoint address and fingerprint read from Helm values and the host key Secret.
 - [ ] T042 [US4] Clusters SFTP dialog after T004 sign-off in `web/src/routes/Clusters.tsx`, API methods in `web/src/lib/api.ts`, Vitest `web/src/routes/Clusters_sftp.test.tsx`.
 
 **Checkpoint**: admins can roll SFTP out to every cluster.

@@ -437,6 +437,11 @@ spec:
                 secretKeyRef:
                   name: gameplane-sftp-service-token
                   key: token
+            {{- /* The dashboard's endpoint card for this cluster: address from values, fingerprint from the host key Secret. */}}
+            - name: GAMEPLANE_SFTP_PUBLIC_ADDRESS
+              value: {{ (.Values.sftp).publicAddress | default "" | quote }}
+            - name: GAMEPLANE_SFTP_HOST_KEY_SECRET
+              value: {{ (.Values.sftp).hostKeySecret | default "gameplane-sftp-host-key" | quote }}
             {{- end }}
             {{- if .Values.api.oidc.enabled }}
             - name: GAMEPLANE_OIDC_CLIENT_SECRET

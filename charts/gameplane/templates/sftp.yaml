@@ -17,6 +17,15 @@ sftp.serviceTokenSecret must hold the token created there.
 {{- if and (not $local) (not $sftp.serviceTokenSecret) }}
 {{- fail "sftp.apiURL is set (remote mode): sftp.serviceTokenSecret must name a Secret with the service token (key token) created in the central panel" }}
 {{- end }}
+{{- if not (has $sftp.serviceType (list "ClusterIP" "NodePort" "LoadBalancer")) }}
+{{- fail (printf "sftp.serviceType must be ClusterIP, NodePort or LoadBalancer (got %q)" $sftp.serviceType) }}
+{{- end }}
+{{- if and $sftp.nodePort (or (ne $sftp.serviceType "NodePort") (lt (int $sftp.nodePort) 30000) (gt (int $sftp.nodePort) 32767)) }}
+{{- fail "sftp.nodePort applies only to serviceType NodePort and must be 30000-32767" }}
+{{- end }}
+{{- if and $sftp.loadBalancerIP (ne $sftp.serviceType "LoadBalancer") }}
+{{- fail "sftp.loadBalancerIP applies only to serviceType LoadBalancer" }}
+{{- end }}
 {{- $hostKeySecret := $sftp.hostKeySecret | default "gameplane-sftp-host-key" }}
 {{- /* Local mode always uses the chart-generated token the API seeds; remote mode uses the operator-supplied Secret. */}}
 {{- $tokenSecret := ternary "gameplane-sftp-service-token" $sftp.serviceTokenSecret $local }}
@@ -87,7 +96,7 @@ spec:
             - { name: GAMEPLANE_SFTP_HOST_KEY, value: /etc/gameplane/sftp/hostkeys }
             - { name: GAMEPLANE_SFTP_API_URL, value: {{ $apiURL | quote }} }
             - { name: GAMEPLANE_SFTP_SERVICE_TOKEN_FILE, value: /etc/gameplane/sftp-token/token }
-            {{- if $sftp.caSecret }}
+            {{- if $sftp.apiCASecret }}
             - { name: GAMEPLANE_SFTP_CA_FILE, value: /etc/gameplane/sftp-ca/ca.crt }
             {{- end }}
             - { name: GAMEPLANE_SFTP_IDLE_TIMEOUT, value: {{ $sftp.idleTimeout | quote }} }
@@ -108,7 +117,7 @@ spec:
           volumeMounts:
             - { name: host-key, mountPath: /etc/gameplane/sftp/hostkeys, readOnly: true }
             - { name: service-token, mountPath: /etc/gameplane/sftp-token, readOnly: true }
-            {{- if $sftp.caSecret }}
+            {{- if $sftp.apiCASecret }}
             - { name: api-ca, mountPath: /etc/gameplane/sftp-ca, readOnly: true }
             {{- end }}
       volumes:
@@ -122,10 +131,10 @@ spec:
             secretName: {{ $tokenSecret }}
             items:
               - { key: token, path: token }
-        {{- if $sftp.caSecret }}
+        {{- if $sftp.apiCASecret }}
         - name: api-ca
           secret:
-            secretName: {{ $sftp.caSecret }}
+            secretName: {{ $sftp.apiCASecret }}
             items:
               - { key: ca.crt, path: ca.crt }
         {{- end }}
@@ -141,9 +150,18 @@ metadata:
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   type: {{ $sftp.serviceType }}
+  {{- if and (eq $sftp.serviceType "LoadBalancer") $sftp.loadBalancerIP }}
+  loadBalancerIP: {{ $sftp.loadBalancerIP | quote }}
+  {{- end }}
   selector: { app.kubernetes.io/name: gameplane-sftp }
   ports:
-    - { name: ssh, port: {{ int $sftp.port }}, targetPort: ssh, protocol: TCP }
+    - name: ssh
+      port: {{ int $sftp.port }}
+      targetPort: ssh
+      protocol: TCP
+      {{- if and (eq $sftp.serviceType "NodePort") $sftp.nodePort }}
+      nodePort: {{ int $sftp.nodePort }}
+      {{- end }}
 {{- if .Values.networkPolicies.enabled }}
 ---
 # SFTP clients come from the internet, so ingress is open on the SFTP port only. Egress is

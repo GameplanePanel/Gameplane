@@ -1131,6 +1131,18 @@
     "defaultMessage": "role not found",
     "description": "API error from the roles API (roles.go:del, roles.go:update)."
   },
+  "server.sftp.endpoint_invalid": {
+    "defaultMessage": "address must be a host or host:port",
+    "description": "API error when the SFTP endpoint address of a remote cluster is not a host or host:port (sftp_cluster.go:putEndpoint)."
+  },
+  "server.sftp.endpoint_local": {
+    "defaultMessage": "this cluster's SFTP endpoint is set in the chart values",
+    "description": "API error when an admin tries to set the SFTP endpoint of the panel's own cluster through the API (sftp_cluster.go:putEndpoint)."
+  },
+  "server.sftp.fingerprint_invalid": {
+    "defaultMessage": "host key fingerprint must be a SHA256 fingerprint",
+    "description": "API error when the SFTP host key fingerprint of a remote cluster is not an OpenSSH SHA256 fingerprint (sftp_cluster.go:putEndpoint)."
+  },
   "server.sftp.key_duplicate": {
     "defaultMessage": "this key is already registered",
     "description": "API error when an SFTP public key is already registered. It never says to whom (sftp.go:writeSFTPErr)."
@@ -1174,6 +1186,14 @@
   "server.sftp.password_not_found": {
     "defaultMessage": "no SFTP password is set",
     "description": "API error when the user revokes an SFTP password that is not set (sftp.go:revokePassword)."
+  },
+  "server.sftp.token_limit_reached": {
+    "defaultMessage": "this cluster already has 2 active SFTP tokens; revoke one before creating another",
+    "description": "API error when a cluster already holds the maximum of 2 active SFTP service tokens (sftp_cluster.go:createToken)."
+  },
+  "server.sftp.token_not_found": {
+    "defaultMessage": "SFTP token not found",
+    "description": "API error when an SFTP service token to revoke does not exist, is already revoked, or belongs to another cluster (sftp_cluster.go:revokeToken)."
   },
   "server.shares.expires_at_in_past": {
     "defaultMessage": "expiresAt must be in the future",

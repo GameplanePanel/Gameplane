@@ -804,13 +804,18 @@ sftp:
   port: 2222
   # Empty => {image.registry}/sftp:{image tag}. Set a full reference to pin.
   image: ""
+  # ClusterIP (default), NodePort or LoadBalancer. Use LoadBalancer or NodePort to accept SFTP from outside the cluster.
   serviceType: ClusterIP
+  # NodePort only: fixed node port (30000-32767). 0 = let Kubernetes choose.
+  nodePort: 0
+  # LoadBalancer only: requested external IP, when the cloud supports it. Empty = provider default.
+  loadBalancerIP: ""
   # Address shown to users in the profile (host or host:port). Empty = unknown.
   publicAddress: ""
   # Remote clusters: central API URL, optional CA bundle Secret (key ca.crt) and an existing Secret
   # with key `token` holding the service token created in the central panel.
   apiURL: ""
-  caSecret: ""
+  apiCASecret: ""
   serviceTokenSecret: ""
   # Existing Secret with a `host_key` PEM; empty => chart generates one once (kept on uninstall).
   hostKeySecret: ""

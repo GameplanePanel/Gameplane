@@ -440,10 +440,19 @@ func main() {
 		handlers.MountAuthProviderSecrets(p, k8s, credentialsNS)
 		handlers.MountCluster(p, reg, store, Version, cfg.clusterOps, cfg.updateChannel)
 		handlers.MountClusterActions(p, k8s, cfg.clusterOps, cfg.clusterExternalAddress)
+		// SFTP endpoint per cluster (spec 040, US4): the panel's own address comes from chart values and its
+		// host key fingerprint from the host key Secret; remote addresses are stored by PUT /clusters/{name}/sftp.
+		sftpMount := handlers.SFTPClusterMount{
+			Sessions:      sessions,
+			Kube:          k8s,
+			PublicAddress: os.Getenv("GAMEPLANE_SFTP_PUBLIC_ADDRESS"),
+			HostKeySecret: envOr("GAMEPLANE_SFTP_HOST_KEY_SECRET", "gameplane-sftp-host-key"),
+			Namespace:     credentialsNS,
+		}
 		if cfg.remoteClusters {
-			handlers.MountClusters(p, reg, k8s, credentialsNS)
+			handlers.MountClustersWithSFTP(p, reg, k8s, credentialsNS, sftpMount)
 		} else {
-			handlers.MountClusters(p, reg, nil, credentialsNS)
+			handlers.MountClustersWithSFTP(p, reg, nil, credentialsNS, sftpMount)
 		}
 		handlers.MountInstallation(p, store, cfg.standalone, Version)
 		handlers.MountEvents(p, reg)
