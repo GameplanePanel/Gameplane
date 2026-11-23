@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -354,6 +355,11 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 			httperr.WriteCode(w, req, http.StatusBadRequest, err)
 			return
 		}
+		// A declared length over the cap is refused before any upstream work.
+		if req.ContentLength > maxBody {
+			httperr.WriteCode(w, req, http.StatusRequestEntityTooLarge, errBodyTooLarge(maxBody))
+			return
+		}
 		// Forward only headers the agent actually consumes. Never proxy
 		// Cookie, Authorization, X-Gameplane-CSRF — those are the user's
 		// session material and the agent doesn't need them (mTLS is what
@@ -365,6 +371,12 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 			body: http.MaxBytesReader(w, req.Body, maxBody),
 		})
 		if err != nil {
+			// The body cap trips mid-copy when no (or a false) Content-Length was sent.
+			var tooLarge *http.MaxBytesError
+			if errors.As(err, &tooLarge) {
+				httperr.WriteCode(w, req, http.StatusRequestEntityTooLarge, errBodyTooLarge(maxBody))
+				return
+			}
 			writeUpstreamErr(w, req, err)
 			return
 		}
@@ -376,6 +388,11 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 		w.WriteHeader(resp.StatusCode)
 		_, _ = io.Copy(w, resp.Body)
 	}
+}
+
+// errBodyTooLarge is the caller-safe 413 detail for a request body over maxBody bytes.
+func errBodyTooLarge(maxBody int64) error {
+	return fmt.Errorf("request body exceeds the %d byte limit", maxBody)
 }
 
 // writeUpstreamErr maps transport-level failures on the API→agent leg

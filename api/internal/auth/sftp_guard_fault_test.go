@@ -45,7 +45,7 @@ func sftpBadBearer(t *testing.T, path, addr string) *http.Request {
 }
 
 func TestSFTPGuard_RefusalIsAuditedAndAuditErrorsAreSwallowed(t *testing.T) {
-	s, _ := sftpFault(t)
+	s, _ := sftpFault(t.Context(), t)
 	rec := &sftpAuditRecorder{}
 	s.AttachSFTPAudit(rec.record)
 
@@ -66,7 +66,7 @@ func TestSFTPGuard_RefusalIsAuditedAndAuditErrorsAreSwallowed(t *testing.T) {
 }
 
 func TestSFTPGuard_BadTokenFloodIsRateLimited(t *testing.T) {
-	s, _ := sftpFault(t)
+	s, _ := sftpFault(t.Context(), t)
 	next := &okHandler{}
 	limited := false
 	for i := 0; i < 20 && !limited; i++ {
@@ -100,7 +100,7 @@ func TestSFTPGuard_BadTokenFloodIsRateLimited(t *testing.T) {
 
 func TestSFTPGuard_ValidSessionPastItsBudgetIsRateLimited(t *testing.T) {
 	ctx := t.Context()
-	s, uid := sftpFault(t)
+	s, uid := sftpFault(t.Context(), t)
 	token, _, err := s.IssueSFTPSession(ctx, uid, "local", "password", 0)
 	if err != nil {
 		t.Fatalf("IssueSFTPSession: %v", err)
@@ -127,13 +127,13 @@ func TestSFTPGuard_ValidSessionPastItsBudgetIsRateLimited(t *testing.T) {
 
 func TestSFTPGuard_DatabaseFailureAnswers503(t *testing.T) {
 	ctx := t.Context()
-	s, uid := sftpFault(t)
+	s, uid := sftpFault(t.Context(), t)
 	token, _, err := s.IssueSFTPSession(ctx, uid, "local", "password", 0)
 	if err != nil {
 		t.Fatalf("IssueSFTPSession: %v", err)
 	}
 	// Loading the user's permissions fails after the session row matched.
-	mustExecSFTP(t, s, `DROP TABLE user_role_bindings`)
+	mustExecSFTP(t.Context(), t, s, `DROP TABLE user_role_bindings`)
 	next := &okHandler{}
 	w := httptest.NewRecorder()
 	s.Authenticate(next).ServeHTTP(w, bearerRequest(t, "/servers/a/files/list", token))
@@ -141,7 +141,7 @@ func TestSFTPGuard_DatabaseFailureAnswers503(t *testing.T) {
 		t.Fatalf("session: called=%v code=%d, want 503", next.called, w.Code)
 	}
 
-	s2, _ := sftpFault(t, sftpCloseDB)
+	s2, _ := sftpFault(t.Context(), t, sftpCloseDB)
 	w = httptest.NewRecorder()
 	req := bearerRequest(t, "/sftp/v1/login", "gpsftps_"+strings.Repeat("x", sftpTokenBodyLen))
 	req.RemoteAddr = "192.0.2.30:4000"

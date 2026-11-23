@@ -234,8 +234,8 @@ func TestFileStreamOverUploadLimitNeverReachesAgent(t *testing.T) {
 	before := agent.count()
 	rec := doFilesRequest(t, h, operator, http.MethodPut,
 		"/servers/alpha/files/stream?path=/big.bin&offset=0", strings.Repeat("x", limit*4))
-	if rec.Code == http.StatusOK {
-		t.Fatalf("over-limit upload succeeded with status %d", rec.Code)
+	if rec.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("over-limit upload status = %d, want 413: %s", rec.Code, rec.Body.String())
 	}
 	if agent.count() != before {
 		t.Fatalf("over-limit upload completed at the agent: %s", agent.last())

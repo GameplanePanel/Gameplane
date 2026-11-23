@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/GameplanePanel/gameplane/api/internal/db"
 )
 
 // sftpCloseDB is a pseudo-statement that closes the store's database, so every later query fails.
@@ -15,12 +17,32 @@ const sftpCloseDB = "CLOSE"
 
 // sftpFault returns a store with one user (alice) after applying stmts. "{uid}" in a statement is
 // replaced by alice's id; sftpCloseDB closes the database.
-func sftpFault(t *testing.T, stmts ...string) (*SessionStore, int64) {
+func sftpFault(ctx context.Context, t *testing.T, stmts ...string) (*SessionStore, int64) {
 	t.Helper()
-	st := newAuthDB(t)
-	seedUser(t, st, "alice", "hunter2", "admin")
+	st, err := db.Open(ctx, "sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	t.Cleanup(func() { _ = st.Close() })
+	if err := st.Migrate(ctx); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	SetFastHashParams(t)
+	hash, err := HashPassword(ctx, "hunter2")
+	if err != nil {
+		t.Fatalf("hash: %v", err)
+	}
+	if _, err := st.DB.ExecContext(ctx,
+		`INSERT INTO users(username, display_name, email, role, pw_hash) VALUES (?,?,?,?,?)`,
+		"alice", "alice", "alice@example.com", "admin", hash); err != nil {
+		t.Fatalf("insert user: %v", err)
+	}
 	s := NewSessionStore(st)
-	uid := sftpUserID(t, s, "alice")
+	u, _, err := s.SFTPUserByName(ctx, "alice")
+	if err != nil {
+		t.Fatalf("SFTPUserByName: %v", err)
+	}
+	uid := u.ID
 	for _, q := range stmts {
 		if q == sftpCloseDB {
 			if err := st.DB.Close(); err != nil {
@@ -29,7 +51,7 @@ func sftpFault(t *testing.T, stmts ...string) (*SessionStore, int64) {
 			continue
 		}
 		q = strings.ReplaceAll(q, "{uid}", fmt.Sprint(uid))
-		if _, err := st.DB.ExecContext(t.Context(), q); err != nil {
+		if _, err := st.DB.ExecContext(ctx, q); err != nil {
 			t.Fatalf("setup %q: %v", q, err)
 		}
 	}
@@ -264,7 +286,7 @@ func TestSFTPStore_DatabaseFailuresSurface(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			s, uid := sftpFault(t, tc.stmts...)
+			s, uid := sftpFault(t.Context(), t, tc.stmts...)
 			if err := tc.call(t.Context(), s, uid); err == nil {
 				t.Fatal("call succeeded, want an error")
 			}
@@ -274,7 +296,7 @@ func TestSFTPStore_DatabaseFailuresSurface(t *testing.T) {
 
 func TestSFTPStore_TouchCredential(t *testing.T) {
 	ctx := t.Context()
-	s, uid := sftpFault(t)
+	s, uid := sftpFault(t.Context(), t)
 	line, _ := sftpAuthorizedKey(t, "ed25519")
 	key, err := s.AddSFTPKey(ctx, uid, "laptop", line)
 	if err != nil {
@@ -317,7 +339,7 @@ func TestSFTPStore_TouchCredential(t *testing.T) {
 
 func TestSFTPStore_TouchServiceToken(t *testing.T) {
 	ctx := t.Context()
-	s, _ := sftpFault(t)
+	s, _ := sftpFault(t.Context(), t)
 	tok, _, err := s.CreateSFTPServiceToken(ctx, "local")
 	if err != nil {
 		t.Fatalf("CreateSFTPServiceToken: %v", err)
@@ -344,7 +366,7 @@ func TestSFTPStore_TouchServiceToken(t *testing.T) {
 
 func TestSFTPStore_ServiceTokenLimitAndRevokedLookup(t *testing.T) {
 	ctx := t.Context()
-	s, _ := sftpFault(t)
+	s, _ := sftpFault(t.Context(), t)
 	var first SFTPServiceToken
 	var firstRaw string
 	for i := 0; i < SFTPMaxActiveServiceTokens; i++ {
@@ -383,24 +405,24 @@ func TestSFTPStore_LookupSessionRejectsBadRows(t *testing.T) {
 	}{
 		{"unparsable expiry", func(t *testing.T, s *SessionStore) {
 			t.Helper()
-			mustExecSFTP(t, s, `UPDATE sftp_sessions SET expires_at = 'junk'`)
+			mustExecSFTP(t.Context(), t, s, `UPDATE sftp_sessions SET expires_at = 'junk'`)
 		}, errSessionInvalid},
 		{"expired", func(t *testing.T, s *SessionStore) {
 			t.Helper()
-			mustExecSFTP(t, s, `UPDATE sftp_sessions SET expires_at = '2000-01-01T00:00:00Z'`)
+			mustExecSFTP(t.Context(), t, s, `UPDATE sftp_sessions SET expires_at = '2000-01-01T00:00:00Z'`)
 		}, errSessionExpired},
 		{"revoked", func(t *testing.T, s *SessionStore) {
 			t.Helper()
-			mustExecSFTP(t, s, `UPDATE sftp_sessions SET revoked_at = '2020-01-01T00:00:00Z'`)
+			mustExecSFTP(t.Context(), t, s, `UPDATE sftp_sessions SET revoked_at = '2020-01-01T00:00:00Z'`)
 		}, sql.ErrNoRows},
 		{"epoch mismatch", func(t *testing.T, s *SessionStore) {
 			t.Helper()
-			mustExecSFTP(t, s, `UPDATE users SET session_epoch = session_epoch + 1`)
+			mustExecSFTP(t.Context(), t, s, `UPDATE users SET session_epoch = session_epoch + 1`)
 		}, sql.ErrNoRows},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			s, uid := sftpFault(t)
+			s, uid := sftpFault(t.Context(), t)
 			token, _, err := s.IssueSFTPSession(ctx, uid, "local", "password", 0)
 			if err != nil {
 				t.Fatalf("IssueSFTPSession: %v", err)
@@ -413,12 +435,12 @@ func TestSFTPStore_LookupSessionRejectsBadRows(t *testing.T) {
 	}
 
 	t.Run("permission load failure", func(t *testing.T) {
-		s, uid := sftpFault(t)
+		s, uid := sftpFault(t.Context(), t)
 		token, _, err := s.IssueSFTPSession(ctx, uid, "local", "password", 0)
 		if err != nil {
 			t.Fatalf("IssueSFTPSession: %v", err)
 		}
-		mustExecSFTP(t, s, `DROP TABLE user_role_bindings`)
+		mustExecSFTP(t.Context(), t, s, `DROP TABLE user_role_bindings`)
 		_, _, err = s.LookupSFTPSessionToken(ctx, token)
 		if err == nil || errors.Is(err, sql.ErrNoRows) || errors.Is(err, errSessionInvalid) || errors.Is(err, errSessionExpired) {
 			t.Fatalf("lookup error = %v, want an unclassified database error", err)
@@ -426,16 +448,16 @@ func TestSFTPStore_LookupSessionRejectsBadRows(t *testing.T) {
 	})
 }
 
-func mustExecSFTP(t *testing.T, s *SessionStore, q string) {
+func mustExecSFTP(ctx context.Context, t *testing.T, s *SessionStore, q string) {
 	t.Helper()
-	if _, err := s.db.DB.ExecContext(t.Context(), q); err != nil {
+	if _, err := s.db.DB.ExecContext(ctx, q); err != nil {
 		t.Fatalf("exec %q: %v", q, err)
 	}
 }
 
 func TestSFTPStore_CheckSessionsBatch(t *testing.T) {
 	ctx := t.Context()
-	s, uid := sftpFault(t)
+	s, uid := sftpFault(t.Context(), t)
 
 	if got, err := s.CheckSFTPSessions(ctx, "local", nil); err != nil || len(got) != 0 {
 		t.Fatalf("empty batch = %v, %v", got, err)
@@ -461,9 +483,9 @@ func TestSFTPStore_CheckSessionsBatch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("garbled: %v", err)
 	}
-	mustExecSFTP(t, s, fmt.Sprintf(`UPDATE sftp_sessions SET revoked_at = '2020-01-01T00:00:00Z' WHERE digest = '%s'`, SFTPTokenDigest(revoked)))
-	mustExecSFTP(t, s, fmt.Sprintf(`UPDATE sftp_sessions SET expires_at = '2000-01-01T00:00:00Z' WHERE digest = '%s'`, SFTPTokenDigest(expired)))
-	mustExecSFTP(t, s, fmt.Sprintf(`UPDATE sftp_sessions SET expires_at = 'junk' WHERE digest = '%s'`, SFTPTokenDigest(garbled)))
+	mustExecSFTP(t.Context(), t, s, fmt.Sprintf(`UPDATE sftp_sessions SET revoked_at = '2020-01-01T00:00:00Z' WHERE digest = '%s'`, SFTPTokenDigest(revoked)))
+	mustExecSFTP(t.Context(), t, s, fmt.Sprintf(`UPDATE sftp_sessions SET expires_at = '2000-01-01T00:00:00Z' WHERE digest = '%s'`, SFTPTokenDigest(expired)))
+	mustExecSFTP(t.Context(), t, s, fmt.Sprintf(`UPDATE sftp_sessions SET expires_at = 'junk' WHERE digest = '%s'`, SFTPTokenDigest(garbled)))
 
 	digests := []string{
 		SFTPTokenDigest(live), SFTPTokenDigest(otherCluster), SFTPTokenDigest(revoked),
@@ -486,7 +508,7 @@ func TestSFTPStore_CheckSessionsBatch(t *testing.T) {
 
 func TestSFTPStore_RevokeAllCredentialsAndSessionToken(t *testing.T) {
 	ctx := t.Context()
-	s, uid := sftpFault(t)
+	s, uid := sftpFault(t.Context(), t)
 	a, _, err := s.IssueSFTPSession(ctx, uid, "local", "password", 0)
 	if err != nil {
 		t.Fatalf("a: %v", err)
@@ -513,7 +535,7 @@ func TestSFTPStore_RevokeAllCredentialsAndSessionToken(t *testing.T) {
 }
 
 func TestSFTPStore_SlideSessionLogsFailure(t *testing.T) {
-	s, _ := sftpFault(t, sftpDropSessions)
+	s, _ := sftpFault(t.Context(), t, sftpDropSessions)
 	// Fresh id, so the once-a-minute throttle does not skip the write that fails.
 	s.slideSFTPSession(t.Context(), 987654321)
 }

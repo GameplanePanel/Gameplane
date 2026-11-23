@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -35,6 +36,9 @@ const (
 	// filesReadyTimeout is how long a file request waits for the file-only pod before 503.
 	filesReadyTimeout = 60 * time.Second
 	filesPollInterval = time.Second
+	// filesRefreshInterval is how often a long file request re-checks the stamp. It is half of
+	// filesRequestInterval so the at-most-once-a-minute patch helper never skips a whole minute.
+	filesRefreshInterval = filesRequestInterval / 2
 )
 
 // errFilesStarting means the file-only pod did not answer within filesReadyTimeout.
@@ -49,9 +53,66 @@ func (p *proxy) filesRoute(path string, limit int64) http.HandlerFunc {
 			if !selected.ensureFiles(w, req) {
 				return
 			}
+			defer selected.keepFilesRequested(req.Context(), req, filesRefreshInterval, time.Now)()
 			inner(w, req)
 		}
 	})
+}
+
+// keepFilesRequested refreshes files-requested-at every `every` until the returned stop
+// function is called, so a long download or upload to a stopped server keeps its file-only pod
+// past the operator's idle timeout. It does nothing for a running server. stop blocks until
+// the refresher goroutine has exited, so no patch lands after the handler returned.
+func (p *proxy) keepFilesRequested(parent context.Context, req *http.Request, every time.Duration, now func() time.Time) (stop func()) {
+	noop := func() {}
+	if p.k == nil || p.k.Dynamic == nil || p.k.Typed == nil || p.transport == nil {
+		return noop
+	}
+	ns, err := scope.Resolve(req)
+	if err != nil {
+		return noop
+	}
+	name := chi.URLParam(req, "name")
+	ctx, cancel := context.WithCancel(parent)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		ticker := time.NewTicker(every)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				p.refreshFilesStamp(ctx, ns, name, now())
+			}
+		}
+	}()
+	return func() {
+		cancel()
+		<-done
+	}
+}
+
+// refreshFilesStamp re-stamps files-requested-at for a stopped server. Failures are only
+// logged: the transfer in flight must not fail because a refresh did.
+func (p *proxy) refreshFilesStamp(ctx context.Context, ns, name string, at time.Time) {
+	gs, err := p.k.GetServer(ctx, ns, name)
+	if err != nil {
+		if ctx.Err() == nil {
+			slog.Warn("refresh files request: get server", "server", name, "err", err)
+		}
+		return
+	}
+	if p.remoteUID != "" && string(gs.GetUID()) != p.remoteUID {
+		return
+	}
+	if !filesServerStopped(gs) {
+		return
+	}
+	if err := p.requestFilesPod(ctx, gs, at); err != nil && ctx.Err() == nil {
+		slog.Warn("refresh files request: stamp", "server", name, "err", err)
+	}
 }
 
 // ensureFiles makes sure a stopped server answers file operations. It returns true when

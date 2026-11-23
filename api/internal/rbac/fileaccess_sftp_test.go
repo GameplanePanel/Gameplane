@@ -61,8 +61,10 @@ func TestServeFileRoute_ScopeRefusals(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 			ok, rec := faServe(t, h, req, owner)
-			if ok || rec.Code != http.StatusForbidden {
-				t.Fatalf("called=%v code=%d, want a 403", ok, rec.Code)
+			// namespace_not_permitted and cluster_forbidden are 400s in the message catalog,
+			// the same answer the rule table gives for these selectors.
+			if ok || rec.Code != http.StatusBadRequest {
+				t.Fatalf("called=%v code=%d, want a 400", ok, rec.Code)
 			}
 		})
 	}
@@ -82,8 +84,9 @@ func TestServeFileRoute_MCPTokenWithoutClusterGrantGetsClusterForbidden(t *testi
 	if okPlain || okMCP {
 		t.Fatalf("stranger allowed: plain=%v mcp=%v", okPlain, okMCP)
 	}
-	if plainRec.Code != http.StatusForbidden || mcpRec.Code != http.StatusForbidden {
-		t.Fatalf("codes plain=%d mcp=%d, want 403", plainRec.Code, mcpRec.Code)
+	// server.forbidden is a 403; server.cluster_forbidden is a 400 in the message catalog.
+	if plainRec.Code != http.StatusForbidden || mcpRec.Code != http.StatusBadRequest {
+		t.Fatalf("codes plain=%d mcp=%d, want 403 and 400", plainRec.Code, mcpRec.Code)
 	}
 	if plainRec.Body.String() == mcpRec.Body.String() {
 		t.Fatalf("MCP refusal body equals the plain forbidden body: %s", mcpRec.Body.String())
