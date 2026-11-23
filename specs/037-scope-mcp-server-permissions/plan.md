@@ -18,7 +18,7 @@ The MCP server gets two modes. The normal **per-user mode** runs on the user's m
 
 **Storage**: SQLite / PostgreSQL through the API store; one new portable migration `common/023_mcp_tokens.sql` ([data-model.md](data-model.md)).
 
-**Testing**: Go unit tests and API envtest (`api/internal/handlers/*_envtest_test.go`), mcp repo unit tests (`httptest` panel, fake clientset break-glass), web Vitest, chart `helm template` checks, E2E in `test/e2e/` buckets `api-rbac`, `multicluster`, `optional-components`. CI only (rule 8).
+**Testing**: Go unit tests (API token routes and read routes in `api/internal/handlers/mcp_tokens_test.go` and `pods_test.go` with a fake clientset), mcp repo unit tests (`httptest` panel, fake clientset break-glass), web Vitest, chart `helm template` checks, E2E in `test/e2e/` buckets `api-rbac`, `multicluster`, `optional-components`. CI only (rule 8).
 
 **Target Platform**: Kubernetes (k3s to multi-node), standalone panel; MCP server per-user mode on Linux/macOS/Windows hosts via the published container image.
 
@@ -98,7 +98,7 @@ GameplanePanel/Gameplane
 
 **Structure Decision**: work splits by repository and by reviewable unit, delivered as stacked PRs (one thread, valgul's multi-PR rule for specs):
 
-1. **Gameplane PR A, API** (`feat/037-mcp-token-api`): migration, token auth + guard, token routes, read routes, RBAC rules, audit, envtests, E2E `api-rbac`, changelog.
+1. **Gameplane PR A, API** (`feat/037-mcp-token-api`): migration, token auth + guard, token routes, read routes, RBAC rules, audit, unit tests, E2E `api-rbac`, changelog.
 2. **Design** (`design/037-mcp-tokens`, merged into PR B): `design.fig` screens + export.
 3. **Gameplane PR B, dashboard** (on A): MCP tokens page, admin dialog, i18n, Vitest.
 4. **mcp PR** (`feat/per-user-mode` in GameplanePanel/mcp): Reader, panel client, break-glass allow-list, tools, docs, tests.

@@ -21,7 +21,7 @@
 | `get_pod_logs` | `/servers/{server}/logs/pod/tail` (new `server` argument required in this mode), or `/admin/system-logs/{component}` for API/operator pods | as today, within the allow-list |
 | `propose_fix` | reads through the same calls, so it never sees more than the user | as today |
 
-- No `cluster` → per-user mode calls `/clusters`, runs the call on each, and returns `{cluster: [...]}` groups plus `unavailable: [clusterIDs]`. Break-glass ignores `cluster` other than the local one and says so.
+- No `cluster` → per-user mode calls `/clusters`, runs the call on each, and merges the results with each item labelled by its cluster (`clusterAnnotation`); clusters that fail (other than 403/404) are reported in the merged list's resource version as `unavailable clusters: <ids>` (`mcp-server/internal/panel/fanout.go`). Break-glass ignores `cluster` other than the local one and says so.
 - No `namespace` → per-user mode uses the namespaces the user may read on that cluster (from `/namespaces`); break-glass loops over its allow-list.
 - Refusals are returned as tool errors with the API's message (`not authenticated`, `permission denied`, `namespace not in scope`, `cluster not found or not permitted`).
 
