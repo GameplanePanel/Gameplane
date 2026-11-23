@@ -1,0 +1,474 @@
+{
+  "file": "1-42063",
+  "id": "1:42063",
+  "name": "Screen/Server Detail — Files (Starting timed out)",
+  "type": "FRAME",
+  "x": 8840,
+  "y": 30370,
+  "width": 1440,
+  "height": 900,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "id": "1:42104",
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "name": "Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
+        },
+        {
+          "name": "Detail Header",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 86,
+          "component": "Gameplane/Server Detail Header",
+          "componentId": "1:447",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [16, 24, 16, 24],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "texts": [
+            "MI",
+            "mc-survival",
+            "Stopped",
+            "site: remote-lab · minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+            "Restart",
+            "Start",
+            "Open console"
+          ]
+        },
+        {
+          "name": "Tabs Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 150,
+          "width": 1180,
+          "height": 76,
+          "component": "Gameplane/Server Detail Tabs",
+          "componentId": "1:466",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [18, 24, 18, 24],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": [
+            "Overview",
+            "Events",
+            "Console",
+            "Logs",
+            "Files",
+            "Mods",
+            "Modpacks",
+            "Players",
+            "Backups",
+            "Capture",
+            "Settings"
+          ]
+        },
+        {
+          "id": "1:42195",
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 226,
+          "width": 1180,
+          "height": 674,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 12,
+            "padding": [4, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "children": [
+            {
+              "id": "1:42268",
+              "name": "Files Toolbar",
+              "type": "FRAME",
+              "x": 0,
+              "y": 4,
+              "width": 1180,
+              "height": 36,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:42354",
+                  "name": "Breadcrumb",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 3,
+                  "width": 32,
+                  "height": 30,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 4,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "id": "1:42466",
+                      "name": "Path",
+                      "type": "TEXT",
+                      "x": 12,
+                      "y": 7,
+                      "width": 8,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "/",
+                      "font": ["JetBrains Mono", 400, 12],
+                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:42355",
+                  "name": "Toolbar Actions",
+                  "type": "FRAME",
+                  "x": 830,
+                  "y": 0,
+                  "width": 350,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "Btn New File",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 2,
+                      "width": 93,
+                      "height": 32,
+                      "opacity": 0.45,
+                      "component": "Button/Outline/SM",
+                      "componentId": "1:633",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 5,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/3",
+                        "paddingLeft": "spacing/3",
+                        "strokes/0/color": "border-2"
+                      },
+                      "texts": ["New file"]
+                    },
+                    {
+                      "name": "Btn New Folder",
+                      "type": "INSTANCE",
+                      "x": 101,
+                      "y": 2,
+                      "width": 110,
+                      "height": 32,
+                      "opacity": 0.45,
+                      "component": "Button/Outline/SM",
+                      "componentId": "1:633",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 5,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/3",
+                        "paddingLeft": "spacing/3",
+                        "strokes/0/color": "border-2"
+                      },
+                      "texts": ["New folder"]
+                    },
+                    {
+                      "name": "Btn Upload",
+                      "type": "INSTANCE",
+                      "x": 219,
+                      "y": 2,
+                      "width": 87,
+                      "height": 32,
+                      "opacity": 0.45,
+                      "component": "Button/Outline/SM",
+                      "componentId": "1:633",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 5,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/3",
+                        "paddingLeft": "spacing/3",
+                        "strokes/0/color": "border-2"
+                      },
+                      "texts": ["Upload"]
+                    },
+                    {
+                      "name": "Btn Refresh",
+                      "type": "INSTANCE",
+                      "x": 314,
+                      "y": 0,
+                      "width": 36,
+                      "height": 36,
+                      "opacity": 0.45,
+                      "component": "Button/Outline/Icon/MD",
+                      "componentId": "1:774",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border-2"}
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1:42269",
+              "name": "Files starting",
+              "type": "FRAME",
+              "x": 0,
+              "y": 52,
+              "width": 1180,
+              "height": 528,
+              "children": [
+                {
+                  "id": "1:42356",
+                  "name": "cardTitle",
+                  "type": "TEXT",
+                  "x": 524.5,
+                  "y": 110,
+                  "width": 131,
+                  "height": 21,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Files did not start",
+                  "font": ["Geist", 500, 16],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "name": "Gameplane/Error Card",
+                  "type": "INSTANCE",
+                  "x": 390,
+                  "y": 152,
+                  "width": 400,
+                  "height": 58,
+                  "component": "Gameplane/Error Card",
+                  "componentId": "1:10060",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [20, 20, 20, 20],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "variables": {
+                    "cornerRadius": "radius/3xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": ["Files are starting, try again. The file-only pod was not ready within 60 seconds."]
+                },
+                {
+                  "name": "Gameplane/Button/Default",
+                  "type": "INSTANCE",
+                  "x": 535,
+                  "y": 232,
+                  "width": 110,
+                  "height": 36,
+                  "component": "Gameplane/Button/Default",
+                  "componentId": "1:306",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "texts": ["Retry"]
+                },
+                {
+                  "id": "1:42357",
+                  "name": "cardBody",
+                  "type": "TEXT",
+                  "x": 330,
+                  "y": 288,
+                  "width": 520,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Nothing was started. The server stays stopped, and no file was changed.",
+                  "font": ["Geist", 400, 14],
+                  "align": "CENTER",
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
