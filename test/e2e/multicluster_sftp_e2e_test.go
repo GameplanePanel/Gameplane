@@ -10,14 +10,15 @@ import (
 	"net/http"
 	"strings"
 	"testing"
-	"time"
 
 	"golang.org/x/crypto/ssh"
 )
 
-// TestMultiCluster_SFTPRemoteEndpoint covers spec 040's remote-cluster
-// endpoint on the central panel: a registered remote cluster gets its own
-// SFTP endpoint address, host key fingerprint and service tokens. It checks
+// remoteSFTPEndpointChecks covers spec 040's remote-cluster endpoint on the
+// central panel, as the sftp-remote-endpoint subtest of
+// TestMultiCluster_TokenRemoteGrant (it reuses that test's admin login and
+// registered remote cluster clusterID): a registered remote cluster gets its
+// own SFTP endpoint address, host key fingerprint and service tokens. It checks
 // the admin contract only: PUT sets the endpoint, tokens are shown once and
 // capped at two active, the listing never echoes a token, a revoked token
 // disappears, and the panel's own cluster refuses a remote endpoint.
@@ -25,25 +26,8 @@ import (
 // Not covered here: the SFTP pod running on cluster B and logging in to this
 // API across clusters. The dual-cluster job has no route from cluster B's pods
 // to this cluster's API, so that path stays a manual check (quickstart §10).
-//
-// Budget: one e2e-admin login. The bucket is at its per-IP login ceiling, so
-// the test runs non-parallel and waits for the limiter to refill afterwards.
-func TestMultiCluster_SFTPRemoteEndpoint(t *testing.T) {
-	_, clusterBName := ensureClusterB(t)
-
-	envInstance.BootstrapAdmin(t, adminUsername, adminPassword)
-	admin := envInstance.APIClient(t, adminUsername, adminPassword)
-	defer admin.Close()
-	lastLogin := time.Now()
-	t.Cleanup(func() {
-		if d := 12*time.Second - time.Since(lastLogin); d > 0 {
-			time.Sleep(d)
-		}
-	})
-
-	clusterID := fmt.Sprintf("e2e-sftp-mc-%d", time.Now().UnixNano())
-	mcpMCRegisterRemoteCluster(t, admin, clusterID, clusterBName)
-
+func remoteSFTPEndpointChecks(t *testing.T, admin *APIClient, clusterID string) {
+	t.Helper()
 	// A real SHA256 fingerprint in OpenSSH form; the panel only checks the shape.
 	pub, _, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {

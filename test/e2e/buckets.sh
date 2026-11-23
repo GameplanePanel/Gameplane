@@ -395,7 +395,8 @@ EOF
 # that TestAPI_AccountRemoval_RevokesSharesAndAllowsSSOReprovision signs in
 # through.
 #
-# TestMultiCluster_MCPTokenRemoteGrant (spec 037, T039) costs +1 e2e-admin
+# TestMultiCluster_TokenRemoteGrant (spec 037 T039, plus spec 040 T052 as its
+# sftp-remote-endpoint subtest on the same admin login) costs +1 e2e-admin
 # login plus one login as its own user, bringing this job to 7 admin logins,
 # the ceiling: do not add admin logins to this bucket. Run in parallel, its two
 # logins made TestAPI_I18n_ProblemJSON's failed-login pair hit 429, so it runs
@@ -408,15 +409,9 @@ TestAPI_I18n_ModuleLocales
 TestAPI_SSORoleRules
 TestMultiCluster_ClusterDispatchAndScopedRBAC
 TestMultiCluster_GatewayParity
-TestMultiCluster_MCPTokenRemoteGrant
-TestMultiCluster_SFTPRemoteEndpoint
+TestMultiCluster_TokenRemoteGrant
 EOF
 }
-
-# TestMultiCluster_SFTPRemoteEndpoint (spec 040, T052) costs +1 e2e-admin login,
-# bringing this job to 8 admin logins, one over the ceiling above. It runs
-# non-parallel and waits ~12 s after its login so the per-IP limiter refills
-# before the parallel batch. Maintainer decision needed if CI shows 429s.
 
 # Needs a cluster seeded with the PREVIOUS RELEASE's published chart and GHCR
 # images (deploy/kind/upgrade.sh), which no other bucket's job provides — they
