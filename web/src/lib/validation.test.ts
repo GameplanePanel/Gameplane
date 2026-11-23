@@ -260,3 +260,13 @@ describe("validateConfig redaction marker (any field type)", () => {
     expect(errs.map((e) => e.name)).toEqual(["I"]);
   });
 });
+
+describe("server names starting with a digit", () => {
+  it("rejects a name that starts with a digit", () => {
+    expect(isValidK8sName("7d2d")).toBe(false);
+  });
+
+  it("accepts the same name starting with a letter", () => {
+    expect(isValidK8sName("sdtd")).toBe(true);
+  });
+});

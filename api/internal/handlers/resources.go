@@ -232,6 +232,10 @@ func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 		}
 		// Record the creating user as the server's owner (informational).
 		if gvr.Resource == "gameservers" {
+			if !validServerName(obj.GetName()) {
+				httperr.WriteMessage(w, req, messages.New("server.lifecycle.name_invalid", nil))
+				return
+			}
 			protectServerAnnotations(obj, nil)
 			stampOwner(obj, req)
 			stripRedactedConfig(obj)

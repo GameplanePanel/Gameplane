@@ -1015,6 +1015,10 @@
     "defaultMessage": "confirmation does not match server name",
     "description": "API error from the server lifecycle API (lifecycle.go:wipeDataHandler)."
   },
+  "server.lifecycle.name_invalid": {
+    "defaultMessage": "server name must start with a lowercase letter, contain only lowercase letters, digits and dashes, and have at most 57 characters",
+    "description": "API error when a new server's name cannot name its Kubernetes Services (resources.go:createHandler, lifecycle.go:cloneHandler)."
+  },
   "server.lifecycle.new_name_required": {
     "defaultMessage": "newName required",
     "description": "API error from the server lifecycle API (lifecycle.go:cloneHandler)."
