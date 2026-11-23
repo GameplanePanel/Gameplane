@@ -1,0 +1,3 @@
+# Server names that Kubernetes cannot use are rejected
+
+Creating or cloning a server with a name that starts with a digit (such as `7d2d`) or is longer than 57 characters is now refused with a clear message, instead of leaving the server stuck in Pending with no pod. An existing server with such a name now shows Failed with the reason; delete it and create it again with a name that starts with a letter. When Kubernetes rejects any resource the operator creates for a server, the reason now shows on the server instead of only in the operator log. [PR #1082](https://github.com/GameplanePanel/Gameplane/pull/1082)
