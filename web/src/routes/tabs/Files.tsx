@@ -129,7 +129,14 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
     queryKey: listKey(cwd),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Files.list(name, cwd, ns),
     // The API waits up to 60 s for a file-only pod; retrying that wait only hides the timeout.
-    retry: (failureCount, err) => !isFilesStartingError(err) && failureCount < 3,
+    // Other errors keep the client's default retry policy.
+    retry: (failureCount, err) => {
+      if (isFilesStartingError(err)) return false;
+      const base = qc.getDefaultOptions().queries?.retry ?? 3;
+      if (typeof base === "boolean") return base;
+      if (typeof base === "number") return failureCount < base;
+      return base(failureCount, err);
+    },
   });
   // The files-starting state shows only for the 503 the API answers when the file-only pod is not ready in
   // time. A slow list is not a reason to show it.

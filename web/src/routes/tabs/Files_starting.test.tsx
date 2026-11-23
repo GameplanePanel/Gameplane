@@ -114,7 +114,7 @@ describe("Files tab files-starting state", () => {
   it("keeps the normal error banner for other list failures", async () => {
     fetchMock.mockImplementation(async () => new Response("boom", { status: 500 }));
     renderFiles();
-    await waitFor(() => expect(screen.getByText(/500/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/boom/)).toBeInTheDocument());
     expect(screen.queryByText("Files did not start")).not.toBeInTheDocument();
   });
 });
