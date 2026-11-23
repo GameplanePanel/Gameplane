@@ -264,7 +264,7 @@ describe("SecurityAdvanced", () => {
       expect(screen.getByText("Next start: 0")).toBeInTheDocument();
       expect(screen.getByText("Override")).toBeInTheDocument();
       expect(screen.queryByText(/^Applied:/)).not.toBeInTheDocument();
-      expect(screen.getByText("Pending: 0 · applies on the next restart")).toBeInTheDocument();
+      expect(screen.queryByText(/^Pending:/)).not.toBeInTheDocument();
     });
 
     it.each<{ source: SecuritySource; value?: number; line: string; chip: string }>([
