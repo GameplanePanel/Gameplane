@@ -11,7 +11,7 @@ Request: `{"username": "alice" | "alice+survival" | "alice+mods/survival", "pass
 Response 200: `{"sessionToken": "gpsftp_…", "expiresAt": "…", "user": "alice", "target": null | {"namespace": "mods", "server": "survival"}}`.
 Response 401: generic. Response 429: rate limited (same limiter keys as `/auth/login`: username and source address).
 
-The API splits `username` at the last `+` (R4). A target login also asks the file-access check (research R8) whether the user may list the target; failure is the same 401.
+The API splits `username` at the last `+` (R4). The part before it is a panel username or, when no panel username matches, a display name that exactly one account has (so SSO users need not type their email address). A target login also asks the file-access check (research R8) whether the user may list the target; failure is the same 401.
 
 ### `POST /sftp/v1/sessions/check`
 

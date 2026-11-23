@@ -136,6 +136,12 @@ created through SSO is usually named by its email address, for example
 A username that itself contains `+` cannot be used over SFTP, because `+`
 starts the server part.
 
+You can also log in with your display name instead, for example `alice` or
+`alice+survival`, so SSO users do not have to type their email address. This
+works when no other account has the same display name and no account uses it
+as its username. A display name with spaces or `+` cannot be used this way. If
+the display name is shared, use the panel username.
+
 Permissions:
 
 - Reading needs `servers:read` on the server, or the usual ownership or
