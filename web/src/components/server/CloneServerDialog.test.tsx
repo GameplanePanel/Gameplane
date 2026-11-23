@@ -128,7 +128,7 @@ describe("CloneServerDialog", () => {
     await user.clear(input);
     await user.type(input, "INVALID_NAME");
     expect(
-      screen.getByText("Name must be lowercase letters, digits, dashes (max 63)"),
+      screen.getByText("Name must start with a letter and use lowercase letters, digits, dashes (max 57)"),
     ).toBeInTheDocument();
   });
 

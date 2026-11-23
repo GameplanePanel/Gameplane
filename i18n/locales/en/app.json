@@ -3640,7 +3640,7 @@
     "description": "Clone server dialog: example value shown inside the empty new name field; a sample name, not a default value"
   },
   "web.components.server.clone_server_dialog.name_must_be_lowercase_letters_digits": {
-    "defaultMessage": "Name must be lowercase letters, digits, dashes (max 63)",
+    "defaultMessage": "Name must start with a letter and use lowercase letters, digits, dashes (max 57)",
     "description": "Clone server dialog: validation error under the new name field shown when the name has invalid characters or is longer than the limit"
   },
   "web.components.server.clone_server_dialog.name_taken": {
@@ -7460,7 +7460,7 @@
     "description": "Create server: validation message shown when the memory limit is above the largest node; {gib} is the memory of the largest node in GiB"
   },
   "web.routes.create_server.validation_name_format": {
-    "defaultMessage": "Name must be lowercase letters, digits, dashes (max 63)",
+    "defaultMessage": "Name must start with a letter and use lowercase letters, digits, dashes (max 57)",
     "description": "Create server: validation message shown when the server name is not a valid Kubernetes name"
   },
   "web.routes.create_server.validation_name_required": {

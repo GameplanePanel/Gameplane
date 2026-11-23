@@ -107,7 +107,7 @@ export function CloneServerDialog({
                   className="mt-1"
                 />
                 {!valid && (
-                  <FieldError className="mt-1 text-xs">{intl.formatMessage({ id: "web.components.server.clone_server_dialog.name_must_be_lowercase_letters_digits", defaultMessage: "Name must be lowercase letters, digits, dashes (max 63)", description: "Clone server dialog: validation error under the new name field shown when the name has invalid characters or is longer than the limit" })}</FieldError>
+                  <FieldError className="mt-1 text-xs">{intl.formatMessage({ id: "web.components.server.clone_server_dialog.name_must_be_lowercase_letters_digits", defaultMessage: "Name must start with a letter and use lowercase letters, digits, dashes (max 57)", description: "Clone server dialog: validation error under the new name field shown when the name has invalid characters or is longer than the limit" })}</FieldError>
                 )}
                 {clone.isError && (
                   <FieldError className="mt-1 text-xs">
