@@ -10,24 +10,25 @@ import {
   RefreshCcw,
   ShieldCheck,
   Activity,
+  SquareTerminal,
 } from "lucide-react";
 import { defineMessages, type MessageDescriptor } from "react-intl";
 import { cn } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
 // SettingsNav is the settings sub-navigation shared by the admin settings
-// page (/admin) and the per-user theme settings page (/settings/theme), per
-// the Screen/Theme Settings design (assets/design-export lWvcv): one item per
-// settings area, "Theme" sitting between "General" and "Authentication".
-// Admin settings sections are in-page state (not routes), so ordinary
-// entries report their key through onSelect; only "Theme" is a real route
-// and renders as a router Link. On /settings/theme the nav is rendered with
-// active="theme" and the remaining entries navigate back to /admin (whose
-// default section is General).
+// page (/admin), the per-user theme page (/settings/theme) and the per-user
+// SFTP page (/settings/sftp). It has two labelled groups, per the
+// Screen/Settings — SFTP design (assets/design-export 1006926387-249):
+// "Account" (Theme, SFTP; every signed-in user) and "Server" (the admin
+// sections; only when showAdminSections). Admin settings sections are
+// in-page state (not routes), so ordinary entries report their key through
+// onSelect; "Theme" and "SFTP" are real routes and render as router Links.
 
 export type SettingsNavKey =
   | "general"
   | "theme"
+  | "sftp"
   | "auth"
   | "modules"
   | "modRegistries"
@@ -37,12 +38,15 @@ export type SettingsNavKey =
   | "about";
 
 // Section keys handled by the admin settings page itself (every key except
-// the theme page's own "theme").
-export type SettingsSectionKey = Exclude<SettingsNavKey, "theme">;
+// the account routes "theme" and "sftp").
+export type SettingsSectionKey = Exclude<SettingsNavKey, "theme" | "sftp">;
 
 const navMessages = defineMessages({
   general: { id: "web.components.ui.settings_nav.general", defaultMessage: "General", description: "Settings nav: label of the General settings section" },
+  account: { id: "web.components.ui.settings_nav.account", defaultMessage: "Account", description: "Settings nav: heading of the group of per-user settings (Theme, SFTP); shown in uppercase" },
+  server: { id: "web.components.ui.settings_nav.server", defaultMessage: "Server", description: "Settings nav: heading of the group of admin server settings; shown in uppercase" },
   theme: { id: "web.components.ui.settings_nav.theme", defaultMessage: "Theme", description: "Settings nav: label of the Theme settings page" },
+  sftp: { id: "web.components.ui.settings_nav.sftp", defaultMessage: "SFTP", description: "Settings nav: label of the personal SFTP access page; a protocol name, keep it as is" },
   auth: { id: "web.components.ui.settings_nav.authentication", defaultMessage: "Authentication", description: "Settings nav: label of the Authentication settings section" },
   modules: { id: "web.components.ui.settings_nav.module_sources", defaultMessage: "Module sources", description: "Settings nav: label of the Module sources settings section" },
   modRegistries: { id: "web.components.ui.settings_nav.mod_registries", defaultMessage: "Mod registries", description: "Settings nav: label of the Mod registries settings section" },
@@ -52,9 +56,15 @@ const navMessages = defineMessages({
   about: { id: "web.components.ui.settings_nav.about", defaultMessage: "About", description: "Settings nav: label of the About settings section" },
 });
 
-const navItems: Array<{ key: SettingsNavKey; label: MessageDescriptor; icon: ComponentType<{ className?: string }> }> = [
+type NavItem = { key: SettingsNavKey; label: MessageDescriptor; icon: ComponentType<{ className?: string }> };
+
+const accountItems: NavItem[] = [
+  { key: "theme", label: navMessages.theme, icon: Palette },
+  { key: "sftp",  label: navMessages.sftp,  icon: SquareTerminal },
+];
+
+const serverItems: NavItem[] = [
   { key: "general",       label: navMessages.general,       icon: Cog },
-  { key: "theme",         label: navMessages.theme,         icon: Palette },
   { key: "auth",          label: navMessages.auth,          icon: ShieldCheck },
   { key: "modules",       label: navMessages.modules,       icon: Boxes },
   { key: "modRegistries", label: navMessages.modRegistries, icon: Key },
@@ -78,31 +88,40 @@ export function SettingsNav({
 }: {
   active?: SettingsNavKey;
   onSelect: (key: SettingsSectionKey) => void;
-  /** false hides every admin section (they need config:manage), leaving only Theme. */
+  /** false hides the Server group (it needs config:manage), leaving only the Account group. */
   showAdminSections: boolean;
 }) {
   const intl = useOptionalIntl();
-  const items = showAdminSections ? navItems : navItems.filter((i) => i.key === "theme");
+  const renderItem = ({ key, label, icon: Icon }: NavItem) =>
+    key === "theme" || key === "sftp" ? (
+      <Link key={key} to={key === "theme" ? "/settings/theme" : "/settings/sftp"} className={itemClass(active === key)} aria-current={active === key ? "page" : undefined}>
+        <Icon className="h-4 w-4" />
+        <span>{intl.formatMessage(label)}</span>
+      </Link>
+    ) : (
+      <button
+        key={key}
+        type="button"
+        onClick={() => onSelect(key)}
+        aria-current={active === key ? "page" : undefined}
+        className={itemClass(active === key)}
+      >
+        <Icon className="h-4 w-4" />
+        <span>{intl.formatMessage(label)}</span>
+      </button>
+    );
+  const groupHeading = "px-3 pb-1 pt-3 text-xs uppercase tracking-wide text-muted first:pt-0";
   return (
     <nav className="space-y-0.5" aria-label={intl.formatMessage({ id: "web.components.ui.settings_nav.settings_sections", defaultMessage: "Settings sections", description: "Settings navigation: screen-reader name of the list of settings sections; not visible on screen" })}>
-      {items.map(({ key, label, icon: Icon }) =>
-        key === "theme" ? (
-          <Link key={key} to="/settings/theme" className={itemClass(active === key)} aria-current={active === key ? "page" : undefined}>
-            <Icon className="h-4 w-4" />
-            <span>{intl.formatMessage(label)}</span>
-          </Link>
-        ) : (
-          <button
-            key={key}
-            type="button"
-            onClick={() => onSelect(key)}
-            aria-current={active === key ? "page" : undefined}
-            className={itemClass(active === key)}
-          >
-            <Icon className="h-4 w-4" />
-            <span>{intl.formatMessage(label)}</span>
-          </button>
-        ),
+      <div role="group" aria-labelledby="settings-nav-account">
+        <p id="settings-nav-account" className={groupHeading}>{intl.formatMessage(navMessages.account)}</p>
+        {accountItems.map(renderItem)}
+      </div>
+      {showAdminSections && (
+        <div role="group" aria-labelledby="settings-nav-server">
+          <p id="settings-nav-server" className={groupHeading}>{intl.formatMessage(navMessages.server)}</p>
+          {serverItems.map(renderItem)}
+        </div>
       )}
     </nav>
   );

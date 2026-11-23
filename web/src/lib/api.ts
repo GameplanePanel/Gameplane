@@ -541,3 +541,89 @@ export const revokeUserMcpToken = (userId: number, tokenId: number) =>
     `/users/${encodeURIComponent(String(userId))}/mcp-tokens/${encodeURIComponent(String(tokenId))}`,
     { method: "DELETE" },
   );
+
+// ---------------------------------------------------------------------
+// SFTP access (spec 040). Shapes mirror api/internal/auth/sftp_store.go
+// (SFTPKey, SFTPPasswordInfo) and api/internal/handlers/sftp.go. The
+// generated password is returned only by generateSftpPassword, once.
+// ---------------------------------------------------------------------
+
+export interface SftpKey {
+  id: number;
+  name: string;
+  publicKey: string;
+  fingerprint: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
+export interface SftpPasswordInfo {
+  length: number;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
+export interface SftpEndpoint {
+  address: string;
+  port: number;
+  hostKeyFingerprint: string;
+}
+
+// GET /users/me/sftp — the caller's username, endpoint, keys and password metadata.
+export interface SftpSelf {
+  username: string;
+  endpoint: SftpEndpoint | null;
+  keys: SftpKey[];
+  password: SftpPasswordInfo | null;
+}
+
+// GET /users/{id}/sftp (users:manage) — another user's keys and password metadata.
+export interface SftpAdminView {
+  userId: number;
+  username: string;
+  keys: Array<Omit<SftpKey, "publicKey"> & { type: string }>;
+  password: SftpPasswordInfo | null;
+}
+
+export type SftpPasswordLength = number;
+
+export const SFTP_PASSWORD_MIN_LENGTH = 20;
+export const SFTP_PASSWORD_MAX_LENGTH = 40;
+export const SFTP_PASSWORD_DEFAULT_LENGTH = 32;
+
+// GET /users/me/sftp
+export const getSftpSelf = () => api<SftpSelf>("/users/me/sftp");
+
+// POST /users/me/sftp/keys — 201 with the stored key.
+export const addSftpKey = (name: string, publicKey: string) =>
+  api<SftpKey>("/users/me/sftp/keys", { method: "POST", body: { name, publicKey } });
+
+// DELETE /users/me/sftp/keys/{id} — 204.
+export const deleteSftpKey = (id: number) =>
+  api<void>(`/users/me/sftp/keys/${encodeURIComponent(String(id))}`, { method: "DELETE" });
+
+// POST /users/me/sftp/password — the only response that carries the password.
+export const generateSftpPassword = (length: SftpPasswordLength) =>
+  api<{ password: string; length: number }>("/users/me/sftp/password", {
+    method: "POST",
+    body: { length },
+  });
+
+// DELETE /users/me/sftp/password — 204.
+export const revokeSftpPassword = () =>
+  api<void>("/users/me/sftp/password", { method: "DELETE" });
+
+// GET /users/{id}/sftp (users:manage)
+export const getUserSftp = (userId: number) =>
+  api<SftpAdminView>(`/users/${encodeURIComponent(String(userId))}/sftp`);
+
+// DELETE /users/{id}/sftp/keys/{keyId} (users:manage) — 204.
+export const removeUserSftpKey = (userId: number, keyId: number) =>
+  api<void>(
+    `/users/${encodeURIComponent(String(userId))}/sftp/keys/${encodeURIComponent(String(keyId))}`,
+    { method: "DELETE" },
+  );
+
+// DELETE /users/{id}/sftp/password (users:manage) — 204.
+export const revokeUserSftpPassword = (userId: number) =>
+  api<void>(`/users/${encodeURIComponent(String(userId))}/sftp/password`, { method: "DELETE" });

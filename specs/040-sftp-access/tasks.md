@@ -113,9 +113,9 @@
 ### Implementation for User Story 3
 
 - [X] T034 [US3] Admin routes `GET /users/{id}/sftp`, `DELETE /users/{id}/sftp/keys/{keyId}`, `DELETE /users/{id}/sftp/password` in `api/internal/handlers/sftp.go`, mounted with `users:manage` RBAC in `api/internal/rbac/`.
-- [ ] T035 [US3] Personal SFTP page after T004 sign-off: new `web/src/routes/ProfileSftp.tsx` at `/settings/sftp` (next to `/settings/theme`), registered in `web/src/router/tree.tsx` and linked where the design places it; API methods in `web/src/lib/api.ts`; i18n strings.
-- [ ] T036 [US3] Admin SFTP panel on `web/src/routes/Users.tsx` per the design.
-- [ ] T037 [US3] Vitest `web/src/routes/ProfileSftp.test.tsx` and `web/src/routes/Users_sftp.test.tsx`: add/remove key, generate with length picker, one-time display, regenerate and revoke confirms, admin revoke.
+- [X] T035 [US3] Personal SFTP page after T004 sign-off: new `web/src/routes/ProfileSftp.tsx` at `/settings/sftp` (next to `/settings/theme`), registered in `web/src/router/tree.tsx` and linked where the design places it; API methods in `web/src/lib/api.ts`; i18n strings.
+- [X] T036 [US3] Admin SFTP panel on `web/src/routes/Users.tsx` per the design.
+- [X] T037 [US3] Vitest `web/src/routes/ProfileSftp.test.tsx` and `web/src/routes/Users_sftp.test.tsx`: add/remove key, generate with length picker, one-time display, regenerate and revoke confirms, admin revoke.
 
 **Checkpoint**: US3 works with US1/US2 credentials replaced by real dashboard-managed ones.
 

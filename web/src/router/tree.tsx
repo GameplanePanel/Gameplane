@@ -16,6 +16,7 @@ import { ClustersPage } from "@/routes/Clusters";
 import { UsersPage } from "@/routes/Users";
 import { AdminSettingsPage } from "@/routes/AdminSettings";
 import { ThemeSettingsPage } from "@/routes/ThemeSettings";
+import { ProfileSftpPage } from "@/routes/ProfileSftp";
 import { CreateServerWizard } from "@/routes/CreateServer";
 import { BackupsPage } from "@/routes/Backups";
 import { AuditLogPage } from "@/routes/AuditLog";
@@ -158,6 +159,14 @@ const themeSettingsRoute = new Route({
   component: ThemeSettingsPage,
 });
 
+// Personal SFTP credentials (spec 040): every signed-in user manages their own
+// keys and password, so no RequirePermission gate, same as /settings/theme.
+const profileSftpRoute = new Route({
+  getParentRoute: () => appLayoutRoute,
+  path: "/settings/sftp",
+  component: ProfileSftpPage,
+});
+
 const auditLogRoute = new Route({
   getParentRoute: () => appLayoutRoute,
   path: "/admin/audit",
@@ -216,6 +225,7 @@ export const routeTree = rootRoute.addChildren([
     usersRoute,
     adminRoute,
     themeSettingsRoute,
+    profileSftpRoute,
     auditLogRoute,
     adminLogsRoute,
     backupsRoute,

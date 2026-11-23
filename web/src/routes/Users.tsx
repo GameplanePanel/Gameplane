@@ -43,6 +43,7 @@ import {
   RotateCcw,
   ScrollText,
   Search,
+  SquareTerminal,
   Trash2,
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -51,6 +52,7 @@ import { RoleEditorModal } from "@/components/ui/RoleEditorModal";
 import { InviteUserDialog } from "@/components/ui/admin/InviteUserDialog";
 import { EditUserDialog } from "@/components/ui/admin/EditUserDialog";
 import { ResetPasswordDialog } from "@/components/ui/admin/ResetPasswordDialog";
+import { SftpAccessDrawer } from "@/components/ui/admin/SftpAccessDrawer";
 import { APIError } from "@/lib/api";
 import { useMe, can } from "@/lib/auth";
 import {
@@ -134,6 +136,7 @@ export function UsersPage() {
   const [resetting, setResetting] = useState<ExtendedUser | null>(null);
   const [deleting, setDeleting] = useState<ExtendedUser | null>(null);
   const [returning, setReturning] = useState<ExtendedUser | null>(null);
+  const [sftpUser, setSftpUser] = useState<ExtendedUser | null>(null);
 
   const { data: users = [], error } = useQuery({
     queryKey: ["users"],
@@ -344,6 +347,13 @@ export function UsersPage() {
                               </DropdownItem>
                             )}
                             <DropdownItem
+                              key="sftp"
+                              onPress={() => setSftpUser(u)}
+                            >
+                              <div className="flex items-center gap-2">
+                                <SquareTerminal className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.users.sftp_access", defaultMessage: "SFTP access", description: "Users: menu item that opens the admin SFTP drawer for a user's keys and password; keep it short" })}</div>
+                            </DropdownItem>
+                            <DropdownItem
                               key="reset"
                               isDisabled={u.provider === "oidc"}
                               onPress={() => setResetting(u)}
@@ -462,6 +472,13 @@ export function UsersPage() {
             if (Object.keys(dirty).length === 0) return;
             save.mutate({ id: editing.id, body: dirty });
           }}
+        />
+      )}
+      {sftpUser && (
+        <SftpAccessDrawer
+          userId={sftpUser.id}
+          username={sftpUser.username}
+          onClose={() => setSftpUser(null)}
         />
       )}
       {resetting && (
