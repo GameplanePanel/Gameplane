@@ -73,7 +73,7 @@ func TestSFTPHostKeyUnit_FingerprintFromReleaseNamespace(t *testing.T) {
 
 func TestSFTPHostKeyUnit_ForbiddenReadsAsNoFingerprint(t *testing.T) {
 	k, cs := hostKeyTestClient()
-	cs.PrependReactor("get", "secrets", func(action k8stesting.Action) (bool, runtime.Object, error) {
+	cs.PrependReactor("get", "secrets", func(_ k8stesting.Action) (bool, runtime.Object, error) {
 		return true, nil, apierrors.NewForbidden(schema.GroupResource{Resource: "secrets"}, hostKeyTestSecret, errors.New("rbac"))
 	})
 
@@ -85,7 +85,7 @@ func TestSFTPHostKeyUnit_ForbiddenReadsAsNoFingerprint(t *testing.T) {
 
 func TestSFTPHostKeyUnit_OtherReadErrorIsReturned(t *testing.T) {
 	k, cs := hostKeyTestClient()
-	cs.PrependReactor("get", "secrets", func(action k8stesting.Action) (bool, runtime.Object, error) {
+	cs.PrependReactor("get", "secrets", func(_ k8stesting.Action) (bool, runtime.Object, error) {
 		return true, nil, errors.New("apiserver unavailable")
 	})
 
@@ -167,7 +167,7 @@ func TestSFTPHostKeyUnit_LocalEndpointSource(t *testing.T) {
 
 func TestSFTPHostKeyUnit_LocalEndpointSourceWithoutFingerprint(t *testing.T) {
 	k, cs := hostKeyTestClient()
-	cs.PrependReactor("get", "secrets", func(action k8stesting.Action) (bool, runtime.Object, error) {
+	cs.PrependReactor("get", "secrets", func(_ k8stesting.Action) (bool, runtime.Object, error) {
 		return true, nil, apierrors.NewForbidden(schema.GroupResource{Resource: "secrets"}, hostKeyTestSecret, errors.New("rbac"))
 	})
 	m := SFTPClusterMount{Kube: k, Namespace: "gameplane-system", HostKeySecret: hostKeyTestSecret, Enabled: true, Port: 2222, PublicAddress: "files.example.com"}
