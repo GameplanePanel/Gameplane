@@ -128,6 +128,14 @@ The username chooses where the session starts.
 Both forms use the same password or key and the same permission checks. You
 only see the servers you can read.
 
+`alice` stands for your panel username, shown on the profile page. An account
+created through SSO is usually named by its email address, for example
+`alice@example.com`. OpenSSH splits the host at the last `@`, so
+`sftp -P 2222 alice@example.com@sftp.example.com` and
+`sftp -P 2222 alice@example.com+survival@sftp.example.com` work as written.
+A username that itself contains `+` cannot be used over SFTP, because `+`
+starts the server part.
+
 Permissions:
 
 - Reading needs `servers:read` on the server, or the usual ownership or
