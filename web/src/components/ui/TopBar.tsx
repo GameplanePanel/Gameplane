@@ -1,4 +1,4 @@
-import { Menu, UserCircle, LogOut, Palette } from "lucide-react";
+import { Link as LinkIcon, Menu, UserCircle, LogOut, Palette } from "lucide-react";
 import type { ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -125,6 +125,13 @@ export function TopBar({
                 >
                   <div className="flex items-center gap-2">
                     <Palette className="h-4 w-4" />{intl.formatMessage({ id: "web.components.ui.top_bar.theme_appearance", defaultMessage: "Theme & Appearance", description: "Top bar: user menu item that opens the Theme and Appearance settings; keep it short" })}</div>
+                </DropdownItem>
+                <DropdownItem
+                  key="mcp-tokens"
+                  onClick={() => void navigate({ to: "/settings/mcp-tokens" })}
+                >
+                  <div className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4" />{intl.formatMessage({ id: "web.components.ui.top_bar.mcp_tokens", defaultMessage: "MCP tokens", description: "Top bar: user menu item that opens the personal MCP tokens settings; keep it short" })}</div>
                 </DropdownItem>
                 <DropdownItem
                   key="logout"

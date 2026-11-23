@@ -4663,6 +4663,10 @@
     "defaultMessage": "General",
     "description": "Settings nav: label of the General settings section"
   },
+  "web.components.ui.settings_nav.mcp_tokens": {
+    "defaultMessage": "MCP tokens",
+    "description": "Settings nav: label of the MCP tokens settings page"
+  },
   "web.components.ui.settings_nav.mod_registries": {
     "defaultMessage": "Mod registries",
     "description": "Settings nav: label of the Mod registries settings section"
@@ -4790,6 +4794,10 @@
   "web.components.ui.top_bar.guest": {
     "defaultMessage": "guest",
     "description": "Top bar: name shown for a user with no display name or username"
+  },
+  "web.components.ui.top_bar.mcp_tokens": {
+    "defaultMessage": "MCP tokens",
+    "description": "Top bar: user menu item that opens the personal MCP tokens settings; keep it short"
   },
   "web.components.ui.top_bar.open_navigation": {
     "defaultMessage": "Open navigation",
@@ -7874,6 +7882,158 @@
   "web.routes.login.welcome_to_gameplane": {
     "defaultMessage": "Welcome to Gameplane.",
     "description": "Login: short line under the sign-in heading that greets the user"
+  },
+  "web.routes.mcp_tokens.actions": {
+    "defaultMessage": "Actions",
+    "description": "MCP tokens: accessible name of the actions column; keep it short"
+  },
+  "web.routes.mcp_tokens.cancel": {
+    "defaultMessage": "Cancel",
+    "description": "MCP tokens: button that closes a dialog without changes; keep it short"
+  },
+  "web.routes.mcp_tokens.client_configuration": {
+    "defaultMessage": "MCP client configuration",
+    "description": "MCP tokens: label above the MCP client configuration snippet"
+  },
+  "web.routes.mcp_tokens.copy": {
+    "defaultMessage": "Copy",
+    "description": "MCP tokens: button that copies the token or the client configuration; keep it short"
+  },
+  "web.routes.mcp_tokens.copy_failed": {
+    "defaultMessage": "Copying failed. Select the text and copy it by hand.",
+    "description": "MCP tokens: hint shown in the token reveal dialog when the clipboard refuses a copy"
+  },
+  "web.routes.mcp_tokens.copy_warning": {
+    "defaultMessage": "Copy this token now. It will not be shown again.",
+    "description": "MCP tokens: warning that the full token is shown only once"
+  },
+  "web.routes.mcp_tokens.create": {
+    "defaultMessage": "Create",
+    "description": "MCP tokens: submit button of the create-token dialog; keep it short"
+  },
+  "web.routes.mcp_tokens.create_hint": {
+    "defaultMessage": "The token can read what you can read now. Revoke it any time.",
+    "description": "MCP tokens: note in the create dialog about what the token can access"
+  },
+  "web.routes.mcp_tokens.create_mcp_token": {
+    "defaultMessage": "Create MCP token",
+    "description": "MCP tokens: title of the create-token dialog"
+  },
+  "web.routes.mcp_tokens.create_token": {
+    "defaultMessage": "Create token",
+    "description": "MCP tokens: button that opens the create-token dialog; keep it short"
+  },
+  "web.routes.mcp_tokens.created": {
+    "defaultMessage": "Created",
+    "description": "MCP tokens: column heading for when the token was created; keep it short"
+  },
+  "web.routes.mcp_tokens.description": {
+    "defaultMessage": "Personal tokens let an AI assistant read Gameplane through the MCP server, with your permissions. A token can only read.",
+    "description": "MCP tokens: description under the page title"
+  },
+  "web.routes.mcp_tokens.done": {
+    "defaultMessage": "Done",
+    "description": "MCP tokens: button that closes the token reveal dialog; keep it short"
+  },
+  "web.routes.mcp_tokens.empty_body": {
+    "defaultMessage": "A token lets an MCP client, such as an AI assistant, read Gameplane with your permissions. Create one to connect a client.",
+    "description": "MCP tokens: empty-state text explaining what a token is for"
+  },
+  "web.routes.mcp_tokens.expired": {
+    "defaultMessage": "Expired",
+    "description": "MCP tokens: badge on a token past its expiry date; keep it short"
+  },
+  "web.routes.mcp_tokens.expires": {
+    "defaultMessage": "Expires",
+    "description": "MCP tokens: column heading for when the token expires; keep it short"
+  },
+  "web.routes.mcp_tokens.expires_in": {
+    "defaultMessage": "Expires in",
+    "description": "MCP tokens: label above the lifetime select in the create dialog"
+  },
+  "web.routes.mcp_tokens.how_to_connect": {
+    "defaultMessage": "How to connect an MCP client",
+    "description": "MCP tokens: link to the MCP server README that explains how to connect a client"
+  },
+  "web.routes.mcp_tokens.last_used": {
+    "defaultMessage": "Last used",
+    "description": "MCP tokens: column heading for when the token was last used; keep it short"
+  },
+  "web.routes.mcp_tokens.lifetime_days": {
+    "defaultMessage": "{count} days",
+    "description": "MCP tokens: a token lifetime option; {count} is the number of days"
+  },
+  "web.routes.mcp_tokens.load_failed": {
+    "defaultMessage": "Failed to load MCP tokens.",
+    "description": "MCP tokens: error shown when the token list cannot be loaded"
+  },
+  "web.routes.mcp_tokens.mcp_tokens": {
+    "defaultMessage": "MCP tokens",
+    "description": "MCP tokens: page title at the top of the screen; keep it short"
+  },
+  "web.routes.mcp_tokens.name": {
+    "defaultMessage": "Name",
+    "description": "MCP tokens: column heading for the token name; keep it short"
+  },
+  "web.routes.mcp_tokens.name_field": {
+    "defaultMessage": "Name",
+    "description": "MCP tokens: label above the token name field in the create dialog"
+  },
+  "web.routes.mcp_tokens.name_placeholder": {
+    "defaultMessage": "e.g. claude-desktop",
+    "description": "MCP tokens: placeholder of the token name field"
+  },
+  "web.routes.mcp_tokens.never": {
+    "defaultMessage": "Never",
+    "description": "MCP tokens: shown in Last used when the token has never been used; keep it short"
+  },
+  "web.routes.mcp_tokens.no_mcp_tokens_yet": {
+    "defaultMessage": "No MCP tokens yet",
+    "description": "MCP tokens: heading of the empty state shown when the user has no tokens"
+  },
+  "web.routes.mcp_tokens.request_failed": {
+    "defaultMessage": "The request failed. Try again.",
+    "description": "MCP tokens: fallback error text when a create or revoke request fails without a message"
+  },
+  "web.routes.mcp_tokens.revoke": {
+    "defaultMessage": "Revoke",
+    "description": "MCP tokens: button that asks to revoke a token; keep it short"
+  },
+  "web.routes.mcp_tokens.revoke_body": {
+    "defaultMessage": "Any MCP client using it stops working at once.",
+    "description": "MCP tokens: body of the revoke confirmation"
+  },
+  "web.routes.mcp_tokens.revoke_confirm": {
+    "defaultMessage": "Revoke",
+    "description": "MCP tokens: confirm button of the revoke dialog; keep it short"
+  },
+  "web.routes.mcp_tokens.revoke_token_name": {
+    "defaultMessage": "Revoke token {name}",
+    "description": "MCP tokens: accessible name of the Revoke button on a row; {name} is the token name"
+  },
+  "web.routes.mcp_tokens.revoke_token_title": {
+    "defaultMessage": "Revoke token {name}?",
+    "description": "MCP tokens: title of the revoke confirmation; {name} is the token name"
+  },
+  "web.routes.mcp_tokens.revoked": {
+    "defaultMessage": "Revoked",
+    "description": "MCP tokens: badge on a revoked token; keep it short"
+  },
+  "web.routes.mcp_tokens.token": {
+    "defaultMessage": "Token",
+    "description": "MCP tokens: column heading for the token prefix; keep it short"
+  },
+  "web.routes.mcp_tokens.token_created": {
+    "defaultMessage": "Token created",
+    "description": "MCP tokens: title of the dialog that shows the new token once"
+  },
+  "web.routes.mcp_tokens.token_field": {
+    "defaultMessage": "Token",
+    "description": "MCP tokens: label above the new token in the reveal dialog"
+  },
+  "web.routes.mcp_tokens.tokens_list": {
+    "defaultMessage": "MCP tokens list",
+    "description": "MCP tokens: accessible name of the tokens table"
   },
   "web.routes.modules.all_categories": {
     "defaultMessage": "All categories",
@@ -11518,6 +11678,46 @@
   "web.routes.users.managed_outside_this_editor": {
     "defaultMessage": "Managed outside this editor",
     "description": "Users: grant row label for a binding this editor cannot change"
+  },
+  "web.routes.users.mcp_tokens": {
+    "defaultMessage": "MCP tokens",
+    "description": "Users: row menu item that opens the dialog listing a user's MCP tokens; keep it short"
+  },
+  "web.routes.users.mcp_tokens_close": {
+    "defaultMessage": "Close",
+    "description": "Users: MCP tokens dialog, button that closes the dialog; keep it short"
+  },
+  "web.routes.users.mcp_tokens_expired": {
+    "defaultMessage": "Expired",
+    "description": "Users: MCP tokens dialog, badge on an expired token; keep it short"
+  },
+  "web.routes.users.mcp_tokens_expires_on": {
+    "defaultMessage": "Expires {date}",
+    "description": "Users: MCP tokens dialog, expiry line of a token; {date} is a formatted date"
+  },
+  "web.routes.users.mcp_tokens_for_username": {
+    "defaultMessage": "MCP tokens for {username}",
+    "description": "Users: title of the dialog listing a user's MCP tokens; {username} is the user name"
+  },
+  "web.routes.users.mcp_tokens_last_used": {
+    "defaultMessage": "Last used {when}",
+    "description": "Users: MCP tokens dialog, last-used line of a token; {when} is a relative time or Never"
+  },
+  "web.routes.users.mcp_tokens_never": {
+    "defaultMessage": "never",
+    "description": "Users: MCP tokens dialog, shown after Last used when the token was never used; lower case"
+  },
+  "web.routes.users.mcp_tokens_none": {
+    "defaultMessage": "No MCP tokens.",
+    "description": "Users: text in the MCP tokens dialog when the user has no tokens"
+  },
+  "web.routes.users.mcp_tokens_revoke": {
+    "defaultMessage": "Revoke",
+    "description": "Users: MCP tokens dialog, button that revokes one token; keep it short"
+  },
+  "web.routes.users.mcp_tokens_revoked": {
+    "defaultMessage": "Revoked",
+    "description": "Users: MCP tokens dialog, badge on a revoked token; keep it short"
   },
   "web.routes.users.namespace": {
     "defaultMessage": "namespace",

@@ -1,0 +1,206 @@
+{
+  "file": "UserMenu",
+  "id": "1:10020",
+  "name": "Gameplane/Top Bar — User Menu",
+  "type": "COMPONENT",
+  "x": 1676,
+  "y": 250,
+  "width": 232,
+  "height": 181,
+  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 12, "visible": true}],
+  "cornerRadius": 6,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [4, 4, 4, 4],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/md",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "id": "1:10021",
+      "name": "umHeader",
+      "type": "FRAME",
+      "x": 4,
+      "y": 4,
+      "width": 224,
+      "height": 56,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 10,
+        "padding": [10, 12, 10, 12],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:10022",
+          "name": "umAvatar",
+          "type": "INSTANCE",
+          "x": 12,
+          "y": 12,
+          "width": 32,
+          "height": 32,
+          "component": "Avatar/Text",
+          "componentId": "1:2407",
+          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+          "cornerRadius": 9999,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "variables": {"fills/0/color": "accent/accent"},
+          "texts": ["AR"]
+        },
+        {
+          "id": "1:10023",
+          "name": "umUserText",
+          "type": "FRAME",
+          "x": 54,
+          "y": 10,
+          "width": 74,
+          "height": 36,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 2,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "HUG"]
+          },
+          "children": [
+            {
+              "id": "1:10024",
+              "name": "umName",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 74,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Alex Rivera",
+              "font": ["Geist", 500, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "id": "1:10025",
+              "name": "umRole",
+              "type": "TEXT",
+              "x": 0,
+              "y": 20,
+              "width": 47,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "operator",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:10026",
+      "name": "umDivider",
+      "type": "INSTANCE",
+      "x": 4,
+      "y": 60,
+      "width": 224,
+      "height": 9,
+      "component": "Menu Divider",
+      "componentId": "1:5718",
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [4, 0, 4, 0],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH"
+    },
+    {
+      "id": "1:10027",
+      "name": "umThemeItem",
+      "type": "INSTANCE",
+      "x": 4,
+      "y": 69,
+      "width": 224,
+      "height": 36,
+      "component": "Menu Item/Default",
+      "componentId": "1:2393",
+      "cornerRadius": 16,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [6, 8, 6, 8],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"cornerRadius": "radius/2xl"},
+      "texts": ["Theme & Appearance"]
+    },
+    {
+      "name": "umMcpItem",
+      "type": "INSTANCE",
+      "x": 4,
+      "y": 105,
+      "width": 224,
+      "height": 36,
+      "component": "Menu Item/Default",
+      "componentId": "1:2393",
+      "cornerRadius": 16,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [6, 8, 6, 8],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"cornerRadius": "radius/2xl"},
+      "texts": ["MCP tokens"]
+    },
+    {
+      "id": "1:10028",
+      "name": "umSignOutItem",
+      "type": "INSTANCE",
+      "x": 4,
+      "y": 141,
+      "width": 224,
+      "height": 36,
+      "component": "Menu Item/Default",
+      "componentId": "1:2393",
+      "cornerRadius": 16,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [6, 8, 6, 8],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"cornerRadius": "radius/2xl"},
+      "texts": ["Sign out"]
+    }
+  ]
+}

@@ -1426,5 +1426,54 @@
     "name": "Gameplane/Dialog/Back up now (No destinations)",
     "width": 480,
     "height": 279
+  },
+  {
+    "file": "2044649516-13",
+    "figId": "2044649516:13",
+    "name": "Screen/MCP Tokens",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "2044649516-579",
+    "figId": "2044649516:579",
+    "name": "Screen/MCP Tokens — Empty",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "2044649516-1099",
+    "figId": "2044649516:1099",
+    "name": "Screen/MCP Tokens — Create",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "2044649516-1687",
+    "figId": "2044649516:1687",
+    "name": "Screen/MCP Tokens — Created",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "2044649516-2282",
+    "figId": "2044649516:2282",
+    "name": "Screen/MCP Tokens — Revoke",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "2044649516-2862",
+    "figId": "2044649516:2862",
+    "name": "Screen/Mobile — MCP Tokens",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "file": "2044649516-2982",
+    "figId": "2044649516:2982",
+    "name": "Screen/Users & RBAC — MCP tokens",
+    "width": 1440,
+    "height": 900
   }
 ]
