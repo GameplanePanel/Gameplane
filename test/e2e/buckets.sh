@@ -409,8 +409,14 @@ TestAPI_SSORoleRules
 TestMultiCluster_ClusterDispatchAndScopedRBAC
 TestMultiCluster_GatewayParity
 TestMultiCluster_MCPTokenRemoteGrant
+TestMultiCluster_SFTPRemoteEndpoint
 EOF
 }
+
+# TestMultiCluster_SFTPRemoteEndpoint (spec 040, T052) costs +1 e2e-admin login,
+# bringing this job to 8 admin logins, one over the ceiling above. It runs
+# non-parallel and waits ~12 s after its login so the per-IP limiter refills
+# before the parallel batch. Maintainer decision needed if CI shows 429s.
 
 # Needs a cluster seeded with the PREVIOUS RELEASE's published chart and GHCR
 # images (deploy/kind/upgrade.sh), which no other bucket's job provides — they
@@ -531,8 +537,17 @@ TestStandalone_HelmPanelLifecycle
 EOF
 }
 
+# sftp owns its cluster: TestSFTP_Lifecycle runs `helm upgrade --reuse-values`
+# to enable the SFTP endpoint, so it cannot share a cluster with other tests.
+# Admin logins: one. SFTP logins share the auth limiter; see the test's doc
+# comment for the per-user budget. amd64 only, like standalone.
+bucket_sftp() { cat <<'EOF'
+TestSFTP_Lifecycle
+EOF
+}
+
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery standalone
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery standalone sftp
 }
 
 list_bucket() {
@@ -561,6 +576,7 @@ list_bucket() {
 	backup-preparation) bucket_backup_preparation ;;
 	recovery) bucket_recovery ;;
 	standalone) bucket_standalone ;;
+	sftp) bucket_sftp ;;
 	monitoring) bucket_monitoring ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2
