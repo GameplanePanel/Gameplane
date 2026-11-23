@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 
 	"golang.org/x/sys/unix"
@@ -69,15 +70,12 @@ func (h *handler) storeStream(comps []string, offset, contentLength int64, body 
 	if contentLength > 0 {
 		need += contentLength
 	}
-	if need < 0 {
-		// offset and contentLength are non-negative here, so this is overflow.
-		return errNoSpace
-	}
 	free, err := h.free(dirFD)
 	if err != nil {
 		return err
 	}
-	if uint64(need) > free {
+	// need is non-negative and at most maxUploadBytes (checked by stream).
+	if need > 0 && uint64(need) > free {
 		return errNoSpace
 	}
 
@@ -101,11 +99,8 @@ func (h *handler) copyPrefix(dst io.Writer, dirFD int, parents []string, name st
 	if err != nil {
 		return err
 	}
-	f, err := fileFromFD(fd, name)
-	if err != nil {
-		closeFD(fd)
-		return err
-	}
+	// openChild succeeded, so fd is a valid descriptor.
+	f := os.NewFile(uintptr(fd), name)
 	defer func() { _ = f.Close() }()
 	fi, err := f.Stat()
 	if err != nil {
