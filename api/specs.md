@@ -155,7 +155,7 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - `/backups` — GET, POST: list and create Backup CRDs
 - `/backups/{name}` — GET, PUT, DELETE: manage Backup CRDs (namespaced, cluster-dispatch)
 - `/schedules` — GET, POST: list and create BackupSchedule CRDs
-- `/schedules/{name}` — GET, PUT, DELETE: manage BackupSchedule CRDs (namespaced, cluster-dispatch)
+- `/schedules/{name}` — GET, PUT, DELETE: manage BackupSchedule CRDs (namespaced, cluster-dispatch). DELETE accepts the optional query parameters `expectedUID` and `expectedResourceVersion` together. Kubernetes checks both against the live schedule and returns 409 if either changed.
 - `/restores` — GET, POST: list and create Restore CRDs
 - `/restores/{name}` — GET, PUT, DELETE: manage Restore CRDs (namespaced, cluster-dispatch)
 - `/backup-destinations` — GET, POST: list and create restic repo Secrets
@@ -632,6 +632,8 @@ Verify from `/api/go.mod`.
 **Public share power policy:** `GET /shares/{token}` includes `manuallyStopped` (the server's explicit stop setting) and `canStart` (the link permits waking and the server is not manually stopped). The existing `status` remains the observed phase. `POST /shares/{token}/start` is wake-only: an authorized link to a manually stopped server returns 409 with the stable generic JSON body `{"error":"server stopped"}` without stamping a wake or changing `spec.suspend`. Idle-asleep servers still receive a conditional wake annotation and 202; the operator owns reconciliation. Invalid and view-only start requests retain the identical neutral 404 response.
 
 **006_share_links.sql:** (unauthenticated server access tokens)
+- The owner's list includes active, expired and revoked links belonging to the current GameServer. It omits links minted for an earlier server with the same name, using the same UID and legacy creation-time checks as public resolution.
+- The server owner can send `PATCH /servers/{name}/shares/{id}` with a boolean `canStart` field to change an active link's wake permission. The response is 204. The update matches the cluster, namespace, server incarnation and link ID. Expired, revoked and unmatched links return 404. Everyone using the existing URL sees the new permission on their next request.
 - Creates `share_links` table: signed, revocable tokens for unauthenticated access to a single GameServer's status and connection address, optionally with start capability
 - Token never stored; only SHA-256 hash persisted and indexed for O(1) lookup
 - Revocation (`DELETE /servers/{name}/shares/{id}`, `db.Store.RevokeShareLink`) matches the link's cluster, namespace, server name and id; no match returns `db.ErrShareLinkNotFound`, which the handler answers with 404
@@ -972,4 +974,4 @@ The version cap also applies behind API path prefixes. SPDY TLS/header negotiati
 
 Standalone `/modules/*` requests require one explicit registered remote `cluster` selector and cluster-wide module permission on that target. The selected remote operator owns module reconciliation; upload ConfigMaps use the configured operator namespace. Combined installs retain local module ownership and reject remote selectors on this surface. Local node credential minting is incompatible with standalone startup; Kubernetes system-log endpoints return 501 and the dashboard directs administrators to container logs.
 
-See [standalone installation](../docs/standalone-panel.md) and [design](../specs/025-standalone-panel/spec.md).
+See [standalone installation](../docs/standalone-panel.md) and [design](../specs/done_025-standalone-panel/spec.md).

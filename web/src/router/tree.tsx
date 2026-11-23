@@ -114,9 +114,13 @@ const clusterDetailRoute = new Route({
   getParentRoute: () => appLayoutRoute,
   path: "/clusters/$clusterId",
   component: ClusterDetailPage,
-  validateSearch: (search: Record<string, unknown>): { tab?: "overview" | "nodes" | "configuration" } => ({
-    tab: search.tab === "nodes" || search.tab === "configuration" ? search.tab : "overview",
-  }),
+  validateSearch: (search: Record<string, unknown>): { tab?: "overview" | "nodes" | "configuration"; ns?: string } => {
+    const ns = search.ns;
+    if (ns !== undefined && (typeof ns !== "string" || !/^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$/.test(ns))) {
+      throw new Error("Invalid destination namespace");
+    }
+    return { tab: search.tab === "nodes" || search.tab === "configuration" ? search.tab : "overview", ns };
+  },
 });
 
 const clustersRoute = new Route({

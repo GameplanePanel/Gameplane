@@ -906,15 +906,19 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
         body: envelope("BackupSchedule", ident, spec),
       });
     },
-    // Read-modify-write: fetches the current object, applies changes to its
-    // spec, and PUTs the merged result. Used for the suspend toggle.
-    patchSpec: async (name: string, patch: Partial<BackupSchedule["spec"]>, ns?: string) => {
+    // The GET supplies the current resourceVersion for the conditional PUT.
+    patchSpec: async (name: string, patch: Partial<BackupSchedule["spec"]> | ((current: BackupSchedule) => BackupSchedule["spec"]), ns?: string) => {
       const current = await api<BackupSchedule>(withNS(`/schedules/${name}`, ns));
-      const next = { ...current, spec: { ...current.spec, ...patch } };
+      const next = { ...current, spec: typeof patch === "function" ? patch(current) : { ...current.spec, ...patch } };
       return api<BackupSchedule>(withNS(`/schedules/${name}`, ns), { method: "PUT", body: next });
     },
-    remove: (name: string, ns?: string) =>
-      api<void>(withNS(`/schedules/${name}`, ns), { method: "DELETE" }),
+    remove: (name: string, ns?: string, confirmed?: Pick<BackupSchedule["metadata"], "uid" | "resourceVersion">) => {
+      const query = confirmed && new URLSearchParams({
+        expectedUID: confirmed.uid ?? "",
+        expectedResourceVersion: confirmed.resourceVersion ?? "",
+      });
+      return api<void>(withNS(`/schedules/${name}${query ? "?" + query : ""}`, ns), { method: "DELETE" });
+    },
   };
 
   const Restores = {

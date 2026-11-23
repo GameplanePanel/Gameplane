@@ -341,6 +341,8 @@ still sees the stored values; restrict that with cluster RBAC.
 
 ## Share links
 
+The server owner can change an active link's **Can start** permission under **Settings → Share links**. Use the **Link ID** shown at creation to identify its row later. Enabling wake access lets anyone who already has that URL wake the server from idle sleep. Disabling it removes that permission on the next request. The URL and expiry stay the same.
+
 Share links (`api/internal/db/shares.go`, schema in `api/internal/db/migrations/sqlite/006_share_links.sql`, Postgres twin in `migrations/postgres/`) grant unauthenticated, token-bearing access to a single GameServer's status and connection address, optionally with permission to wake it. Because they are unauthenticated, their security rests entirely on the token being both hard to guess and hard to recover if the database or a backup leaks.
 
 **Storage.** Only a SHA-256 hash of the token is persisted (`token_hash`, indexed for O(1) lookup); the raw 32-byte random token is generated at creation, returned exactly once in the create response, and never stored, logged, or recoverable afterwards.

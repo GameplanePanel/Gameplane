@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { createResourceClient } from "@/lib/endpoints";
+import { retryBackupRead } from "@/lib/backupReadOptions";
 import { useFleetLocation, Fleet, located, targetKey, targetLabel, type Located } from "@/lib/fleet";
 import { FleetCoverage } from "@/components/FleetScope";
 import {
@@ -28,6 +29,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { formatRelative, formatRelativeFuture } from "@/lib/utils";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 import { ErrorBanner } from "@/components/backups/ErrorBanner";
+import { ManageDestinationsLink } from "@/components/backups/ManageDestinationsLink";
 import { ScheduleForm } from "@/components/backups/ScheduleForm";
 import { RestoreDialog } from "@/components/backups/RestoreDialog";
 import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
@@ -238,27 +240,23 @@ function BackupNowDialog({ onClose }: { onClose: () => void }) {
   });
   const serversList = { items: (serversFleet?.items ?? []).map(located) };
   const selectedServer = serversList.items.find((item) => targetKey(item.fleetTarget) === createServer);
-  const { data: destinationData } = useQuery({
+  const { data: destinationData, isSuccess: destinationsLoaded, error: destinationError } = useQuery({
     queryKey: ["backup-destinations", selectedServer?.fleetTarget.cluster, selectedServer?.fleetTarget.namespace],
-    queryFn: () => createResourceClient(selectedServer!.fleetTarget).BackupDestinations.list(),
+    queryFn: ({ signal }) => createResourceClient(selectedServer!.fleetTarget, signal).BackupDestinations.list(),
     enabled: !!selectedServer,
+    retry: retryBackupRead,
   });
-  const destinations = destinationData?.items ?? [];
-
-  // When destinations resolve, default to the first one. The user can
-  // still pick a different one if more than one exists. Adjusted directly
-  // during render (not in an effect) — the condition becomes false as soon
-  // as createDest is set, so this can't loop.
-  if (!createDest && destinations.length > 0) {
-    setCreateDest(destinations[0].name);
-  }
+  const destinations = destinationsLoaded ? destinationData.items : [];
+  if (!createDest && destinations.length > 0) setCreateDest(destinations[0].name);
+  const selectedDestination = destinations.find(destination => destination.name === createDest);
 
   const createNow = useMutation({
     mutationFn: () => {
       if (!selectedServer || !hasPermission(selectedServer.fleetPermissions, "backups:write")) throw new Error(intl.formatMessage({ id: "web.routes.backups.select_server_with_backup_access", defaultMessage: "Select a server with backup access.", description: "Backups: error shown when the chosen server has no backup permission" }));
+      if (!selectedDestination) throw new Error(intl.formatMessage({ id: "web.routes.backups.select_a_destination", defaultMessage: "Select a destination…", description: "Backups: grey placeholder of the destination dropdown in the back-up-now dialog, asking the user to pick a backup destination" }));
       return createResourceClient(selectedServer.fleetTarget).Backups.create({
         serverRef: { name: selectedServer.metadata.name },
-        repoRef: { name: createDest, key: "repo" },
+        repoRef: { name: selectedDestination.name, key: "repo" },
       }, selectedServer.fleetTarget.namespace);
     },
     onSuccess: () => {
@@ -303,10 +301,10 @@ function BackupNowDialog({ onClose }: { onClose: () => void }) {
                     </Select.Popover>
                   </Select>
                 </div>
-                {destinations.length > 1 && (
+                {(destinations.length > 1 || (destinations.length === 1 && !selectedDestination)) && (
                   <div>
                     <Select
-                      value={createDest}
+                      value={selectedDestination?.name ?? ""}
                       onChange={(v) => setCreateDest(v as string)}
                       placeholder={intl.formatMessage({ id: "web.routes.backups.select_a_destination", defaultMessage: "Select a destination…", description: "Backups: grey placeholder of the destination dropdown in the back-up-now dialog, asking the user to pick a backup destination" })}
                       aria-label={intl.formatMessage({ id: "web.routes.backups.destination", defaultMessage: "Destination", description: "Backups: accessible name of the backup destination dropdown in the back-up-now dialog" })}
@@ -326,8 +324,12 @@ function BackupNowDialog({ onClose }: { onClose: () => void }) {
                     </Select>
                   </div>
                 )}
-                {noDestinations && (
-                  <p className="text-xs text-foreground/60">{intl.formatMessage({ id: "web.routes.backups.no_backup_destinations_configured_add", defaultMessage: "No backup destinations configured. Add one in", description: "Backups: opening words of the note in the back-up-now dialog shown when no destination exists; the link and closing words follow it" })} <Link to="/admin" className="text-primary hover:underline">{intl.formatMessage({ id: "web.routes.backups.admin_settings", defaultMessage: "admin settings", description: "Backups: link text inside the no-destination note that opens the admin settings screen; keep it short" })}</Link> {intl.formatMessage({ id: "web.routes.backups.to_enable_snapshots", defaultMessage: "to enable snapshots.", description: "Backups: closing words of the no-destination note after the admin settings link, ending the sentence about enabling snapshots" })}</p>
+                {destinationError && <ErrorBanner err={destinationError} />}
+                {selectedServer && destinationsLoaded && noDestinations && (
+                  <div>
+                    <p className="text-xs text-foreground/60">{intl.formatMessage({ id: "web.routes.backups.no_backup_destinations_configured_add", defaultMessage: "No backup destinations configured.", description: "Back up now dialog: the selected server has no backup destinations" })}</p>
+                    <ManageDestinationsLink cluster={selectedServer.fleetTarget.cluster} namespace={selectedServer.fleetTarget.namespace} />
+                  </div>
                 )}
                 {createNow.error && <ErrorBanner err={createNow.error} />}
               </div>
@@ -336,7 +338,7 @@ function BackupNowDialog({ onClose }: { onClose: () => void }) {
               <Button variant="ghost" onPress={onClose} isDisabled={createNow.isPending}>{intl.formatMessage({ id: "web.routes.backups.cancel", defaultMessage: "Cancel", description: "Backups: button that closes the back-up-now dialog without starting a snapshot; keep it short" })}</Button>
               <Button
                 variant="primary"
-                isDisabled={!selectedServer || !createDest || createNow.isPending || noDestinations}
+                isDisabled={!selectedServer || !selectedDestination || createNow.isPending}
                 onPress={() => createNow.mutate()}
               >
                 {createNow.isPending

@@ -2,7 +2,7 @@
 
 **Branch**: `feat/standalone-panel` (PR #630, merged as `6ed25c1`) | **Date**: 2026-10-14 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/025-standalone-panel/spec.md`
+**Input**: Feature specification from `specs/done_025-standalone-panel/spec.md`
 
 **Note**: Written retroactively. This plan describes the design PR #630 merged; it plans no new work.
 
@@ -18,7 +18,7 @@ The API gains a standalone mode that runs without any local Kubernetes cluster. 
 
 **Storage**: Panel SQL database (SQLite, or experimental PostgreSQL) with migrations `016_standalone_management.sql` and `017_standalone_key_state.sql`; panel key file on separate storage (`/keys/panel.key`)
 
-**Testing**: Go unit tests (including PostgreSQL-tagged tests run by the CI `api-postgres` job), Vitest dashboard tests, `charts/tests/check_standalone.py`, `deploy/standalone/smoke.py` (CI `standalone-compose` job). No `test/e2e/` test (see Constitution Check I)
+**Testing**: Go unit tests (including PostgreSQL-tagged tests run by the CI `api-postgres` job), Vitest dashboard tests, `charts/tests/check_standalone.py`, `deploy/standalone/smoke.py` (CI `standalone-compose` job), and since Phase 9 the Kind E2E test `TestStandalone_HelmPanelLifecycle` (`standalone` bucket). PR #630 itself shipped no `test/e2e/` test (see Constitution Check I)
 
 **Target Platform**: Linux host with Docker Compose, or a Kubernetes cluster for the panel-only Helm profile; remote game clusters on Kubernetes
 
@@ -43,14 +43,14 @@ The API gains a standalone mode that runs without any local Kubernetes cluster. 
 | V. Delegation | Not applicable | Contributor PR. |
 | VI. CI bears the load | Met | All 97 checks green on head `117caf35` before merge. |
 
-**Gate decision**: The feature is merged, so the gate cannot block it. Every task is ticked, so rule 16 calls for the `done_025-` rename; valgul decided to keep the `025-` name until a standalone E2E test exists (OD-5) (see [OPEN-DECISIONS.md](OPEN-DECISIONS.md)).
+**Gate decision**: The feature is merged, so the gate cannot block it. Every task is ticked, so rule 16 calls for the `done_025-` rename; valgul decided to keep the `025-` name until a standalone E2E test exists (OD-5) (see [OPEN-DECISIONS.md](OPEN-DECISIONS.md)). Phase 9 added that test (PR #1052) and T057 archived the folder.
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/025-standalone-panel/
+specs/done_025-standalone-panel/
 ├── spec.md
 ├── plan.md
 ├── research.md
@@ -107,6 +107,6 @@ docs/standalone-panel.md      plus install, security, architecture, gateway and 
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| Principle I: no `test/e2e/` coverage | Not justified by PR #630; it shipped with Compose smoke and chart render checks only | Recorded as a known gap. Adding an E2E bucket is new work and out of scope for this retroactive folder. |
+| Principle I: no `test/e2e/` coverage | Not justified by PR #630; it shipped with Compose smoke and chart render checks only | Recorded as a known gap when PR #630 merged; closed by Phase 9 (T052 to T055, PR #1052), which added the `standalone` E2E bucket. |
 | Principle IV: plan and tasks written after the code | Not justified; the contributor shipped a design note only | This folder now documents the merged design; no corrective work is planned. |
 | Principle II: UI code before design commit | Not justified; historical ordering in the contributor branch | The final tree carries the design export, so no corrective work is planned. |

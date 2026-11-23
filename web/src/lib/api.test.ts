@@ -730,6 +730,17 @@ describe("Shares.list()", () => {
   });
 });
 
+describe("Shares.setCanStart()", () => {
+  it("sends the wake permission to the scoped link", async () => {
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+    await Shares.setCanStart("server@special", "link/id", false, "games");
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("/servers/server%40special/shares/link%2Fid?namespace=games");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body)).toEqual({ canStart: false });
+  });
+});
+
 describe("Shares.revoke()", () => {
   it("DELETEs /servers/{name}/shares/{id} without namespace", async () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));

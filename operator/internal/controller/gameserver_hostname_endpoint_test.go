@@ -148,6 +148,71 @@ func TestEndpointsFromService_AdvertisedHostnameReplacesTheLoadBalancerAddress(t
 	}
 }
 
+func TestReconcileTemplateHostname(t *testing.T) {
+	for _, serviceType := range []corev1.ServiceType{corev1.ServiceTypeNodePort, corev1.ServiceTypeLoadBalancer} {
+		t.Run(string(serviceType), func(t *testing.T) {
+			ctx := t.Context()
+			tmpl := valheimTemplate()
+			gs := &gameplanev1alpha1.GameServer{
+				ObjectMeta: metav1.ObjectMeta{Name: "world", Namespace: "games", UID: "world-uid"},
+				Spec: gameplanev1alpha1.GameServerSpec{
+					TemplateRef: gameplanev1alpha1.GameTemplateRef{Name: tmpl.Name},
+					Networking: gameplanev1alpha1.GameServerNetworking{
+						Expose: string(serviceType),
+						Tunnel: &gameplanev1alpha1.GameServerTunnel{Provider: "frp"},
+					},
+				},
+			}
+			svc := udpLBService(corev1.LoadBalancerIngress{IP: "192.0.2.10"})
+			svc.Name, svc.Namespace, svc.Spec.Type = gs.Name, gs.Namespace, serviceType
+			port, address, discovered := int32(2456), "192.0.2.10", "192.0.2.10"
+			if serviceType == corev1.ServiceTypeNodePort {
+				svc.Status.LoadBalancer = corev1.LoadBalancerStatus{}
+				gs.Spec.Networking.PortOverrides = []gameplanev1alpha1.PortOverride{{Name: "game", NodePort: 31042}}
+				port, address, discovered = 31042, svc.Spec.ClusterIP, ""
+			}
+			scheme := testScheme(t)
+			cl := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(gs).WithObjects(gs, svc).Build()
+			r := GameServerReconciler{Client: cl, Scheme: scheme, TemplateHostnames: map[string]string{
+				"minecraft-java": "mc.example.net", "valheim": "val.example.net",
+			}}
+			relay := gameplanev1alpha1.GameServerEndpoint{Name: "game", Host: "relay.example.net", Port: 32000, TunnelProvider: "frp"}
+			tunnel := tunnelPlan{wantTunnel: true, endpoints: []gameplanev1alpha1.GameServerEndpoint{relay}}
+			for _, step := range []struct{ templateHost, override, want string }{
+				{"val.example.net", "", "val.example.net"},
+				{"val.example.net", "private.example.net", "private.example.net"},
+				{"val.example.net", "", "val.example.net"},
+				{"", "", discovered},
+			} {
+				r.TemplateHostnames[tmpl.Name] = step.templateHost
+				if err := cl.Get(ctx, client.ObjectKeyFromObject(gs), gs); err != nil {
+					t.Fatal(err)
+				}
+				gs.Spec.Networking.Hostname = step.override
+				if err := cl.Update(ctx, gs); err != nil {
+					t.Fatal(err)
+				}
+				if err := r.reconcileService(ctx, gs, tmpl, false); err != nil {
+					t.Fatal(err)
+				}
+				if _, err := r.reconcileStatus(ctx, gs, idleAwake, nil, nil, tunnel, tmpl, nil, ""); err != nil {
+					t.Fatal(err)
+				}
+				got := gs.Status.Endpoints
+				if len(got) < 2 || got[0] != relay || got[1].Host != step.want || got[1].Port != port || got[1].ServiceAddress != address {
+					t.Fatalf("override %q: want relay followed by %s:%d, got %+v", step.override, step.want, port, got)
+				}
+				if err := cl.Get(ctx, client.ObjectKeyFromObject(gs), svc); err != nil {
+					t.Fatal(err)
+				}
+				if got := svc.Annotations[externalDNSHostnameAnnotation]; got != step.override {
+					t.Errorf("override %q: external-dns annotation = %q", step.override, got)
+				}
+			}
+		})
+	}
+}
+
 func TestEndpointsFromService_AdvertisedHostnameWaitsForLoadBalancerAddress(t *testing.T) {
 	svc := udpLBService()
 	got := endpointsFromService(svc, addressPlan{}, "valheim.example.com")

@@ -11,8 +11,8 @@ import { makeBackup, makeSchedule, makeRestore } from "@/test/factories";
 vi.mock("@tanstack/react-router", () => ({
   useLocation: () => useTestLocation(),
   useNavigate: () => navigateTestSearch,
-  Link: ({ children, to, ...rest }: { children: ReactNode; to: string } & Record<string, unknown>) => (
-    <a href={to} {...rest}>{children}</a>
+  Link: ({ children, to, params, search }: { children: ReactNode; to: string; params?: { clusterId: string }; search?: Record<string, string> }) => (
+    <a href={params && search ? to.replace("$clusterId", params.clusterId) + "?" + new URLSearchParams(search) : to}>{children}</a>
   ),
 }));
 
@@ -265,7 +265,12 @@ describe("BackupsPage", () => {
     const dialog = await screen.findByRole("dialog");
     const run = within(dialog).getByRole("button", { name: /Run snapshot/i });
     await waitFor(() => expect(run).toBeDisabled());
-    expect(screen.getByText(/No backup destinations configured/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/No backup destinations configured/)).not.toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: /Server/i }));
+    await userEvent.click(await screen.findByRole("option", { name: /^alpha · local \/ gameplane-games$/ }));
+    expect(await within(dialog).findByText(/No backup destinations configured/)).toBeInTheDocument();
+    const link = await within(dialog).findByRole("link", { name: "Manage destinations" });
+    expect(link).toHaveAttribute("href", "/clusters/local?tab=configuration&ns=gameplane-games");
   });
 
   it("toggles schedule suspend status", async () => {

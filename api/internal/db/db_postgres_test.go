@@ -329,6 +329,12 @@ func TestPostgres_ShareLinks(t *testing.T) {
 	if got.ID != link.ID || !got.CanStart || got.ExpiresAt == nil || !got.ExpiresAt.Equal(exp) {
 		t.Fatalf("lookup = %+v, want id %s expiring %v", got, link.ID, exp)
 	}
+	if err := s.SetShareLinkCanStart(ctx, "local", "default", "mc", link.ID, "", time.Time{}, false); err != nil {
+		t.Fatalf("disable share wake permission: %v", err)
+	}
+	if updated, err := s.LookupShareLink(ctx, raw); err != nil || updated.CanStart {
+		t.Fatalf("updated share: %+v, %v", updated, err)
+	}
 	if err := s.TouchShareLink(ctx, link.ID); err != nil {
 		t.Fatalf("touch: %v", err)
 	}

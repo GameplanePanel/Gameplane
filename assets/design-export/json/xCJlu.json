@@ -369,7 +369,7 @@
                                       "width": 520,
                                       "height": 32,
                                       "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-                                      "text": "Let people without a Gameplane account check this server's status and connection address. Only the owner can create or revoke links.",
+                                      "text": "Let people without a Gameplane account check this server's status and address. Turn on Can start to let anyone with that link wake the server.",
                                       "font": ["Geist", 400, 12],
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     }
@@ -445,12 +445,33 @@
                                   "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "id": "1:4451",
-                                      "name": "Column - Created",
+                                      "name": "Column - Link ID",
                                       "type": "INSTANCE",
                                       "x": 0,
                                       "y": 0,
-                                      "width": 241,
+                                      "width": 176,
+                                      "height": 38,
+                                      "component": "Table Column",
+                                      "componentId": "1:1264",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [10, 16, 10, 16],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "HUG"]
+                                      },
+                                      "variables": {"fills/0/color": "surface/secondary"},
+                                      "texts": ["Link ID"]
+                                    },
+                                    {
+                                      "id": "1:4451",
+                                      "name": "Column - Created",
+                                      "type": "INSTANCE",
+                                      "x": 176,
+                                      "y": 0,
+                                      "width": 153,
                                       "height": 38,
                                       "component": "Table Column",
                                       "componentId": "1:1264",
@@ -471,9 +492,9 @@
                                       "id": "1:4452",
                                       "name": "Column - Expires",
                                       "type": "INSTANCE",
-                                      "x": 241,
+                                      "x": 329,
                                       "y": 0,
-                                      "width": 241,
+                                      "width": 153,
                                       "height": 38,
                                       "component": "Table Column",
                                       "componentId": "1:1264",
@@ -601,12 +622,47 @@
                                       "variables": {"strokes/0/color": "border/border"},
                                       "children": [
                                         {
+                                          "name": "Link ID Cell",
+                                          "type": "FRAME",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 176,
+                                          "height": 100,
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "FIXED"]
+                                          },
+                                          "layoutAlignSelf": "STRETCH",
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "children": [
+                                            {
+                                              "name": "Link ID",
+                                              "type": "TEXT",
+                                              "x": 16,
+                                              "y": 41.5,
+                                              "width": 125,
+                                              "height": 17,
+                                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                              "text": "BK7ms94p1JvE2tQx",
+                                              "font": ["JetBrains Mono", 400, 13],
+                                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                                            }
+                                          ]
+                                        },
+                                        {
                                           "id": "1:4458",
                                           "name": "Created Cell",
                                           "type": "INSTANCE",
-                                          "x": 0,
+                                          "x": 176,
                                           "y": 0,
-                                          "width": 241,
+                                          "width": 153,
                                           "height": 100,
                                           "component": "Table Cell",
                                           "componentId": "1:824",
@@ -630,9 +686,9 @@
                                           "id": "1:4459",
                                           "name": "Expires Cell",
                                           "type": "INSTANCE",
-                                          "x": 241,
+                                          "x": 329,
                                           "y": 0,
-                                          "width": 241,
+                                          "width": 153,
                                           "height": 100,
                                           "component": "Table Cell",
                                           "componentId": "1:824",
@@ -675,27 +731,17 @@
                                           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                           "children": [
                                             {
-                                              "id": "1:4461",
-                                              "name": "Capability Chip",
+                                              "name": "Allow anyone with link BK7ms94p1JvE2tQx to wake the server",
                                               "type": "INSTANCE",
                                               "x": 16,
-                                              "y": 39,
-                                              "width": 84,
-                                              "height": 22,
-                                              "component": "Chip/Soft/Accent/SM",
-                                              "componentId": "1:1397",
-                                              "fills": [{"type": "SOLID", "color": "#2C1926"}],
-                                              "cornerRadius": 16,
-                                              "layout": {
-                                                "mode": "HORIZONTAL",
-                                                "gap": 2,
-                                                "padding": [2, 4, 2, 4],
-                                                "primary": "MIN",
-                                                "counter": "CENTER",
-                                                "sizing": ["HUG", "HUG"]
-                                              },
-                                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "accent/soft"},
-                                              "texts": ["Can start"]
+                                              "y": 40,
+                                              "width": 36,
+                                              "height": 20,
+                                              "component": "Gameplane/Switch/On",
+                                              "componentId": "1:1532",
+                                              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                              "cornerRadius": 24,
+                                              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"}
                                             }
                                           ]
                                         },
@@ -816,12 +862,46 @@
                                       "variables": {"strokes/0/color": "border/border"},
                                       "children": [
                                         {
+                                          "name": "Link ID Cell",
+                                          "type": "FRAME",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 176,
+                                          "height": 41,
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "children": [
+                                            {
+                                              "name": "Link ID",
+                                              "type": "TEXT",
+                                              "x": 16,
+                                              "y": 12,
+                                              "width": 125,
+                                              "height": 17,
+                                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                              "text": "g5RkAm1sHE38wVy2",
+                                              "font": ["JetBrains Mono", 400, 13],
+                                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                                            }
+                                          ]
+                                        },
+                                        {
                                           "id": "1:4467",
                                           "name": "Created Cell",
                                           "type": "INSTANCE",
-                                          "x": 0,
+                                          "x": 176,
                                           "y": 0,
-                                          "width": 241,
+                                          "width": 153,
                                           "height": 41,
                                           "component": "Table Cell",
                                           "componentId": "1:824",
@@ -844,9 +924,9 @@
                                           "id": "1:4468",
                                           "name": "Expires Cell",
                                           "type": "INSTANCE",
-                                          "x": 241,
+                                          "x": 329,
                                           "y": 0,
-                                          "width": 241,
+                                          "width": 153,
                                           "height": 41,
                                           "component": "Table Cell",
                                           "componentId": "1:824",
@@ -1006,12 +1086,46 @@
                                       "variables": {"strokes/0/color": "border/border"},
                                       "children": [
                                         {
+                                          "name": "Link ID Cell",
+                                          "type": "FRAME",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 176,
+                                          "height": 41,
+                                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                          "strokeWeight": 1,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [12, 16, 12, 16],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["FIXED", "HUG"]
+                                          },
+                                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                                          "children": [
+                                            {
+                                              "name": "Link ID",
+                                              "type": "TEXT",
+                                              "x": 16,
+                                              "y": 12,
+                                              "width": 125,
+                                              "height": 17,
+                                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                              "text": "U8nzF3cWpmJQ2L7k",
+                                              "font": ["JetBrains Mono", 400, 13],
+                                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                                            }
+                                          ]
+                                        },
+                                        {
                                           "id": "1:4475",
                                           "name": "Created Cell",
                                           "type": "INSTANCE",
-                                          "x": 0,
+                                          "x": 176,
                                           "y": 0,
-                                          "width": 241,
+                                          "width": 153,
                                           "height": 41,
                                           "component": "Table Cell",
                                           "componentId": "1:824",
@@ -1034,9 +1148,9 @@
                                           "id": "1:4476",
                                           "name": "Expires Cell",
                                           "type": "INSTANCE",
-                                          "x": 241,
+                                          "x": 329,
                                           "y": 0,
-                                          "width": 241,
+                                          "width": 153,
                                           "height": 41,
                                           "component": "Table Cell",
                                           "componentId": "1:824",

@@ -771,10 +771,15 @@ export interface Backup {
 }
 
 export interface BackupSchedule {
-  metadata: ObjectMeta;
+  metadata: ObjectMeta & {
+    resourceVersion?: string;
+    ownerReferences?: { kind: string; name: string; uid: string; controller?: boolean }[];
+  };
   spec: {
     serverRef: { name: string };
     schedule: string;
+    repoRef?: { name: string; key: string };
+    strategy?: "restic-snapshot" | "volume-snapshot";
     powerPolicy?: "preserve" | "stop-copy-restart";
     volumePolicy?: "primary-only" | "all-data";
     suspend?: boolean;

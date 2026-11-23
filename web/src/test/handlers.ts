@@ -841,6 +841,7 @@ const wsOrigin = typeof window !== "undefined" ? window.location.origin.replace(
 
 export function buildScreenshotHandlers() {
   const data = getScreenshotData();
+  const shareWakePermissions = new Map<string, boolean>();
   const nightlyBackup = makeBackup({
     metadata: { name: "mc-survival-nightly-0713", namespace: "default" },
     spec: { serverRef: { name: "mc-survival" } },
@@ -1360,7 +1361,21 @@ export function buildScreenshotHandlers() {
     http.delete("/backups/:name", () => new HttpResponse(null, { status: 204 })),
 
     // Schedules: use screenshot schedules
-    http.get("/schedules", () => HttpResponse.json({ items: data.schedules })),
+    http.get("/schedules", ({ cookies }) => {
+      if (cookies.e2e_server_schedule_actions !== "1") return HttpResponse.json({ items: data.schedules });
+      const nextRun = (hours: number) => new Date(Date.now() + (hours * 60 + 1) * 60_000).toISOString();
+      const daily = data.schedules[0];
+      return HttpResponse.json({ items: [
+        { ...daily, metadata: { ...daily.metadata, uid: "daily-schedule", resourceVersion: "1" }, status: { ...daily.status, nextScheduleTime: nextRun(8) } },
+        makeSchedule({
+          metadata: { name: "mc-survival-auto", namespace: daily.metadata.namespace, ownerReferences: [
+            { kind: "GameServer", name: "mc-survival", uid: data.servers.find(s => s.metadata.name === "mc-survival")?.metadata.uid ?? "mc-survival", controller: true },
+          ] },
+          spec: { serverRef: { name: "mc-survival" }, schedule: "0 */6 * * *" },
+          status: { nextScheduleTime: nextRun(2) },
+        }),
+      ] });
+    }),
     http.get("/schedules/:name", ({ params }) =>
       HttpResponse.json(makeSchedule({ metadata: { name: String(params.name) } })),
     ),
@@ -1757,7 +1772,7 @@ export function buildScreenshotHandlers() {
         },
       }),
     ),
-    // Share links: list, create, revoke, resolve (public), start (public)
+    // Share links: list, create, edit, revoke, resolve (public), start (public)
     http.get(/\/servers\/[^/]+:shares$/, ({ request }) => {
       // Extract server name from URL
       const match = new URL(request.url).pathname.match(/\/servers\/([^/:]+):shares$/);
@@ -1774,7 +1789,7 @@ export function buildScreenshotHandlers() {
           id: "share-1",
           createdAt: "2026-07-28T00:00:00Z",
           expiresAt: null,
-          canStart: true,
+          canStart: shareWakePermissions.get(request.url) ?? true,
         },
         {
           id: "share-2",
@@ -1806,6 +1821,13 @@ export function buildScreenshotHandlers() {
         canStart: body?.canStart ?? false,
         token: `token_${Math.random().toString(36).slice(2)}`,
       });
+    }),
+    http.patch("/servers/:name/shares/share-1", async ({ request }) => {
+      const { canStart } = await request.json() as { canStart: boolean };
+      const listURL = new URL(request.url);
+      listURL.pathname = listURL.pathname.replace(/\/shares\/share-1$/, ":shares");
+      shareWakePermissions.set(listURL.href, canStart);
+      return new HttpResponse(null, { status: 204 });
     }),
     http.delete("/servers/:name/shares/:id", () =>
       new HttpResponse(null, { status: 204 }),
