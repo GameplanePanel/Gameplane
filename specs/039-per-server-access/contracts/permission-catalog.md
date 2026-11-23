@@ -91,15 +91,26 @@ Resolve the source backup and its server UID before accepting either operation. 
 
 ## Default base server roles
 
-A cluster or namespace role requires an explicit choice of one of these three base roles. The new-role editor starts blank and saving without a base fails validation. Everyone assigned that scoped role inherits its base on every current and future server in scope. The base also covers templates without a selected addition. A direct grant can still select named roles or custom permissions on an individual server.
+Choose one of the four bases explicitly when defining a cluster or namespace role. Each assignee inherits it on every current and future server in scope, including servers without a selected GameTemplate addition. A direct assignment can select a base, other live roles or a custom grant on one UID.
 
-| Base role | Complete initial server permissions |
-| --- | --- |
-| Viewer | `server.view`, `events.view` |
-| Power User | `server.view`, `events.view`, `logs.live`, `logs.history`, `power.start`, `power.stop`, `power.restart`, `power.wake` |
-| Administrator | `server.view`, `events.view`, `logs.live`, `logs.history`, `power.start`, `power.stop`, `power.restart`, `power.wake`, `players.roster`, `players.kick`, `backups.view`, `backups.create` |
+| Base server role | Initial grant | Number of distinct action IDs |
+| --- | --- | --- |
+| Viewer | `server.view`, `events.view` for identity, status and filtered workload events | 2 |
+| Power User | Viewer plus `power.start`, `power.stop`, `power.restart`, `power.wake`, `logs.live`, `logs.history`, `console.send` | 9 |
+| Operator | Power User plus `files.list`, `files.read`, `files.create`, `files.write`, `files.mkdir` on approved routine data paths, and `settings.general.view`, `settings.general.edit` on the server description | 16 |
+| Administrator | All 84 common server actions in [Operations](#operations), with the selector and protected-operation rules below | 84 |
 
-Administrator includes the full Power User set plus moderation and backup duties. It can kick where the game supports it and create one-off backups to an approved destination, including stop-copy-restart when the effective grant allows both stop and start. Ban, restore, delete, schedule, console input and member management require separate grants. The server role named Administrator has no authority to edit the panel, binding policies, the role library or Blocks. Ownership retains its separate checks. Preserve the frozen Legacy collaborator grant according to the legacy route and response matrix.
+These are cumulative **initial** sets. Seed each live role with its complete enumerated action IDs and selectors. Later edits to one role update that role's assignees under FR-03. The four named server roles use the same assignment and Block rules as custom roles. Distinguish the server **Operator** and **Administrator** from similarly named panel or fleet roles in both pickers.
+
+**Viewer and Power User.** Viewer sees basic status and filtered events. Log text, player identities and audit activity have independent gates. Power User can follow current output, read history, and submit commands to the game console. Wake works when supported. Bulk log export uses `logs.download`, available in Administrator or a custom grant. The preview for each role containing `console.send` must explain that the game may accept administrative commands, including changes to in-game settings and moderation. A narrow custom role can instead select reviewed named commands.
+
+**Operator.** Seed the General selector with the description (`metadata.annotations["gameplane.local/description"]`). General also displays an image override and arbitrary Kubernetes labels, which are outside this selector. The Operator preset grants no typed edits to version, game configuration, resources, networking, environment, lifecycle or placement. Each file operation takes an exact path or subtree keyed to the trusted GameTemplate identity in the live Operator role. Gameplane ships the reviewed mappings for bundled templates with the initial role. A module author can propose additional selectors for its actual data layout. A primary panel admin approves additions or changes to an installed live role after seeing their impact. Permit creation and directory creation only where the approved selector covers the new destination. Show the actual paths in the preview. Choose paths for ordinary editable data and verify how the game consumes those files. Exclude secrets, generated configuration, startup scripts, executable/plugin directories, manifests and files that can change protected settings indirectly. If a game has no reviewed safe path, display file editing as unavailable there and retain the description grant. Adding paths to a live preset requires the same impact review as adding fields or game actions. [General settings form](../../../web/src/routes/tabs/settings/General.tsx) · [File paths](#file-paths)
+
+**Administrator.** Seed all 84 currently defined IDs individually. For files, explicitly select the server data root as a subtree subject to agent confinement and protected paths. For typed settings and named game actions, enumerate the currently approved, delegable fields and trusted action mappings. Apply existing content, credential and backup destination policies. Expand the reviewed set on an authorized live-role edit. A new action ID, game command or schema field requires explicit selection. Each operation still checks server capability, applicable Blocks, admission, credential limits and any independent source, destination or placement permission.
+
+Administrator can ban/unban, manage direct members within the delegation ceiling, replace content, remove files, backups, schedules or mappings, and apply an authorized restore that overwrites server data. Appointing another membership manager requires independent owner or target-admin authority under the delegation rules. Holding the four `members.*` actions alone lets an Administrator manage ordinary direct grants within its ceiling. The separate GameServer delete, wipe, ownership transfer, owner-personal public shares and personal credential controls keep their existing gates. The role grants no automatic authority over siblings, panel administration, privileged node diagnostics, scoped bindings or Blocks. The impact preview distinguishes deleting a child resource from deleting the server itself and names destructive actions before a grant is confirmed.
+
+Preserve the frozen Legacy collaborator grant according to the legacy route and response matrix. An upgrade must not substitute a base role for that grant.
 
 ## GameTemplate roles
 
