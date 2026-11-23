@@ -30,6 +30,7 @@
         "counter": "MIN",
         "sizing": ["FIXED", "FIXED"]
       },
+      "layoutAlignSelf": "STRETCH",
       "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
       "texts": [
         "gameplane",
@@ -382,19 +383,21 @@
                     "padding": [8, 0, 8, 0],
                     "primary": "MIN",
                     "counter": "MIN",
-                    "sizing": ["HUG", "FIXED"]
+                    "sizing": ["FIXED", "FIXED"]
                   },
                   "texts": [
-                    "General",
+                    "ACCOUNT",
                     "Theme",
+                    "SFTP",
+                    "SERVER",
+                    "General",
                     "Authentication",
                     "Module sources",
                     "Mod registries",
                     "Notifications",
                     "Telemetry",
                     "Updates",
-                    "About",
-                    "SFTP"
+                    "About"
                   ]
                 },
                 {

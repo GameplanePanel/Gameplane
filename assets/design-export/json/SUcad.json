@@ -185,19 +185,21 @@
                     "padding": [8, 0, 8, 0],
                     "primary": "MIN",
                     "counter": "MIN",
-                    "sizing": ["HUG", "FIXED"]
+                    "sizing": ["FIXED", "FIXED"]
                   },
                   "texts": [
-                    "General",
+                    "ACCOUNT",
                     "Theme",
+                    "SFTP",
+                    "SERVER",
+                    "General",
                     "Authentication",
                     "Module sources",
                     "Mod registries",
                     "Notifications",
                     "Telemetry",
                     "Updates",
-                    "About",
-                    "SFTP"
+                    "About"
                   ]
                 },
                 {

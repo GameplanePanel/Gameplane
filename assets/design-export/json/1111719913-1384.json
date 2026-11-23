@@ -1,8 +1,8 @@
 {
-  "file": "531558443-1274",
-  "name": "Screen/Settings — SFTP (Not enabled)",
+  "file": "1111719913-1384",
+  "name": "Screen/Settings — SFTP (Non-admin)",
   "type": "FRAME",
-  "x": 3280,
+  "x": 10700,
   "y": 78780,
   "width": 1440,
   "height": 1080,
@@ -30,6 +30,7 @@
         "counter": "MIN",
         "sizing": ["FIXED", "FIXED"]
       },
+      "layoutAlignSelf": "STRETCH",
       "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
       "texts": [
         "gameplane",
@@ -373,7 +374,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 220,
-                  "height": 394,
+                  "height": 98,
                   "component": "Gameplane/Admin Settings Nav",
                   "componentId": "1:3419",
                   "layout": {
@@ -382,20 +383,9 @@
                     "padding": [8, 0, 8, 0],
                     "primary": "MIN",
                     "counter": "MIN",
-                    "sizing": ["HUG", "FIXED"]
+                    "sizing": ["FIXED", "FIXED"]
                   },
-                  "texts": [
-                    "General",
-                    "Theme",
-                    "Authentication",
-                    "Module sources",
-                    "Mod registries",
-                    "Notifications",
-                    "Telemetry",
-                    "Updates",
-                    "About",
-                    "SFTP"
-                  ]
+                  "texts": ["ACCOUNT", "Theme", "SFTP"]
                 },
                 {
                   "name": "Content Column",
@@ -415,48 +405,42 @@
                   "layoutGrow": 1,
                   "children": [
                     {
-                      "name": "Card SFTP address",
-                      "type": "FRAME",
+                      "name": "Gameplane/Settings/SFTP Address Card",
+                      "type": "INSTANCE",
                       "x": 0,
                       "y": 0,
                       "width": 888,
-                      "height": 124,
+                      "height": 420,
+                      "component": "Gameplane/Settings/SFTP Address Card",
                       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                       "cornerRadius": 24,
                       "variables": {"fills/0/color": "surface/surface"},
-                      "children": [
-                        {
-                          "name": "cardTitle",
-                          "type": "TEXT",
-                          "x": 24,
-                          "y": 20,
-                          "width": 104,
-                          "height": 21,
-                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
-                          "text": "SFTP address",
-                          "font": ["Geist", 500, 16],
-                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
-                        },
-                        {
-                          "name": "cardBody",
-                          "type": "TEXT",
-                          "x": 24,
-                          "y": 48,
-                          "width": 840,
-                          "height": 36,
-                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
-                          "layoutAlignSelf": "STRETCH",
-                          "text": "SFTP is not enabled on this cluster. An administrator can turn it on with the sftp.enabled Helm value. Your SSH keys and password are still managed here.",
-                          "font": ["Geist", 400, 14],
-                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
-                        }
+                      "texts": [
+                        "SFTP address",
+                        "Use these settings in any SFTP client. Check the host key matches the fingerprint your client shows on first connect.",
+                        "Host",
+                        "sftp.gameplane.example",
+                        "Port",
+                        "2222",
+                        "Host key (SHA256)",
+                        "SHA256:4mQ2xR7vK9pL0wZ3sB8nT1cY6hJ5gF2dA0eU",
+                        "Copy",
+                        "Copy",
+                        "Username",
+                        "Log in with one of these usernames and your SSH key or SFTP password.",
+                        "alice",
+                        "Lists every server you can read, one folder each",
+                        "alice+survival",
+                        "Opens straight in the files of server survival",
+                        "alice+mods/survival",
+                        "Opens a server in another namespace (mods)"
                       ]
                     },
                     {
                       "name": "Gameplane/Settings/SFTP Keys Card",
                       "type": "INSTANCE",
                       "x": 0,
-                      "y": 140,
+                      "y": 436,
                       "width": 888,
                       "height": 290,
                       "component": "Gameplane/Settings/SFTP Keys Card",
@@ -481,7 +465,7 @@
                       "name": "Card SFTP password",
                       "type": "FRAME",
                       "x": 0,
-                      "y": 446,
+                      "y": 742,
                       "width": 888,
                       "height": 170,
                       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
