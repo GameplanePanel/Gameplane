@@ -4,6 +4,7 @@ import { useState, type ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { renderWithQuery as baseRenderWithQuery } from "@/test/render";
+import { FakeXHR } from "@/test/fakeXHR";
 import { FilesTab } from "./Files";
 
 type FetchInit = Parameters<typeof fetch>[1];
@@ -469,14 +470,10 @@ describe("FilesTab", () => {
   });
 
   it("displays opError when upload fails", async () => {
-    fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {
+    vi.stubGlobal("XMLHttpRequest", FakeXHR);
+    FakeXHR.instances = [];
+    fetchMock.mockImplementation(async (url: string) => {
       if (url.startsWith("/servers/mc-survival/files/list")) return jsonRes(ROOT_ENTRIES);
-      if (
-        url.startsWith("/servers/mc-survival/files/stream") &&
-        init?.method === "PUT"
-      ) {
-        return new Response("disk full", { status: 507 });
-      }
       throw new Error(`unexpected fetch: ${url}`);
     });
     renderWithQuery(<FilesTab name="mc-survival" />);
@@ -484,8 +481,11 @@ describe("FilesTab", () => {
     const uploadInput = screen.getByTestId("files-upload-input") as HTMLInputElement;
     const file = new File(["content"], "test.txt", { type: "text/plain" });
     fireEvent.change(uploadInput, { target: { files: { 0: file, length: 1 } as unknown as FileList } });
+    await waitFor(() => expect(FakeXHR.instances).toHaveLength(1));
+    // The tray shows the 507 text, not the server's body ("disk full").
+    act(() => FakeXHR.instances[0].finish(507, "disk full"));
     await waitFor(() =>
-      expect(screen.getByText(/disk full/)).toBeInTheDocument(),
+      expect(screen.getByText("Not enough free space on the server")).toBeInTheDocument(),
     );
   });
 
@@ -582,15 +582,19 @@ describe("FilesTab", () => {
 
   it("sets up upload input and clears it after selection", async () => {
     let uploadCalled = false;
-    fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {
-      if (url.startsWith("/servers/mc-survival/files/list")) return jsonRes(ROOT_ENTRIES);
-      if (
-        url.startsWith("/servers/mc-survival/files/stream") &&
-        init?.method === "PUT"
-      ) {
-        uploadCalled = true;
-        return new Response(null, { status: 204 });
+    class UploadXHR extends FakeXHR {
+      open(method: string, url: string) {
+        super.open(method, url);
+        if (method === "PUT" && url.startsWith("/servers/mc-survival/files/stream")) uploadCalled = true;
       }
+      send() {
+        super.send();
+        queueMicrotask(() => this.finish(204));
+      }
+    }
+    vi.stubGlobal("XMLHttpRequest", UploadXHR);
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.startsWith("/servers/mc-survival/files/list")) return jsonRes(ROOT_ENTRIES);
       throw new Error(`unexpected fetch: ${url}`);
     });
     renderWithQuery(<FilesTab name="mc-survival" />);
@@ -995,17 +999,10 @@ describe("FilesTab", () => {
   });
 
   it("shows upload spinner while files are uploading", async () => {
-    let resolveUpload: ((value: Response) => void) = () => {};
-    fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {
+    vi.stubGlobal("XMLHttpRequest", FakeXHR);
+    FakeXHR.instances = [];
+    fetchMock.mockImplementation(async (url: string) => {
       if (url.startsWith("/servers/mc-survival/files/list")) return jsonRes(ROOT_ENTRIES);
-      if (
-        url.startsWith("/servers/mc-survival/files/upload") &&
-        init?.method === "POST"
-      ) {
-        return new Promise<Response>((resolve) => {
-          resolveUpload = resolve;
-        });
-      }
       throw new Error(`unexpected fetch: ${url}`);
     });
     renderWithQuery(<FilesTab name="mc-survival" />);
@@ -1017,7 +1014,7 @@ describe("FilesTab", () => {
     // Upload button should be disabled while uploading
     await waitFor(() => expect(uploadBtn).toBeDisabled());
     await act(async () => {
-      resolveUpload(new Response(null, { status: 204 }));
+      FakeXHR.instances[0].finish(204);
     });
   });
 
