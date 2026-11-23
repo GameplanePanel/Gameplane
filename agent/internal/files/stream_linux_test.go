@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,9 +44,9 @@ func assertNoStreamTemp(t *testing.T, root string) {
 	}
 }
 
-func streamTo(t *testing.T, h *handler, target string, body io.Reader) *http.Response {
+func streamTo(t *testing.T, h *handler, target string, body io.Reader) *httptest.ResponseRecorder {
 	t.Helper()
-	return serve(t, h.stream, http.MethodPut, target, body).Result()
+	return serve(t, h.stream, http.MethodPut, target, body)
 }
 
 func TestStream_NewFileOverHTTP(t *testing.T) {
@@ -75,8 +76,8 @@ func TestStream_OverwriteExisting(t *testing.T) {
 	h.maxUploadBytes = DefaultMaxUploadBytes
 	put(t, filepath.Join(root, "f.txt"), "old-content")
 	resp := streamTo(t, h, "/files/stream?path=/f.txt", strings.NewReader("new"))
-	if resp.StatusCode != http.StatusNoContent {
-		t.Fatalf("status=%d, want 204", resp.StatusCode)
+	if resp.Code != http.StatusNoContent {
+		t.Fatalf("status=%d, want 204", resp.Code)
 	}
 	if got, _ := os.ReadFile(filepath.Join(root, "f.txt")); string(got) != "new" {
 		t.Fatalf("content=%q, want new", got)
@@ -89,8 +90,8 @@ func TestStream_ResumeAppendsAfterOffset(t *testing.T) {
 	h.maxUploadBytes = DefaultMaxUploadBytes
 	put(t, filepath.Join(root, "f.txt"), "abcdef")
 	resp := streamTo(t, h, "/files/stream?path=/f.txt&offset=3", strings.NewReader("XYZ"))
-	if resp.StatusCode != http.StatusNoContent {
-		t.Fatalf("status=%d, want 204", resp.StatusCode)
+	if resp.Code != http.StatusNoContent {
+		t.Fatalf("status=%d, want 204", resp.Code)
 	}
 	if got, _ := os.ReadFile(filepath.Join(root, "f.txt")); string(got) != "abcXYZ" {
 		t.Fatalf("content=%q, want abcXYZ", got)
@@ -103,8 +104,8 @@ func TestStream_OffsetBeyondSizeRejected(t *testing.T) {
 	h.maxUploadBytes = DefaultMaxUploadBytes
 	put(t, filepath.Join(root, "f.txt"), "abc")
 	resp := streamTo(t, h, "/files/stream?path=/f.txt&offset=10", strings.NewReader("XYZ"))
-	if resp.StatusCode != http.StatusRequestedRangeNotSatisfiable {
-		t.Fatalf("status=%d, want 416", resp.StatusCode)
+	if resp.Code != http.StatusRequestedRangeNotSatisfiable {
+		t.Fatalf("status=%d, want 416", resp.Code)
 	}
 	if got, _ := os.ReadFile(filepath.Join(root, "f.txt")); string(got) != "abc" {
 		t.Fatalf("existing file changed: %q", got)
@@ -116,8 +117,8 @@ func TestStream_OffsetMissingFileNotFound(t *testing.T) {
 	h, root, _ := raceHandler(t)
 	h.maxUploadBytes = DefaultMaxUploadBytes
 	resp := streamTo(t, h, "/files/stream?path=/missing.txt&offset=2", strings.NewReader("XY"))
-	if resp.StatusCode != http.StatusNotFound {
-		t.Fatalf("status=%d, want 404", resp.StatusCode)
+	if resp.Code != http.StatusNotFound {
+		t.Fatalf("status=%d, want 404", resp.Code)
 	}
 	assertNoStreamTemp(t, root)
 }
@@ -127,8 +128,8 @@ func TestStream_InvalidOffsetRejected(t *testing.T) {
 	h.maxUploadBytes = DefaultMaxUploadBytes
 	for _, off := range []string{"-1", "abc"} {
 		resp := streamTo(t, h, "/files/stream?path=/f.txt&offset="+off, strings.NewReader("x"))
-		if resp.StatusCode != http.StatusBadRequest {
-			t.Fatalf("offset=%s: status=%d, want 400", off, resp.StatusCode)
+		if resp.Code != http.StatusBadRequest {
+			t.Fatalf("offset=%s: status=%d, want 400", off, resp.Code)
 		}
 	}
 	assertNoStreamTemp(t, root)
@@ -139,8 +140,8 @@ func TestStream_SizeLimitBody(t *testing.T) {
 	h.maxUploadBytes = 4
 	put(t, filepath.Join(root, "f.txt"), "keep")
 	resp := streamTo(t, h, "/files/stream?path=/f.txt", strings.NewReader("12345"))
-	if resp.StatusCode != http.StatusRequestEntityTooLarge {
-		t.Fatalf("status=%d, want 413", resp.StatusCode)
+	if resp.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("status=%d, want 413", resp.Code)
 	}
 	if got, _ := os.ReadFile(filepath.Join(root, "f.txt")); string(got) != "keep" {
 		t.Fatalf("existing file changed: %q", got)
@@ -153,8 +154,8 @@ func TestStream_SizeLimitCountsOffset(t *testing.T) {
 	h.maxUploadBytes = 4
 	put(t, filepath.Join(root, "f.txt"), "abcdef")
 	resp := streamTo(t, h, "/files/stream?path=/f.txt&offset=3", strings.NewReader("XY"))
-	if resp.StatusCode != http.StatusRequestEntityTooLarge {
-		t.Fatalf("status=%d, want 413", resp.StatusCode)
+	if resp.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("status=%d, want 413", resp.Code)
 	}
 	assertNoStreamTemp(t, root)
 }
@@ -164,8 +165,8 @@ func TestStream_FreeSpaceRefusedBeforeWriting(t *testing.T) {
 	h.maxUploadBytes = DefaultMaxUploadBytes
 	h.freeBytes = func(int) (uint64, error) { return 2, nil }
 	resp := streamTo(t, h, "/files/stream?path=/new.txt", strings.NewReader("12345"))
-	if resp.StatusCode != http.StatusInsufficientStorage {
-		t.Fatalf("status=%d, want 507", resp.StatusCode)
+	if resp.Code != http.StatusInsufficientStorage {
+		t.Fatalf("status=%d, want 507", resp.Code)
 	}
 	if _, err := os.Lstat(filepath.Join(root, "new.txt")); !os.IsNotExist(err) {
 		t.Fatalf("file created despite refusal: err=%v", err)
@@ -178,8 +179,8 @@ func TestStream_ClientCancelKeepsExistingFile(t *testing.T) {
 	h.maxUploadBytes = DefaultMaxUploadBytes
 	put(t, filepath.Join(root, "f.txt"), "original")
 	resp := streamTo(t, h, "/files/stream?path=/f.txt", &cancelAfter{data: []byte("abc")})
-	if resp.StatusCode < 400 {
-		t.Fatalf("status=%d, want an error status", resp.StatusCode)
+	if resp.Code < 400 {
+		t.Fatalf("status=%d, want an error status", resp.Code)
 	}
 	if got, _ := os.ReadFile(filepath.Join(root, "f.txt")); string(got) != "original" {
 		t.Fatalf("existing file changed after cancel: %q", got)
@@ -191,8 +192,8 @@ func TestStream_DotfileRejected(t *testing.T) {
 	h, root, _ := raceHandler(t)
 	h.maxUploadBytes = DefaultMaxUploadBytes
 	resp := streamTo(t, h, "/files/stream?path=/.env", strings.NewReader("x"))
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatalf("status=%d, want 400", resp.StatusCode)
+	if resp.Code != http.StatusBadRequest {
+		t.Fatalf("status=%d, want 400", resp.Code)
 	}
 	assertNoStreamTemp(t, root)
 }
@@ -201,8 +202,8 @@ func TestStream_RootRejected(t *testing.T) {
 	h, _, _ := raceHandler(t)
 	h.maxUploadBytes = DefaultMaxUploadBytes
 	resp := streamTo(t, h, "/files/stream?path=/", strings.NewReader("x"))
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatalf("status=%d, want 400", resp.StatusCode)
+	if resp.Code != http.StatusBadRequest {
+		t.Fatalf("status=%d, want 400", resp.Code)
 	}
 }
 
@@ -213,8 +214,8 @@ func TestStream_SymlinkDestinationRefused(t *testing.T) {
 		t.Fatalf("symlink: %v", err)
 	}
 	resp := streamTo(t, h, "/files/stream?path=/link.txt", strings.NewReader("pwned"))
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatalf("status=%d, want 400", resp.StatusCode)
+	if resp.Code != http.StatusBadRequest {
+		t.Fatalf("status=%d, want 400", resp.Code)
 	}
 	assertOutsideUntouched(t, outside)
 	assertNoStreamTemp(t, root)
@@ -230,8 +231,8 @@ func TestStream_AncestorSwappedForSymlinkRejected(t *testing.T) {
 		swapForSymlink(t, filepath.Join(root, "sub"), outside)
 	})
 	resp := streamTo(t, h, "/files/stream?path=/sub/new.txt", strings.NewReader("payload"))
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatalf("status=%d, want 400", resp.StatusCode)
+	if resp.Code != http.StatusBadRequest {
+		t.Fatalf("status=%d, want 400", resp.Code)
 	}
 	assertOutsideUntouched(t, outside)
 }

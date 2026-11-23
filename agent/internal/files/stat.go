@@ -32,7 +32,7 @@ func (h *handler) statEntry(comps []string) (Entry, error) {
 		return Entry{}, err
 	}
 	defer closeFD(rootFD)
-	dirFD, name, err := h.locate(rootFD, comps, false)
+	dirFD, name, err := h.locate(rootFD, comps)
 	if err != nil {
 		return Entry{}, err
 	}

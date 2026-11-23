@@ -54,12 +54,12 @@ func (h *handler) renamePath(from, to []string, overwrite bool) error {
 		return err
 	}
 	defer closeFD(rootFD)
-	srcDir, srcName, err := h.locate(rootFD, from, false)
+	srcDir, srcName, err := h.locate(rootFD, from)
 	if err != nil {
 		return err
 	}
 	defer closeFD(srcDir)
-	dstDir, dstName, err := h.locate(rootFD, to, false)
+	dstDir, dstName, err := h.locate(rootFD, to)
 	if err != nil {
 		return err
 	}

@@ -59,8 +59,8 @@ func TestStream_ResumeSourceSwappedForDirectoryRejected(t *testing.T) {
 		}
 	})
 	resp := streamTo(t, h, "/files/stream?path=/f.txt&offset=1", strings.NewReader("x"))
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatalf("status=%d, want 400", resp.StatusCode)
+	if resp.Code != http.StatusBadRequest {
+		t.Fatalf("status=%d, want 400", resp.Code)
 	}
 	assertNoStreamTemp(t, root)
 }
@@ -70,8 +70,8 @@ func TestStream_FreeSpaceErrorFails(t *testing.T) {
 	h.maxUploadBytes = DefaultMaxUploadBytes
 	h.freeBytes = func(int) (uint64, error) { return 0, errors.New("statfs failed") }
 	resp := streamTo(t, h, "/files/stream?path=/f.txt", strings.NewReader("abc"))
-	if resp.StatusCode != http.StatusInternalServerError {
-		t.Fatalf("status=%d, want 500", resp.StatusCode)
+	if resp.Code != http.StatusInternalServerError {
+		t.Fatalf("status=%d, want 500", resp.Code)
 	}
 	if _, err := os.Stat(filepath.Join(root, "f.txt")); !os.IsNotExist(err) {
 		t.Fatalf("file written despite failed free-space check: %v", err)
@@ -108,8 +108,8 @@ func TestRoutesFailWhenRootIsMissing(t *testing.T) {
 
 func TestRename_MissingSourceParentNotFound(t *testing.T) {
 	h, _, _ := raceHandler(t)
-	if resp := doRename(t, h, "/nope/a.txt", "/b.txt", false); resp.StatusCode != http.StatusNotFound {
-		t.Fatalf("status=%d, want 404", resp.StatusCode)
+	if resp := doRename(t, h, "/nope/a.txt", "/b.txt", false); resp.Code != http.StatusNotFound {
+		t.Fatalf("status=%d, want 404", resp.Code)
 	}
 }
 
@@ -119,8 +119,8 @@ func TestRename_DirectoryIntoItselfRejected(t *testing.T) {
 		t.Fatal(err)
 	}
 	resp := doRename(t, h, "/d", "/d/sub/d", false)
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatalf("status=%d, want 400", resp.StatusCode)
+	if resp.Code != http.StatusBadRequest {
+		t.Fatalf("status=%d, want 400", resp.Code)
 	}
 	if info, err := os.Stat(filepath.Join(root, "d", "sub")); err != nil || !info.IsDir() {
 		t.Fatalf("source tree changed: %v", err)
@@ -134,8 +134,8 @@ func TestRename_DirectoryOverFileFails(t *testing.T) {
 	}
 	put(t, filepath.Join(root, "f.txt"), "keep")
 	resp := doRename(t, h, "/d", "/f.txt", true)
-	if resp.StatusCode < 400 {
-		t.Fatalf("status=%d, want an error", resp.StatusCode)
+	if resp.Code < 400 {
+		t.Fatalf("status=%d, want an error", resp.Code)
 	}
 	if got, err := os.ReadFile(filepath.Join(root, "f.txt")); err != nil || string(got) != "keep" {
 		t.Fatalf("destination changed: %q %v", got, err)

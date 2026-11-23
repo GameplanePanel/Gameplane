@@ -224,12 +224,12 @@ func (h *handler) walkDirs(rootFD int, comps []string, create, target bool) (int
 // locate opens the directory that holds the last component of comps and
 // returns it with that component's name. For the root itself (no components)
 // it returns the root directory and an empty name.
-func (h *handler) locate(rootFD int, comps []string, create bool) (int, string, error) {
+func (h *handler) locate(rootFD int, comps []string) (int, string, error) {
 	if len(comps) == 0 {
 		fd, err := h.walkDirs(rootFD, nil, false, false)
 		return fd, "", err
 	}
-	fd, err := h.walkDirs(rootFD, parentsOf(comps), create, false)
+	fd, err := h.walkDirs(rootFD, parentsOf(comps), false, false)
 	return fd, comps[len(comps)-1], err
 }
 
@@ -262,7 +262,7 @@ func (h *handler) listDir(comps []string) ([]Entry, error) {
 		return nil, err
 	}
 	defer closeFD(rootFD)
-	parentFD, name, err := h.locate(rootFD, comps, false)
+	parentFD, name, err := h.locate(rootFD, comps)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +319,7 @@ func (h *handler) openFile(comps []string) (*os.File, error) {
 		return nil, err
 	}
 	defer closeFD(rootFD)
-	parentFD, name, err := h.locate(rootFD, comps, false)
+	parentFD, name, err := h.locate(rootFD, comps)
 	if err != nil {
 		return nil, err
 	}
@@ -506,7 +506,7 @@ func (h *handler) removePath(comps []string, recursive bool) error {
 		return err
 	}
 	defer closeFD(rootFD)
-	parentFD, name, err := h.locate(rootFD, comps, false)
+	parentFD, name, err := h.locate(rootFD, comps)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// A missing parent was a generic 400 before descriptors; keep it.
