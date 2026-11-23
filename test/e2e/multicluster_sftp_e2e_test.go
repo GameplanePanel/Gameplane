@@ -94,13 +94,9 @@ func TestMultiCluster_SFTPRemoteEndpoint(t *testing.T) {
 	firstID, firstToken := mint()
 	_, _ = mint()
 
-	resp, body, err = admin.Post("/clusters/"+clusterID+"/sftp-token", nil)
-	if err != nil {
-		t.Fatalf("third POST sftp-token: %v", err)
-	}
-	_ = resp.Body.Close()
-	if resp.StatusCode != http.StatusConflict || !strings.Contains(string(body), "token_limit_reached") {
-		t.Fatalf("third sftp token: want 409 token_limit_reached, got status=%d body=%s", resp.StatusCode, body)
+	// Error ids travel in the problem+json body, so ask for it.
+	if status, id, _ := ssoRulesProblem(t, admin, http.MethodPost, "/clusters/"+clusterID+"/sftp-token", nil); status != http.StatusConflict || id != "server.sftp.token_limit_reached" {
+		t.Fatalf("third sftp token: want 409 server.sftp.token_limit_reached, got status=%d id=%s", status, id)
 	}
 
 	resp, body, err = admin.Get("/clusters/" + clusterID + "/sftp")
@@ -151,15 +147,11 @@ func TestMultiCluster_SFTPRemoteEndpoint(t *testing.T) {
 	}
 
 	// The panel's own cluster takes its endpoint from Helm, never from PUT.
-	resp, body, err = admin.Do(http.MethodPut, "/clusters/local/sftp", map[string]string{
+	status, id, _ := ssoRulesProblem(t, admin, http.MethodPut, "/clusters/local/sftp", map[string]string{
 		"address":            address,
 		"hostKeyFingerprint": fingerprint,
 	})
-	if err != nil {
-		t.Fatalf("PUT local sftp endpoint: %v", err)
-	}
-	_ = resp.Body.Close()
-	if resp.StatusCode < 400 || resp.StatusCode >= 500 || !strings.Contains(string(body), "endpoint_local") {
-		t.Fatalf("PUT local sftp endpoint: want a 4xx endpoint_local refusal, got status=%d body=%s", resp.StatusCode, body)
+	if status < 400 || status >= 500 || id != "server.sftp.endpoint_local" {
+		t.Fatalf("PUT local sftp endpoint: want a 4xx server.sftp.endpoint_local refusal, got status=%d id=%s", status, id)
 	}
 }
