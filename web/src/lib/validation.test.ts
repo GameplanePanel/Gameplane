@@ -29,7 +29,7 @@ describe("isValidK8sName", () => {
   it.each([
     ["mc", true],
     ["mc-hardcore", true],
-    ["x".repeat(63), true],
+    ["x".repeat(57), true],
     ["a1b2c3", true],
   ])("accepts %s", (s, expected) => {
     expect(isValidK8sName(s)).toBe(expected);
@@ -42,7 +42,7 @@ describe("isValidK8sName", () => {
     "-mc",
     "mc-",
     "mc_test",
-    "x".repeat(64),
+    "x".repeat(58),
     "1.2.3",
   ])("rejects %s", (s) => {
     expect(isValidK8sName(s)).toBe(false);

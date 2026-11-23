@@ -27,7 +27,7 @@ const QUANTITY = /^(\d+)(\.\d+)?(Ki|Mi|Gi|Ti|Pi|Ei|m|k|M|G|T|P|E)?$/;
 // after the server, and Service names must start with a letter (DNS-1035),
 // so a leading digit is rejected even though it is a valid DNS-1123 label.
 export function isValidK8sName(s: string): boolean {
-  return s.length > 0 && s.length <= 63 && DNS_LABEL.test(s) && /^[a-z]/.test(s);
+  return s.length > 0 && s.length <= 57 && DNS_LABEL.test(s) && /^[a-z]/.test(s);
 }
 
 export function isValidQuantity(s: string): boolean {

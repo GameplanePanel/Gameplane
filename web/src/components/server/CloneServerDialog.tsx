@@ -67,7 +67,7 @@ export function CloneServerDialog({
   });
   if (open !== resetFor.open || sourceName !== resetFor.sourceName) {
     setResetFor({ open, sourceName });
-    if (open) setNewName(`${sourceName.slice(0, 58)}-copy`);
+    if (open) setNewName(`${sourceName.slice(0, 52)}-copy`);
   }
 
   const clone = useMutation({
