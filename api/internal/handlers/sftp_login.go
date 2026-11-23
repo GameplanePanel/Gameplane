@@ -106,14 +106,14 @@ func (h *sftpLoginHandler) login(w http.ResponseWriter, req *http.Request) {
 
 	// Rate limits run before any validation or credential work (so refusals cannot flood the audit
 	// trail either), keyed like /auth/login: the source address the endpoint reports and the
-	// username. The request IP is always the SFTP pod, so it is not used. actor is the username
-	// capped to 64 runes for the audit trail and the rate-limit key; a longer SSO email name is
-	// truncated there but still authenticates by its full value (base).
+	// full username. The request IP is always the SFTP pod, so it is not used. actor is the username
+	// capped to 64 runes for the audit trail only; the username budget keys on the full base, so two
+	// long SSO email names that share a 64-rune prefix do not share a budget.
 	auth.SetActor(ctx, actor)
 	if !auth.LoginLimiter.RequestBudget(w, req, sftpSourceKey(body.RemoteAddr, req)) {
 		return
 	}
-	if !auth.LoginUserLimiter.RequestBudget(w, req, actor) {
+	if !auth.LoginUserLimiter.RequestBudget(w, req, base) {
 		return
 	}
 
