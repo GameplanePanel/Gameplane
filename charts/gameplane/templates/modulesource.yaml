@@ -1,7 +1,7 @@
 {{- /*
 The chart's ModuleSources. With the CRD apply hook on (the default), the CRDs
 do not exist yet when Helm checks the release's objects on a fresh install,
-so these are NOT release objects: the hook Job server-side applies them right
+so these are NOT release objects: a hook Job server-side applies them right
 after the CRDs (see crd-apply-hook.yaml), stamped helm.sh/resource-policy=keep
 so the upgrade that moves them out of the release does not delete them (and
 the Modules they own). With the hook off (crds.autoApply.enabled=false, e.g.

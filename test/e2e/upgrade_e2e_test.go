@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -144,6 +143,14 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		tag = "e2e"
 	}
 
+	// The previous release owns its "uploads" ModuleSource as a release
+	// object. This chart applies it from a hook instead, so the upgrade must
+	// keep that object (and the Modules it owns), not delete and recreate it.
+	uploadsBefore, err := envInstance.Dyn.Resource(moduleSourceGVR).Get(ctx, "uploads", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("read the previous release's uploads ModuleSource: %v", err)
+	}
+
 	// ---- 3. upgrade to the working tree ----------------------------------
 	// Exercise the SSA migration even when the published fixture already uses
 	// Recreate: Kubernetes defaults rollingUpdate on this merge patch.
@@ -181,6 +188,18 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	}
 	if operator.Spec.Strategy.Type != "Recreate" || operator.Spec.Strategy.RollingUpdate != nil {
 		t.Fatalf("operator strategy migration retained RollingUpdate fields: %+v", operator.Spec.Strategy)
+	}
+
+	uploadsAfter, err := envInstance.Dyn.Resource(moduleSourceGVR).Get(ctx, "uploads", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("uploads ModuleSource missing after the upgrade: %v", err)
+	}
+	if uploadsAfter.GetUID() != uploadsBefore.GetUID() {
+		t.Errorf("upgrade recreated the uploads ModuleSource (UID %s -> %s); Helm deleted the object "+
+			"the previous release owned", uploadsBefore.GetUID(), uploadsAfter.GetUID())
+	}
+	if got := uploadsAfter.GetAnnotations()["helm.sh/resource-policy"]; got != "keep" {
+		t.Errorf("uploads ModuleSource helm.sh/resource-policy = %q after the upgrade, want \"keep\"", got)
 	}
 
 	afterIdentity := readUpgradeIdentity(ctx, t, "gameplane-agent-ca")
@@ -408,21 +427,11 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 				"on pre-install (F-218)", p, fromVersion)
 		}
 	}
-	// The schema check above would also pass if the hook fired on EVERY
-	// install. Pin down exactly which path brought the schema up to date,
-	// and that it left the CRDs carrying the chart's stamp, which is what
-	// keeps the next genuinely fresh install from firing the hook.
-	// TestHelmInstall_CRDApplyHookSkippedOnFreshInstall covers the other
-	// half on a fresh cluster.
-	//   - Helm 3: crds/ skipped the leftover CRDs, so the hook must have fired
-	//     on pre-install BECAUSE they carried no stamp.
-	//   - Helm 4: crds/ server-side-applied them (stamp included) before the
-	//     templates were rendered, so the stamps matched and the hook must
-	//     NOT have fired on pre-install.
+	// Pin down which path brought the schema up to date: the hook, rendered
+	// for pre-install (the chart has no crds/ phase any more), and that it
+	// left the CRDs carrying the chart's stamp.
+	// TestHelmInstall_CRDApplyHookRunsOnFreshInstall covers a fresh cluster.
 	wantEvents := "pre-install,pre-upgrade"
-	if helmMajorVersion(ctx, t) >= 4 {
-		wantEvents = "pre-upgrade"
-	}
 	if got := crdApplyHookEvents(ctx, t, "gameplane", "gameplane-system"); got != wantEvents {
 		t.Errorf("install over unstamped leftover CRDs rendered the crd-apply hook for %q, "+
 			"want %q (F-218)", got, wantEvents)
@@ -797,25 +806,6 @@ func crdApplyHookEvents(ctx context.Context, t *testing.T, release, namespace st
 	t.Fatalf("release %s in %s has no %s-crd-apply Job hook (is crds.autoApply enabled?)",
 		release, namespace, release)
 	return ""
-}
-
-// helmMajorVersion returns the major version of the helm binary on PATH
-// (3 or 4). Helm 3 and 4 install crds/ differently (create-and-skip vs
-// server-side apply), which decides whether the crd-apply hook is needed on
-// an install over leftover CRDs.
-func helmMajorVersion(ctx context.Context, t *testing.T) int {
-	t.Helper()
-	out, err := exec.CommandContext(ctx, "helm", "version", "--template", "{{.Version}}").Output()
-	if err != nil {
-		t.Fatalf("helm version: %v", err)
-	}
-	v := strings.TrimPrefix(strings.TrimSpace(string(out)), "v")
-	major, _, _ := strings.Cut(v, ".")
-	n, err := strconv.Atoi(major)
-	if err != nil {
-		t.Fatalf("parse helm version %q: %v", out, err)
-	}
-	return n
 }
 
 // manifestCRDStamp reads the bundle-hash stamp from the working-tree chart's

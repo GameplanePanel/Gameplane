@@ -70,7 +70,7 @@ func TestHelmInstall_AllPodsReady(t *testing.T) {
 
 // TestHelmInstall_AllCRDsPresent — every Gameplane CRD declared by the
 // chart is reachable via discovery. Catches a missing CRD YAML in
-// `charts/gameplane/charts/gameplane-crds/crds/` from a future refactor.
+// `charts/gameplane/crd-manifests/` from a future refactor.
 func TestHelmInstall_AllCRDsPresent(t *testing.T) {
 	t.Parallel()
 
@@ -97,26 +97,20 @@ func TestHelmInstall_AllCRDsPresent(t *testing.T) {
 	}
 }
 
-// TestHelmInstall_CRDApplyHookSkippedOnFreshInstall — the other half of
-// F-218. deploy/kind/e2e.sh installs the chart onto a brand-new kind cluster,
-// so Helm's native crds/ step creates every CRD (carrying this chart's
-// bundle-hash stamp) before templates are rendered. The crds.autoApply hook
-// must recognise those as current and stay pre-upgrade only: firing on
-// every install would make air-gapped first installs pull the kubectl image
-// and add a Job to every install. A bare "does the CRD exist" check fired on
-// every install for exactly that reason, and the upgrade bucket's
-// install-over-leftover-CRDs phase cannot catch it, since the hook is
-// supposed to fire there.
-func TestHelmInstall_CRDApplyHookSkippedOnFreshInstall(t *testing.T) {
+// TestHelmInstall_CRDApplyHookRunsOnFreshInstall — the chart no longer
+// bundles a crds/ subchart, so on the brand-new kind cluster deploy/kind/e2e.sh
+// installs onto, the crds.autoApply hook is what creates the CRDs. It must
+// therefore be rendered for pre-install as well as pre-upgrade, and the CRDs
+// it applied must carry the chart's bundle-hash stamp.
+func TestHelmInstall_CRDApplyHookRunsOnFreshInstall(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	if got := crdApplyHookEvents(ctx, t, "gameplane", "gameplane-system"); got != "pre-upgrade" {
-		t.Errorf("fresh install rendered the crd-apply hook for %q, want \"pre-upgrade\" only "+
-			"(the hook must not run on an install whose CRDs crds/ just created)", got)
+	if got := crdApplyHookEvents(ctx, t, "gameplane", "gameplane-system"); got != "pre-install,pre-upgrade" {
+		t.Errorf("fresh install rendered the crd-apply hook for %q, want \"pre-install,pre-upgrade\" "+
+			"(the hook is what installs the CRDs)", got)
 	}
-	// The stamps matching is WHY it stayed pre-upgrade; a mismatch here means
-	// crds/ and crd-manifests/ disagree, which CI's chart render job guards.
+	// The hook applied crd-manifests/, so the live stamp is the chart's.
 	want := manifestCRDStamp(t, "gameplane.local_gameservers.yaml")
 	if got := liveCRDStamp(ctx, t, "gameservers.gameplane.local"); got != want {
 		t.Errorf("live gameservers CRD %s = %q on a fresh install, want the chart's %q",

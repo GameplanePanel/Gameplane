@@ -10,8 +10,8 @@ and a plain `helm upgrade` always brings the schema up to date (Helm itself
 never updates CRDs). The kubectl image is therefore needed on every install;
 air-gapped clusters mirror crds.autoApply.image.
 
-Once the CRDs are Established the same Job server-side applies the chart's
-ModuleSources (modulesource.yaml). They cannot be release objects here:
+Once the CRDs are Established a second hook Job, <release>-module-sources,
+server-side applies the chart's ModuleSources (modulesource.yaml). They cannot be release objects here:
 Helm resolves every release object's kind before it runs pre-install hooks,
 and on a fresh cluster the ModuleSource kind does not exist yet.
 
@@ -192,11 +192,11 @@ spec:
         runAsUser: 65532
         fsGroup: 65532
         seccompProfile: { type: RuntimeDefault }
-      initContainers:
       {{- /* The target may be enabled for the first time during this upgrade.
              Only an existing Deployment needs migration; a lookup error fails
              rendering, while NotFound safely skips the patch. */}}
       {{- if and (eq (include "gameplane.apiEnabled" .) "true") (not (.Values.api.postgresHA | default dict).enabled) .Release.IsUpgrade (lookup "apps/v1" "Deployment" .Release.Namespace "gameplane-api") }}
+      initContainers:
         # Clear the stale spec.strategy.rollingUpdate left by releases that
         # predate the Recreate strategy — see the Role above for why Helm
         # cannot do this itself. An initContainer rather than a second command
@@ -233,6 +233,7 @@ spec:
           volumeMounts:
             - { name: tmp, mountPath: /tmp }
       {{- end }}
+      containers:
         # --field-manager=helm: Helm 4 installs crds/ with a server-side
         # apply under field manager "helm" and WITHOUT --force-conflicts.
         # .spec.versions is an atomic list, so under kubectl's default
@@ -243,7 +244,7 @@ spec:
         # .spec.versions". Applying as "helm" keeps one owner.
         # --force-conflicts still takes the fields over from any other
         # manager (e.g. "kubectl" from an older release's hook).
-        - name: apply-crds
+        - name: kubectl
           image: {{ .Values.crds.autoApply.image | quote }}
           imagePullPolicy: {{ .Values.crds.autoApply.pullPolicy }}
           command: ["kubectl", "apply", "--server-side", "--force-conflicts", "--field-manager=helm", "-f", "/crds"]
@@ -261,9 +262,46 @@ spec:
           volumeMounts:
             - { name: crds, mountPath: /crds, readOnly: true }
             - { name: tmp, mountPath: /tmp }
-      {{- if $moduleSources }}
-        # The kubectl image is distroless (no shell to chain commands), so
-        # waiting for the new kinds to be served is its own step.
+      volumes:
+        - name: crds
+          configMap:
+            name: {{ .Release.Name }}-crd-manifests
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+{{- if $moduleSources }}
+---
+# A second hook Job, weighted after the CRD apply above: Helm runs a hook
+# event's hooks in weight order and waits for each Job to finish, so the CRDs
+# exist by the time this one starts.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-module-sources
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml (merge (dict "helm.sh/hook-weight" "5") $hookAnnotations) | nindent 4 }}
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gameplane-module-sources
+        {{- include "gameplane.labels" . | nindent 8 }}
+    spec:
+      {{- include "gameplane.placement" .Values.crds.autoApply | nindent 6 }}
+      serviceAccountName: {{ .Release.Name }}-crd-apply
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      initContainers:
         - name: wait-crds
           image: {{ .Values.crds.autoApply.image | quote }}
           imagePullPolicy: {{ .Values.crds.autoApply.pullPolicy }}
@@ -305,41 +343,19 @@ spec:
           volumeMounts:
             - { name: module-sources, mountPath: /module-sources, readOnly: true }
             - { name: tmp, mountPath: /tmp }
-      {{- else }}
-      containers:
-        - name: wait-crds
-          image: {{ .Values.crds.autoApply.image | quote }}
-          imagePullPolicy: {{ .Values.crds.autoApply.pullPolicy }}
-          command: ["kubectl", "wait", "--for=condition=Established", "--timeout=120s", "-f", "/crds"]
-          env:
-            # kubectl caches API discovery under $HOME/.kube; point it at the
-            # writable emptyDir so readOnlyRootFilesystem holds.
-            - { name: HOME, value: /tmp }
-          resources:
-            requests: { cpu: 50m, memory: 64Mi }
-            limits:   { cpu: 500m, memory: 256Mi }
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities: { drop: [ALL] }
-          volumeMounts:
-            - { name: crds, mountPath: /crds, readOnly: true }
-            - { name: tmp, mountPath: /tmp }
-      {{- end }}
       volumes:
         - name: crds
           configMap:
             name: {{ .Release.Name }}-crd-manifests
-        {{- if $moduleSources }}
         - name: module-sources
           configMap:
             name: {{ .Release.Name }}-module-sources
-        {{- end }}
         - name: tmp
           emptyDir: {}
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets: {{ toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}
 {{- end }}
 
 {{- end }}

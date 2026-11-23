@@ -971,7 +971,7 @@ and upgrade pulls the hook's `kubectl` image, so mirror
 
 Helm checks every release object's kind before it runs pre-install hooks, and
 a ModuleSource can't be created before its CRD exists. So once the CRDs are
-Established, the same Job server-side applies the chart's ModuleSources
+Established, a second hook Job (`<release>-module-sources`) server-side applies the chart's ModuleSources
 (`defaultModuleSource`, `uploadModuleSource`) with the annotation
 `helm.sh/resource-policy: keep`. They are not release objects: `helm
 uninstall` leaves them in place, and turning `defaultModuleSource.enabled` off
@@ -998,9 +998,9 @@ The same CRDs are published on their own as the
 
 ```mermaid
 flowchart TD
-  start["helm install or helm upgrade"] --> hook["pre-install/pre-upgrade hook Job"]
-  hook --> crds["kubectl apply --server-side crd-manifests/"]
-  crds --> wait["kubectl wait: CRDs Established"]
+  start["helm install or helm upgrade"] --> hook["pre-install/pre-upgrade hooks"]
+  hook --> crds["crd-apply Job: kubectl apply --server-side crd-manifests/"]
+  crds --> wait["module-sources Job: kubectl wait for CRDs Established"]
   wait --> ms["kubectl apply --server-side the chart's ModuleSources (resource-policy keep)"]
   ms --> rel["Helm installs or upgrades the release objects"]
 ```

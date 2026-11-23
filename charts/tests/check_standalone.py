@@ -23,6 +23,28 @@ def assert_crds(objects, expected):
     assert set(names) == expected and len(names) == len(expected), names
 
 
+def hook_crds(objects):
+    """Return the CRD names the crd-apply hook ConfigMap carries, rejecting duplicates."""
+    data = one(objects, "ConfigMap", "gameplane-crd-manifests")["data"]
+    names = [yaml.safe_load(content)["metadata"]["name"] for content in data.values()]
+    assert len(names) == len(set(names)), names
+    return set(names)
+
+
+def hook_module_sources(objects):
+    """Return the ModuleSources the crd-apply hook applies, by name."""
+    data = one(objects, "ConfigMap", "gameplane-module-sources")["data"]["module-sources.yaml"]
+    return {obj["metadata"]["name"]: obj for obj in yaml.safe_load_all(data) if obj}
+
+
+def assert_hook_crds(objects):
+    """No native CRDs; the pre-install/pre-upgrade hook carries every CRD."""
+    assert_crds(objects, set())
+    assert hook_crds(objects) == EXPECTED_CRDS
+    job = one(objects, "Job", "gameplane-crd-apply")
+    assert job["metadata"]["annotations"]["helm.sh/hook"] == "pre-install,pre-upgrade"
+
+
 def check_packaged_crds(example):
     """Verify vendored chart archives preserve CRD gating for each install role."""
     # Package only vendored files. Dependency downloads/builds would hide a
@@ -35,7 +57,7 @@ def check_packaged_crds(example):
         assert len(packages) == 1, packages
         for upgrade in (False, True):
             for values in ({}, {"api": {"enabled": False}}):
-                assert_crds(render(values, chart=packages[0], include_crds=True, upgrade=upgrade), EXPECTED_CRDS)
+                assert_hook_crds(render(values, chart=packages[0], include_crds=True, upgrade=upgrade))
             for values in ({"operator": {"enabled": False}, "api": {"standalone": True}}, example):
                 objects = render(values, chart=packages[0], include_crds=True, upgrade=upgrade)
                 assert_crds(objects, set())
@@ -131,10 +153,15 @@ def main():
     check_api_availability()
     check_native_permissions()
     defaults = render(include_crds=True)
-    assert_crds(defaults, EXPECTED_CRDS)
+    assert_hook_crds(defaults)
     one(defaults, "Deployment", "gameplane-operator")
     one(defaults, "Deployment", "gameplane-api")
-    one(defaults, "ModuleSource", "default")
+    assert not any(obj["kind"] == "ModuleSource" for obj in defaults)
+    default_source = hook_module_sources(defaults)["default"]
+    assert default_source["metadata"]["annotations"]["helm.sh/resource-policy"] == "keep"
+    # Without the hook the CRDs come from elsewhere first, so the
+    # ModuleSource stays an ordinary release object.
+    one(render({"crds": {"autoApply": {"enabled": False}}}), "ModuleSource", "default")
     api_rules = one(defaults, "ClusterRole", "gameplane-api-read")["rules"]
     assert all(set(rule["verbs"]) <= {"get", "list", "watch"} for rule in api_rules)
     registration = one(defaults, "ClusterRole", "gameplane-api-cluster-registration")
@@ -223,7 +250,7 @@ def main():
     assert "--remote-allowed-cidrs=10.20.0.0/16,fd12:3456::/48" in args
 
     remote = render({"api": {"enabled": False}}, include_crds=True)
-    assert_crds(remote, EXPECTED_CRDS)
+    assert_hook_crds(remote)
     one(remote, "Deployment", "gameplane-operator")
     one(remote, "Secret", "gameplane-agent-ca")
     assert not any(obj["metadata"]["name"] in {"gameplane-api", "gameplane-web"} for obj in remote)
@@ -242,8 +269,8 @@ def main():
         assert_crds(objects, set())
         one(objects, "Deployment", "gameplane-api")
         assert not any("crd-apply" in obj["metadata"]["name"] for obj in objects), objects
-        assert_crds(render(include_crds=True, upgrade=upgrade), EXPECTED_CRDS)
-        assert_crds(render({"api": {"enabled": False}}, include_crds=True, upgrade=upgrade), EXPECTED_CRDS)
+        assert_hook_crds(render(include_crds=True, upgrade=upgrade))
+        assert_hook_crds(render({"api": {"enabled": False}}, include_crds=True, upgrade=upgrade))
     check_packaged_crds(example)
 
 

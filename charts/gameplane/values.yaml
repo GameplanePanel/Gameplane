@@ -47,7 +47,7 @@ image:
 # CRD lifecycle. The chart installs and updates its CRDs with a hook Job that
 # runs `kubectl apply --server-side` over crd-manifests/ on pre-INSTALL and
 # pre-UPGRADE (Helm's own crds/ phase never updates CRDs on upgrade). Once the
-# CRDs are served, the same Job applies the chart's ModuleSources
+# CRDs are served, a second hook Job applies the chart's ModuleSources
 # (defaultModuleSource, uploadModuleSource) with helm.sh/resource-policy=keep,
 # since Helm cannot create objects of a kind that does not exist yet. It never
 # deletes CRDs, so `helm uninstall` leaves your GameServers intact; the
