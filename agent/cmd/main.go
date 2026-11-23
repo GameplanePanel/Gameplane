@@ -42,26 +42,27 @@ var Version = "dev"
 // main is the entrypoint for the Gameplane sidecar agent process.
 func main() {
 	var (
-		addr         string
-		metricsAddr  string
-		dataRoot     string
-		rconHost     string
-		rconPort     int
-		rconPassFile string
-		rconEnabled  bool
-		rconProtocol string
-		gameLogPath  string
-		certFile     string
-		keyFile      string
-		clientCAFile string
-		apiTokenFile string
-		serverName   string
-		serverUID    string
-		templateName string
-		gameName     string
-		capsJSON     string
-		cliPipe      string
-		logLevel     string
+		addr           string
+		metricsAddr    string
+		dataRoot       string
+		rconHost       string
+		rconPort       int
+		rconPassFile   string
+		rconEnabled    bool
+		rconProtocol   string
+		gameLogPath    string
+		certFile       string
+		keyFile        string
+		clientCAFile   string
+		apiTokenFile   string
+		serverName     string
+		serverUID      string
+		templateName   string
+		gameName       string
+		capsJSON       string
+		cliPipe        string
+		logLevel       string
+		maxUploadBytes int64
 	)
 	flag.StringVar(&addr, "addr", ":8090", "HTTP listen address")
 	flag.StringVar(&metricsAddr, "metrics-addr", envOr("GAMEPLANE_METRICS_ADDR", ":9090"),
@@ -96,6 +97,8 @@ func main() {
 		"declared game capabilities (JSON, from GameTemplate spec.capabilities)")
 	flag.StringVar(&logLevel, "log-level", envOr("GAMEPLANE_LOG_LEVEL", "info"),
 		"log verbosity: debug, info, warn, or error")
+	flag.Int64Var(&maxUploadBytes, "max-upload-bytes", files.DefaultMaxUploadBytes,
+		"size limit in bytes for one /files/stream upload (Helm files.maxUploadSize)")
 	flag.Parse()
 
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: parseLogLevel(logLevel)}))
@@ -196,7 +199,7 @@ func main() {
 		logs.Mount(protected, dataRoot, gameLogPath)
 		console.Mount(protected, rconClient)
 		mods.Mount(protected, dataRoot, modsSpec)
-		files.Mount(protected, dataRoot)
+		files.Mount(protected, dataRoot, files.WithMaxUploadBytes(maxUploadBytes))
 
 		protected.Group(func(bounded chi.Router) {
 			bounded.Use(middleware.Timeout(30 * time.Second))
