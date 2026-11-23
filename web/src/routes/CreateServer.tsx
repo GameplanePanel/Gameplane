@@ -698,7 +698,17 @@ function PickTemplate({
           return (
             <button
               key={t.metadata.name}
-              onClick={() => setState({ ...state, template: t, config: {}, version: defaultVersionId(t) ?? "" })}
+              onClick={() =>
+                setState({
+                  ...state,
+                  template: t,
+                  config: {},
+                  version: defaultVersionId(t) ?? "",
+                  // Overrides were chosen (and any risky value confirmed)
+                  // against the previous module, so a new template starts clean.
+                  ...(active ? {} : { security: undefined, securityDraftValid: undefined }),
+                })
+              }
               className={cn(
                 "rounded-lg border p-4 text-left transition-colors",
                 active ? "border-primary bg-primary/5"
