@@ -112,7 +112,7 @@ export function AddKeyDialog({
                   rows={4}
                   value={publicKey}
                   onChange={(e) => setPublicKey(e.target.value)}
-                  placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7d... laptop"
+                  placeholder={intl.formatMessage({ id: "web.components.sftp.public_key_placeholder", defaultMessage: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7d... laptop", description: "SFTP add-key dialog: example public key in the empty key box; keep the key text, only the trailing name may be translated" })}
                   disabled={busy}
                   className="w-full rounded-xl border border-default-300 bg-default-100 p-3 font-mono text-xs text-foreground placeholder:text-foreground/40"
                 />

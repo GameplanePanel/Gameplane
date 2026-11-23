@@ -119,7 +119,10 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
   const [newFileOpen, setNewFileOpen] = useState(false);
 
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
-  const [uploads, setUploads] = useState<UploadItem[]>([]);
+  const [uploads, setUploadState] = useState<UploadItem[]>([]);
+  // uploadsRef mirrors uploads so the queue can decide its next step from
+  // event handlers and upload callbacks without waiting for a render.
+  const uploadsRef = useRef<UploadItem[]>([]);
   const uploadIdRef = useRef(0);
   const uploadControllers = useRef(new Map<number, AbortController>());
 
@@ -260,27 +263,37 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
   // Uploads run one at a time through the streaming route (FR-018b). Each file
   // keeps its own state so the tray can show progress, cancel and retry.
   const uploadRunning = uploads.some((item) => item.status === "uploading");
-  useEffect(() => {
-    if (uploadRunning) return;
-    const next = uploads.find((item) => item.status === "waiting");
+  function setUploads(update: (current: UploadItem[]) => UploadItem[]) {
+    uploadsRef.current = update(uploadsRef.current);
+    setUploadState(uploadsRef.current);
+  }
+
+  // pumpUploads starts the next waiting file when none is running. It runs
+  // after every change to the queue: a new batch, a retry, a cancel, or an
+  // upload that settles.
+  function pumpUploads() {
+    const current = uploadsRef.current;
+    if (current.some((item) => item.status === "uploading")) return;
+    const next = current.find((item) => item.status === "waiting");
     if (!next) {
       // The batch is over: its done and cancelled rows go. Failed rows stay until retried or replaced.
-      if (uploads.some((item) => item.status === "done" || item.status === "cancelled")) {
-        setUploads((current) => current.filter((item) => item.status === "failed"));
+      if (current.some((item) => item.status === "done" || item.status === "cancelled")) {
+        setUploads((list) => list.filter((item) => item.status === "failed"));
       }
       return;
     }
     const id = next.id;
     const controller = new AbortController();
     uploadControllers.current.set(id, controller);
-    setUploads((current) => current.map((item) => (item.id === id ? { ...item, status: "uploading", loaded: 0 } : item)));
+    setUploads((list) => list.map((item) => (item.id === id ? { ...item, status: "uploading", loaded: 0 } : item)));
     const settle = (patch: Partial<UploadItem>) => {
       uploadControllers.current.delete(id);
-      setUploads((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+      setUploads((list) => list.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+      pumpRef.current();
     };
     void Files.uploadStream(name, next.dir, next.file, {
       signal: controller.signal,
-      onProgress: (loaded) => setUploads((current) => current.map((item) => (item.id === id && item.status === "uploading" ? { ...item, loaded } : item))),
+      onProgress: (loaded) => setUploads((list) => list.map((item) => (item.id === id && item.status === "uploading" ? { ...item, loaded } : item))),
     }, ns)
       .then(() => {
         settle({ status: "done", loaded: next.file.size });
@@ -291,8 +304,10 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
         if (err instanceof DOMException && err.name === "AbortError") settle({ status: "cancelled" });
         else settle({ status: "failed", error: err });
       });
-    // Settling the upload changes uploads, which re-runs this effect for the next file.
-  }, [uploads, uploadRunning, Files, name, ns, qc, resourceTarget]);
+  }
+  // A settling upload calls the latest pumpUploads, so the next file uses the current server and client.
+  const pumpRef = useRef(pumpUploads);
+  useLayoutEffect(() => { pumpRef.current = pumpUploads; });
 
   // Leaving the browser (or switching server) cancels what is still in flight.
   useEffect(() => {
@@ -304,6 +319,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
     const items: UploadItem[] = files.map((file) => ({ id: ++uploadIdRef.current, file, dir: cwd, status: "waiting", loaded: 0 }));
     // A new batch replaces the finished rows; cancelled rows stay until then.
     setUploads((current) => [...current.filter((item) => item.status !== "done" && item.status !== "cancelled"), ...items]);
+    pumpUploads();
   }
 
   function onUploadPicked(e: ChangeEvent<HTMLInputElement>) {
@@ -315,7 +331,10 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
   function cancelUpload(id: number) {
     const controller = uploadControllers.current.get(id);
     if (controller) controller.abort();
-    else setUploads((current) => current.map((item) => (item.id === id && item.status === "waiting" ? { ...item, status: "cancelled" } : item)));
+    else {
+      setUploads((current) => current.map((item) => (item.id === id && item.status === "waiting" ? { ...item, status: "cancelled" } : item)));
+      pumpUploads();
+    }
   }
 
   function cancelAllUploads() {
@@ -326,6 +345,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
 
   function retryUpload(id: number) {
     setUploads((current) => current.map((item) => (item.id === id && item.status === "failed" ? { ...item, status: "waiting", loaded: 0, error: undefined } : item)));
+    pumpUploads();
   }
 
   function downloadSelected() {

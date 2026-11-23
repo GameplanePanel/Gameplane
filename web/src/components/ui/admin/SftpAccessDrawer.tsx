@@ -87,7 +87,7 @@ export function SftpAccessDrawer({
                     {data.keys.map((k) => (
                       <div key={k.id} className="flex items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">
-                          <p className="font-mono text-sm break-all">{k.name} · {k.type}</p>
+                          <p className="font-mono text-sm break-all">{intl.formatMessage({ id: "web.components.sftp.key_name_type", defaultMessage: "{name} · {type}", description: "Admin SFTP access drawer: an SSH key row, its name then its key type" }, { name: k.name, type: k.type })}</p>
                           <p className="font-mono text-xs break-all">{k.fingerprint}</p>
                           <p className="text-xs text-muted">
                             {intl.formatMessage({ id: "web.components.ui.admin.sftp_access_drawer.key_added_last_used", defaultMessage: "Added {added} · {lastUsed}", description: "Admin SFTP drawer: when a key was added and last used; {added} and {lastUsed} are relative times" }, { added: formatRelative(k.createdAt, intl), lastUsed: k.lastUsedAt ? formatRelative(k.lastUsedAt, intl) : intl.formatMessage({ id: "web.components.ui.admin.sftp_access_drawer.never_used", defaultMessage: "Never used", description: "Admin SFTP drawer: a key that has never logged in" }) })}

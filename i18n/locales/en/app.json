@@ -4259,6 +4259,10 @@
     "defaultMessage": "Each character is drawn at random from the 94 printable ASCII characters (no spaces) with a cryptographically secure generator.",
     "description": "SFTP generate dialog: explains how the password is generated"
   },
+  "web.components.sftp.fingerprint_placeholder": {
+    "defaultMessage": "SHA256:",
+    "description": "Cluster SFTP drawer: placeholder in the host key fingerprint field; the fingerprint format prefix, keep as is"
+  },
   "web.components.sftp.generate": {
     "defaultMessage": "Generate",
     "description": "SFTP generate dialog: submit button label; keep it short"
@@ -4270,6 +4274,10 @@
   "web.components.sftp.generate_sftp_password": {
     "defaultMessage": "Generate SFTP password",
     "description": "SFTP generate dialog: heading and the title of the dialog"
+  },
+  "web.components.sftp.key_name_type": {
+    "defaultMessage": "{name} · {type}",
+    "description": "Admin SFTP access drawer: an SSH key row, its name then its key type"
   },
   "web.components.sftp.laptop": {
     "defaultMessage": "laptop",
@@ -4298,6 +4306,10 @@
   "web.components.sftp.public_key": {
     "defaultMessage": "Public key",
     "description": "SFTP add-key dialog: label above the public key text box"
+  },
+  "web.components.sftp.public_key_placeholder": {
+    "defaultMessage": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7d... laptop",
+    "description": "SFTP add-key dialog: example public key in the empty key box; keep the key text, only the trailing name may be translated"
   },
   "web.components.sftp.replaces_your_current_password": {
     "defaultMessage": "Replaces your current password.",
@@ -8527,6 +8539,10 @@
     "defaultMessage": "Added {added} · {lastUsed}",
     "description": "SFTP page: when a key was added and when it was last used; {added} and {lastUsed} are relative times"
   },
+  "web.routes.profile_sftp.key_type_fingerprint": {
+    "defaultMessage": "{type} · {fingerprint}",
+    "description": "SFTP page: an SSH key row, its key type then its fingerprint"
+  },
   "web.routes.profile_sftp.load_failed": {
     "defaultMessage": "Could not load your SFTP access.",
     "description": "SFTP page: error shown when the credentials cannot be loaded"
@@ -8635,9 +8651,17 @@
     "defaultMessage": "Opens a server in another namespace (mods)",
     "description": "SFTP page: explains the user+namespace/server username form; mods is an example namespace name"
   },
+  "web.routes.profile_sftp.username_namespace_form": {
+    "defaultMessage": "{username}+mods/'<'server'>'",
+    "description": "SFTP page: the user+namespace/server username form; mods is an example namespace, <server> a placeholder"
+  },
   "web.routes.profile_sftp.username_one_server": {
     "defaultMessage": "Opens straight in the files of that server",
     "description": "SFTP page: explains the user+server username form"
+  },
+  "web.routes.profile_sftp.username_server_form": {
+    "defaultMessage": "{username}+'<'server'>'",
+    "description": "SFTP page: the user+server username form; <server> is a placeholder the user replaces with a server name"
   },
   "web.routes.server_detail.loading": {
     "defaultMessage": "Loading…",

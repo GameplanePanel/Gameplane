@@ -128,8 +128,8 @@ export function ClusterSftpDrawer({
                       {data.local ? (
                         <>
                           <p className="text-sm text-muted">{intl.formatMessage({ id: "web.components.sftp.cluster_drawer.local_note", defaultMessage: "This is the panel's own cluster. Its address comes from the chart and its host key fingerprint from the panel's host key.", description: "Cluster SFTP drawer: note for the panel's own cluster, whose endpoint is read-only and comes from the chart and host key" })}</p>
-                          <p className="break-all font-mono text-sm">{data.address ?? "—"}</p>
-                          <p className="break-all font-mono text-xs">{data.hostKeyFingerprint ?? "—"}</p>
+                          <p className="break-all font-mono text-sm">{data.address ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</p>
+                          <p className="break-all font-mono text-xs">{data.hostKeyFingerprint ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</p>
                         </>
                       ) : (
                         <form
@@ -145,7 +145,7 @@ export function ClusterSftpDrawer({
                           </div>
                           <div className="space-y-1">
                             <Label htmlFor="cluster-sftp-fingerprint">{intl.formatMessage({ id: "web.components.sftp.cluster_drawer.host_key_fingerprint", defaultMessage: "Host key fingerprint (from the cluster registration)", description: "Cluster SFTP drawer: label for the host key fingerprint field; the value comes from the cluster registration" })}</Label>
-                            <Input id="cluster-sftp-fingerprint" value={fingerprint} onChange={(event) => setFingerprintDraft(event.target.value)} placeholder="SHA256:" className="font-mono text-xs" />
+                            <Input id="cluster-sftp-fingerprint" value={fingerprint} onChange={(event) => setFingerprintDraft(event.target.value)} placeholder={intl.formatMessage({ id: "web.components.sftp.fingerprint_placeholder", defaultMessage: "SHA256:", description: "Cluster SFTP drawer: placeholder in the host key fingerprint field; the fingerprint format prefix, keep as is" })} className="font-mono text-xs" />
                           </div>
                           <Button type="submit" isDisabled={!canSave}>{intl.formatMessage({ id: "web.components.sftp.cluster_drawer.save_endpoint", defaultMessage: "Save endpoint", description: "Cluster SFTP drawer: button that saves the cluster's SFTP address and host key fingerprint; keep it short" })}</Button>
                         </form>
