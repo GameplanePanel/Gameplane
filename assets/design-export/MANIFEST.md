@@ -8,7 +8,7 @@
 | `json/<file>.json` | Layout, paints, text, and the design variable each layer binds; an instance lists the text it shows instead of its component's layers |
 | `screenshots/<file>.png` | The screen rendered at 2x |
 
-`screens.json` lists every screen: its file name, its ID in `design.fig`, its name, and its size.
+`screens.json` lists every screen: its file name, its ID in `design.fig`, its name, its size, and the hash the export uses to skip unchanged screens.
 
 `parts.json` lists layers below screen level that the browser visual diff (`web/scripts/compare-screenshots.mjs`) compares against, such as one dialog or one badge. Each is exported in the same three forms. To add one, add its file name and exact layer name; the export fills in the rest.
 
@@ -22,7 +22,7 @@ A screen or part that existed in the old `design.pen` keeps that file's node ID 
 
 ## Regenerating
 
-`hack/design/fig-export.ts` writes all three forms, `screens.json` and `parts.json` from `design.fig`. It runs on OpenPencil's headless CLI, from a checkout of [ValgulNecron/open-pencil](https://github.com/ValgulNecron/open-pencil) `master`; the script's header gives the commands. Re-run it after every change to `design.fig` and commit the export with the change.
+`hack/design/fig-export.ts` writes all three forms, `screens.json` and `parts.json` from `design.fig`. It runs on OpenPencil's headless CLI, from a checkout of [ValgulNecron/open-pencil](https://github.com/ValgulNecron/open-pencil) `master`; the script's header gives the commands. Re-run it after every change to `design.fig` and commit the export with the change. It renders only screens whose content changed since the last export (`--all` renders every screen), and on a pull request from a branch of this repository the `design export` workflow commits whatever is still missing.
 
 ## History
 

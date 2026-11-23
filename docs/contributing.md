@@ -102,7 +102,8 @@ Reopen the container with one of the named profiles (or `full`) and run the targ
 `design.fig`, not in code.** Open `design.fig` in
 [OpenPencil](https://github.com/ValgulNecron/open-pencil) or Figma, update the
 relevant screen, regenerate the export with `hack/design/fig-export.ts` (see
-`assets/design-export/MANIFEST.md`), review with the maintainers, *then*
+`assets/design-export/MANIFEST.md`; it renders only the screens that changed, and the
+`design export` workflow commits it on pull requests from branches of this repository), review with the maintainers, *then*
 translate to React. This keeps the 84 designed screens (`assets/design-export/MANIFEST.md`, re-measured 2026-09-12) the source of truth and
 prevents the dashboard from drifting into code-led redesigns.
 

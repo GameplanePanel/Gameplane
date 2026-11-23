@@ -472,7 +472,7 @@ describe("ServerDetailPage clone action", () => {
     await user.clear(input);
     await user.type(input, "Bad_Name");
     expect(
-      screen.getByText("Name must be lowercase letters, digits, dashes (max 63)"),
+      screen.getByText("Name must start with a letter and use lowercase letters, digits, dashes (max 57)"),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Clone server" })).toBeDisabled();
   });

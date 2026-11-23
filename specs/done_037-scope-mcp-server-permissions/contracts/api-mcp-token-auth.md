@@ -19,7 +19,7 @@ All mutating routes keep the CSRF check. RBAC rules: new self rules next to `/us
 - Invalid, expired, revoked, epoch-mismatched or unknown tokens all get the same `401 server.common.unauthenticated` body as a missing session (FR-014). Store failures get `503 server.generic.503`, as for sessions.
 - Rate limit: token requests count against the existing per-user limiter; failed token lookups count against the per-IP auth limiter, like failed logins.
 
-## Token guard (`mcpTokenGuard`, runs after `Authenticate`, before `rbac.Middleware`)
+## Token guard (`MCPTokenGuard`, runs after `Authenticate`, before `rbac.Middleware`)
 
 A token-authenticated request passes only when the method is GET or HEAD, it is not a WebSocket upgrade, and its route pattern is on this allow-list:
 
@@ -33,11 +33,11 @@ A token-authenticated request passes only when the method is GET or HEAD, it is 
 /backups                 /backups/{name}
 /schedules               /schedules/{name}
 /restores                /restores/{name}
-/modules                 /modules/{name}         /modules/sources
+/modules                 /modules/{name}         /modules/sources     (/modules/catalog is refused)
 /users/me/servers
 /pods                    /pods/{name}
 /kube-events
-/admin/system-logs/{component}
+/admin/system-logs/{api|operator}
 ```
 
 Everything else → `403 server.forbidden`, audited with reason `mcp-refused`. The list is a Go slice next to the guard, and a unit test fails if a route on it is not GET-only in the router.

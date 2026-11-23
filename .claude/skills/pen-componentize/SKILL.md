@@ -43,8 +43,8 @@ Write one read-only `openpencil eval` script that walks every screen (`figma.cur
 
 ### Step 4 — Keep visuals identical
 
-- Before changing anything, run `hack/design/fig-export.ts` into a scratch folder as the baseline (or use the committed `assets/design-export/screenshots/`).
-- After the change, export again into another scratch folder and compare each changed screen's PNG pair. They must match, except for intended corrections, which are listed in the report:
+- Before changing anything, take the committed `assets/design-export/` as the baseline (re-run `hack/design/fig-export.ts` first if it may be stale; it renders only changed screens).
+- After the change, copy `assets/design-export/` to a scratch folder, export into that copy (only the changed screens are rendered) and compare each changed screen's PNG pair. They must match, except for intended corrections, which are listed in the report:
   - an outdated copy now shows the component's current items;
   - control chrome now follows the design-system component;
   - a component was corrected to match the app code.

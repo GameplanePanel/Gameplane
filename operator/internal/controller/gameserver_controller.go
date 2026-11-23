@@ -300,6 +300,22 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if err := r.Get(ctx, req.NamespacedName, &gs); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	// A child resource the apiserver rejects as invalid (422) fails the same
+	// way on every pass. Record it on the Ready condition so the server shows
+	// Failed with the reason, instead of staying Pending with the error only
+	// in the operator log.
+	defer func() {
+		if reconcileErr == nil || !apierrors.IsInvalid(reconcileErr) {
+			return
+		}
+		if err := r.setPhase(ctx, &gs, "Kubernetes rejected a resource for this server: "+reconcileErr.Error()); err != nil {
+			logger.Error(err, "record rejected resource on GameServer status")
+		}
+	}()
+	// Check the name before creating any child resource.
+	if err := validateServerName(gs.Name); err != nil {
+		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
+	}
 	// Recover the durable eviction decision before any validation that can
 	// return early (including a missing template or newly requested wipe).
 	if op, held, err := lifecycleOwner(&gs); held && err == nil && op.Kind == podRecoveryKind {

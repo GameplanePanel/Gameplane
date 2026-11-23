@@ -84,6 +84,12 @@ var serverEntries = []Entry{
 		Status:      http.StatusBadRequest,
 	},
 	{
+		ID:          "server.lifecycle.name_invalid",
+		English:     "server name must start with a lowercase letter, contain only lowercase letters, digits and dashes, and have at most 57 characters",
+		Description: "API error when a new server's name cannot name its Kubernetes Services (resources.go:createHandler, lifecycle.go:cloneHandler).",
+		Status:      http.StatusUnprocessableEntity,
+	},
+	{
 		ID:          "server.lifecycle.new_name_required",
 		English:     "newName required",
 		Description: "API error from the server lifecycle API (lifecycle.go:cloneHandler).",

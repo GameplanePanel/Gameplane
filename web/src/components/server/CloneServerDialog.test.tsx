@@ -84,7 +84,7 @@ describe("CloneServerDialog", () => {
     expect(input).toBeInTheDocument();
   });
 
-  it("truncates long source names to 58 chars when creating suggested name", () => {
+  it("truncates long source names to 52 chars when creating suggested name", () => {
     const longName = "a".repeat(70);
     render(
       <CloneServerDialog
@@ -94,7 +94,7 @@ describe("CloneServerDialog", () => {
       />,
       { wrapper: Wrapper },
     );
-    const input = screen.getByDisplayValue("a".repeat(58) + "-copy");
+    const input = screen.getByDisplayValue("a".repeat(52) + "-copy");
     expect(input).toBeInTheDocument();
   });
 
@@ -128,7 +128,7 @@ describe("CloneServerDialog", () => {
     await user.clear(input);
     await user.type(input, "INVALID_NAME");
     expect(
-      screen.getByText("Name must be lowercase letters, digits, dashes (max 63)"),
+      screen.getByText("Name must start with a letter and use lowercase letters, digits, dashes (max 57)"),
     ).toBeInTheDocument();
   });
 

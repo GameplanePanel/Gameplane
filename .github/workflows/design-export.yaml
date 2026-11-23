@@ -1,0 +1,139 @@
+# Design export — commits the regenerated design export when a PR changes a design file.
+#
+# hack/design/fig-export.ts is incremental: it renders only the screens whose content hash
+# changed since the export committed on the branch, so a run after a small design change takes
+# a few minutes. The export job runs OpenPencil (a pinned commit of the ValgulNecron/open-pencil
+# fork) with a read-only token and hands the result over as a patch; only the commit job can
+# write, and it runs no third-party code.
+#
+# Only for branches of this repository: a fork's branch cannot be pushed to, so a fork PR
+# still commits its export by hand (see .claude/skills/design-export/SKILL.md).
+#
+# Credentials: SCREENSHOT_BOT_PAT (see screenshot-refresh.yaml), so the pushed commit starts
+# the PR's checks again; a push with the default token would not. Without the secret the job
+# falls back to the default token and the checks need a manual re-run.
+#
+# website/website.fig lives in the GameplanePanel/website repository and is not covered here.
+
+name: design export
+
+on:
+  pull_request:
+    paths:
+      - "design.fig"
+      - "telemetry-receiver/telemetry-dashboard.fig"
+      - "hack/design/fig-export.ts"
+      - ".github/workflows/design-export.yaml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: design-export-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  # ValgulNecron/open-pencil master; bump deliberately and re-run the export with --all.
+  OPENPENCIL_SHA: bec11deae63a44038e93679f4761b65650501483
+
+jobs:
+  export:
+    name: export changed screens
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: gameplane
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: "1.4.4"
+
+      - name: build OpenPencil
+        run: |
+          git init -q open-pencil
+          git -C open-pencil fetch -q --depth 1 https://github.com/ValgulNecron/open-pencil "$OPENPENCIL_SHA"
+          git -C open-pencil checkout -q FETCH_HEAD
+          cd open-pencil
+          bun install --frozen-lockfile
+          (cd packages/pen && bunx tsdown)
+          (cd packages/core && bunx tsdown)
+
+      - name: export
+        run: |
+          cp gameplane/hack/design/fig-export.ts open-pencil/packages/cli/fig-export.ts
+          cd open-pencil/packages/cli
+          bun fig-export.ts "$GITHUB_WORKSPACE/gameplane/design.fig" "$GITHUB_WORKSPACE/gameplane/assets/design-export"
+          bun fig-export.ts "$GITHUB_WORKSPACE/gameplane/telemetry-receiver/telemetry-dashboard.fig" \
+            "$GITHUB_WORKSPACE/gameplane/telemetry-receiver/design-export"
+
+      - name: diff
+        id: diff
+        working-directory: gameplane
+        run: |
+          git add -A assets/design-export telemetry-receiver/design-export
+          git diff --cached --binary > "$RUNNER_TEMP/design-export.patch"
+          if [ -s "$RUNNER_TEMP/design-export.patch" ]; then
+            git diff --cached --stat
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "The committed export is up to date."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.diff.outputs.changed == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: design-export-patch
+          path: ${{ runner.temp }}/design-export.patch
+          retention-days: 3
+          if-no-files-found: error
+
+  commit:
+    name: commit export
+    needs: export
+    if: needs.export.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.SCREENSHOT_BOT_PAT || github.token }}
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: design-export-patch
+          path: ${{ runner.temp }}
+
+      - name: commit and push
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if [ "$(git rev-parse HEAD)" != "$HEAD_SHA" ]; then
+            echo "::notice::The branch moved since the export ran; the run for the newer commit exports it."
+            exit 0
+          fi
+          # The patch comes from a run of the PR's own script: push nothing outside the export folders.
+          outside=$(git apply --numstat "$RUNNER_TEMP/design-export.patch" | cut -f3 |
+            grep -vE '^(assets/design-export|telemetry-receiver/design-export)/' || true)
+          if [ -n "$outside" ]; then
+            echo "::error::The export patch touches files outside the export folders: $outside"
+            exit 1
+          fi
+          git apply --index "$RUNNER_TEMP/design-export.patch"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -s -q -m "design: regenerate the design export"
+          git push origin "HEAD:$HEAD_REF"
