@@ -4,41 +4,47 @@
     "figId": "1:925",
     "name": "Receiver / Login",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "cc281979cf521185e4e95d1d718f3c499c8839136921c6679c436d6aefe8e9f0"
   },
   {
     "file": "a7wUpP",
     "figId": "1:939",
     "name": "Receiver / Login — refused",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "57627ca67bd45b9acc4377fafec26eaaaea0b3da433deab8ae4ff3fb2ad194da"
   },
   {
     "file": "y49Ie",
     "figId": "1:954",
     "name": "Telemetry components",
     "width": 812,
-    "height": 177
+    "height": 177,
+    "hash": "7468a3104fdb2f46e45e960d5840ef30e8c13e3207cad8e2abb1a8e466939fe6"
   },
   {
     "file": "i0xK1E",
     "figId": "1:964",
     "name": "Receiver / Overview",
     "width": 1440,
-    "height": 5655
+    "height": 5655,
+    "hash": "010ed1cba9eb460898335dd07a6c288196ca9d093faed1c604b35bc5adc5a1fe"
   },
   {
     "file": "Z079vK",
     "figId": "1:1757",
     "name": "Receiver / Overview — empty",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "be6f260ba2408c6fca8f5a996f1aee3c49113342875c4e88a4bed308541f864a"
   },
   {
     "file": "jy9Rn",
     "figId": "1:1784",
     "name": "Receiver / Extended — none in range",
     "width": 1440,
-    "height": 164
+    "height": 164,
+    "hash": "9d71bbbba264ead7ac3239402e5b86d25047eeea8e859733857eee24971e85ec"
   }
 ]

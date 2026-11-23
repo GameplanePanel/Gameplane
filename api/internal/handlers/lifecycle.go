@@ -213,6 +213,10 @@ func cloneHandler(reg *kube.Registry, auditor *audit.Auditor) http.HandlerFunc {
 			httperr.WriteMessage(w, req, messages.New("server.lifecycle.new_name_required", nil))
 			return
 		}
+		if !validServerName(body.NewName) {
+			httperr.WriteMessage(w, req, messages.New("server.lifecycle.name_invalid", nil))
+			return
+		}
 		src, ok := authorizedServer(w, req, k, ns, name)
 		if !ok {
 			return
