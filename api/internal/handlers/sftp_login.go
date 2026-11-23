@@ -108,12 +108,13 @@ func (h *sftpLoginHandler) login(w http.ResponseWriter, req *http.Request) {
 	// trail either), keyed like /auth/login: the source address the endpoint reports and the
 	// full username. The request IP is always the SFTP pod, so it is not used. actor is the username
 	// capped to 64 runes for the audit trail only; the username budget keys on the full base, so two
-	// long SSO email names that share a 64-rune prefix do not share a budget.
+	// long SSO email names that share a 64-rune prefix do not share a budget. The key is capped one rune
+	// past the longest valid name, so an oversized name cannot grow the limiter's keys.
 	auth.SetActor(ctx, actor)
 	if !auth.LoginLimiter.RequestBudget(w, req, sftpSourceKey(body.RemoteAddr, req)) {
 		return
 	}
-	if !auth.LoginUserLimiter.RequestBudget(w, req, base) {
+	if !auth.LoginUserLimiter.RequestBudget(w, req, truncateRunes(base, sftpUsernameMaxRunes+1)) {
 		return
 	}
 
