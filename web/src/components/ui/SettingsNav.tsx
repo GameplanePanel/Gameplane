@@ -6,6 +6,7 @@ import {
   Cog,
   Info,
   Key,
+  Link as LinkIcon,
   Palette,
   RefreshCcw,
   ShieldCheck,
@@ -17,17 +18,18 @@ import { cn } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
 // SettingsNav is the settings sub-navigation shared by the admin settings
-// page (/admin), the per-user theme page (/settings/theme) and the per-user
-// SFTP page (/settings/sftp). It has two labelled groups, per the
+// page (/admin) and the per-user pages (/settings/theme, /settings/mcp-tokens
+// and /settings/sftp). It has two labelled groups, per the
 // Screen/Settings — SFTP design (assets/design-export 1006926387-249):
-// "Account" (Theme, SFTP; every signed-in user) and "Server" (the admin
+// "Account" (Theme, MCP tokens, SFTP; every signed-in user) and "Server" (the admin
 // sections; only when showAdminSections). Admin settings sections are
 // in-page state (not routes), so ordinary entries report their key through
-// onSelect; "Theme" and "SFTP" are real routes and render as router Links.
+// onSelect; the Account entries are real routes and render as router Links.
 
 export type SettingsNavKey =
   | "general"
   | "theme"
+  | "mcp"
   | "sftp"
   | "auth"
   | "modules"
@@ -38,14 +40,24 @@ export type SettingsNavKey =
   | "about";
 
 // Section keys handled by the admin settings page itself (every key except
-// the account routes "theme" and "sftp").
-export type SettingsSectionKey = Exclude<SettingsNavKey, "theme" | "sftp">;
+// the account routes "theme", "mcp" and "sftp").
+export type SettingsSectionKey = Exclude<SettingsNavKey, "theme" | "mcp" | "sftp">;
+
+// Account entries navigate to their own page instead of an admin section.
+type RoutedKey = "theme" | "mcp" | "sftp";
+const routeByKey: Record<RoutedKey, string> = {
+  theme: "/settings/theme",
+  mcp: "/settings/mcp-tokens",
+  sftp: "/settings/sftp",
+};
+const isRouted = (key: SettingsNavKey): key is RoutedKey => key === "theme" || key === "mcp" || key === "sftp";
 
 const navMessages = defineMessages({
   general: { id: "web.components.ui.settings_nav.general", defaultMessage: "General", description: "Settings nav: label of the General settings section" },
-  account: { id: "web.components.ui.settings_nav.account", defaultMessage: "Account", description: "Settings nav: heading of the group of per-user settings (Theme, SFTP); shown in uppercase" },
+  account: { id: "web.components.ui.settings_nav.account", defaultMessage: "Account", description: "Settings nav: heading of the group of per-user settings (Theme, MCP tokens, SFTP); shown in uppercase" },
   server: { id: "web.components.ui.settings_nav.server", defaultMessage: "Server", description: "Settings nav: heading of the group of admin server settings; shown in uppercase" },
   theme: { id: "web.components.ui.settings_nav.theme", defaultMessage: "Theme", description: "Settings nav: label of the Theme settings page" },
+  mcp: { id: "web.components.ui.settings_nav.mcp_tokens", defaultMessage: "MCP tokens", description: "Settings nav: label of the MCP tokens settings page" },
   sftp: { id: "web.components.ui.settings_nav.sftp", defaultMessage: "SFTP", description: "Settings nav: label of the personal SFTP access page; a protocol name, keep it as is" },
   auth: { id: "web.components.ui.settings_nav.authentication", defaultMessage: "Authentication", description: "Settings nav: label of the Authentication settings section" },
   modules: { id: "web.components.ui.settings_nav.module_sources", defaultMessage: "Module sources", description: "Settings nav: label of the Module sources settings section" },
@@ -60,6 +72,7 @@ type NavItem = { key: SettingsNavKey; label: MessageDescriptor; icon: ComponentT
 
 const accountItems: NavItem[] = [
   { key: "theme", label: navMessages.theme, icon: Palette },
+  { key: "mcp",   label: navMessages.mcp,   icon: LinkIcon },
   { key: "sftp",  label: navMessages.sftp,  icon: SquareTerminal },
 ];
 
@@ -93,8 +106,8 @@ export function SettingsNav({
 }) {
   const intl = useOptionalIntl();
   const renderItem = ({ key, label, icon: Icon }: NavItem) =>
-    key === "theme" || key === "sftp" ? (
-      <Link key={key} to={key === "theme" ? "/settings/theme" : "/settings/sftp"} className={itemClass(active === key)} aria-current={active === key ? "page" : undefined}>
+    isRouted(key) ? (
+      <Link key={key} to={routeByKey[key]} className={itemClass(active === key)} aria-current={active === key ? "page" : undefined}>
         <Icon className="h-4 w-4" />
         <span>{intl.formatMessage(label)}</span>
       </Link>

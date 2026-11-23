@@ -71,7 +71,7 @@ function equal(a: unknown, b: unknown): boolean {
   return false;
 }
 
-function mergeValue(baseline: unknown, draft: unknown, latest: unknown): unknown {
+export function mergeValue(baseline: unknown, draft: unknown, latest: unknown): unknown {
   if (equal(baseline, draft)) return structuredClone(latest);
   if (
     isObject(draft) && (baseline === undefined || isObject(baseline)) &&

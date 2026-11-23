@@ -174,6 +174,13 @@ operator:
   #       ports: "2456-2499"
   #       templates: [valheim, factorio]
   portPools: []
+  # Default player-facing DNS names by GameTemplate name for NodePort and
+  # LoadBalancer servers. A server's networking.hostname overrides its default.
+  # Point each shared name at the address players can reach.
+  # templateHostnames:
+  #   minecraft-java: mc.example.net
+  #   valheim: val.example.net
+  templateHostnames: {}
   # Tunnel provider images: relay binaries wrapped in OCI images for reaching
   # players through relay services when the cluster has no public IP or port-
   # forwarding. Each wraps a third-party relay binary (frpc, tailscaled, playit)

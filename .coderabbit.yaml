@@ -124,7 +124,9 @@ reviews:
         Flag if:
         - The route file (*.tsx) shows visual changes but no matching design.fig update in the PR
         - design.fig was touched but assets/design-export/ was not regenerated with
-          hack/design/fig-export.ts (per-screen .fig, JSON and screenshots)
+          hack/design/fig-export.ts (per-screen .fig, JSON and screenshots); on a PR from a
+          branch of this repository the design export workflow commits it, so only flag this
+          once that workflow has finished without committing the export
 
         Visual change means: added/changed components, layout shifts, color/style updates, new pages.
         Backend-only logic changes do not require a design pass.

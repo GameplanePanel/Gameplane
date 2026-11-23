@@ -29,7 +29,7 @@ describe("isValidK8sName", () => {
   it.each([
     ["mc", true],
     ["mc-hardcore", true],
-    ["x".repeat(63), true],
+    ["x".repeat(57), true],
     ["a1b2c3", true],
   ])("accepts %s", (s, expected) => {
     expect(isValidK8sName(s)).toBe(expected);
@@ -42,7 +42,7 @@ describe("isValidK8sName", () => {
     "-mc",
     "mc-",
     "mc_test",
-    "x".repeat(64),
+    "x".repeat(58),
     "1.2.3",
   ])("rejects %s", (s) => {
     expect(isValidK8sName(s)).toBe(false);
@@ -258,5 +258,15 @@ describe("validateConfig redaction marker (any field type)", () => {
   it("still reports a real invalid value next to marker-backed fields", () => {
     const errs = validateConfig(schema, { S: CONFIG_REDACTED_MARKER, I: "9", E: CONFIG_REDACTED_MARKER, B: CONFIG_REDACTED_MARKER });
     expect(errs.map((e) => e.name)).toEqual(["I"]);
+  });
+});
+
+describe("server names starting with a digit", () => {
+  it("rejects a name that starts with a digit", () => {
+    expect(isValidK8sName("7d2d")).toBe(false);
+  });
+
+  it("accepts the same name starting with a letter", () => {
+    expect(isValidK8sName("sdtd")).toBe(true);
   });
 });

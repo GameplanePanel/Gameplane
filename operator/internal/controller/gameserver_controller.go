@@ -149,6 +149,9 @@ type GameServerReconciler struct {
 	// unhonored request, never silently fall back to the default pool.
 	AddressManager string
 
+	// TemplateHostnames supplies player-facing Service hostnames by GameTemplate name.
+	TemplateHostnames map[string]string
+
 	// PortPools gives the servers of each pooled template Service ports of
 	// their own on a shared endpoint (--port-pool, --port-pool-template); see
 	// gameserver_portpool.go. portPoolMu serializes allocations.
@@ -303,6 +306,22 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	var gs gameplanev1alpha1.GameServer
 	if err := r.Get(ctx, req.NamespacedName, &gs); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	// A child resource the apiserver rejects as invalid (422) fails the same
+	// way on every pass. Record it on the Ready condition so the server shows
+	// Failed with the reason, instead of staying Pending with the error only
+	// in the operator log.
+	defer func() {
+		if reconcileErr == nil || !apierrors.IsInvalid(reconcileErr) {
+			return
+		}
+		if err := r.setPhase(ctx, &gs, "Kubernetes rejected a resource for this server: "+reconcileErr.Error()); err != nil {
+			logger.Error(err, "record rejected resource on GameServer status")
+		}
+	}()
+	// Check the name before creating any child resource.
+	if err := validateServerName(gs.Name); err != nil {
+		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
 	}
 	// Recover the durable eviction decision before any validation that can
 	// return early (including a missing template or newly requested wipe).

@@ -44,7 +44,7 @@ Portable SQL per `api/internal/db/migrations/README.md` (no dialect functions; t
 |---|---|---|
 | `GAMEPLANE_PANEL_URL` / `--panel-url` | env or flag | Per-user mode when set. HTTPS required except loopback. |
 | `GAMEPLANE_MCP_TOKEN` | env only | Required in per-user mode; `serve` refuses to start without it. |
-| `--panel-ca` | flag | Optional PEM bundle for a private CA. |
+| `GAMEPLANE_PANEL_CA` / `--panel-ca` | env or flag | Optional PEM bundle for a private CA. |
 | `GAMEPLANE_MCP_NAMESPACES` | env, rendered by the chart | Break-glass mode namespace allow-list (release namespace + managed game namespaces). Unset = unrestricted standalone kubeconfig run. |
 
 ## Chart RBAC objects (break-glass, replaces `<release>-mcp-server-read` ClusterRole + binding)

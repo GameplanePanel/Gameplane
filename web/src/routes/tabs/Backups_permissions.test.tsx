@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import { focusManager, onlineManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
@@ -7,7 +7,7 @@ import { makeClient } from "@/test/render";
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import userEvent from "@testing-library/user-event";
 import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
-import { makeBackup, makeDestination } from "@/test/factories";
+import { makeBackup, makeDestination, makeSchedule } from "@/test/factories";
 import { BackupsTab } from "./Backups";
 
 import type { PropsWithChildren, ReactElement } from "react";
@@ -31,6 +31,97 @@ afterEach(() => {
 });
 
 describe("BackupsTab scoped read access", () => {
+  it("edits a standalone schedule in its cluster and preserves the latest untouched fields", async () => {
+    const schedule = makeSchedule({
+      metadata: { name: "nightly", namespace: "other-games", uid: "schedule-1" },
+      spec: { serverRef: { name: "alpha" }, schedule: "0 1 * * *", strategy: "volume-snapshot", retention: { keepDaily: 4 } },
+    });
+    const latest = { ...schedule, metadata: { ...schedule.metadata, resourceVersion: "27" },
+      spec: { ...schedule.spec, suspend: true, quiesce: false, concurrencyPolicy: "Forbid", startingDeadlineSeconds: 75 } };
+    let saved: unknown;
+    const requests: URL[] = [];
+    server.use(
+      http.get("/schedules", () => HttpResponse.json({ items: [schedule] })),
+      http.get("/schedules/nightly", ({ request }) => {
+        requests.push(new URL(request.url));
+        return HttpResponse.json(latest);
+      }),
+      http.put("/schedules/nightly", async ({ request }) => {
+        requests.push(new URL(request.url));
+        saved = await request.json();
+        return HttpResponse.json(latest);
+      }),
+    );
+    renderWithQuery(view(["schedules:read", "schedules:write"], "west", "other-games"));
+    await userEvent.click(await screen.findByRole("button", { name: /^edit$/i }));
+    const cron = screen.getByDisplayValue("0 1 * * *");
+    expect(screen.getByLabelText("Daily")).toHaveValue(4);
+    expect(screen.queryByLabelText("Destination")).not.toBeInTheDocument();
+    await userEvent.clear(cron);
+    await userEvent.type(cron, "0 2 * * *");
+    await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
+    await waitFor(() => expect(saved).toEqual({ ...latest, spec: { ...latest.spec, schedule: "0 2 * * *" } }));
+    expect(requests.map(url => [url.searchParams.get("cluster"), url.searchParams.get("namespace")])).toEqual([
+      ["west", "other-games"], ["west", "other-games"],
+    ]);
+  });
+
+  it("requires confirmation and schedule write permission to delete in the server's cluster", async () => {
+    let removed = false;
+    let deleted: URL | undefined;
+    server.use(
+      http.get("/schedules", () => HttpResponse.json({ items: removed ? [] : [makeSchedule({ metadata: { name: "alpha-daily", namespace: "games", uid: "schedule-1", resourceVersion: "27" } })] })),
+      http.delete("/schedules/alpha-daily", ({ request }) => {
+        deleted = new URL(request.url);
+        removed = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { rerender } = renderWithQuery(view(["schedules:read"]));
+    expect(await screen.findByRole("button", { name: /^delete$/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^edit$/i })).toBeDisabled();
+    rerender(view(["schedules:read", "schedules:write"]));
+    await userEvent.click(await screen.findByRole("button", { name: /^delete$/i }));
+    const dialog = within(await screen.findByRole("alertdialog"));
+    expect(dialog.getByRole("button", { name: /^delete$/i })).toBeDisabled();
+    await userEvent.type(dialog.getByRole("textbox"), "alpha-daily");
+    await userEvent.click(dialog.getByRole("button", { name: /^delete$/i }));
+    expect(await screen.findByText("No schedules yet.")).toBeInTheDocument();
+    expect(deleted?.searchParams.get("cluster")).toBe("east");
+    expect(deleted?.searchParams.get("namespace")).toBe("games");
+    expect(deleted?.searchParams.get("expectedUID")).toBe("schedule-1");
+    expect(deleted?.searchParams.get("expectedResourceVersion")).toBe("27");
+  });
+
+  it("requires a new confirmation after another writer changes the schedule", async () => {
+    let version = "10";
+    const versions: (string | null)[] = [];
+    server.use(
+      http.get("/schedules", () => HttpResponse.json({ items: [
+        makeSchedule({ metadata: { name: "alpha-daily", uid: "schedule-1", resourceVersion: version } }),
+      ] })),
+      http.delete("/schedules/alpha-daily", ({ request }) => {
+        const confirmed = new URL(request.url).searchParams.get("expectedResourceVersion");
+        versions.push(confirmed);
+        return confirmed === version ? new HttpResponse(null, { status: 204 }) : HttpResponse.text("conflict, retry", { status: 409 });
+      }),
+    );
+    renderWithQuery(view(["schedules:read", "schedules:write"]));
+    await userEvent.click(await screen.findByRole("button", { name: /^delete$/i }));
+    const dialog = within(await screen.findByRole("alertdialog"));
+    await userEvent.type(dialog.getByRole("textbox"), "alpha-daily");
+    version = "11";
+    await userEvent.click(dialog.getByRole("button", { name: /^delete$/i }));
+    expect(await screen.findByText(/Review the current schedule before deleting/)).toBeInTheDocument();
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    const fresh = within(await screen.findByRole("alertdialog"));
+    expect(fresh.getByRole("button", { name: /^delete$/i })).toBeDisabled();
+    await userEvent.type(fresh.getByRole("textbox"), "alpha-daily");
+    await userEvent.click(fresh.getByRole("button", { name: /^delete$/i }));
+    await waitFor(() => expect(versions).toEqual(["10", "11"]));
+  });
+
   it("does not request any protected lists without their permissions", async () => {
     const requests: string[] = [];
     for (const path of ["backups", "schedules", "restores", "backup-destinations"]) {

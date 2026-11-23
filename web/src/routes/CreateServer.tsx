@@ -260,7 +260,7 @@ function validateStep(
       return {
         ok: false,
         reason: state.name
-          ? intl.formatMessage({ id: "web.routes.create_server.validation_name_format", defaultMessage: "Name must be lowercase letters, digits, dashes (max 63)", description: "Create server: validation message shown when the server name is not a valid Kubernetes name" })
+          ? intl.formatMessage({ id: "web.routes.create_server.validation_name_format", defaultMessage: "Name must start with a letter and use lowercase letters, digits, dashes (max 57)", description: "Create server: validation message shown when the server name is not a valid Kubernetes name" })
           : intl.formatMessage({ id: "web.routes.create_server.validation_name_required", defaultMessage: "Server name is required", description: "Create server: validation message shown when the server name is empty" }),
       };
     }

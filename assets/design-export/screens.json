@@ -4,1553 +4,1687 @@
     "figId": "1:3",
     "name": "Screen/Login",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "b6c7f802ba794bf973327dd67d3ca804ab5c15d2f9d05805c030815cb6b671ce"
   },
   {
     "file": "jmoi3",
     "figId": "1:77",
     "name": "Screen/Login — Invalid credentials",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "1ef9a12de00a4e63f96f81d2315e89bdeaae58f1cdda57a6a616091e786d59d4"
   },
   {
     "file": "ljdA5",
     "figId": "1:130",
     "name": "Screen/Login — SSO only",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "28635b02883aaf42e30c495d2deffa8f1ac0261678c54379e945f08ff3ffbe5c"
   },
   {
     "file": "N13Xud",
     "figId": "1:151",
     "name": "Screen/App Loading",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "dcbb85124b3685a572bd8991a8734c2bf1d2bff5f508b4f8a7598a69692560e0"
   },
   {
     "file": "j24cXg",
     "figId": "1:232",
     "name": "Screen/Dashboard Home",
     "width": 1440,
-    "height": 1150
+    "height": 1150,
+    "hash": "32c5cc73b622d31a1f76a2a9739c1ec9ff7def9bd6f261fc2d9679af87e1dd58"
   },
   {
     "file": "EZFW0",
     "figId": "1:442",
     "name": "Screen/Server Detail — Overview",
     "width": 1440,
-    "height": 1300
+    "height": 1300,
+    "hash": "b5a5299c0f4fbfe2cbf6dc677272382b5e4187d1454f309079117e35b2192977"
   },
   {
     "file": "P08Uw",
     "figId": "1:618",
     "name": "Screen/Server Detail — Events",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "e19e3f917b0192d85c50803df7069c446e3e22e332f84f59484b1d375fa66b35"
   },
   {
     "file": "Xn5ns",
     "figId": "1:673",
     "name": "Screen/Server Detail — Console",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "51de925195b889cc3d2a98885e01b51fecc47046457be71028c5c02fdc80e69b"
   },
   {
     "file": "kPmoo",
     "figId": "1:712",
     "name": "Screen/Server Detail — Logs",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "b35aacd57b43b89dd338ecfd4452f4679ceeeca0f4add1608bae55b8e3fabe23"
   },
   {
     "file": "FtdkI",
     "figId": "1:755",
     "name": "Screen/Server Detail — Logs (Failed)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "c9ae4d821b6e3e4f4340a28346e9bf3ee012ad5a3f3033f3d5a61d1bcdfbc77e"
   },
   {
     "file": "Burtr",
     "figId": "1:781",
     "name": "Screen/Server Detail — Files",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "f65c2192842db85f7798fe587b5f4760a69c1d38ccdb5a5aa7cefba9ef2ebf00"
   },
   {
     "file": "sZtDi",
     "figId": "1:929",
     "name": "Screen/Server Detail — Mods",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "db7fb43c25de25af50af1008cc175ca2eec0b6967e8c46c444077957ce2a5d43"
   },
   {
     "file": "GayoL",
     "figId": "1:949",
     "name": "Screen/Server Detail — Mods — Browse (added)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "d2d15032e76751ffacb003fb1d0d563072614872f1a4d28f031f54a8d8a49093"
   },
   {
     "file": "Ss0Yr",
     "figId": "1:1058",
     "name": "Screen/Server Detail — Mods — Install mod (from URL)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "6959714ed02f6fe1c60b6f2963a49fe8e7b08e12637a02066ef34b687d4ff3ca"
   },
   {
     "file": "V1VhGE",
     "figId": "1:1095",
     "name": "Screen/Server Detail — Mods — Install mod (upload)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "97a1b3ac811a9c6164a39bf415b83c2d83c6440d26d7f50a2fd2a2ee5aeec0da"
   },
   {
     "file": "tY6RD",
     "figId": "1:1126",
     "name": "Screen/Server Detail — Modpacks",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "ee19a3a1f9e2b807e44118b712977ae1e11b4ced58c989404f58bd0e8808d5fb"
   },
   {
     "file": "dPP50",
     "figId": "1:1196",
     "name": "Screen/Server Detail — Players",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "8a8001c3520b1fad67f051fce0474a99e686c7a4fa62bd3be906a177e489239c"
   },
   {
     "file": "pssCT",
     "figId": "1:1235",
     "name": "Screen/Server Detail — Backups",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "d2235a6f333e9be7cd725764d73e7980bde4717e00e55c080ef2defdf9d03308"
   },
   {
     "file": "hLB9Z",
     "figId": "1:1280",
     "name": "Screen/Server Detail — Settings",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "0ddd57afc7073d4505ef4d5957c7322c64329eeb7491e7c4734149b53db63cad"
   },
   {
     "file": "swxkJ",
     "figId": "1:1357",
     "name": "Screen/Server Detail — Settings · Version",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "854a9917ff38ec6643492ae7849b0cd236f274bad1c4e0343e8e1376bf3abfe3"
   },
   {
     "file": "E0ypH",
     "figId": "1:1422",
     "name": "Screen/Server Detail — Settings · Resources",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "3ac260270da249023ace37871e509b12d7e188c2f9fcb25a88dc52899376f7ff"
   },
   {
     "file": "J5pjJ3",
     "figId": "1:1486",
     "name": "Server Detail · Settings · Networking · Complete",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "5b4563b944f6610be65c32b0b45c2e7a0bac14e7ca5c3432159594ba957707db"
   },
   {
     "file": "ugDSa",
     "figId": "1:1567",
     "name": "Screen/Server Detail — Settings · Environment",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "35b125c5563b07982bbcad841b581f4de8602867abca19526baaf5151073f098"
   },
   {
     "file": "i1bLR",
     "figId": "1:1586",
     "name": "Screen/Server Detail — Settings · Lifecycle",
     "width": 1440,
-    "height": 1620
+    "height": 1620,
+    "hash": "800b85d6e85afa7d4b64578e217dac8d0b9c3a1030efd9661db579696c18fcfe"
   },
   {
     "file": "KaRFX",
     "figId": "1:1722",
     "name": "Screen/Server Detail — Settings · Scheduled backups",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "16ff8f483b57f0479a7c29c52a75897cbbd7bb24f410db9347824512627e3860"
   },
   {
     "file": "Y5cmvI",
     "figId": "1:1747",
     "name": "Screen/Server Detail — Settings · Placement",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "6906a1bc1e9449056ede9e018dd882c2eb5750a44385bb3a52601f9e6aadd1b2"
   },
   {
     "file": "iSA6R",
     "figId": "1:1780",
     "name": "Screen/Mobile — Server Detail — Settings · Placement",
     "width": 375,
-    "height": 900
+    "height": 900,
+    "hash": "0824d1e07a4cc28feb8e0e64595e671e3ba5461dd390242e937260e2084860dc"
   },
   {
     "file": "VfB0Y",
     "figId": "1:1827",
     "name": "Screen/Server Detail — Settings · RBAC & access",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "16ab0a496d0a71031ce2206f26517036074f3498a4785cca3e8f78c354915943"
   },
   {
     "file": "i8wib",
     "figId": "1:1851",
     "name": "Screen/Server Detail — Settings · Danger zone",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "d612e4a4a77470e7bb49824f5f870a3a6a64c1f685add1da6125458eab68bbec"
   },
   {
     "file": "W8idqY",
     "figId": "1:1882",
     "name": "Screen/Create Server — Step 1 Template",
     "width": 1440,
-    "height": 980
+    "height": 980,
+    "hash": "a46c953de313ceeffea4de11c3de62056492a8ee6868bc9392ff137f04e7c529"
   },
   {
     "file": "nNL3E",
     "figId": "1:2028",
     "name": "Screen/Create Server — Step 2 Version",
     "width": 1440,
-    "height": 1000
+    "height": 1000,
+    "hash": "46bd474d268c948906b74548f6779a1fc3b95be673ac3be9a4dc7c3e3d5f0f1c"
   },
   {
     "file": "vUqMl",
     "figId": "1:2097",
     "name": "Screen/Create Server — Step 3 Configure",
     "width": 1440,
-    "height": 1989
+    "height": 1989,
+    "hash": "335df702b7635c945f2b6479ff516a1fe44d94d90fd1f736eb819bb2ff61ca9d"
   },
   {
     "file": "f1Vga",
     "figId": "1:2206",
     "name": "Screen/Create Server — Step 4 Network",
     "width": 1440,
-    "height": 1270
+    "height": 1270,
+    "hash": "2170c0acbc095c0f19c1fdd9426a32f77b4e0bc019edaa456d12a612f6a08a63"
   },
   {
     "file": "UMJli",
     "figId": "1:2305",
     "name": "Screen/Create Server — Step 5 Review",
     "width": 1440,
-    "height": 1000
+    "height": 1000,
+    "hash": "b4fb8b0251043e72005e4dce79afa3e8c91ca5bcb809c6a9cd7403b8da408e2d"
   },
   {
     "file": "kK8Ji",
     "figId": "1:2385",
     "name": "Screen/Modules Catalog",
     "width": 1440,
-    "height": 1320
+    "height": 1320,
+    "hash": "79a6fc05945160001557b923ee0a66af6c4ee6baf60173230632d31b5bd66aa7"
   },
   {
     "file": "DPrYX",
     "figId": "1:2578",
     "name": "Screen/Backups — Index",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "cb2bfd326a8825d1edd42634b682646c295a34bf4c2080f4a1d67418f7c78596"
   },
   {
     "file": "9dBXM",
     "figId": "1:2622",
     "name": "Screen/Backups — Index (Empty)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "47baa05d6461e893fcb5023a05f4e94be99363efc1f95be53d1fbbd746ef5915"
   },
   {
     "file": "fK8Bi",
     "figId": "1:2660",
     "name": "Screen/Backups — Schedules",
     "width": 1440,
-    "height": 1150
+    "height": 1150,
+    "hash": "19333cc0a3a1f6da46a37fed356984bbc566c05d59ce006cd7ff56447fac11b4"
   },
   {
     "file": "vtExV",
     "figId": "1:2749",
     "name": "Screen/Backups — Schedules (Empty)",
     "width": 1440,
-    "height": 1150
+    "height": 1150,
+    "hash": "8cbedf108576fbcfbe20650d82f5d86af40ded8acd76ed9175fe254f69c6f2d1"
   },
   {
     "file": "tTSdi",
     "figId": "1:2840",
     "name": "Screen/Backups — Restores",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "7aa80def3a4bd77ab73e91c8152ba08850f6ce8e4d422c2c6b5db4f6c31f5c29"
   },
   {
     "file": "nfMMj",
     "figId": "1:2882",
     "name": "Screen/Backups — Restores (Empty)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "c057983e97dc87c133b796119fe8c7a92729536a1cea25aea37518fd2390024b"
   },
   {
     "file": "j9W8A",
     "figId": "1:2922",
     "name": "Legacy/Cluster Settings — Superseded",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "3ca4b240668f149a954fcb1ac33c92067a10c6531297e5f27ad8a436b977e8dd"
   },
   {
     "file": "bYDHC",
     "figId": "1:3039",
     "name": "Screen/Users & RBAC",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "14e194bd370cb7e17d87834cd0a7f288c776165bc5a9bb9491f1d406f9fde447"
   },
   {
     "file": "e9lV4",
     "figId": "1:3104",
     "name": "Screen/Users & RBAC — Roles",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "72caefae358aff5cfac0d70151022e3b3b78742ecd70dc4d587defefc728118c"
   },
   {
     "file": "TBvTC",
     "figId": "1:3139",
     "name": "Screen/Users & RBAC — Service accounts",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "c6c65a5ed6b02fb1b842f35ddd7574a99d4a2254c8851ad0fcf23020f130a4da"
   },
   {
     "file": "Dpb9f",
     "figId": "1:3150",
     "name": "Screen/Users & RBAC — Identity providers",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "f3fdcee5c9f0566defea9ba6201fdc544837b0b0c49566359cf2498d0b15133b"
   },
   {
     "file": "DxKOh",
     "figId": "1:3161",
     "name": "Screen/Audit Log",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "c40c152eb5b3fab96e7402006d5d89d73a6c264bc26ec536007481e0606dfbd1"
   },
   {
     "file": "Bq2Yg",
     "figId": "1:3270",
     "name": "Screen/Admin — System Logs",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "f3ae8c82bb3c62edfea91238c0f3edcb212282ee6075acf2442fe091f77587fc"
   },
   {
     "file": "WZdnw",
     "figId": "1:3411",
     "name": "Screen/Admin Settings",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "f8e41a98580e4d598a79b9ed029f794c8acfcba3ea3035f4c06ea4112a684816"
   },
   {
     "file": "uMiwd",
     "figId": "1:3469",
     "name": "Screen/Admin Settings — Authentication",
     "width": 1440,
-    "height": 1636
+    "height": 1636,
+    "hash": "8677c492b9ff80ef1ebfc84e66c62ae3bb86eb9533f12a7ff9de85715f3d9500"
   },
   {
     "file": "RC3Kf",
     "figId": "1:3598",
     "name": "Legacy/Admin Settings — Backup destinations — Moved",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "398041d7129bf053991f28d4349a10fc5e4d041150accff6be2d1ab6ec2339c9"
   },
   {
     "file": "g5mEpx",
     "figId": "1:3614",
     "name": "Screen/Admin Settings — Module sources",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "90ae3032360fc578a1f26605284690587cf8e6d5e26e9e0816647ace739ce242"
   },
   {
     "file": "n6Xlo",
     "figId": "1:3663",
     "name": "Screen/Admin Settings — Notifications",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "c23d19c598d4126f3d89c83009e40c995200718d6f3697841cbdbb7ab3861c30"
   },
   {
     "file": "uoxQW",
     "figId": "1:3706",
     "name": "Screen/Admin Settings — Telemetry",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "7ad04dfc010ca448e5c28a485ff846464b74ecb40c4b37f2633c7bddde3c37f4"
   },
   {
     "file": "M2sA4u",
     "figId": "1:3724",
     "name": "Screen/Admin Settings — Updates",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "83bac27cc0e0731309356168cc023c2a819cd992261f309e0b7c6148063f19ba"
   },
   {
     "file": "zM0VF",
     "figId": "1:3740",
     "name": "Screen/Admin Settings — About",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "fe63b05d45feda8c60026f5d39f7161043888be4f379fda6a3b4e4f3d6e54826"
   },
   {
     "file": "tooKB",
     "figId": "1:3761",
     "name": "Screen/Mobile — Servers",
     "width": 390,
-    "height": 954
+    "height": 954,
+    "hash": "d251da09590478edb839965224b59a84ba760de2cdbc0d0a97cdaeec1a81a076"
   },
   {
     "file": "SeizD",
     "figId": "1:3850",
     "name": "Screen/Mobile — Nav Drawer",
     "width": 390,
-    "height": 844
+    "height": 844,
+    "hash": "846a2ae94c2c38aa414be4e5f2322fad5c9cfaf1016e4d31c731a679b4af4c19"
   },
   {
     "file": "Wj0V4",
     "figId": "1:3930",
     "name": "Screen/Admin Settings — Mod registries",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "0c83e9bc4b0f5086f18ef35081dc1e19aa6e665791e9c1274ac74cf5dd75da36"
   },
   {
     "file": "i4L0M",
     "figId": "1:4003",
     "name": "Screen/Admin Settings — Mod registries (Key saved)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "ea81c473ae38c101f231b181904c6541d1ec44e078daf47663093a38ec6adf8b"
   },
   {
     "file": "KhYNc",
     "figId": "1:4074",
     "name": "Screen/Server Detail — Mods (by ID)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "4ac9558db20d97ebe790f929e6589cd391a3601b24ea3959de8ea2ac1d701abe"
   },
   {
     "file": "IzuY2",
     "figId": "1:4138",
     "name": "Screen/Server Detail — Overview (Never sleeps)",
     "width": 1440,
-    "height": 1725
+    "height": 1725,
+    "hash": "b71fbc454fcc1db72e276a672768b587702172a33657e646fec6d0d2ea161c04"
   },
   {
     "file": "TE2jI",
     "figId": "1:4287",
     "name": "Screen/Server Detail — Overview (Asleep)",
     "width": 1440,
-    "height": 1102
+    "height": 1102,
+    "hash": "832a8325ba49f1a5c3fe76a8b09d39f090a7d1e921e80958e40c7b51281450f8"
   },
   {
     "file": "x7MJI",
     "figId": "1:4384",
     "name": "Gameplane/Connection Card — Tunnel States (reference)",
     "width": 870,
-    "height": 343
+    "height": 343,
+    "hash": "9c539c0787a99482c41420d93656047cf73e86080e3e09f8daa89729f884f2db"
   },
   {
     "file": "xCJlu",
     "figId": "1:4432",
     "name": "Screen/Server Detail — Settings · Share links",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "18a2b94439843f2c64ec2cd94a658500c1ebf4e52ea964797b5ce54c9c6fac5a"
   },
   {
     "file": "dQV9N",
     "figId": "1:4482",
     "name": "Screen/Server Detail — Settings · Share links (Empty)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "cc3b59b1bdc92af5ec59f2f2ac8d8df7c72c0a4fbd74a940b474d5cdbcb58401"
   },
   {
     "file": "C2LQE4",
     "figId": "1:4505",
     "name": "Screen/Share Link — Up",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "306bd312b319443f306559dad0212dc557ed1c3590505df4e66235b88bc4e65b"
   },
   {
     "file": "q31B6w",
     "figId": "1:4528",
     "name": "Screen/Share Link — Asleep (can start)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "0cfe99b0d77030632fd827be38fdda74eb39c85784c1aff1e6a67f267271df80"
   },
   {
     "file": "qFLfB",
     "figId": "1:4537",
     "name": "Historical/Share Link — Asleep (view only)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "4808bbfa4a7433b3ff0f15267eb77832d8b6265d124e48e22269a94c389e4b63"
   },
   {
     "file": "EcoGD",
     "figId": "1:4541",
     "name": "Screen/Share Link — Starting",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "b95b8d1397b017b48f7609319107c9f0d7e7921b556c652b8d2bad8bd736d186"
   },
   {
     "file": "epZO2",
     "figId": "1:4548",
     "name": "Screen/Share Link — Invalid or expired",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "59f4c63cbb679639cedc3a13a3f34b2fd468601d92c03b770a419899a546113e"
   },
   {
     "file": "LYPXU",
     "figId": "1:4553",
     "name": "Screen/Share Link — Stopped by owner",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "56b165f3d9547bdec0cb91b38a1ff0d914ef44190767506597969155cd128f68"
   },
   {
     "file": "B57dG",
     "figId": "1:4557",
     "name": "Screen/Share Link — Start timed out",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "d700b9074ad137021d31e912c1f246dc4f84c50901f2e37b578eee88dd170283"
   },
   {
     "file": "Bbnga",
     "figId": "1:4561",
     "name": "Screen/Server Detail — Capture (Not enabled)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "3e8045ddb1b23c31859306cc1e77b9b6a5b3e113a39b96052a6b19fa8456c157"
   },
   {
     "file": "dBILX",
     "figId": "1:4581",
     "name": "Screen/Server Detail — Capture (Empty)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "842538459fe94ab4cd0c66f9d9978c4f4e6529e8c25f6260f1875be1fce721fb"
   },
   {
     "file": "xvlB6",
     "figId": "1:4613",
     "name": "Screen/Server Detail — Capture (Running)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "dee739aa48c9b21d8a16199f9aefb056f0fbd7020337db2ae11cba36ebc59934"
   },
   {
     "file": "m5kOm4",
     "figId": "1:4651",
     "name": "Screen/Server Detail — Capture (List)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "129f6e2e7f02b06c1f865f78b326834f0d222c7083368977c0526bfd0ccd2585"
   },
   {
     "file": "O08uaD",
     "figId": "1:4751",
     "name": "Screen/Server Detail — Capture — Start capture",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "f4e1c97c29c6858b545b63064b7deab2d66f6b6bb9ebccdf52a50ebab6fb7e2e"
   },
   {
     "file": "b4eaUf",
     "figId": "1:4878",
     "name": "Screen/Server Detail — Capture — Start capture (Invalid filter)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "fbc93376e8bdaae75ff896f19064bede53c2215da63e063d7188bcd164c28ff9"
   },
   {
     "file": "RodrS",
     "figId": "1:4990",
     "name": "Screen/Server Detail — Settings · Network capture",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "59235f757b64ecca720c9c1c64d22f81a8ed8caa74cb5ca7e0b93becf85be210"
   },
   {
     "file": "nNGDX",
     "figId": "1:5025",
     "name": "Screen/Admin Settings — Authentication (No OIDC mappings)",
     "width": 1440,
-    "height": 1463
+    "height": 1463,
+    "hash": "2d80d87caecde0526f8be2fbfdfe45413f2a403bfd21392977b33174141fbf1c"
   },
   {
     "file": "dxdEi",
     "figId": "1:5126",
     "name": "Legacy/Cluster Settings — Default storage — Superseded",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "59cebfef872ca89ea70eb794acaffcba558c9c43c6fd63c0ce241d5fd2396ae0"
   },
   {
     "file": "QgW58",
     "figId": "1:5150",
     "name": "Screen/Admin Settings — Authentication (Save rejected)",
     "width": 1440,
-    "height": 1660
+    "height": 1660,
+    "hash": "00e15e3b580311d7dfcf7da592f4f30a33cc8e62208f4027a1d7c40585aabe44"
   },
   {
     "file": "zqzr4",
     "figId": "1:5274",
     "name": "Screen/Admin Settings — Authentication (Admin mapping warning)",
     "width": 1440,
-    "height": 2488
+    "height": 2488,
+    "hash": "299566d86df4446a455aabc323fc8d50f2432669e2f0ba81b49025c4809f2c7b"
   },
   {
     "file": "o4LH8W",
     "figId": "1:5352",
     "name": "Screen/Server Detail — Overview (PVC Provisioning Failed)",
     "width": 1440,
-    "height": 1320
+    "height": 1320,
+    "hash": "b14fc682862a974c1063f3b3a5602b6d8a8545b61a39a2f34c625017b169b8cc"
   },
   {
     "file": "zFiOW",
     "figId": "1:6081",
     "name": "Screen/Servers (Light)",
     "width": 1440,
-    "height": 1010
+    "height": 1010,
+    "hash": "90ed60d260d3d034756e9c4c508a544839b7af1a3b3bd8504612755a88133070"
   },
   {
     "file": "F9pUrx",
     "figId": "1:6415",
     "name": "Screen/Servers",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "1e2d91ffe7329eb35d93a08d84f80b0b8a2724a8623ffc739337f00944485faf"
   },
   {
     "file": "Hy9r0",
     "figId": "1:6506",
     "name": "Screen/Server Detail — Overview (Idle armed)",
     "width": 1440,
-    "height": 1622
+    "height": 1622,
+    "hash": "709c5441146f1f24b4adbdedb72c4c32e28f45e1b73b8639f6dcf490fbc29602"
   },
   {
     "file": "sSISK",
     "figId": "1:6658",
     "name": "Screen/Server Detail — Overview (Light)",
     "width": 1440,
-    "height": 1300
+    "height": 1300,
+    "hash": "6c9577e9302c766db91950c111f4cd02b9c66b8aa300d36dd2017fc29c71b316"
   },
   {
     "file": "gX7um",
     "figId": "1:6802",
     "name": "Screen/Login (Light)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "70e6758d2e43278eb5fb5801bd35e7581df6cb3d41f09e7261fd9f5243ff212d"
   },
   {
     "file": "oyoTs",
     "figId": "1:6806",
     "name": "Screen/Dashboard Home (Light)",
     "width": 1440,
-    "height": 1150
+    "height": 1150,
+    "hash": "1513781d9d243e73542d9556a4018f3515af64f63e4cdab3fe7f348600f62353"
   },
   {
     "file": "DWztv",
     "figId": "1:6821",
     "name": "Screen/Mobile — Servers (Light)",
     "width": 390,
-    "height": 844
+    "height": 844,
+    "hash": "a62b1e870e5bd2138bf363b2394eb1748d7409b268ca44fc538476dbb9381554"
   },
   {
     "file": "IdbiB",
     "figId": "1:6899",
     "name": "Screen/Dialog/Build Module — Step 1 (Preset & Metadata)",
     "width": 800,
-    "height": 977
+    "height": 977,
+    "hash": "565606c0a852eda85d5fc54fcf4e1eaec07fd1acb45b926552ffb8c8a13e24c8"
   },
   {
     "file": "O5kaV",
     "figId": "1:6986",
     "name": "Screen/Dialog/Build Module — Step 2 (Container & Ports)",
     "width": 800,
-    "height": 546
+    "height": 546,
+    "hash": "0869f7cf29e85fd018a6316530aacfdd3914ee192f5ea103708609e4db0e4d2c"
   },
   {
     "file": "hmPL7",
     "figId": "1:7061",
     "name": "Screen/Dialog/Build Module — Step 3 (Review & Export)",
     "width": 840,
-    "height": 593
+    "height": 593,
+    "hash": "7a2cd0cd3b25cf1931fa12b072e4790d01e7fa0d8108ad01bede189f40800a62"
   },
   {
     "file": "uCA23",
     "figId": "1:7118",
     "name": "Screen/Server Detail — Settings · General",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "837b9c59a192371bfa672a534693e91e493d4b8fd1288f8eecd28c1308bd9d25"
   },
   {
     "file": "VctzT",
     "figId": "1:7162",
     "name": "Screen/Server Detail — Settings · Version",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "24ec5152af732f5dd7aeb09e6718ff026e40a3f8eabc90b80788a6fd1ac5c827"
   },
   {
     "file": "iLm38",
     "figId": "1:7187",
     "name": "Screen/Server Detail — Settings · Environment",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "0fa713f990bee85546a346da5571133f8f04484e405f8d1b843f4bdf034e0f3e"
   },
   {
     "file": "QpEvu",
     "figId": "1:7206",
     "name": "Screen/Server Detail — Settings · Access",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "82e68fb801ed0c077609763532fb00d575b5e7d0a3094fd2d91eb01c195f76cf"
   },
   {
     "file": "XR0f9",
     "figId": "1:7231",
     "name": "Screen/Server Detail — Settings · Danger zone",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "1119f0dc0c55972d5b4da64b8e50397e8149d3b3d575e27d0d116faead1c70a9"
   },
   {
     "file": "QQtUD",
     "figId": "1:7258",
     "name": "Screen/Create Server — Step 4 Network (as built)",
     "width": 1440,
-    "height": 1270
+    "height": 1270,
+    "hash": "a7e6990b927019c70dd01d326565e3deb5d0f67d2bf4fdd21dd0381b5cb76ea7"
   },
   {
     "file": "IyMFM",
     "figId": "1:7291",
     "name": "J5pjJ3 states/Tunnel enabled",
     "width": 500,
-    "height": 476
+    "height": 476,
+    "hash": "bc234fd3c147a16c5e1d674d4f732691387fa5ea3ca84ae842866017a0081cb7"
   },
   {
     "file": "jXykV",
     "figId": "1:7321",
     "name": "J5pjJ3 states/Alerts",
     "width": 700,
-    "height": 246
+    "height": 246,
+    "hash": "dfeaebdfb17cd835b6802d011e31e777539abda00e7bbbbe174f02f116f8f0e7"
   },
   {
     "file": "tr6cE",
     "figId": "1:7325",
     "name": "Screen/Share links — Create link (No expiry)",
     "width": 480,
-    "height": 322
+    "height": 322,
+    "hash": "e3d9aaa3c53f01caac9d782b647bd4b5ce6855e78db258f4e5d1e76dcb889900"
   },
   {
     "file": "oPF1n",
     "figId": "1:7339",
     "name": "Screen/Share links — Create link (Custom date)",
     "width": 480,
-    "height": 382
+    "height": 382,
+    "hash": "d413af15ce422dd2971ae3f63cbd2c43cd9c611b7275bb4625f057acf5bd359a"
   },
   {
     "file": "X405l",
     "figId": "1:7358",
     "name": "Screen/Server Detail — Console (not running – Stopped/Suspended)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "ce3303b0883439624829129daa0a66d972bc8c9efa1aca12b3b2263577a8118d"
   },
   {
     "file": "j88bl0",
     "figId": "1:7374",
     "name": "Screen/Server Detail — Console (not running – Pod failure)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "aa8d7193b10f79a2700a0e67d13d7700490b8e5ef8e8690b13f0a8e1fbbb3f37"
   },
   {
     "file": "lWvcv",
     "figId": "1:7388",
     "name": "Screen/Theme Settings",
     "width": 1440,
-    "height": 2344
+    "height": 2344,
+    "hash": "ca22070bfbef552af37c37ce31840680908fa3cc3bbdfe8ad9bbcb8a222373f7"
   },
   {
     "file": "T1wkiT",
     "figId": "1:7516",
     "name": "Screen/Theme Settings — Warnings",
     "width": 1440,
-    "height": 2490
+    "height": 2490,
+    "hash": "886ec138599ecfb4bb56da72c23adabbdc155548400cc3d4c4f447206aac7ade"
   },
   {
     "file": "lhKzN",
     "figId": "1:7634",
     "name": "Create Server — Step 4 Network · Tunnel disabled",
     "width": 1440,
-    "height": 1170
+    "height": 1170,
+    "hash": "ec592f8aaa61b7493cb1230218ac903938c3fbc9334d39741fa0a5aa35308237"
   },
   {
     "file": "a7o9C",
     "figId": "1:7665",
     "name": "Create Server — Step 4 Network · Tunnel enabled, no provider",
     "width": 1440,
-    "height": 1170
+    "height": 1170,
+    "hash": "d5f80aba43cf90395b56f2c3592375aa70c24aae78ce0da63be89f01d30474e2"
   },
   {
     "file": "ZU1BG",
     "figId": "1:7696",
     "name": "Create Server — Step 4 Network · Tunnel enabled, provider selected",
     "width": 1440,
-    "height": 1170
+    "height": 1170,
+    "hash": "fbdd605175b2a89dcdfc09cdb4909a910212d3f44a2c08323ef5ca6052d21fba"
   },
   {
     "file": "eGbsg",
     "figId": "1:7727",
     "name": "Create Server — Step 4 Network · Tunnel enabled, complete",
     "width": 1440,
-    "height": 1170
+    "height": 1170,
+    "hash": "80705d0d7dacea9efeb313973710bff0af87fc914f148404d2f47c07cb066376"
   },
   {
     "file": "nGJE1",
     "figId": "1:7758",
     "name": "Server Detail · Settings · Networking · Tunnel disabled",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "870f0e4d35fd7a31bcafdd212af1ea09e87d82a074276ef0a9b302f9e5d60c3c"
   },
   {
     "file": "dhPtX",
     "figId": "1:7829",
     "name": "Server Detail · Settings · Networking · Tunnel initial enable",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "32f734a8daafd31ff23db6c16f10f481ababbc8d0d3f4482297da60abbda2cba"
   },
   {
     "file": "tSOeI",
     "figId": "1:7900",
     "name": "Server Detail · Settings · Networking · Provider selected",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "aa5bd12f6f47e0d9a9434843d51b9f363a398c627ac1fb5b83161e3aed8d8eb7"
   },
   {
     "file": "y3YcQ",
     "figId": "1:7971",
     "name": "Server Detail · Settings · Networking · Credentials entering",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "f7127fd837a9e5aa007e469602c3e93bd6b9a2f49eb715530e26aa313021526d"
   },
   {
     "file": "EKJyM",
     "figId": "1:8042",
     "name": "Server Detail · Settings · Networking · Provider + credentials complete",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "a848596c67e7ab9772bd43e3f7c778f1cc7e9e20adfc152ad586ed738f3653ee"
   },
   {
     "file": "akr4I",
     "figId": "1:8113",
     "name": "Screen/Server Detail — Capture (No access)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "cafac9046c886e55a8d82e2e0d2cd367b850edc1fb7b9741fdd96c468e738b2a"
   },
   {
     "file": "hlwx3",
     "figId": "1:8130",
     "name": "State/Server Actions Menu — Owner-only disabled",
     "width": 520,
-    "height": 220
+    "height": 220,
+    "hash": "084d3c44be860c4f1f1596bbffa8bd26b3ee33ad1f1cf56aaf6a7c82ed20331a"
   },
   {
     "file": "IMSD5",
     "figId": "1:8139",
     "name": "Screen/Server Detail — Settings · Danger zone (Owner-only)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "e66a87db0524298b25b1f5b5de2857d0205f8bc3e0f64365c19df34252e8747d"
   },
   {
     "file": "gWqMD",
     "figId": "1:8167",
     "name": "Screen/Server Detail — Settings · Access (Read-only)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "26bd094dee1a974d369147d6533b356dff9b4319cc6637aa3825fbd3fc627305"
   },
   {
     "file": "UCNBm",
     "figId": "1:8193",
     "name": "Screen/Servers — Cluster filters open",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "973e0335c9b10c877a0596f64555a1047615f997621c024cdc00a433041e87f2"
   },
   {
     "file": "pnAbF",
     "figId": "1:8310",
     "name": "Screen/Backups — Filters open",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "4600f3b208a8b985197dc5fa4b188161f0bd90e5f7ca5e8975adc7469ee9dafe"
   },
   {
     "file": "Cb3eC",
     "figId": "1:8350",
     "name": "Screen/Backups — Schedules filters open",
     "width": 1440,
-    "height": 1150
+    "height": 1150,
+    "hash": "1e343be6a281c9d6ffe19b2726dc75cfee83328ecd25171cefb618a1d0879f90"
   },
   {
     "file": "fbBqA",
     "figId": "1:8440",
     "name": "Screen/Backups — Restores filters open",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "83f545230e2518b7cf9b6b31197f5d6360f16c290531ace3a8f07a91fb242cce"
   },
   {
     "file": "YPKbV",
     "figId": "1:8479",
     "name": "Screen/Dashboard — Partial cluster coverage",
     "width": 1440,
-    "height": 1220
+    "height": 1220,
+    "hash": "4da3f2ca4c06154c828172ce7e2d62f1b51ffbdb66b23bfafdef26747b2b274b"
   },
   {
     "file": "w1QYmf",
     "figId": "1:8497",
     "name": "States/Remote Capture — Access and capability",
     "width": 1160,
-    "height": 559
+    "height": 559,
+    "hash": "480585c4734c77332910083b47bca6addac09c858db4e61e094bee178869802c"
   },
   {
     "file": "SUtGZ",
     "figId": "1:8523",
     "name": "Screen/Mobile — Remote server Capture",
     "width": 375,
-    "height": 900
+    "height": 900,
+    "hash": "e9f3dda7abf0aa5745b6a5661630f89b16f0622fcda8cd3c5c751cc9b92ebd62"
   },
   {
     "file": "C5Aoe",
     "figId": "1:8547",
     "name": "Screen/Mobile — Servers filters open",
     "width": 375,
-    "height": 954
+    "height": 954,
+    "hash": "fd6c5de82b08e8c35ddbda87d7e848a75ce552087703fdc4ba94f293e6d8cfce"
   },
   {
     "file": "NKiqf",
     "figId": "1:8634",
     "name": "Screen/Mobile — Backups filters open",
     "width": 375,
-    "height": 844
+    "height": 844,
+    "hash": "5f33928175805ae5b7111b9fbd38f5e8061cd5fc069986674ad758b125c90bd9"
   },
   {
     "file": "iYUWc",
     "figId": "1:8650",
     "name": "Screen/Clusters — Registered clusters",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "ffa9b41348cd7e67bd0dfb0e160e0540d6da5d794f54601f5c7817d108705985"
   },
   {
     "file": "oMuyw",
     "figId": "1:8675",
     "name": "Gameplane/Dialog/New File (Invalid name)",
     "width": 440,
-    "height": 310
+    "height": 310,
+    "hash": "f39b26234a17afa6a93e3b38e5140a685f2cfffab9d8b5224a221e80e8975499"
   },
   {
     "file": "OC804",
     "figId": "1:8680",
     "name": "Screen/Server Detail — Settings · Game configuration",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "89cc8602d135b1149a3e9942509291e28515031bdeafbf06da9d2d49735e4a3a"
   },
   {
     "file": "QFEg9",
     "figId": "1:8733",
     "name": "Screen/Server Detail — Settings · Game configuration (Invalid value)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "ef4aeb6aee530549ee7f68dbe54fc69ee215ab27a650f7130fd3954707fd90f3"
   },
   {
     "file": "wxINm",
     "figId": "1:8787",
     "name": "Screen/Server Detail — Settings · Game configuration (Read-only)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "1835f066d24fa7f94f491d62048832e551ef788f2330dc6c6bc07d1438972420"
   },
   {
     "file": "e9FnC",
     "figId": "1:8836",
     "name": "Screen/Server Detail — Settings · Game configuration (Orphaned key)",
     "width": 1440,
-    "height": 960
+    "height": 960,
+    "hash": "7fac7776001ff4f95f1505837ebfe8543c28b0177eb2d5c5bf2debc9160fc4ea"
   },
   {
     "file": "Ne5TA",
     "figId": "1:8895",
     "name": "Screen/Not Found",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "fb539e64772b87d1f8307e84760ab6cdadc9e6185520e89941f55d01eddb661c"
   },
   {
     "file": "FBiMN",
     "figId": "1:8907",
     "name": "Screen/Share Link — Asleep (Start cooldown)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "f799f5fb13768a2cf560b04cdb3f3af4e028432c696e4b7eb0b440ac0ba59e0f"
   },
   {
     "file": "zj5a3",
     "figId": "1:8912",
     "name": "Screen/Dashboard Home — Telemetry notice (default)",
     "width": 1440,
-    "height": 1380
+    "height": 1380,
+    "hash": "92d73b4eeb8a5e946e89a35e9ec59835f9db4e113b1b5b4429c9e4a67a3b148e"
   },
   {
     "file": "l7TRz9",
     "figId": "1:8952",
     "name": "Screen/Admin Settings — Telemetry (default)",
     "width": 1440,
-    "height": 1031
+    "height": 1031,
+    "hash": "22b33a6afd1c0f61f73d4a4247bd5ab14c5687ad404d9f47b8584bc3ef692117"
   },
   {
     "file": "GR1G9",
     "figId": "1:8997",
     "name": "Screen/Dashboard Home — Telemetry notice (bundled)",
     "width": 1440,
-    "height": 1380
+    "height": 1380,
+    "hash": "b3b823ee1a5d57c89e6576cc1629ef6dd00d52c81c9526261574f232803ad2eb"
   },
   {
     "file": "r0heh",
     "figId": "1:9013",
     "name": "Screen/Admin Settings — Telemetry (custom)",
     "width": 1440,
-    "height": 1032
+    "height": 1032,
+    "hash": "eed4ed586c6d2624f581db3d115556238ce1e3dfe25ccbb01e6a6bcd0bcc1bf6"
   },
   {
     "file": "cDiNb",
     "figId": "1:9061",
     "name": "Screen/Admin Settings — Telemetry (bundled)",
     "width": 1440,
-    "height": 777
+    "height": 777,
+    "hash": "c2507e650254e40df6451850285f048ae18a87463b5748eb5b6f063319083cbf"
   },
   {
     "file": "DBQyF",
     "figId": "1:9106",
     "name": "Screen/Admin Settings — Telemetry (disabled)",
     "width": 1440,
-    "height": 641
+    "height": 641,
+    "hash": "e2d9e9feb18817c92b305a87bbbd84092ab7fc861546d86ca3b1e004253415b8"
   },
   {
     "file": "K5XinZ",
     "figId": "1:9150",
     "name": "Screen/Admin Settings — Telemetry (none)",
     "width": 1440,
-    "height": 605
+    "height": 605,
+    "hash": "a5343f63ef156ea5061bf1373608e1b396259de1c9b852f6900ae68ad5ca2a98"
   },
   {
     "file": "yrxK2",
     "figId": "1:9194",
     "name": "Screen/Admin Settings — Telemetry (Reset ID confirm)",
     "width": 1440,
-    "height": 1031
+    "height": 1031,
+    "hash": "ae7ebd68d409f6baa0453d7fe158c9f7975452bf5bf1754633a3cb26ec0b6740"
   },
   {
     "file": "n2qdi",
     "figId": "1:9241",
     "name": "Screen/Standalone — Clusters (Empty)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "5432e815de6fafdad333834c52d5efb90f424355734b6205e11a33348597db60"
   },
   {
     "file": "WrmU5",
     "figId": "1:9252",
     "name": "Screen/Standalone — Clusters (Registered)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "c554153129e7b3ca68bcfa1b8028f37b91538d11f8ee50e81b48e29267c07864"
   },
   {
     "file": "Be7ZW",
     "figId": "1:9283",
     "name": "Legacy/Standalone — Cluster inventory selection — Superseded",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "9572a5e316ff1ff5cb6fdb544d67431292a6d3b00f06d43e68bc4cd8b8301711"
   },
   {
     "file": "Z0oyh",
     "figId": "1:9296",
     "name": "Screen/Standalone — Modules (No selection)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "919e9aee206cd238f5d1efb5ff0ad07a7fc006f6d940142490324c9f3588f166"
   },
   {
     "file": "ZlLf0",
     "figId": "1:9310",
     "name": "Screen/Standalone — Modules (Permission denied)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "cefdee519450fd345c3851ebe2a82d48cb6cacc17cbeb649e17fb8781d4aa17e"
   },
   {
     "file": "RpHBg",
     "figId": "1:9322",
     "name": "Screen/Standalone — Register cluster",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "2a788d3b07b0fee2c25d81f7095d3f5e716bb15eb05e93e03bfe72a9be8fd7a3"
   },
   {
     "file": "HVhmb",
     "figId": "1:9346",
     "name": "Legacy/Clusters list — Remove registration — Moved",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "0ccd17018552f9a64227aca0c76f650fad10625114a9dbb050969399f9d7d59c"
   },
   {
     "file": "RS0KZ",
     "figId": "1:9384",
     "name": "State/Standalone — Cluster selection and request states",
     "width": 1440,
-    "height": 732
+    "height": 732,
+    "hash": "894c8b225fa508186aac833b32647d4cac756819015b08e14269ac82b7f4a28b"
   },
   {
     "file": "D9QYZ",
     "figId": "1:9423",
     "name": "Legacy/Standalone — Backup destinations — Moved",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "70d3f2e75655567e5956e29ae70022b30290d5ab979b8f995dfe8b230781c205"
   },
   {
     "file": "l64bd",
     "figId": "1:9443",
     "name": "Screen/Standalone — Settings · Module sources",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "8ace63ab0ab278f91b874c1438fba9ef95029dd3310b9a031578b7d70071d357"
   },
   {
     "file": "Uzzje",
     "figId": "1:9463",
     "name": "Screen/Standalone — Settings · Updates",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "acb100b65838cb0f896fa253aac942245c9631473b654f52985fd8d75650c69c"
   },
   {
     "file": "FOVMf",
     "figId": "1:9481",
     "name": "Screen/Standalone — Settings · About",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "22ce54f0e5c9e029e484f8c3aaba6bade7371171578fc5f83e92c588e5fa2305"
   },
   {
     "file": "r139UP",
     "figId": "1:9500",
     "name": "Screen/Standalone — System logs",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "3a6fada445b92f1dcec79d63eb3713845afd2178e95310a1faee4247f03895fc"
   },
   {
     "file": "EWrn0",
     "figId": "1:9518",
     "name": "Screen/Standalone — Modules (East selected)",
     "width": 1440,
-    "height": 1900
+    "height": 1900,
+    "hash": "db5cbda1dfb70027b56e4404f6d1886f2dcb2137483f6a6cbc62e97e24d29a38"
   },
   {
     "file": "p8QSPq",
     "figId": "1:9622",
     "name": "Screen/Standalone — Modules (Manage sources)",
     "width": 1440,
-    "height": 2050
+    "height": 2050,
+    "hash": "8aa07d41e315a9eb9e97acdadc6e34a4d1f7ff5d94d19acf8cf33085cef3da9c"
   },
   {
     "file": "aMU7O",
     "figId": "1:9767",
     "name": "Gameplane/Dialog/Edit user — Standalone (No target)",
     "width": 480,
-    "height": 643
+    "height": 643,
+    "hash": "8335d3784492bb33b4dc87f032329ebd1d92546ea64e84cde72ea2d1ec2d3cd0"
   },
   {
     "file": "C9bR6",
     "figId": "1:9790",
     "name": "Gameplane/Dialog/Edit user — Standalone (Remote grant)",
     "width": 480,
-    "height": 643
+    "height": 643,
+    "hash": "36e14a509259f556d549468b011f66239de904a2d8a11be9ff07f154521da0cf"
   },
   {
     "file": "w34N9",
     "figId": "1:9813",
     "name": "Screen/Standalone — Dashboard (No workload clusters)",
     "width": 1440,
-    "height": 1150
+    "height": 1150,
+    "hash": "4f79bddfee05094aad77035877b7913e81399a0390dcc9d2b3154bbce64c2b7f"
   },
   {
     "file": "U9xSg",
     "figId": "1:9854",
     "name": "Screen/Server Detail — Players (Nuclear Option)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "d60d78d784fe57cfa0be157f58b7d5f698771ff5e7b007b15dee598add760ee8"
   },
   {
     "file": "BguST",
     "figId": "1:9912",
     "name": "Screen/Server Detail — Settings · Game configuration (Password will be removed)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "3526e3040470cc732527424096ae6d0bc3ce885961bc1e2615fec9ffbea0828b"
   },
   {
     "file": "YN8cE",
     "figId": "1:9965",
     "name": "Screen/Server Detail — Settings · Game configuration (New password typed)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "aa12aeb34950dfbae6756b749092bf446f498c17f72ebd500f73927b60e60fba"
   },
   {
     "file": "GsofJ",
     "figId": "1:10500",
     "name": "Screen/Login — Language menu open",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "822f7b2a666c52548d0b35b07514a2721a3a82b3136c248bb088fb57de575103"
   },
   {
     "file": "lCTci",
     "figId": "1:10508",
     "name": "Screen/Mobile — Theme Settings · Language",
     "width": 390,
-    "height": 972
+    "height": 972,
+    "hash": "e6b4fe80ee9acff37f10f9dee4e073bc8f8ad4070a03870b2c4932ce125de98f"
   },
   {
     "file": "SUcad",
     "figId": "1:10514",
     "name": "Screen/Admin Settings — Notifications (Add sink)",
     "width": 1440,
-    "height": 965
+    "height": 965,
+    "hash": "5f3e404fd5868fa1dfc7f9eef04a395f8275ad5cb831d1bd9086831770adfed6"
   },
   {
     "file": "NqaaU",
     "figId": "1:10592",
     "name": "Screen/Server Detail — Settings · Resources (Reserve less on)",
     "width": 1440,
-    "height": 1000
+    "height": 1000,
+    "hash": "db60984f3e255011c97e08f24ea5982bb12deb659e2287f080ca7fe363a32bce"
   },
   {
     "file": "NLu2I",
     "figId": "1:10655",
     "name": "Screen/Create Server — Step 3 Configure (Reserve less on)",
     "width": 1440,
-    "height": 2083
+    "height": 2083,
+    "hash": "31137047f551e8308a6c7e7cf77118d122633db90ace784e4503c0fb908d9924"
   },
   {
     "file": "A8vGwM",
     "figId": "1:10758",
     "name": "Screen/Server Detail — Settings · Lifecycle (Wake on connect unavailable)",
     "width": 1440,
-    "height": 1620
+    "height": 1620,
+    "hash": "46497425602c942d18f421d698031175200f7922f0ea80f6c8795def565c66e8"
   },
   {
     "file": "BdmAW",
     "figId": "1:10941",
     "name": "Screen/Nodes — All clusters",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "b97267555d9e11855ae244105b9555b408976f21a03719db12407a258493d739"
   },
   {
     "file": "wqnM9",
     "figId": "1:10968",
     "name": "Screen/Cluster Details — Overview",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "9eef21b9683629a20174f71d17079a3340c494b2cfd31bbd3d660519ba14f8ab"
   },
   {
     "file": "J8GzM9",
     "figId": "1:10989",
     "name": "Screen/Cluster Details — Nodes",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "fc907032879b89504c87988800a4e0bf5a7680893d46953d05895d844bd2d946"
   },
   {
     "file": "OecJ5",
     "figId": "1:11004",
     "name": "Screen/Cluster Details — Configuration — Local",
     "width": 1440,
-    "height": 1060
+    "height": 1060,
+    "hash": "42740607d0cb7f116e339a6798fbb30b9c6023ad375fa3aea1f8c24ba57afaa0"
   },
   {
     "file": "t56aLu",
     "figId": "1:11035",
     "name": "Screen/Cluster Details — Configuration — Remote",
     "width": 1440,
-    "height": 1060
+    "height": 1060,
+    "hash": "34cbfa4dbf9ca1227728ddd5649708bbfe518883fe844d4c0ffab812bac0e3b0"
   },
   {
     "file": "IBUqJ",
     "figId": "1:11060",
     "name": "Screen/Nodes — Add node target",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "a3fa15e4cc280df2abb961fd4ef0004e830628b858040eaf41c31c3af3af6715"
   },
   {
     "file": "N2nTf",
     "figId": "1:11085",
     "name": "Screen/Mobile — Nodes — All clusters",
     "width": 390,
-    "height": 1620
+    "height": 1620,
+    "hash": "561346b318dd7169425f0f811583ae23294607303f522ee528d86485b04d8734"
   },
   {
     "file": "T70dJ",
     "figId": "1:11192",
     "name": "Screen/Cluster Details — Configuration — Default storage",
     "width": 1440,
-    "height": 1060
+    "height": 1060,
+    "hash": "6a8217c21fb6a46e170005ffebd52abf6f690210ec3d03f68381774be59e65d8"
   },
   {
     "file": "KJdxg",
     "figId": "1:11236",
     "name": "Screen/Server Detail — Settings · Minecraft JVM startup",
     "width": 1440,
-    "height": 980
+    "height": 980,
+    "hash": "d5b597ec11c29ee7618179b64260095c1b99f7750687961a1bbdd672ebf8ff11"
   },
   {
     "file": "ZUAq1",
     "figId": "1:11273",
     "name": "Screen/Server Detail — Settings · Minecraft JVM heap validation",
     "width": 1440,
-    "height": 980
+    "height": 980,
+    "hash": "4213f28a22ebf2c7b13d03a2a161f3b47661270141da2814cd62d404faa2b41f"
   },
   {
     "file": "o1uEP",
     "figId": "1:11311",
     "name": "Gameplane/Dialog/Create ZIP",
     "width": 448,
-    "height": 196
+    "height": 196,
+    "hash": "217bdc3dec6477cf41e6b15563f17732aa80108da24b11df4cd23e82fedbdaf9"
   },
   {
     "file": "UdnBT",
     "figId": "1:11315",
     "name": "Screen/Admin Settings — Authentication (Role rules)",
     "width": 1440,
-    "height": 2600
+    "height": 2600,
+    "hash": "6291bd302368dc897f1450e8c0f7600ec97fc274a1fa541bdca9c54f45e89fa4"
   },
   {
     "file": "mrF6f",
     "figId": "1:11502",
     "name": "Screen/Admin Settings — Authentication (Role rules empty, not overridden)",
     "width": 888,
-    "height": 649
+    "height": 649,
+    "hash": "434b93fd661227aa0e88c60179ae7cdfa00a24fca14319f9bebddaa309a7c4ed"
   },
   {
     "file": "rJt1I",
     "figId": "1:11547",
     "name": "Screen/Users & RBAC — Role source",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "f513f92d014998603a49157250f88235ee3eae4984e3a92358ff1b4f3f3a1ac7"
   },
   {
     "file": "pszxE",
     "figId": "1:11638",
     "name": "Users & RBAC — Return to SSO control dialogs",
     "width": 1040,
-    "height": 721
+    "height": 721,
+    "hash": "84a948e631fc413f98e357201734df4fbed2e390da2fcc4b686b5e363c5d87ec"
   },
   {
     "file": "1274632774-130",
     "figId": "1274632774:130",
     "name": "Screen/Server Detail — Modpacks (Active pack)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "d429178a20382d8f86e134555c894a00e6df525f195f15dfac4e22cbfcb1e813"
   },
   {
     "file": "1274632774-470",
     "figId": "1274632774:470",
     "name": "Screen/Server Detail — Modpacks — Choose version",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "ef19dd5ba4807de89fc7ca4d0a5750d7321cebfdab87e7bf6f93f5a6bb5435de"
   },
   {
     "file": "1274632774-907",
     "figId": "1274632774:907",
     "name": "Screen/Server Detail — Modpacks — Confirm install",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "de11282e674930bc225223efd2bd3287b97ea7b4824442fda3d95bf135f18810"
   },
   {
     "file": "1274632774-1258",
     "figId": "1274632774:1258",
     "name": "Screen/Server Detail — Modpacks — Change version",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "7da15fe69729f5403561e986659f355f413eb5a8d60168404ff8c099204d7e34"
   },
   {
     "file": "1274632774-1722",
     "figId": "1274632774:1722",
     "name": "Screen/Server Detail — Modpacks — Confirm downgrade",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "5724aa960aaa4a1d7404c9f236cdaebb42721623d284fc866a5fee9c55e33ecf"
   },
   {
     "file": "1274632774-2112",
     "figId": "1274632774:2112",
     "name": "Screen/Server Detail — Modpacks — Remove",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "0fb7382bbf785071f25ac5401e505a400e14ce8e83f799ab2a4939f43be71e43"
   },
   {
     "file": "1274632774-2492",
     "figId": "1274632774:2492",
     "name": "Screen/Server Detail — Modpacks (Missing files)",
     "width": 1440,
-    "height": 1080
+    "height": 1080,
+    "hash": "101ee890f9adaaee2940b7167751237cb9ee959c3cf88f012df58a243e89fd5d"
   },
   {
     "file": "1274632774-2877",
     "figId": "1274632774:2877",
     "name": "Screen/Server Detail — Modpacks (Active pack, Light)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "a4c4f626d452d7c1811c9415d9f7615de01f4f58bf665e321e82cec82145eb3e"
   },
   {
     "file": "1274632774-3217",
     "figId": "1274632774:3217",
     "name": "Screen/Server Detail — Modpacks (Read-only)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "4b061d82c2ca6294e680bb14d472d86927014294ff2341f4122d16d6b0c57031"
   },
   {
     "file": "1274632774-3559",
     "figId": "1274632774:3559",
     "name": "States/Modpacks — Active card and tab states (reference)",
     "width": 2280,
-    "height": 1158
+    "height": 1158,
+    "hash": "ba3f19442766bdbfb3809be801f1ca7929440e0724f4c9dc37d5b50f67da927e"
   },
   {
     "file": "1274632774-3890",
     "figId": "1274632774:3890",
     "name": "Screen/Mobile — Server Detail — Modpacks",
     "width": 390,
-    "height": 1100
+    "height": 1100,
+    "hash": "57ab9d1405ab0fc49826c6ae75eac1faa43309e6af4090aa4d802e3a35250539"
   },
   {
     "file": "1274632774-4001",
     "figId": "1274632774:4001",
     "name": "Screen/Admin Settings — Mod registries (Share CurseForge key)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "f39a0cd563e42fa2b91acf70e6c13239c593413a8bbd0bc9e342d96407169b08"
   },
   {
     "file": "1274632774-4260",
     "figId": "1274632774:4260",
     "name": "Screen/Admin Settings — Mod registries (Key from startup flag)",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "2efb7c6f3ae8975a13cfcabee7817ae95f97488cc90b06cbd4706128e8bfec37"
   },
   {
-    "file": "1006926387-249",
-    "figId": "1006926387:249",
-    "name": "Screen/Settings — SFTP",
-    "width": 1440,
-    "height": 1080
+    "file": "1494270493-26",
+    "figId": "1494270493:26",
+    "name": "States/Backup schedule — Edit with restricted snapshot strategy",
+    "width": 1524,
+    "height": 582,
+    "hash": "3e879bca2e1d962daa7e2ed892b12e477a59adaf73e43d3d74f222d39d991304"
   },
   {
-    "file": "1006926387-789",
-    "figId": "1006926387:789",
-    "name": "Screen/Settings — SFTP (Light)",
-    "width": 1440,
-    "height": 1080
-  },
-  {
-    "file": "1006926387-1274",
-    "figId": "1006926387:1274",
-    "name": "Screen/Settings — SFTP (Not enabled)",
-    "width": 1440,
-    "height": 1080
-  },
-  {
-    "file": "1006926387-1734",
-    "figId": "1006926387:1734",
-    "name": "Screen/Settings — SFTP (No password)",
-    "width": 1440,
-    "height": 1080
-  },
-  {
-    "file": "1006926387-2214",
-    "figId": "1006926387:2214",
-    "name": "Gameplane/Dialog/Add SSH key",
+    "file": "46479436-2",
+    "figId": "338080293:2",
+    "name": "Gameplane/Dialog/Back up now (No destinations)",
     "width": 480,
-    "height": 380
+    "height": 279,
+    "hash": "ef8e584d5c161f9b6c82d180f7ba8b5ec42b52ef2026d919e0e8d4681b1df2c8"
   },
   {
-    "file": "1006926387-2231",
-    "figId": "1006926387:2231",
-    "name": "Gameplane/Dialog/Add SSH key (Invalid key)",
-    "width": 480,
-    "height": 470
-  },
-  {
-    "file": "1006926387-2253",
-    "figId": "1006926387:2253",
-    "name": "Gameplane/Dialog/Generate SFTP password",
-    "width": 480,
-    "height": 300
-  },
-  {
-    "file": "1006926387-2271",
-    "figId": "1006926387:2271",
-    "name": "Gameplane/Dialog/SFTP password (Shown once)",
-    "width": 480,
-    "height": 420
-  },
-  {
-    "file": "1006926387-2294",
-    "figId": "1006926387:2294",
-    "name": "Gameplane/Dialog/Regenerate SFTP password",
-    "width": 440,
-    "height": 163
-  },
-  {
-    "file": "1006926387-2310",
-    "figId": "1006926387:2310",
-    "name": "Gameplane/Dialog/Revoke SFTP password",
-    "width": 440,
-    "height": 163
-  },
-  {
-    "file": "309702331-1",
-    "figId": "309702331:1",
-    "name": "Screen/Users & RBAC — SFTP access (admin)",
+    "file": "2044649516-13",
+    "figId": "2044649516:13",
+    "name": "Screen/MCP Tokens",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "6cf40db14283d3d67732605065e31ad812529484cf015e12fcb7516738d73f81"
   },
   {
-    "file": "309702331-255",
-    "figId": "309702331:255",
-    "name": "Screen/Clusters — SFTP (remote-lab)",
+    "file": "2044649516-579",
+    "figId": "2044649516:579",
+    "name": "Screen/MCP Tokens — Empty",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "f5ea51dd7129f4a01fee981182218cdb9e83f2aefc98719be8fd832671f144bb"
   },
   {
-    "file": "309702331-453",
-    "figId": "309702331:453",
-    "name": "Screen/Clusters — SFTP (remote-lab) — Token created",
+    "file": "2044649516-1099",
+    "figId": "2044649516:1099",
+    "name": "Screen/MCP Tokens — Create",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "bd41f99d477e43fa5ee8f8f74572fc1f5b9eb2a507373d242b1a2cf4155b75ed"
   },
   {
-    "file": "309702331-643",
-    "figId": "309702331:643",
-    "name": "Screen/Clusters — SFTP (remote-lab) — Token limit",
+    "file": "2044649516-1687",
+    "figId": "2044649516:1687",
+    "name": "Screen/MCP Tokens — Created",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "bcedef15c94231251414ebe7dbbbe799a5635e4ed484d7222cad4c6735e3e0e2"
   },
   {
-    "file": "309702331-845",
-    "figId": "309702331:845",
-    "name": "Screen/Server Detail — Files (Uploads)",
+    "file": "2044649516-2282",
+    "figId": "2044649516:2282",
+    "name": "Screen/MCP Tokens — Revoke",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hash": "9f503636d52d90e1e2942c0308d92401d1f6504d9965cce1c16fbc4079842379"
   },
   {
-    "file": "309702331-1268",
-    "figId": "309702331:1268",
-    "name": "Screen/Server Detail — Files (Uploads, Light)",
-    "width": 1440,
-    "height": 900
+    "file": "2044649516-2862",
+    "figId": "2044649516:2862",
+    "name": "Screen/Mobile — MCP Tokens",
+    "width": 390,
+    "height": 844,
+    "hash": "534b00d94ec3c5e0f15fdca1be4ee3141661f6833b3daad1ef81e88180c563c8"
   },
   {
-    "file": "309702331-1691",
-    "figId": "309702331:1691",
-    "name": "Screen/Server Detail — Files (Uploads with errors)",
+    "file": "2044649516-2982",
+    "figId": "2044649516:2982",
+    "name": "Screen/Users & RBAC — MCP tokens",
     "width": 1440,
-    "height": 900
-  },
-  {
-    "file": "309702331-2111",
-    "figId": "309702331:2111",
-    "name": "Screen/Server Detail — Files (Starting)",
-    "width": 1440,
-    "height": 900
-  },
-  {
-    "file": "309702331-2511",
-    "figId": "309702331:2511",
-    "name": "Screen/Server Detail — Files (Starting timed out)",
-    "width": 1440,
-    "height": 900
-  },
-  {
-    "file": "1111719913-1384",
-    "figId": "1111719913:1384",
-    "name": "Screen/Settings — SFTP (Non-admin)",
-    "width": 1440,
-    "height": 1080
+    "height": 900,
+    "hash": "16f72026a432d363cfc1c022ed7bd2fe95764e66d1286bf16d7ac449f47e1031"
   }
 ]

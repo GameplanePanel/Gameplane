@@ -157,4 +157,4 @@ When the Gameplane API itself is broken, a cluster admin can still use the MCP s
 - The Cluster and NetworkCapture kinds stay out of the MCP server's tools, as today.
 - The dashboard's existing permission keys and per-cluster grants are the only source of user permissions. This spec adds no new permission key for managing personal MCP tokens beyond what is needed for users to manage their own (decided in planning).
 - Code changes span the `GameplanePanel/mcp` repo (server) and `GameplanePanel/Gameplane` (chart, API, docs, and the `mcp-server` submodule pointer after mcp PRs merge). Gameplane PR #993, which makes `mcp-server/` a submodule, merges first.
-- Any dashboard screen this needs (the personal MCP token screen) is designed in `design.pen` before code, per the design-first rule.
+- Any dashboard screen this needs (the personal MCP token screen) is designed in `design.fig` before code, per the design-first rule.

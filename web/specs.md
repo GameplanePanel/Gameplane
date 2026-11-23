@@ -406,12 +406,14 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
 
 3. **Backups Tab** (`web/src/routes/tabs/Backups.tsx`, 290 lines)
    - Per-server backup list (snapshots created via the /backups page or on-demand)
+   - Users with schedule write access can edit or delete standalone schedules here. The **Managed by server settings** action opens the selected server’s **Settings → Scheduled backups**, where users with server write access can edit its inline backup policy.
    - Table columns: backup name, phase (Pending/Succeeded/Failed), size, completion time, actions
    - Open backup detail drawer, trigger restore dialog, delete backup
    - Uses HeroUI Table, Button, Modal (restore trigger), ui/ PhaseChip
 
 4. **Settings Tab** (`web/src/routes/tabs/Settings.tsx`, 396 lines)
    - Sub-section navigation tabs (11 sections below) via HeroUI Tabs
+   - Opening Settings from the tab bar starts in **General**. The managed schedule action passes `initialSection="backups"` to start in **Scheduled backups**.
    - Layout: left sidebar with section buttons, right panel for section content
    - Each section maintains independent form state, save/discard flow, per-field validation
 
@@ -880,6 +882,7 @@ package.json                # @gameplane/web v0.4.3; dev: vite, npm scripts for 
 8. **Users** (`/users`) → `UsersPage` (gated by `users:manage` permission)
    - Create/edit/delete users and OIDC links
    - Manage role bindings per namespace
+   - Row menu "MCP tokens" opens a dialog listing the selected user's personal MCP tokens (`GET /users/{id}/mcp-tokens`, query key `["user-mcp-tokens", id]`): name, prefix, expiry, last used, and an Active / Expired / Revoked state; no secrets. Revoke appears per active row only for viewers with `users:manage` (`DELETE /users/{id}/mcp-tokens/{tokenId}`), and the list refetches after a revoke. The dialog refreshes the Expired state each minute
 
 9. **AdminSettings** (`/admin`) → `AdminSettingsPage` (gated by `config:manage` permission)
    - Sections: General (version), Telemetry (destination, tiers, install ID, preview, status), Authentication (OIDC providers), Mod registries (API keys),
@@ -1011,6 +1014,13 @@ The warning is shown regardless of how many groups are being added (single or mu
     - Respects stored appearance preference (light/dark/system); no theme toggle shown
     - Uses HeroUI Card, Button, Chip, Spinner; brand header with ShieldCheck icon; address copy button
     - Built directly from HeroUI primitives; no ui/ atom components
+
+14. **MCP tokens** (`/settings/mcp-tokens`) → `McpTokensPage` (`web/src/routes/McpTokens.tsx`)
+    - No permission gate: every signed-in user manages their own tokens (spec 037, OD-5). Reached from the user menu and from the settings sub-nav (item under Theme)
+    - List via `GET /users/me/mcp-tokens` (query key `["mcp-tokens"]`) with loading, error and empty states; the empty state shows only after a successful load
+    - Rows show name, prefix, created, expiry, last used (relative, or "Never") and an Active / Expired / Revoked state. Expired and revoked rows are greyed with a badge and have no Revoke
+    - Create dialog: name required, lifetime 7, 30, 90 or 365 days, default 30. Success moves to a one-time reveal with Copy buttons for the token and for an MCP client config snippet that uses the panel origin, plus a copy-failure hint when the clipboard refuses. The secret is dropped from component state and from the mutation cache on Done (`gcTime: 0`)
+    - Revoke asks for confirmation, calls `DELETE /users/me/mcp-tokens/{id}`, and refetches the list
 
 ## ServerDetail Tabs
 
