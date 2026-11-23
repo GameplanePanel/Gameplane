@@ -328,5 +328,6 @@ pack by hand.
 
 ## License
 
+
 [AGPL-3.0-or-later](./LICENSE). Any network-accessible deployment of a
 modified version must make its source available to users.
