@@ -293,7 +293,7 @@ func TestSFTPServiceTokens_FormatStorageLimitRevoke(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateSFTPServiceToken: %v", err)
 	}
-	if !strings.HasPrefix(raw, SFTPServiceTokenPrefix) || len(raw) != len(SFTPServiceTokenPrefix)+sftpTokenBodyLen {
+	if !strings.HasPrefix(raw, SFTPServicePrefix) || len(raw) != len(SFTPServicePrefix)+sftpTokenBodyLen {
 		t.Fatalf("token format = %q", raw)
 	}
 	var stored int

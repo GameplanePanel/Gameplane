@@ -107,15 +107,17 @@ func TestSFTPSessionGuard_ForcesCluster(t *testing.T) {
 
 func TestSFTPSessionGuard_PassesOtherCallers(t *testing.T) {
 	s := NewSessionStore(nil)
-	cases := map[string]context.Context{
-		"no caller":     context.Background(),
-		"service token": WithSFTPCaller(context.Background(), SFTPCaller{Cluster: "local", ServiceTokenID: 3}),
+	cases := map[string]func(context.Context) context.Context{
+		"no caller": func(ctx context.Context) context.Context { return ctx },
+		"service token": func(ctx context.Context) context.Context {
+			return WithSFTPCaller(ctx, SFTPCaller{Cluster: "local", ServiceTokenID: 3})
+		},
 	}
-	for name, ctx := range cases {
+	for name, withCaller := range cases {
 		t.Run(name, func(t *testing.T) {
 			next := &okHandler{}
 			h := s.SFTPSessionGuard(next)
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/users/me", nil).WithContext(ctx)
+			req := httptest.NewRequestWithContext(withCaller(t.Context()), http.MethodGet, "/users/me", nil)
 			rec := httptest.NewRecorder()
 			h.ServeHTTP(rec, req)
 			if !next.called || rec.Code != http.StatusOK {

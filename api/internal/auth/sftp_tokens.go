@@ -12,8 +12,8 @@ import (
 	"time"
 )
 
-// SFTPServiceTokenPrefix starts every SFTP service token (the SFTP endpoint's bearer credential).
-const SFTPServiceTokenPrefix = "gpsftps_"
+// SFTPServicePrefix starts every SFTP service token (the SFTP endpoint's bearer credential).
+const SFTPServicePrefix = "gpsftps_"
 
 const (
 	// SFTPSessionTokenPrefix starts every SFTP session token minted by /sftp/v1/login.
@@ -47,7 +47,7 @@ func validSFTPToken(raw, prefix string) bool {
 
 // CreateSFTPServiceToken makes a service token for cluster (e.g. "local"). The token is returned once.
 func (s *SessionStore) CreateSFTPServiceToken(ctx context.Context, cluster string) (SFTPServiceToken, string, error) {
-	token := newSFTPToken(SFTPServiceTokenPrefix)
+	token := newSFTPToken(SFTPServicePrefix)
 	tok, err := s.InsertSFTPServiceToken(ctx, cluster, sessionDigest(token), token[:sftpTokenPrefixLen])
 	if err != nil {
 		return SFTPServiceToken{}, "", err
@@ -58,7 +58,7 @@ func (s *SessionStore) CreateSFTPServiceToken(ctx context.Context, cluster strin
 // AuthenticateSFTPService resolves a raw "gpsftps_" service token to (tokenID, cluster).
 // It returns sql.ErrNoRows for an unknown, revoked or malformed token.
 func (s *SessionStore) AuthenticateSFTPService(ctx context.Context, raw string) (int64, string, error) {
-	if !validSFTPToken(raw, SFTPServiceTokenPrefix) {
+	if !validSFTPToken(raw, SFTPServicePrefix) {
 		return 0, "", sql.ErrNoRows
 	}
 	return s.LookupSFTPServiceToken(ctx, sessionDigest(raw))

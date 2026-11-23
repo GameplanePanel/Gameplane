@@ -76,7 +76,7 @@ func bearerSFTPSession(req *http.Request) (string, bool) {
 
 // bearerSFTPService returns the SFTP service token in an "Authorization: Bearer" header, if it has that prefix.
 func bearerSFTPService(req *http.Request) (string, bool) {
-	return bearerWithPrefix(req, SFTPServiceTokenPrefix)
+	return bearerWithPrefix(req, SFTPServicePrefix)
 }
 
 func bearerWithPrefix(req *http.Request, prefix string) (string, bool) {
