@@ -117,9 +117,10 @@ describe("McpTokensPage create flow", () => {
   });
 
   it("copies the full token and the client configuration to the clipboard", async () => {
+    // userEvent.setup() installs its own clipboard stub, so mock after it.
+    const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-    const user = userEvent.setup();
     renderWithQuery(<McpTokensPage />);
     await screen.findByText("claude-desktop");
 
@@ -137,8 +138,9 @@ describe("McpTokensPage create flow", () => {
   });
 
   it("does not throw when the clipboard is refused", async () => {
-    Object.defineProperty(navigator, "clipboard", { value: { writeText: vi.fn().mockRejectedValue(new Error("denied")) }, configurable: true });
     const user = userEvent.setup();
+    const writeText = vi.fn().mockRejectedValue(new Error("denied"));
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
     renderWithQuery(<McpTokensPage />);
     await screen.findByText("claude-desktop");
     await user.click(screen.getByRole("button", { name: "Create token" }));
@@ -146,6 +148,7 @@ describe("McpTokensPage create flow", () => {
     await user.click(screen.getByRole("button", { name: "Create" }));
     await screen.findByRole("heading", { name: "Token created" });
     await user.click(screen.getAllByRole("button", { name: "Copy" })[0]);
+    expect(writeText).toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "Token created" })).toBeInTheDocument();
   });
 
