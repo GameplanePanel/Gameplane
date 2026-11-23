@@ -140,10 +140,12 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 
 **Folder tree and permissions**
 
-- **FR-009**: After a login as `<user>`, the root MUST list one folder per game server on that endpoint's cluster that the user can read (`servers:read` in that cluster and namespace, or ownership/collaboration), and nothing else: `/<server>` for the cluster's default games namespace and `/_namespaces/<namespace>/<server>` for other namespaces (OD-3).
+- **FR-009**: After a login as `<user>`, the root MUST list one folder per game server on that endpoint's cluster that the file-access check (FR-011a) lets the user list, and nothing else: `/<server>` for the cluster's default games namespace and `/_namespaces/<namespace>/<server>` for other namespaces (OD-3).
 - **FR-009a**: A login as `<user>+<server>` or `<user>+<namespace>/<server>` MUST open directly in that server's files, with the same credentials and permission checks as FR-009. If the user cannot read that server, or it does not exist, the login MUST fail with the same generic message as a wrong password.
 - **FR-010**: Inside a server folder, the user MUST see exactly what the dashboard Files tab shows for that server: the same data root, with dotfiles hidden and symlink escapes refused.
-- **FR-011**: Reads MUST require the same permission as the Files tab read routes, and every change (upload, overwrite, rename, mkdir, delete) MUST require the same permission as the Files tab write routes. Permissions MUST be checked on every operation, not only at login.
+- **FR-011**: Every SFTP operation and every Files tab operation MUST be allowed or refused by the same file-access check (FR-011a), on every operation, not only at login.
+- **FR-011a**: All file permission decisions (which servers a user sees, and each list, stat, read, download, create, write, upload, rename, mkdir and delete, with the paths involved) MUST go through one shared file-access check in the API. Neither the SFTP component nor any route may test a permission key itself. Today the check maps reads to `servers:read` and changes to `servers:write` or ownership/collaboration, exactly as the Files tab does now; when spec 039 (per-server access) lands, its evaluator replaces that mapping inside the check, and SFTP follows without code changes.
+- **FR-011b**: Where the check can refuse single paths (spec 039 path grants), a folder listing MUST leave out entries the user may not list, and a rename MUST be allowed only when the user may remove the source and create or overwrite the destination.
 - **FR-012**: The root and the server folders themselves MUST be read-only: users cannot create, rename or delete them.
 - **FR-013**: When a server is stopped or asleep, opening its folder (or logging in to it directly) MUST make its files available through a short-lived file-only pod that the operator runs with the server's volumes and the agent's file API only: no game process, no console, no game ports (OD-4).
 - **FR-013a**: File access MUST NOT wake or start the game server, and the file-only pod MUST NOT be reachable by players.
@@ -188,7 +190,7 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 - **SC-001**: A user can go from "SFTP enabled" to browsing a server's files in a desktop SFTP client in under 3 minutes, following only the dashboard profile page.
 - **SC-002**: Listing the root for a user with 200 servers answers in under 2 seconds; listing a folder of 1,000 files answers in under 2 seconds.
 - **SC-003**: A 2 GiB upload and download each complete with matching checksums, and each resumes correctly after a forced disconnect at 50%.
-- **SC-004**: In a permission test matrix (read-only, write, owner, collaborator, no access, remote cluster), 100% of operations are allowed or refused exactly as the dashboard Files tab allows or refuses them.
+- **SC-004**: In a permission test matrix (read-only, write, owner, collaborator, no access, remote cluster), 100% of operations are allowed or refused exactly as the dashboard Files tab allows or refuses them, and a code search finds no permission key tested outside the file-access check.
 - **SC-005**: 100% of SFTP changes in the test run appear in the audit log with source `sftp`.
 - **SC-006**: A revoked credential or disabled user loses an open session within 60 seconds.
 - **SC-007**: A default install deploys no SFTP workload and exposes no new port.
@@ -196,7 +198,7 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 ## Assumptions
 
 - One address per cluster (OD-3) matches what the reporter asked for in #1051; dedicated per-server ports or port pools are a possible later spec.
-- File permissions reuse the existing catalog (`servers:read` to read, `servers:write` or ownership to change); no new permission is added.
+- File permissions reuse the existing catalog (`servers:read` to read, `servers:write` or ownership to change), behind the file-access check (FR-011a); no new permission is added. Reconciling with spec 039's per-server roles and `files.*` actions is deferred (valgul, 2026-11-23): 039 plugs its evaluator into the check, and adds an action for rename or keeps the delete-plus-create rule of FR-011b.
 - The SFTP component is optional and off by default, like the MCP server and the audit syslog bridge.
 - The dotfile, symlink and data-root rules are the same as the dashboard Files tab (the upload size limit is shared, OD-6); SFTP gets no wider view of the volume than the dashboard.
 - Host key type is a modern one (Ed25519) generated once at install and kept in a Secret.

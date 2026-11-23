@@ -11,7 +11,7 @@ Request: `{"username": "alice" | "alice+survival" | "alice+mods/survival", "pass
 Response 200: `{"sessionToken": "gpsftp_…", "expiresAt": "…", "user": "alice", "target": null | {"namespace": "mods", "server": "survival"}}`.
 Response 401: generic. Response 429: rate limited (same limiter keys as `/auth/login`: username and source address).
 
-The API splits `username` at the last `+` (R4). A target login also checks `servers:read` on the target; failure is the same 401.
+The API splits `username` at the last `+` (R4). A target login also asks the file-access check (research R8) whether the user may list the target; failure is the same 401.
 
 ### `POST /sftp/v1/sessions/check`
 
@@ -21,12 +21,12 @@ Request: `{"sessionTokens": ["gpsftp_…", …]}` (up to 500). Response: `{"revo
 
 Only these routes accept a session token (guard like `MCPTokenGuard`); `cluster` is forced to the token's cluster:
 
-- `GET /servers?cluster=…` (root listing; filtered as for the dashboard)
+- `GET /sftp/v1/servers` (root listing: `{namespace, server}` pairs from the file-access check's `VisibleServers` for the token's cluster)
 - `GET /servers/{name}/files/{list,stat,download}`
 - `POST /servers/{name}/files/{mkdir,rename}`, `DELETE /servers/{name}/files/delete`
 - `PUT /servers/{name}/files/stream?path=…&offset=N` (OD-6)
 
-`stat`, `rename` and `stream` are new and also mounted for the dashboard session (same RBAC as `read` / `write`); the dashboard Files tab uploads through `stream` (OD-6). The multipart `files/upload` route stays for one release. On a stopped or asleep server every file route first ensures file-only access (R3) and answers `503` with `server.files.starting` after 60 s if it is not ready.
+`stat`, `rename` and `stream` are new and also mounted for the dashboard session; every file route, old and new, is authorized by the file-access check below; the dashboard Files tab uploads through `stream` (OD-6). The multipart `files/upload` route stays for one release. On a stopped or asleep server every file route first ensures file-only access (R3) and answers `503` with `server.files.starting` after 60 s if it is not ready.
 
 ## Called by the dashboard (cookie session)
 
@@ -49,3 +49,25 @@ Session-token requests are refused on all of these. Endpoint address and host ke
 | `GET /files/stat?path=` | `Entry` for one path; 404 if missing |
 | `POST /files/rename` `{from, to, overwrite}` | same server only; refuses dotfiles, root, crossing the data root |
 | `PUT /files/stream?path=&offset=N` | raw body; `offset=0` writes a new temp file; `offset=N` copies the first N bytes of the existing file first (N must be ≤ its size); commit by rename on success; free-space check before writing; limit `files.maxUploadSize` (OD-6) |
+
+## File-access check (API-internal, research R8)
+
+Every route above and the existing Files tab routes call one helper; none tests a permission key directly.
+
+```go
+// api/internal/rbac/fileaccess.go
+type FileAction string // list, stat, read, download, create, write, upload, rename, mkdir, delete
+
+type FileTarget struct{ Cluster, Namespace, Server string; Paths []string }
+
+type FileAccess interface {
+    // VisibleServers returns the servers on cluster whose files the user may list.
+    VisibleServers(ctx context.Context, user *auth.User, cluster string) ([]ServerRef, error)
+    // Allow decides one action on target; rename passes {from, to}.
+    Allow(ctx context.Context, user *auth.User, action FileAction, target FileTarget) error
+    // FilterEntries drops listing entries the user may not list (identity today).
+    FilterEntries(ctx context.Context, user *auth.User, target FileTarget, names []string) ([]string, error)
+}
+```
+
+Today's implementation: list/stat/read/download → `servers:read`; create/write/upload/rename/mkdir/delete → `servers:write` or ownership/collaboration, as the Files tab routes check now. Spec 039 replaces the implementation, not the interface.
