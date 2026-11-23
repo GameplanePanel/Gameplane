@@ -694,6 +694,38 @@ earlier:
 The mods package confines its own paths separately (`ConfinePath`/`ConfineRelPath`)
 and does not use this descriptor walk.
 
+## SFTP endpoint (spec 040, optional)
+
+The SFTP endpoint (`sftp.enabled`, off by default; see [sftp.md](sftp.md)) is a
+second internet-facing listener, so it gets the same treatment as the dashboard:
+
+- **Authentication is decided by the API.** The SFTP pod holds no password
+  hashes and no key store. Each login (`POST /sftp/v1/login`) is checked by the
+  API against the user's own SSH public keys or generated password. The login
+  limiter is the same one the dashboard uses, so guessing is throttled per IP
+  and per username. A refused login returns one generic refusal, so the client
+  cannot tell a wrong password from a server the user cannot read.
+- **Service tokens are per cluster.** The SFTP pod authenticates to the API with
+  a `gpsftps_` token minted under **Clusters**. Each cluster has at most two
+  active tokens, shown once, stored only as a digest, and revocable. A token
+  identifies a cluster endpoint; it does not identify a user and grants no
+  file access by itself.
+- **Host key.** The SSH host key lives in the `gameplane-sftp-host-key` Secret,
+  created once by the chart and kept on uninstall. Users see its fingerprint on
+  their profile page and every client pins it. A bring-your-own key replaces the
+  Secret's `host_key` entry (`sftp.hostKeySecret`).
+- **File-only pod.** The SFTP pod keeps no game data and mounts no game
+  volume. Every file operation is a request to the API, which runs it through the
+  agent as the signed-in user, with the same RBAC, ownership and dotfile rules as
+  the Files tab, and records it in the audit log with `source: sftp`. For a
+  stopped server, the operator's file-only pod (agent `--files-only`, no host
+  ports, removed after `--files-idle-timeout`) serves the same files; file access
+  never starts the game.
+- **Revocation and disable** end open sessions within 60 seconds and refuse new
+  logins (FR-007, SC-006).
+- **Transfers.** Uploads are capped by `files.maxUploadSize` and the volume's
+  free space. Idle sessions close after `sftp.idleTimeout`.
+
 ## Runtime mod installs (agent)
 
 Separately from the module supply chain above, a running server can install

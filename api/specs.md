@@ -338,6 +338,24 @@ trust assumptions, rotation behavior and surfaces outside this protocol.
   - Gated by `captures:manage` permission
   - Audit: synchronous write before response with reason "feature_disabled", "server_not_found", "terminating", "patch_failed", or "" on success
 
+### SFTP access (spec 040)
+
+**Personal credentials** (`api/internal/handlers/sftp.go`, mounted on `/users`, session callers only; SFTP-session and MCP-token callers are refused):
+- `GET /users/me/sftp`: the caller's SFTP view (keys, whether a password exists, address and host key fingerprint when SFTP is enabled).
+- `POST /users/me/sftp/keys`: add one public key (ed25519, ECDSA or RSA of at least 3072 bits; at most 20 per user; a key may belong to one account only). `DELETE /users/me/sftp/keys/{id}` removes it and ends sessions that used it.
+- `POST /users/me/sftp/password`: generate the one password (length 20 to 40). The plaintext is returned once; only a hash is stored. `DELETE /users/me/sftp/password` revokes it.
+- Admins with `users:manage`: `GET /users/{id}/sftp`, `DELETE /users/{id}/sftp/keys/{keyId}`, `DELETE /users/{id}/sftp/password`.
+
+**Remote endpoints and service tokens** (`sftp_cluster.go`, mounted under `/clusters`, `cluster:manage`):
+- `GET /clusters/{name}/sftp`: the endpoint (`local` for the panel's own cluster) and active service tokens. Token secrets are never listed; rows show the prefix only.
+- `PUT /clusters/{name}/sftp`: set `address` and `hostKeyFingerprint` (`SHA256:` form) for a remote cluster. Refused for `local` with `server.sftp.endpoint_local`; the local endpoint comes from Helm.
+- `POST /clusters/{name}/sftp-token`: mint a `gpsftps_` service token, returned once (201). At most two active per cluster; a third returns 409 `server.sftp.token_limit_reached`. Only the digest is stored.
+- `DELETE /clusters/{name}/sftp-token/{id}`: revoke (204). Tokens of other clusters are not found.
+
+**Endpoint-facing routes** (`sftp_login.go`, mounted under `/sftp/v1` outside the protected group, authenticated by the service token or the session token the endpoint holds, never by a dashboard cookie): `POST /sftp/v1/login` resolves username and credential to a session; `POST /sftp/v1/sessions/check` re-validates open sessions (revocation and user disable end them within 60 s, SC-006); `POST /sftp/v1/sessions/end`; `GET /sftp/v1/servers` lists the servers the session can read. Every file operation after login goes to the agent through the normal file routes as the signed-in user, with the same RBAC checks as the Files tab, and is audited with `source: sftp`.
+
+**Permissions:** reading needs `servers:read` (or ownership or collaborator access); writing, renaming and deleting need `servers:write` (or the same ownership or collaborator access). The data-root and server folders are read-only over SFTP.
+
 ### OIDC role mapping and Helm-seeded provider (install-time configuration)
 
 **Helm-seeded provider synthesis & coexistence:**

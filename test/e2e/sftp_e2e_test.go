@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -27,10 +28,11 @@ const (
 	sftpService       = "svc/gameplane-sftp"
 	sftpServicePort   = 2222
 	sftpHostKeySecret = "gameplane-sftp-host-key"
-	// sftpUploadSize is the round-trip payload. The spec's 2 GiB is too slow
-	// for a CI runner behind kubectl port-forward; 32 MiB still exercises the
-	// streamed write path and a ranged download.
-	sftpUploadSize = 32 << 20
+	// sftpUploadSize is the round-trip payload. The spec's 2 GiB (SC-003) is too
+	// slow for a CI runner behind kubectl port-forward, so the CI payload is
+	// 64 MiB. It still exercises the streamed write path, a ranged download and
+	// an offset resume. Raise it only for a manual run that needs the full size.
+	sftpUploadSize = 64 << 20
 )
 
 // sftpHostKey reads the chart-generated host key Secret and returns its public
@@ -172,11 +174,13 @@ func sftpGeneratePassword(t *testing.T, cli *APIClient, length int) string {
 // revocation are checked in the same run.
 //
 // Admin logins: one. Alice (read and write): API login, key login,
-// per-server password login, and one refused login after revocation (4 of
-// her 6-per-user burst). Bob (read only): API login, password login, and one
-// refused login for a server he cannot read (3). Each SFTP login spends the
-// same limiter as /auth/login, so the test stays well under the bucket's
-// per-IP burst of 10.
+// per-server password login, a reconnect after the simulated network drop in
+// the interrupted-upload subtest, and one refused login after revocation (5
+// of her 6-per-user burst). Bob (read only): API login, password login, and
+// one refused login for a server he cannot read (3). Total 9 logins against
+// the per-IP burst of 10. The reconnect reuses alice's key and replaces the
+// session that the earlier subtests opened, so no extra login is spent on the
+// browse, upload or revocation steps. Any new login here needs a new bucket.
 func TestSFTP_Lifecycle(t *testing.T) {
 	t.Parallel()
 
@@ -352,6 +356,73 @@ func TestSFTP_Lifecycle(t *testing.T) {
 		return
 	}
 
+	// Interrupted upload resumed from an offset (spec US2 scenario 2, FR-014).
+	// Alice's key session writes the first half, then its connection is
+	// dropped with the file still open. She reconnects with the same key,
+	// asks the server how much arrived, and writes the rest at that offset.
+	// The finished file must match the source byte for byte.
+	if !t.Run("interrupted-upload-resume", func(t *testing.T) {
+		payload := make([]byte, sftpUploadSize)
+		if _, err := rand.Read(payload); err != nil {
+			t.Fatalf("random payload: %v", err)
+		}
+		want := sha256.Sum256(payload)
+		half := sftpUploadSize / 2
+		target := "/" + gsName + "/e2e-sftp-resume.bin"
+
+		f, err := aliceSFTP.Create(target)
+		if err != nil {
+			t.Fatalf("create %s: %v", target, err)
+		}
+		if _, err := f.Write(payload[:half]); err != nil {
+			t.Fatalf("first half of %s: %v", target, err)
+		}
+		// Simulated network drop: the file handle is abandoned, not closed.
+		_ = aliceSSH.Close()
+
+		aliceSSH, aliceSFTP, err = sftpDial(port, aliceName, keyAuth, hostKey)
+		if err != nil {
+			t.Fatalf("alice reconnect after drop: %v", err)
+		}
+		st, err := aliceSFTP.Stat(target)
+		if err != nil {
+			t.Fatalf("stat partial upload %s: %v", target, err)
+		}
+		offset := st.Size()
+		if offset < 0 || offset > int64(half) {
+			t.Fatalf("partial upload size %d outside [0, %d]", offset, half)
+		}
+
+		rf, err := aliceSFTP.OpenFile(target, os.O_WRONLY)
+		if err != nil {
+			t.Fatalf("reopen %s for resume: %v", target, err)
+		}
+		if _, err := rf.Seek(offset, io.SeekStart); err != nil {
+			t.Fatalf("seek to offset %d: %v", offset, err)
+		}
+		if _, err := rf.Write(payload[offset:]); err != nil {
+			t.Fatalf("resume write at offset %d: %v", offset, err)
+		}
+		if err := rf.Close(); err != nil {
+			t.Fatalf("close resumed %s: %v", target, err)
+		}
+
+		dl, err := aliceSFTP.Open(target)
+		if err != nil {
+			t.Fatalf("open resumed %s: %v", target, err)
+		}
+		got := sftpSHA256(t, dl)
+		_ = dl.Close()
+		if got != want {
+			t.Fatalf("resumed upload %s (resumed at %d) checksum mismatch", target, offset)
+		}
+		if err := aliceSFTP.Remove(target); err != nil {
+			t.Fatalf("remove resumed %s: %v", target, err)
+		}
+	}) {
+		return
+	}
+
 	if !t.Run("audit-source-sftp", func(t *testing.T) {
 		envInstance.Eventually(t, time.Minute, func() (bool, string) {
 			resp, body, err := admin.Get("/admin/audit?limit=200")
@@ -469,8 +540,8 @@ func TestSFTP_Lifecycle(t *testing.T) {
 		if resp.StatusCode/100 != 2 {
 			t.Fatalf("revoke key: status=%d body=%s", resp.StatusCode, body)
 		}
-		// The open session closes within the 30 s check loop plus margin.
-		envInstance.Eventually(t, 90*time.Second, func() (bool, string) {
+		// SC-006 and FR-007: an open session ends within 60 s of revocation.
+		envInstance.Eventually(t, 60*time.Second, func() (bool, string) {
 			if _, err := sftpEntryNames(aliceSFTP, "/"); err != nil {
 				return true, ""
 			}
