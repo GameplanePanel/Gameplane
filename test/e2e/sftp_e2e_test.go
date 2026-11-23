@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -31,7 +32,7 @@ const (
 	// sftpUploadSize is the round-trip payload. The spec's 2 GiB (SC-003) is too
 	// slow for a CI runner behind kubectl port-forward, so the CI payload is
 	// 64 MiB. It still exercises the streamed write path, a ranged download and
-	// an offset resume. Raise it only for a manual run that needs the full size.
+	// an interrupted upload. Raise it only for a manual run that needs the full size.
 	sftpUploadSize = 64 << 20
 )
 
@@ -275,7 +276,7 @@ func TestSFTP_Lifecycle(t *testing.T) {
 	var aliceSSH *ssh.Client
 	var aliceSFTP *sftp.Client
 	// alice's connection lives across the subtests below (and is replaced by
-	// the resume subtest's reconnect), so the parent test closes it, not the
+	// the interrupted-upload subtest's reconnect), so the parent test closes it, not the
 	// login subtest: a subtest's cleanup runs when that subtest ends.
 	t.Cleanup(func() {
 		if aliceSSH != nil {
@@ -363,19 +364,20 @@ func TestSFTP_Lifecycle(t *testing.T) {
 		return
 	}
 
-	// Interrupted upload resumed from an offset (spec US2 scenario 2, FR-014).
-	// Alice's key session writes the first half, then its connection is
-	// dropped with the file still open. She reconnects with the same key,
-	// asks the server how much arrived, and writes the rest at that offset.
-	// The finished file must match the source byte for byte.
-	if !t.Run("interrupted-upload-resume", func(t *testing.T) {
+	// Interrupted upload (spec US2 scenario 2, SC-003 as amended 2026-11-23):
+	// uploads are atomic. Alice's key session writes the first half, then its
+	// connection is dropped with the file still open. The API commits only a
+	// body that ends cleanly, so no partial file may appear. She reconnects
+	// with the same key and sends the whole file again, which must match the
+	// source byte for byte.
+	if !t.Run("interrupted-upload-atomic", func(t *testing.T) {
 		payload := make([]byte, sftpUploadSize)
 		if _, err := rand.Read(payload); err != nil {
 			t.Fatalf("random payload: %v", err)
 		}
 		want := sha256.Sum256(payload)
 		half := sftpUploadSize / 2
-		target := "/" + gsName + "/e2e-sftp-resume.bin"
+		target := "/" + gsName + "/e2e-sftp-interrupted.bin"
 
 		f, err := aliceSFTP.Create(target)
 		if err != nil {
@@ -391,40 +393,42 @@ func TestSFTP_Lifecycle(t *testing.T) {
 		if err != nil {
 			t.Fatalf("alice reconnect after drop: %v", err)
 		}
-		st, err := aliceSFTP.Stat(target)
-		if err != nil {
-			t.Fatalf("stat partial upload %s: %v", target, err)
-		}
-		offset := st.Size()
-		if offset < 0 || offset > int64(half) {
-			t.Fatalf("partial upload size %d outside [0, %d]", offset, half)
+		// The aborted stream must never leave a partial file behind. Poll for a
+		// few seconds so a late commit would be caught, not missed.
+		deadline := time.Now().Add(10 * time.Second)
+		for time.Now().Before(deadline) {
+			st, err := aliceSFTP.Stat(target)
+			if err == nil {
+				t.Fatalf("interrupted upload left a %d-byte file at %s, want none", st.Size(), target)
+			}
+			if !errors.Is(err, os.ErrNotExist) {
+				t.Fatalf("stat %s after drop: %v", target, err)
+			}
+			time.Sleep(time.Second)
 		}
 
-		rf, err := aliceSFTP.OpenFile(target, os.O_WRONLY)
+		rf, err := aliceSFTP.Create(target)
 		if err != nil {
-			t.Fatalf("reopen %s for resume: %v", target, err)
+			t.Fatalf("recreate %s: %v", target, err)
 		}
-		if _, err := rf.Seek(offset, io.SeekStart); err != nil {
-			t.Fatalf("seek to offset %d: %v", offset, err)
-		}
-		if _, err := rf.Write(payload[offset:]); err != nil {
-			t.Fatalf("resume write at offset %d: %v", offset, err)
+		if _, err := rf.Write(payload); err != nil {
+			t.Fatalf("upload %s again: %v", target, err)
 		}
 		if err := rf.Close(); err != nil {
-			t.Fatalf("close resumed %s: %v", target, err)
+			t.Fatalf("close %s: %v", target, err)
 		}
 
 		dl, err := aliceSFTP.Open(target)
 		if err != nil {
-			t.Fatalf("open resumed %s: %v", target, err)
+			t.Fatalf("open %s: %v", target, err)
 		}
 		got := sftpSHA256(t, dl)
 		_ = dl.Close()
 		if got != want {
-			t.Fatalf("resumed upload %s (resumed at %d) checksum mismatch", target, offset)
+			t.Fatalf("re-sent upload %s checksum mismatch", target)
 		}
 		if err := aliceSFTP.Remove(target); err != nil {
-			t.Fatalf("remove resumed %s: %v", target, err)
+			t.Fatalf("remove %s: %v", target, err)
 		}
 	}) {
 		return

@@ -82,7 +82,7 @@
 
 **Goal**: users with write access change files over SFTP and from the dashboard with large, resumable uploads (OD-6).
 
-**Independent Test**: as a user with `servers:write` on A and `servers:read` on B: upload 2 GiB to A with an interrupt and resume, WinSCP-style temp-and-rename, mkdir, rename, delete all succeed and show in the Files tab and audit log with source `sftp`; the same on B is refused and B is unchanged (quickstart §6, §7).
+**Independent Test**: as a user with `servers:write` on A and `servers:read` on B: upload 2 GiB to A, interrupt one upload (no partial file remains) and send it again, WinSCP-style temp-and-rename, mkdir, rename, delete all succeed and show in the Files tab and audit log with source `sftp`; the same on B is refused and B is unchanged (quickstart §6, §7).
 
 ### Tests for User Story 2
 
@@ -168,8 +168,8 @@
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [X] T051 [P] E2E bucket `sftp` in new `test/e2e/sftp_e2e_test.go`, registered in `test/e2e/buckets.sh`: chart off, connect, tree and per-server login, 2 GiB upload/download with resume, permission matrix, audit `source`, revoke within 60 s, stopped server; `t.Parallel()`, unique names, at most 3 admin logins.
-- [X] T052 [P] Remote endpoint E2E in new `test/e2e/multicluster_sftp_e2e_test.go` (bucket `multicluster`). Admin contract only: the cross-cluster SFTP login is not covered because cluster B pods have no route to the central API (see the file's package comment).
+- [X] T051 [P] E2E bucket `sftp` in new `test/e2e/sftp_e2e_test.go`, registered in `test/e2e/buckets.sh`: chart off, connect, tree and per-server login, 2 GiB upload/download, download resume, atomic interrupted upload (SC-003 amended 2026-11-23), permission matrix, audit `source`, revoke within 60 s, stopped server; `t.Parallel()`, unique names, at most 3 admin logins.
+- [X] T052 [P] Remote endpoint E2E in new `test/e2e/multicluster_sftp_e2e_test.go` (bucket `multicluster`), run as the `sftp-remote-endpoint` subtest of `TestMultiCluster_TokenRemoteGrant` to share its admin login (valgul 2026-11-23). Admin contract only: the cross-cluster SFTP login is not covered because cluster B pods have no route to the central API (see the file's package comment).
 - [X] T053 [P] Docs: new `docs/sftp.md` (enable, connect with FileZilla/WinSCP/`sftp`, host key check, credentials, per-server login, remote clusters, stopped servers), threat-model entry in `docs/security.md`, component in `docs/architecture.md`, `operator/specs.md` and `api/specs.md` for the file-only pod and routes. Open: `sftp/specs.md` and `sftp/README.md` live in the `GameplanePanel/sftp` submodule, which is not checked out in this worktree; they are not done here.
 - [X] T054 Changelog `changelog/unreleased/<PR>-sftp-access.md` in the chart PR per `changelog/unreleased/README.md` (new Helm values `sftp.*`, `files.maxUploadSize`, `operator.filesIdleTimeout`).
 - [ ] T055 Run every scenario in `specs/040-sftp-access/quickstart.md` on a dev cluster and record results in the chart PR.

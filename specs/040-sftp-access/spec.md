@@ -46,7 +46,7 @@ A user with write access to a server uploads a mod jar, edits a config file in p
 **Acceptance Scenarios**:
 
 1. **Given** write access to A, **When** the user uploads a 2 GiB file, **Then** it lands in A complete, and a client that uploads to a temporary name and renames it at the end (WinSCP default) also succeeds.
-2. **Given** write access to A, **When** an upload is interrupted and the client resumes it, **Then** the finished file matches the source.
+2. **Given** write access to A, **When** an upload is interrupted, **Then** no partial file is left (an existing file keeps its old content), and when the client sends the file again the finished file matches the source. Uploads are atomic (amended 2026-11-23, valgul).
 3. **Given** read-only access to B, **When** the user tries to upload, rename, delete or make a folder in B, **Then** the client gets "permission denied" and B is unchanged.
 4. **Given** any user, **When** they try to create, rename or delete a top-level server folder, or reach a path outside the server's data root (`..`, symlinks, dotfiles), **Then** the request is refused.
 5. **Given** any write through SFTP, **When** an admin opens the audit log, **Then** the entry names the user, the server, the operation, the path and that it came from SFTP.
@@ -109,7 +109,7 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 - A server's volumes can only be attached to one node: the file-only pod lands where the volumes can attach.
 - Two servers share a name in different namespaces: they appear under different `/_namespaces/` paths, or one of them as `/<server>` when it is in the default games namespace (OD-3).
 - A server is created, deleted or renamed while a user is connected: the root listing reflects it on the next listing; operations on a deleted server fail cleanly.
-- The server's pod restarts mid-transfer: the transfer fails with a clear error and can be resumed.
+- The server's pod restarts mid-transfer: the transfer fails with a clear error; a download can be resumed, an upload leaves the target unchanged and is sent again.
 - A volume fills up during an upload: the client gets an error and no half-written file replaces the old one.
 - A user has hundreds of servers: listing the root still answers within the success criterion.
 - A path holds characters SFTP clients send in other encodings: names are treated as UTF-8 and invalid names are refused, not mangled.
@@ -156,7 +156,7 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 
 **File operations**
 
-- **FR-014**: The SFTP endpoint MUST support listing a folder, stat of one path, download with resume from an offset, upload, upload resume (write at an offset or append), overwrite, rename/move within one server, mkdir, delete of files and of empty folders, and recursive delete as the client requests it.
+- **FR-014**: The SFTP endpoint MUST support listing a folder, stat of one path, download with resume from an offset, upload, upload resume (write at an offset or append) onto a file that is already stored, overwrite, rename/move within one server, mkdir, delete of files and of empty folders, and recursive delete as the client requests it.
 - **FR-015**: The agent sidecar's file API MUST gain the operations FR-014 needs that it lacks today: stat, rename/move, read from an offset, and write at an offset or append. The new operations MUST keep the existing guarantees: rooted at the data root, no dotfiles, no symlink following, and safe against a path changing between check and use.
 - **FR-016**: An upload that fails or is cancelled MUST NOT leave a partly written file in place of an existing file of the same name.
 - **FR-017**: Changing file modes, owners and timestamps (`chmod`, `chown`, `utime`) MUST either be accepted as a no-op or refused consistently; it MUST NOT change ownership inside the volume.
@@ -189,7 +189,7 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 
 - **SC-001**: A user can go from "SFTP enabled" to browsing a server's files in a desktop SFTP client in under 3 minutes, following only the dashboard profile page.
 - **SC-002**: Listing the root for a user with 200 servers answers in under 2 seconds; listing a folder of 1,000 files answers in under 2 seconds.
-- **SC-003**: A 2 GiB upload and download each complete with matching checksums, and each resumes correctly after a forced disconnect at 50%.
+- **SC-003**: A 2 GiB upload and download each complete with matching checksums. A download resumes correctly after a forced disconnect at 50%; an upload cut at 50% leaves no partial file (an existing file keeps its old content), and sending it again completes with a matching checksum (amended 2026-11-23, valgul: uploads stay atomic).
 - **SC-004**: In a permission test matrix (read-only, write, owner, collaborator, no access, remote cluster), 100% of operations are allowed or refused exactly as the dashboard Files tab allows or refuses them, and a code search finds no permission key tested outside the file-access check.
 - **SC-005**: 100% of SFTP changes in the test run appear in the audit log with source `sftp`.
 - **SC-006**: A revoked credential or disabled user loses an open session within 60 seconds.
