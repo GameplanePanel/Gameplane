@@ -78,9 +78,9 @@ A cluster or namespace role requires an explicit choice of one of these three ba
 | --- | --- |
 | Viewer | `server.view`, `events.view` |
 | Power User | `server.view`, `events.view`, `logs.live`, `logs.history`, `power.start`, `power.stop`, `power.restart`, `power.wake` |
-| Administrator | `server.view`, `events.view`, `players.roster`, `players.kick`, `backups.view`, `backups.create` |
+| Administrator | `server.view`, `events.view`, `logs.live`, `logs.history`, `power.start`, `power.stop`, `power.restart`, `power.wake`, `players.roster`, `players.kick`, `backups.view`, `backups.create` |
 
-Administrator combines the former Player moderator and Backup operator duties. The initial set permits a kick where the game supports it and ordinary backups to an approved destination. Power User controls logs and power separately. Ban, restore, delete, schedule, console input and member management require separate grants. The server role named Administrator has no authority to edit the panel, binding policies, the role library or Blocks. Ownership retains its separate checks. Preserve the frozen Legacy collaborator grant according to the legacy route and response matrix.
+Administrator includes the full Power User set plus moderation and backup duties. It can kick where the game supports it and create one-off backups to an approved destination, including stop-copy-restart when the effective grant allows both stop and start. Ban, restore, delete, schedule, console input and member management require separate grants. The server role named Administrator has no authority to edit the panel, binding policies, the role library or Blocks. Ownership retains its separate checks. Preserve the frozen Legacy collaborator grant according to the legacy route and response matrix.
 
 ## GameTemplate roles
 
