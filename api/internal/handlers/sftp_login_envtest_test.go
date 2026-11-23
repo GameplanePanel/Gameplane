@@ -131,6 +131,7 @@ func (env sftpLoginEnv) login(t *testing.T, h http.Handler, body map[string]any)
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/sftp/v1/login", bytes.NewReader(raw))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+env.svcRaw)
+	req.Header.Set("Accept", "application/problem+json")
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
 	return rr
@@ -322,6 +323,7 @@ func TestSFTPLogin_RefusesWithoutServiceToken(t *testing.T) {
 	// No bearer, and a session token where the service token belongs.
 	for _, hdr := range []string{"", "Bearer " + auth.SFTPSessionTokenPrefix + strings.Repeat("A", 43)} {
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/sftp/v1/login", bytes.NewReader(raw))
+		req.Header.Set("Accept", "application/problem+json")
 		if hdr != "" {
 			req.Header.Set("Authorization", hdr)
 		}
@@ -356,6 +358,7 @@ func TestSFTPLogin_CheckReportsRevokedTokens(t *testing.T) {
 		}
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/sftp/v1/sessions/check", bytes.NewReader(raw))
 		req.Header.Set("Authorization", "Bearer "+env.svcRaw)
+		req.Header.Set("Accept", "application/problem+json")
 		out := httptest.NewRecorder()
 		h.ServeHTTP(out, req)
 		var body struct {
@@ -417,6 +420,7 @@ func sftpSelfDo(t *testing.T, h http.Handler, method, path, body string) *httpte
 	t.Helper()
 	req := httptest.NewRequestWithContext(t.Context(), method, path, strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/problem+json")
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
 	return rr
