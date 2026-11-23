@@ -2,7 +2,7 @@
 
 **Branch**: `spec-037/scope-mcp-server-permissions` | **Date**: 2026-11-22 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/037-scope-mcp-server-permissions/spec.md`
+**Input**: Feature specification from `specs/done_037-scope-mcp-server-permissions/spec.md`
 
 **Open decisions**: planning raised OD-4 (token lifetimes, settled: 7, 30, 90 or 365 days) and OD-5 (who may create tokens, settled: every signed-in user) in [OPEN-DECISIONS.md](OPEN-DECISIONS.md). Everything else in this plan follows the settled OD-1 to OD-3.
 
@@ -50,7 +50,7 @@ Re-checked after Phase 1 design: no new violations.
 ### Documentation (this feature)
 
 ```text
-specs/037-scope-mcp-server-permissions/
+specs/done_037-scope-mcp-server-permissions/
 ├── spec.md
 ├── OPEN-DECISIONS.md
 ├── plan.md               # this file

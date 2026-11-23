@@ -1,6 +1,6 @@
 # Tasks: Scope MCP server permissions
 
-**Input**: Design documents from `/specs/037-scope-mcp-server-permissions/`
+**Input**: Design documents from `/specs/done_037-scope-mcp-server-permissions/`
 
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md. All open decisions (OD-1 to OD-5) settled by valgul on 2026-11-17 and 2026-11-22.
 
@@ -21,7 +21,7 @@
 ## Phase 1: Setup
 
 - [X] T001 Confirm the docs PR for this spec folder is merged to `master`, then create the four branches from fresh `master` (Gameplane) and `main` (mcp) named in **Delivery** above; record the base SHAs in the PR A description. (done: branches created from master after #1044 merged (0aecce96))
-- [X] T002 List every existing test that encodes behaviour this spec changes, with file, test name, assertion and the needed change, and get valgul's written sign-off on each before editing any of them. Candidates found by grep on master `73389d7a`: `mcp-server/main_test.go` (`TestRegisteredToolsAreReadOnly`, `TestToolsListAndGetHappyPath`, `TestListEventsHandler_StripsAndBounds`; expected to stay unchanged because `*kube.Client` keeps satisfying the new `Reader` interface and break-glass with no allow-list behaves as today), `mcp-server/internal/kube/client_test.go`, `test/e2e/optional_components_e2e_test.go` (subtest `mcp`, lines 342-400; comment mentions the ClusterRole), `api/internal/auth/sessions_*_test.go` (cookie-only `Authenticate`), `api/internal/rbac/rbac_test.go` and `catalog_test.go` (rule table cross-checks). If none needs a change, write "none needed" with the reason per file in `specs/037-scope-mcp-server-permissions/T002-test-signoff.md`.
+- [X] T002 List every existing test that encodes behaviour this spec changes, with file, test name, assertion and the needed change, and get valgul's written sign-off on each before editing any of them. Candidates found by grep on master `73389d7a`: `mcp-server/main_test.go` (`TestRegisteredToolsAreReadOnly`, `TestToolsListAndGetHappyPath`, `TestListEventsHandler_StripsAndBounds`; expected to stay unchanged because `*kube.Client` keeps satisfying the new `Reader` interface and break-glass with no allow-list behaves as today), `mcp-server/internal/kube/client_test.go`, `test/e2e/optional_components_e2e_test.go` (subtest `mcp`, lines 342-400; comment mentions the ClusterRole), `api/internal/auth/sessions_*_test.go` (cookie-only `Authenticate`), `api/internal/rbac/rbac_test.go` and `catalog_test.go` (rule table cross-checks). If none needs a change, write "none needed" with the reason per file in `specs/done_037-scope-mcp-server-permissions/T002-test-signoff.md`.
 
 ---
 
