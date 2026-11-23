@@ -16,7 +16,7 @@ func sftpStreamRequest(t *testing.T, s *SessionStore, raw string) *http.Request 
 	if err != nil {
 		t.Fatalf("LookupSFTPSessionToken: %v", err)
 	}
-	req := httptest.NewRequest(http.MethodGet, "/servers/mc/files/download", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/servers/mc/files/download", nil)
 	req.Header.Set("Authorization", "Bearer "+raw)
 	ctx := WithSFTPCaller(WithUser(req.Context(), u), SFTPCaller{Cluster: "local", SessionID: sess.ID})
 	return req.WithContext(ctx)
@@ -75,7 +75,7 @@ func TestRevalidateStreams_RevokedSFTPSessionCancelsStream(t *testing.T) {
 		func(*http.Request) bool { return true },
 		10*time.Millisecond,
 		func(context.Context, int64) bool { return true },
-	)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	)(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		close(started)
 		<-r.Context().Done()
 		close(cancelled)
