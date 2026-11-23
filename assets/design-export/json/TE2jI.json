@@ -1904,7 +1904,6 @@
                         "sizing": ["HUG", "FIXED"]
                       },
                       "layoutAlignSelf": "STRETCH",
-                      "clips": true,
                       "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                       "texts": [
                         "QUICK ACTIONS",

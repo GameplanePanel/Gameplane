@@ -1,0 +1,576 @@
+{
+  "file": "203440149-789",
+  "name": "Screen/Settings — SFTP (Light)",
+  "type": "FRAME",
+  "x": 1640,
+  "y": 78780,
+  "width": 1440,
+  "height": 1080,
+  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 1080,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#F8DDE9"}],
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 1080,
+      "children": [
+        {
+          "name": "Top Bar",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "children": [
+            {
+              "name": "Breadcrumbs",
+              "type": "FRAME",
+              "x": 32,
+              "y": 23,
+              "width": 157,
+              "height": 18,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 72,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                  "text": "gameplane",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 80,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "name": "crumbPage",
+                  "type": "TEXT",
+                  "x": 102,
+                  "y": 0,
+                  "width": 55,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                  "text": "Settings",
+                  "font": ["Geist", 500, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                }
+              ]
+            },
+            {
+              "name": "Actions",
+              "type": "FRAME",
+              "x": 752,
+              "y": 0,
+              "width": 396,
+              "height": 64,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "name": "Cluster Pill",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 15.5,
+                  "width": 94,
+                  "height": 33,
+                  "visible": false,
+                  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+                  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 8,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "name": "healthDot",
+                      "type": "ELLIPSE",
+                      "x": 12,
+                      "y": 12.5,
+                      "width": 8,
+                      "height": 8,
+                      "fills": [{"type": "SOLID", "color": "#16A34A"}],
+                      "variables": {"fills/0/color": "success/success"}
+                    },
+                    {
+                      "name": "clusterName",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 8,
+                      "width": 30,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                      "text": "local",
+                      "font": ["Geist", 500, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "chevron",
+                      "type": "INSTANCE",
+                      "x": 66,
+                      "y": 8.5,
+                      "width": 16,
+                      "height": 16,
+                      "component": "lucide/chevron-down/16x16",
+                      "variables": {"fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Search",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 12,
+                  "width": 300,
+                  "height": 40,
+                  "component": "SearchField/Primary",
+                  "componentId": "1:1928",
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "texts": ["Search servers…"]
+                },
+                {
+                  "name": "Bell Wrap",
+                  "type": "FRAME",
+                  "x": 312,
+                  "y": 12,
+                  "width": 40,
+                  "height": 40,
+                  "children": [
+                    {
+                      "name": "Sdet8",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 36,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 8,
+                          "y": 8,
+                          "width": 20,
+                          "height": 20,
+                          "component": "lucide/bell/20x20",
+                          "variables": {"fills/0/color": "foreground/foreground"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "UnreadDot",
+                      "type": "ELLIPSE",
+                      "x": 29,
+                      "y": 1,
+                      "width": 8,
+                      "height": 8,
+                      "visible": false,
+                      "fills": [{"type": "SOLID", "color": "#DB2777"}],
+                      "strokes": [{"type": "SOLID", "color": "#FFFFFF"}],
+                      "strokeWeight": 1.5,
+                      "variables": {"fills/0/color": "accent/accent", "strokes/0/color": "background/background"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Avatar",
+                  "type": "INSTANCE",
+                  "x": 364,
+                  "y": 16,
+                  "width": 32,
+                  "height": 32,
+                  "component": "Avatar/Text",
+                  "componentId": "1:2407",
+                  "fills": [{"type": "SOLID", "color": "#DB2777"}],
+                  "cornerRadius": 9999,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "accent/accent"},
+                  "texts": ["AD"]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 1016,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "name": "Page Header",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "component": "Gameplane/Page Header",
+              "componentId": "1:3282",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "SFTP access",
+                "Your personal SFTP credentials for game server files. Admins can see and revoke them."
+              ]
+            },
+            {
+              "name": "Settings Layout",
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 891,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 24,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "name": "Settings Nav",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 220,
+                  "height": 394,
+                  "component": "Gameplane/Admin Settings Nav",
+                  "componentId": "1:3419",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 2,
+                    "padding": [8, 0, 8, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "texts": [
+                    "General",
+                    "Theme",
+                    "Authentication",
+                    "Module sources",
+                    "Mod registries",
+                    "Notifications",
+                    "Telemetry",
+                    "Updates",
+                    "About",
+                    "SFTP"
+                  ]
+                },
+                {
+                  "name": "Content Column",
+                  "type": "FRAME",
+                  "x": 244,
+                  "y": 0,
+                  "width": 888,
+                  "height": 915,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 16,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "name": "Gameplane/Settings/SFTP Address Card",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 888,
+                      "height": 420,
+                      "component": "Gameplane/Settings/SFTP Address Card",
+                      "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+                      "cornerRadius": 24,
+                      "variables": {"fills/0/color": "surface/surface"},
+                      "texts": [
+                        "SFTP address",
+                        "Use these settings in any SFTP client. Check the host key matches the fingerprint your client shows on first connect.",
+                        "Host",
+                        "sftp.gameplane.example",
+                        "Port",
+                        "2222",
+                        "Host key (SHA256)",
+                        "SHA256:4mQ2xR7vK9pL0wZ3sB8nT1cY6hJ5gF2dA0eU",
+                        "Copy",
+                        "Copy",
+                        "Username",
+                        "Log in with one of these usernames and your SSH key or SFTP password.",
+                        "alice",
+                        "Lists every server you can read, one folder each",
+                        "alice+survival",
+                        "Opens straight in the files of server survival",
+                        "alice+mods/survival",
+                        "Opens a server in another namespace (mods)"
+                      ]
+                    },
+                    {
+                      "name": "Gameplane/Settings/SFTP Keys Card",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 436,
+                      "width": 888,
+                      "height": 290,
+                      "component": "Gameplane/Settings/SFTP Keys Card",
+                      "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+                      "cornerRadius": 24,
+                      "variables": {"fills/0/color": "surface/surface"},
+                      "texts": [
+                        "SSH keys",
+                        "Public keys that can log in over SFTP. Gameplane stores only the public part.",
+                        "Add key",
+                        "laptop",
+                        "ssh-ed25519 · SHA256:9dK1vT7qLm2Xr8ZcW4bN0eH6sJ3yU5pA1fG",
+                        "Added 3 Oct 2026 · Last used 2 hours ago",
+                        "Remove",
+                        "ci-runner",
+                        "ssh-rsa · SHA256:Lm7Qa2Xp9rTz4Vc8Ns1Wd6Hk3Bj0Ye5Ug",
+                        "Added 21 Nov 2026 · Never used",
+                        "Remove"
+                      ]
+                    },
+                    {
+                      "name": "Card SFTP password",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 742,
+                      "width": 888,
+                      "height": 170,
+                      "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+                      "cornerRadius": 24,
+                      "variables": {"fills/0/color": "surface/surface"},
+                      "children": [
+                        {
+                          "name": "cardTitle",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 20,
+                          "width": 116,
+                          "height": 21,
+                          "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                          "text": "SFTP password",
+                          "font": ["Geist", 500, 16],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 48,
+                          "width": 368,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Set · Created 3 Oct 2026 · Last used 5 minutes ago",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 72,
+                          "width": 840,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Shown once when generated and stored only as a hash. It never expires. Regenerating or revoking it stops the old password at once.",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "Gameplane/Button/Outline",
+                          "type": "INSTANCE",
+                          "x": 24,
+                          "y": 118,
+                          "width": 120,
+                          "height": 32,
+                          "component": "Gameplane/Button/Outline",
+                          "componentId": "1:770",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "texts": ["Regenerate"]
+                        },
+                        {
+                          "name": "Gameplane/Button/Small/Danger",
+                          "type": "INSTANCE",
+                          "x": 156,
+                          "y": 122,
+                          "width": 92,
+                          "height": 32,
+                          "component": "Gameplane/Button/Small/Danger",
+                          "componentId": "1:1878",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "texts": ["Revoke"]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

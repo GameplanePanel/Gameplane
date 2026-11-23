@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Telemetry (Reset ID confirm)",
   "type": "FRAME",
   "x": 9840,
-  "y": 87754,
+  "y": 89234,
   "width": 1440,
   "height": 1031,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -176,7 +176,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 220,
-                  "height": 356,
+                  "height": 394,
                   "component": "Gameplane/Admin Settings Nav",
                   "componentId": "1:3419",
                   "layout": {
@@ -196,7 +196,8 @@
                     "Notifications",
                     "Telemetry",
                     "Updates",
-                    "About"
+                    "About",
+                    "SFTP"
                   ]
                 },
                 {

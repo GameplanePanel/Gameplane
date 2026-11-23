@@ -1,0 +1,1355 @@
+{
+  "file": "2012756585-1",
+  "name": "Screen/Settings — SFTP",
+  "type": "FRAME",
+  "x": 0,
+  "y": 78780,
+  "width": 1440,
+  "height": 1080,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 1080,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 1080,
+      "children": [
+        {
+          "name": "Top Bar",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "children": [
+            {
+              "name": "Breadcrumbs",
+              "type": "FRAME",
+              "x": 32,
+              "y": 23,
+              "width": 157,
+              "height": 18,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 72,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "gameplane",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 80,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "name": "crumbPage",
+                  "type": "TEXT",
+                  "x": 102,
+                  "y": 0,
+                  "width": 55,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Settings",
+                  "font": ["Geist", 500, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                }
+              ]
+            },
+            {
+              "name": "Actions",
+              "type": "FRAME",
+              "x": 752,
+              "y": 0,
+              "width": 396,
+              "height": 64,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "name": "Cluster Pill",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 15.5,
+                  "width": 94,
+                  "height": 33,
+                  "visible": false,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 8,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "name": "healthDot",
+                      "type": "ELLIPSE",
+                      "x": 12,
+                      "y": 12.5,
+                      "width": 8,
+                      "height": 8,
+                      "fills": [{"type": "SOLID", "color": "#21C45D"}],
+                      "variables": {"fills/0/color": "success/success"}
+                    },
+                    {
+                      "name": "clusterName",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 8,
+                      "width": 30,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "local",
+                      "font": ["Geist", 500, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "chevron",
+                      "type": "INSTANCE",
+                      "x": 66,
+                      "y": 8.5,
+                      "width": 16,
+                      "height": 16,
+                      "component": "lucide/chevron-down/16x16",
+                      "variables": {"fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Search",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 12,
+                  "width": 300,
+                  "height": 40,
+                  "component": "SearchField/Primary",
+                  "componentId": "1:1928",
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "texts": ["Search servers…"]
+                },
+                {
+                  "name": "Bell Wrap",
+                  "type": "FRAME",
+                  "x": 312,
+                  "y": 12,
+                  "width": 40,
+                  "height": 40,
+                  "children": [
+                    {
+                      "name": "Sdet8",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 36,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 8,
+                          "y": 8,
+                          "width": 20,
+                          "height": 20,
+                          "component": "lucide/bell/20x20",
+                          "variables": {"fills/0/color": "foreground/foreground"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "UnreadDot",
+                      "type": "ELLIPSE",
+                      "x": 29,
+                      "y": 1,
+                      "width": 8,
+                      "height": 8,
+                      "visible": false,
+                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "strokes": [{"type": "SOLID", "color": "#121114"}],
+                      "strokeWeight": 1.5,
+                      "variables": {"fills/0/color": "accent/accent", "strokes/0/color": "background/background"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Avatar",
+                  "type": "INSTANCE",
+                  "x": 364,
+                  "y": 16,
+                  "width": 32,
+                  "height": 32,
+                  "component": "Avatar/Text",
+                  "componentId": "1:2407",
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 9999,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "accent/accent"},
+                  "texts": ["AD"]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 1016,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "name": "Page Header",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "component": "Gameplane/Page Header",
+              "componentId": "1:3282",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "SFTP access",
+                "Your personal SFTP credentials for game server files. Admins can see and revoke them."
+              ]
+            },
+            {
+              "name": "Settings Layout",
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 891,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 24,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "name": "Settings Nav",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 220,
+                  "height": 432,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 2,
+                    "padding": [8, 0, 8, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "name": "snGeneral",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 8,
+                      "width": 220,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 12,
+                          "y": 10,
+                          "width": 16,
+                          "height": 16,
+                          "component": "lucide/cog/16x16"
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 36,
+                          "y": 9,
+                          "width": 50,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "General",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "snTheme",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 46,
+                      "width": 220,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#000000", "opacity": 0}],
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 12,
+                          "y": 10,
+                          "width": 16,
+                          "height": 16,
+                          "component": "lucide/palette/16x16"
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 36,
+                          "y": 9,
+                          "width": 43,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Theme",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "snAuth",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 84,
+                      "width": 220,
+                      "height": 36,
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 12,
+                          "y": 10,
+                          "width": 16,
+                          "height": 16,
+                          "component": "lucide/shield-check/16x16",
+                          "variables": {"fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 36,
+                          "y": 9,
+                          "width": 94,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Authentication",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "snModules",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 122,
+                      "width": 220,
+                      "height": 36,
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 12,
+                          "y": 10,
+                          "width": 16,
+                          "height": 16,
+                          "component": "lucide/boxes/16x16",
+                          "variables": {"fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 36,
+                          "y": 9,
+                          "width": 102,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Module sources",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "snModRegistries",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 160,
+                      "width": 220,
+                      "height": 36,
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 12,
+                          "y": 10,
+                          "width": 16,
+                          "height": 16,
+                          "component": "lucide/key/16x16",
+                          "variables": {"fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 36,
+                          "y": 9,
+                          "width": 92,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Mod registries",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "snNotifications",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 198,
+                      "width": 220,
+                      "height": 36,
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 12,
+                          "y": 10,
+                          "width": 16,
+                          "height": 16,
+                          "component": "lucide/bell/16x16",
+                          "variables": {"fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 36,
+                          "y": 9,
+                          "width": 81,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Notifications",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "snTelemetry",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 236,
+                      "width": 220,
+                      "height": 36,
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 12,
+                          "y": 10,
+                          "width": 16,
+                          "height": 16,
+                          "component": "lucide/activity/16x16",
+                          "variables": {"fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 36,
+                          "y": 9,
+                          "width": 64,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Telemetry",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "snUpdates",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 274,
+                      "width": 220,
+                      "height": 36,
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 12,
+                          "y": 10,
+                          "width": 16,
+                          "height": 16,
+                          "component": "lucide/refresh-ccw/16x16",
+                          "variables": {"fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 36,
+                          "y": 9,
+                          "width": 54,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Updates",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "snAbout",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 312,
+                      "width": 220,
+                      "height": 36,
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 12,
+                          "y": 10,
+                          "width": 16,
+                          "height": 16,
+                          "component": "lucide/info/16x16",
+                          "variables": {"fills/0/color": "muted"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 36,
+                          "y": 9,
+                          "width": 39,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "About",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "snSftp",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 350,
+                      "width": 220,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {"fills/0/color": "surface/secondary"},
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 12,
+                          "y": 10,
+                          "width": 16,
+                          "height": 16,
+                          "component": "lucide/palette/16x16"
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 36,
+                          "y": 9,
+                          "width": 34,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "SFTP",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans"}
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Content Column",
+                  "type": "FRAME",
+                  "x": 244,
+                  "y": 0,
+                  "width": 888,
+                  "height": 915,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 16,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "name": "Card SFTP address",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 888,
+                      "height": 420,
+                      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                      "cornerRadius": 24,
+                      "variables": {"fills/0/color": "surface/surface"},
+                      "children": [
+                        {
+                          "name": "cardTitle",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 20,
+                          "width": 104,
+                          "height": 21,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "SFTP address",
+                          "font": ["Geist", 500, 16],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 48,
+                          "width": 840,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Use these settings in any SFTP client. Check the host key matches the fingerprint your client shows on first connect.",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 100,
+                          "width": 368,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Host",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 200,
+                          "y": 100,
+                          "width": 185,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "sftp.gameplane.example",
+                          "font": ["JetBrains Mono", 600, 14],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 136,
+                          "width": 368,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Port",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 200,
+                          "y": 136,
+                          "width": 34,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "2222",
+                          "font": ["JetBrains Mono", 600, 14],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 172,
+                          "width": 368,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Host key (SHA256)",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 200,
+                          "y": 172,
+                          "width": 362,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "SHA256:4mQ2xR7vK9pL0wZ3sB8nT1cY6hJ5gF2dA0eU",
+                          "font": ["JetBrains Mono", 600, 14],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "Gameplane/Button/Small/Ghost",
+                          "type": "INSTANCE",
+                          "x": 740,
+                          "y": 94,
+                          "width": 84,
+                          "height": 32,
+                          "component": "Gameplane/Button/Small/Ghost",
+                          "componentId": "1:1124",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "texts": ["Copy"]
+                        },
+                        {
+                          "name": "Gameplane/Button/Small/Ghost",
+                          "type": "INSTANCE",
+                          "x": 740,
+                          "y": 166,
+                          "width": 84,
+                          "height": 32,
+                          "component": "Gameplane/Button/Small/Ghost",
+                          "componentId": "1:1124",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "texts": ["Copy"]
+                        },
+                        {"name": "Divider", "type": "RECTANGLE", "x": 24, "y": 212, "width": 840, "height": 1},
+                        {
+                          "name": "cardTitle",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 228,
+                          "width": 76,
+                          "height": 21,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "Username",
+                          "font": ["Geist", 500, 16],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 256,
+                          "width": 840,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Log in with one of these usernames and your SSH key or SFTP password.",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 300,
+                          "width": 42,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "alice",
+                          "font": ["JetBrains Mono", 600, 14],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 240,
+                          "y": 300,
+                          "width": 368,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Lists every server you can read, one folder each",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 336,
+                          "width": 118,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "alice+survival",
+                          "font": ["JetBrains Mono", 600, 14],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 240,
+                          "y": 336,
+                          "width": 368,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Opens straight in the files of server survival",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 372,
+                          "width": 160,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "alice+mods/survival",
+                          "font": ["JetBrains Mono", 600, 14],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 240,
+                          "y": 372,
+                          "width": 368,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Opens a server in another namespace (mods)",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Card SSH keys",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 436,
+                      "width": 888,
+                      "height": 290,
+                      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                      "cornerRadius": 24,
+                      "variables": {"fills/0/color": "surface/surface"},
+                      "children": [
+                        {
+                          "name": "cardTitle",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 20,
+                          "width": 72,
+                          "height": 21,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "SSH keys",
+                          "font": ["Geist", 500, 16],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 48,
+                          "width": 640,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Public keys that can log in over SFTP. Gameplane stores only the public part.",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "Gameplane/Button/Default",
+                          "type": "INSTANCE",
+                          "x": 760,
+                          "y": 18,
+                          "width": 104,
+                          "height": 36,
+                          "component": "Gameplane/Button/Default",
+                          "componentId": "1:306",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "texts": ["Add key"]
+                        },
+                        {
+                          "name": "cardTitle",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 100,
+                          "width": 49,
+                          "height": 21,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "laptop",
+                          "font": ["Geist", 500, 16],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 126,
+                          "width": 471,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "ssh-ed25519 · SHA256:9dK1vT7qLm2Xr8ZcW4bN0eH6sJ3yU5pA1fG",
+                          "font": ["JetBrains Mono", 600, 14],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 150,
+                          "width": 368,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Added 3 Oct 2026 · Last used 2 hours ago",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "Gameplane/Button/Small/Danger",
+                          "type": "INSTANCE",
+                          "x": 752,
+                          "y": 110,
+                          "width": 92,
+                          "height": 32,
+                          "component": "Gameplane/Button/Small/Danger",
+                          "componentId": "1:1878",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "texts": ["Remove"]
+                        },
+                        {"name": "Divider", "type": "RECTANGLE", "x": 24, "y": 186, "width": 840, "height": 1},
+                        {
+                          "name": "cardTitle",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 200,
+                          "width": 69,
+                          "height": 21,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "ci-runner",
+                          "font": ["Geist", 500, 16],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 226,
+                          "width": 420,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "ssh-rsa · SHA256:Lm7Qa2Xp9rTz4Vc8Ns1Wd6Hk3Bj0Ye5Ug",
+                          "font": ["JetBrains Mono", 600, 14],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 250,
+                          "width": 368,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Added 21 Nov 2026 · Never used",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "Gameplane/Button/Small/Danger",
+                          "type": "INSTANCE",
+                          "x": 752,
+                          "y": 212,
+                          "width": 92,
+                          "height": 32,
+                          "component": "Gameplane/Button/Small/Danger",
+                          "componentId": "1:1878",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "texts": ["Remove"]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Card SFTP password",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 742,
+                      "width": 888,
+                      "height": 170,
+                      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                      "cornerRadius": 24,
+                      "variables": {"fills/0/color": "surface/surface"},
+                      "children": [
+                        {
+                          "name": "cardTitle",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 20,
+                          "width": 116,
+                          "height": 21,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "SFTP password",
+                          "font": ["Geist", 500, 16],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 48,
+                          "width": 368,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Set · Created 3 Oct 2026 · Last used 5 minutes ago",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "cardBody",
+                          "type": "TEXT",
+                          "x": 24,
+                          "y": 72,
+                          "width": 840,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "Shown once when generated and stored only as a hash. It never expires. Regenerating or revoking it stops the old password at once.",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "Gameplane/Button/Outline",
+                          "type": "INSTANCE",
+                          "x": 24,
+                          "y": 118,
+                          "width": 120,
+                          "height": 32,
+                          "component": "Gameplane/Button/Outline",
+                          "componentId": "1:770",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "texts": ["Regenerate"]
+                        },
+                        {
+                          "name": "Gameplane/Button/Small/Danger",
+                          "type": "INSTANCE",
+                          "x": 156,
+                          "y": 122,
+                          "width": 92,
+                          "height": 32,
+                          "component": "Gameplane/Button/Small/Danger",
+                          "componentId": "1:1878",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "texts": ["Revoke"]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

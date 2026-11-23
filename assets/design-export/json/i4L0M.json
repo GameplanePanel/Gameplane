@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Mod registries (Key saved)",
   "type": "FRAME",
   "x": 1640,
-  "y": 85089,
+  "y": 86569,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -831,7 +831,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 220,
-                  "height": 356,
+                  "height": 394,
                   "component": "Gameplane/Admin Settings Nav",
                   "componentId": "1:3419",
                   "layout": {
@@ -851,7 +851,8 @@
                     "Notifications",
                     "Telemetry",
                     "Updates",
-                    "About"
+                    "About",
+                    "SFTP"
                   ]
                 },
                 {

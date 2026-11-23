@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — About",
   "type": "FRAME",
   "x": 0,
-  "y": 90486,
+  "y": 91966,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -176,7 +176,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 220,
-                  "height": 356,
+                  "height": 394,
                   "component": "Gameplane/Admin Settings Nav",
                   "componentId": "1:3419",
                   "layout": {
@@ -196,7 +196,8 @@
                     "Notifications",
                     "Telemetry",
                     "Updates",
-                    "About"
+                    "About",
+                    "SFTP"
                   ]
                 },
                 {

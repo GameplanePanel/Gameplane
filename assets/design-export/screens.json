@@ -1412,5 +1412,138 @@
     "name": "Screen/Admin Settings — Mod registries (Key from startup flag)",
     "width": 1440,
     "height": 900
+  },
+  {
+    "file": "1006926387-249",
+    "figId": "1006926387:249",
+    "name": "Screen/Settings — SFTP",
+    "width": 1440,
+    "height": 1080
+  },
+  {
+    "file": "1006926387-789",
+    "figId": "1006926387:789",
+    "name": "Screen/Settings — SFTP (Light)",
+    "width": 1440,
+    "height": 1080
+  },
+  {
+    "file": "1006926387-1274",
+    "figId": "1006926387:1274",
+    "name": "Screen/Settings — SFTP (Not enabled)",
+    "width": 1440,
+    "height": 1080
+  },
+  {
+    "file": "1006926387-1734",
+    "figId": "1006926387:1734",
+    "name": "Screen/Settings — SFTP (No password)",
+    "width": 1440,
+    "height": 1080
+  },
+  {
+    "file": "1006926387-2214",
+    "figId": "1006926387:2214",
+    "name": "Gameplane/Dialog/Add SSH key",
+    "width": 480,
+    "height": 380
+  },
+  {
+    "file": "1006926387-2231",
+    "figId": "1006926387:2231",
+    "name": "Gameplane/Dialog/Add SSH key (Invalid key)",
+    "width": 480,
+    "height": 470
+  },
+  {
+    "file": "1006926387-2253",
+    "figId": "1006926387:2253",
+    "name": "Gameplane/Dialog/Generate SFTP password",
+    "width": 480,
+    "height": 300
+  },
+  {
+    "file": "1006926387-2271",
+    "figId": "1006926387:2271",
+    "name": "Gameplane/Dialog/SFTP password (Shown once)",
+    "width": 480,
+    "height": 420
+  },
+  {
+    "file": "1006926387-2294",
+    "figId": "1006926387:2294",
+    "name": "Gameplane/Dialog/Regenerate SFTP password",
+    "width": 440,
+    "height": 163
+  },
+  {
+    "file": "1006926387-2310",
+    "figId": "1006926387:2310",
+    "name": "Gameplane/Dialog/Revoke SFTP password",
+    "width": 440,
+    "height": 163
+  },
+  {
+    "file": "309702331-1",
+    "figId": "309702331:1",
+    "name": "Screen/Users & RBAC — SFTP access (admin)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "309702331-255",
+    "figId": "309702331:255",
+    "name": "Screen/Clusters — SFTP (remote-lab)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "309702331-453",
+    "figId": "309702331:453",
+    "name": "Screen/Clusters — SFTP (remote-lab) — Token created",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "309702331-643",
+    "figId": "309702331:643",
+    "name": "Screen/Clusters — SFTP (remote-lab) — Token limit",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "309702331-845",
+    "figId": "309702331:845",
+    "name": "Screen/Server Detail — Files (Uploads)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "309702331-1268",
+    "figId": "309702331:1268",
+    "name": "Screen/Server Detail — Files (Uploads, Light)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "309702331-1691",
+    "figId": "309702331:1691",
+    "name": "Screen/Server Detail — Files (Uploads with errors)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "309702331-2111",
+    "figId": "309702331:2111",
+    "name": "Screen/Server Detail — Files (Starting)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "309702331-2511",
+    "figId": "309702331:2511",
+    "name": "Screen/Server Detail — Files (Starting timed out)",
+    "width": 1440,
+    "height": 900
   }
 ]
