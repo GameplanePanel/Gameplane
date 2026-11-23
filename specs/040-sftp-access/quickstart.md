@@ -1,6 +1,6 @@
 # Quickstart: validate SFTP access to game servers
 
-Manual validation on a dev cluster once every delivery PR in [plan.md](plan.md) has merged. Automated coverage of the same scenarios lives in the E2E bucket `sftp` and the `multicluster` addition (tasks T029, T035). Routes and payloads: [contracts/api.md](contracts/api.md); tables and annotations: [data-model.md](data-model.md).
+Manual validation on a dev cluster once every delivery PR in [plan.md](plan.md) has merged. Automated coverage of the same scenarios lives in the E2E bucket `sftp` and the `multicluster` addition (tasks T051, T052). Routes and payloads: [contracts/api.md](contracts/api.md); tables and annotations: [data-model.md](data-model.md).
 
 ## Prerequisites
 

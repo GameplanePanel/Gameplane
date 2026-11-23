@@ -51,3 +51,12 @@ Facts read from `origin/master` at `71a2db19` on 2026-11-22. Each item states wh
 - `audit.Event` has `Actor, Method, Path, Target, Status, IP, Reason` (`api/internal/audit/audit.go:820-830`), written by `audit.Middleware` for mutating requests and fanned out to webhook, syslog bridge and S3.
 
 **Decision**: add a nullable `source` column (migration 024) set to `sftp` when the request carries an SFTP session token, and include it in webhook/S3 payloads as an additive field. SFTP logins and failures are audited as `POST /sftp/v1/login` rows, with failures using the generic wording (core rule 3).
+
+## R8. One file-access check (added 2026-11-23)
+
+- Spec 039 (per-server access, Baylem, branch `feat/039-per-server-access`) adds per-server roles and path-scoped `files.*` actions (`specs/039-per-server-access/contracts/permission-catalog.md`). It has no rename action. Hardcoding `servers:read`/`servers:write` in SFTP code would hide every server from a user who only holds a per-server role.
+- valgul (2026-11-23): ship 040 now and reconcile later, or put the check behind a helper.
+
+**Decision**: one `FileAccess` helper in `api/internal/rbac/fileaccess.go` (contracts/api.md) makes every file permission decision: the SFTP root listing (`VisibleServers`), per-server logins, each file operation, and listing filters. The Files tab routes move onto it in the same change, so dashboard and SFTP cannot drift. Today it wraps the existing `servers:read`/`servers:write` and ownership rules; 039 swaps the implementation. Rename is checked as delete on the source plus create or write on the destination until 039 decides on its own action.
+
+**Alternatives considered**: keep the RBAC middleware's route rules as the only check (rejected: the SFTP root listing and per-server login are not route-shaped, so their checks would be written a second time in the handler); wait for 039 (rejected by valgul).
