@@ -4095,6 +4095,122 @@
     "defaultMessage": "{count} characters",
     "description": "SFTP shown-once dialog: password length; {count} is a number"
   },
+  "web.components.sftp.cluster_drawer.address": {
+    "defaultMessage": "Address",
+    "description": "Cluster SFTP drawer: label for the SFTP address field (host or host:port)"
+  },
+  "web.components.sftp.cluster_drawer.address_placeholder": {
+    "defaultMessage": "sftp.example.com:2222",
+    "description": "Cluster SFTP drawer: example value shown inside the empty address field; a sample, not a default"
+  },
+  "web.components.sftp.cluster_drawer.cancel": {
+    "defaultMessage": "Cancel",
+    "description": "Cluster SFTP drawer: button that closes the drawer without further changes; keep it short"
+  },
+  "web.components.sftp.cluster_drawer.copied": {
+    "defaultMessage": "Copied",
+    "description": "Cluster SFTP token shown-once dialog: button label after the token was copied"
+  },
+  "web.components.sftp.cluster_drawer.copy": {
+    "defaultMessage": "Copy",
+    "description": "Cluster SFTP token shown-once dialog: button that copies the token to the clipboard; keep it short"
+  },
+  "web.components.sftp.cluster_drawer.create_failed": {
+    "defaultMessage": "The token could not be created.",
+    "description": "Cluster SFTP drawer: fallback error when creating an endpoint token fails"
+  },
+  "web.components.sftp.cluster_drawer.create_token": {
+    "defaultMessage": "Create token",
+    "description": "Cluster SFTP drawer: button that creates a new endpoint token; disabled at the token limit; keep it short"
+  },
+  "web.components.sftp.cluster_drawer.created_description": {
+    "defaultMessage": "Copy it now. Gameplane stores only a hash and cannot show it again.",
+    "description": "Cluster SFTP token shown-once dialog: instruction under the heading"
+  },
+  "web.components.sftp.cluster_drawer.created_title": {
+    "defaultMessage": "Endpoint token created",
+    "description": "Cluster SFTP token shown-once dialog: heading"
+  },
+  "web.components.sftp.cluster_drawer.created_warning": {
+    "defaultMessage": "You will not see this again. Put it in the remote cluster's SFTP secret before you close this dialog.",
+    "description": "Cluster SFTP token shown-once dialog: warning that the token cannot be shown again and must go into the remote cluster's SFTP secret"
+  },
+  "web.components.sftp.cluster_drawer.description": {
+    "defaultMessage": "Users connect to this address with their own SSH key or SFTP password. Their permissions on this cluster decide what they can reach.",
+    "description": "Cluster SFTP drawer: explains that users connect to the address and their cluster permissions decide what they reach"
+  },
+  "web.components.sftp.cluster_drawer.done": {
+    "defaultMessage": "Done",
+    "description": "Cluster SFTP token shown-once dialog: button that closes the dialog; keep it short"
+  },
+  "web.components.sftp.cluster_drawer.host_key_fingerprint": {
+    "defaultMessage": "Host key fingerprint (from the cluster registration)",
+    "description": "Cluster SFTP drawer: label for the host key fingerprint field; the value comes from the cluster registration"
+  },
+  "web.components.sftp.cluster_drawer.last_used": {
+    "defaultMessage": "Last used {time}",
+    "description": "Cluster SFTP drawer: when a token was last used; {time} is a relative time"
+  },
+  "web.components.sftp.cluster_drawer.limit_message": {
+    "defaultMessage": "This cluster already has the maximum of {limit} active tokens. Revoke one token before you can create another.",
+    "description": "Cluster SFTP drawer: warning shown when the cluster has the maximum number of active tokens; {limit} is a number"
+  },
+  "web.components.sftp.cluster_drawer.load_failed": {
+    "defaultMessage": "Could not load the SFTP endpoint.",
+    "description": "Cluster SFTP drawer: error when the cluster's SFTP endpoint cannot be loaded"
+  },
+  "web.components.sftp.cluster_drawer.loading": {
+    "defaultMessage": "Loading…",
+    "description": "Cluster SFTP drawer: loading text"
+  },
+  "web.components.sftp.cluster_drawer.local_note": {
+    "defaultMessage": "This is the panel's own cluster. Its address comes from the chart and its host key fingerprint from the panel's host key.",
+    "description": "Cluster SFTP drawer: note for the panel's own cluster, whose endpoint is read-only and comes from the chart and host key"
+  },
+  "web.components.sftp.cluster_drawer.never_used": {
+    "defaultMessage": "Never used",
+    "description": "Cluster SFTP drawer: a token that has never been used"
+  },
+  "web.components.sftp.cluster_drawer.no_tokens": {
+    "defaultMessage": "No active tokens.",
+    "description": "Cluster SFTP drawer: shown when the cluster has no active endpoint token"
+  },
+  "web.components.sftp.cluster_drawer.revoke": {
+    "defaultMessage": "Revoke",
+    "description": "Cluster SFTP drawer: button that revokes one endpoint token; keep it short"
+  },
+  "web.components.sftp.cluster_drawer.revoke_failed": {
+    "defaultMessage": "The token could not be revoked.",
+    "description": "Cluster SFTP drawer: fallback error when revoking an endpoint token fails"
+  },
+  "web.components.sftp.cluster_drawer.save_endpoint": {
+    "defaultMessage": "Save endpoint",
+    "description": "Cluster SFTP drawer: button that saves the cluster's SFTP address and host key fingerprint; keep it short"
+  },
+  "web.components.sftp.cluster_drawer.save_failed": {
+    "defaultMessage": "The endpoint could not be saved.",
+    "description": "Cluster SFTP drawer: fallback error when saving the endpoint fails"
+  },
+  "web.components.sftp.cluster_drawer.title": {
+    "defaultMessage": "SFTP · {cluster}",
+    "description": "Cluster SFTP drawer: heading; {cluster} is the cluster display name"
+  },
+  "web.components.sftp.cluster_drawer.token_limit_hint": {
+    "defaultMessage": "A cluster can have at most {limit} active tokens. Revoking a token stops that endpoint from logging users in.",
+    "description": "Cluster SFTP drawer: explains the per-cluster token limit and what revoking does; {limit} is a number"
+  },
+  "web.components.sftp.cluster_drawer.token_meta": {
+    "defaultMessage": "Created {created} · {lastUsed}",
+    "description": "Cluster SFTP drawer: when an endpoint token was created and when it was last used; {created} and {lastUsed} are relative times"
+  },
+  "web.components.sftp.cluster_drawer.token_use_hint": {
+    "defaultMessage": "Used only by this cluster's SFTP server to reach the central API. Never give these to users.",
+    "description": "Cluster SFTP drawer: explains that endpoint tokens are for the cluster's SFTP server only"
+  },
+  "web.components.sftp.cluster_drawer.tokens_heading": {
+    "defaultMessage": "Endpoint tokens · {count} of {limit} in use",
+    "description": "Cluster SFTP drawer: heading of the endpoint token list with the active count and the per-cluster limit; {count} and {limit} are numbers"
+  },
   "web.components.sftp.copied": {
     "defaultMessage": "Copied",
     "description": "SFTP shown-once dialog: button label after the password was copied"
@@ -7014,6 +7130,14 @@
   "web.routes.clusters.removes_this_panel_s_connection_to_the": {
     "defaultMessage": "Removes this panel's connection to the cluster. Running workloads remain on the cluster.",
     "description": "Clusters: text in the remove-cluster confirmation dialog saying the panel's connection is removed while running workloads stay on the cluster"
+  },
+  "web.routes.clusters.sftp": {
+    "defaultMessage": "SFTP",
+    "description": "Clusters: button on a cluster card that opens the cluster's SFTP endpoint drawer; shown only to users who can manage clusters; keep it short"
+  },
+  "web.routes.clusters.sftp_for": {
+    "defaultMessage": "SFTP for {name}",
+    "description": "Clusters: accessible label of the SFTP button on a cluster card; {name} is the cluster display name"
   },
   "web.routes.clusters.view_nodes": {
     "defaultMessage": "View nodes",

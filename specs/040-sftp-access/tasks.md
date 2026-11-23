@@ -136,7 +136,7 @@
 
 - [X] T040 [US4] Chart exposure and remote mode in `charts/gameplane/templates/sftp.yaml` and `values.yaml`: `sftp.serviceType`, `sftp.nodePort`, `sftp.loadBalancerIP`, `sftp.publicAddress`, `sftp.apiURL`, `sftp.apiCASecret`, `sftp.serviceTokenSecret`, `sftp.maxSessionsPerUser` (4), `sftp.maxTransfersPerUser` (8); render on a gateway-only install.
 - [X] T041 [US4] `POST /clusters/{name}/sftp-token`, `DELETE /clusters/{name}/sftp-token/{id}` and `PUT /clusters/{name}/sftp` in `api/internal/handlers/sftp_cluster.go`; local endpoint address and fingerprint read from Helm values and the host key Secret.
-- [ ] T042 [US4] Clusters SFTP dialog after T004 sign-off in `web/src/routes/Clusters.tsx`, API methods in `web/src/lib/api.ts`, Vitest `web/src/routes/Clusters_sftp.test.tsx`.
+- [X] T042 [US4] Clusters SFTP dialog after T004 sign-off in `web/src/routes/Clusters.tsx`, API methods in `web/src/lib/api.ts`, Vitest `web/src/routes/Clusters_sftp.test.tsx`.
 
 **Checkpoint**: admins can roll SFTP out to every cluster.
 

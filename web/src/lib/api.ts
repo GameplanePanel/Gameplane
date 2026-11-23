@@ -627,3 +627,54 @@ export const removeUserSftpKey = (userId: number, keyId: number) =>
 // DELETE /users/{id}/sftp/password (users:manage) — 204.
 export const revokeUserSftpPassword = (userId: number) =>
   api<void>(`/users/${encodeURIComponent(String(userId))}/sftp/password`, { method: "DELETE" });
+
+// Cluster SFTP endpoint (spec 040 US4; design Screen/Clusters — SFTP (remote-lab) 309702331-255).
+// Shapes mirror api/internal/handlers/sftp_cluster.go (sftpClusterView, sftpTokenCreated) and
+// auth.SFTPServiceToken. The token secret is returned only by createClusterSftpToken, once.
+export interface ClusterSftpToken {
+  id: number;
+  cluster: string;
+  prefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+}
+
+export interface ClusterSftpView {
+  cluster: string;
+  local: boolean;
+  address: string | null;
+  hostKeyFingerprint: string | null;
+  tokens: ClusterSftpToken[];
+}
+
+export interface ClusterSftpEndpoint {
+  cluster: string;
+  address: string;
+  hostKeyFingerprint: string;
+  updatedAt: string;
+}
+
+export interface ClusterSftpTokenCreated extends ClusterSftpToken {
+  token: string;
+}
+
+// The API allows two active service tokens per cluster (auth.SFTPServiceToken limit).
+export const CLUSTER_SFTP_TOKEN_LIMIT = 2;
+
+const clusterSftpPath = (cluster: string) => `/clusters/${encodeURIComponent(cluster)}/sftp`;
+
+// GET /clusters/{name}/sftp (cluster:manage) — endpoint and active tokens.
+export const getClusterSftp = (cluster: string) => api<ClusterSftpView>(clusterSftpPath(cluster));
+
+// PUT /clusters/{name}/sftp (cluster:manage) — refused for the panel's own cluster.
+export const putClusterSftp = (cluster: string, body: { address: string; hostKeyFingerprint: string }) =>
+  api<ClusterSftpEndpoint>(clusterSftpPath(cluster), { method: "PUT", body });
+
+// POST /clusters/{name}/sftp-token (cluster:manage) — 201; the only response that carries the token.
+export const createClusterSftpToken = (cluster: string) =>
+  api<ClusterSftpTokenCreated>(`${clusterSftpPath(cluster)}-token`, { method: "POST" });
+
+// DELETE /clusters/{name}/sftp-token/{id} (cluster:manage) — 204.
+export const revokeClusterSftpToken = (cluster: string, tokenId: number) =>
+  api<void>(`${clusterSftpPath(cluster)}-token/${encodeURIComponent(String(tokenId))}`, { method: "DELETE" });

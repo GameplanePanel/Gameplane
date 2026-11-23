@@ -10,6 +10,7 @@ import { Clusters } from "@/lib/endpoints";
 import { useMe, can } from "@/lib/auth";
 import { cn, formatRelative } from "@/lib/utils";
 import { RegisterClusterDialog } from "@/components/RegisterClusterDialog";
+import { ClusterSftpDrawer } from "@/components/sftp/ClusterSftpDrawer";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { defineMessages } from "react-intl";
 
@@ -29,6 +30,7 @@ export function ClustersPage() {
   const intl = useOptionalIntl();
   const { data: me } = useMe();
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [sftpFor, setSftpFor] = useState<{ name: string; label: string } | null>(null);
   const navigate = useNavigate();
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["clusters"],
@@ -42,6 +44,7 @@ export function ClustersPage() {
       <PageHeader title={intl.formatMessage({ id: "web.routes.clusters.clusters", defaultMessage: "Clusters", description: "Clusters: page title at the top of the cluster administration page; keep it short" })} description={intl.formatMessage({ id: "web.routes.clusters.administration_of_registered_locations", defaultMessage: "Registered clusters, connectivity and node inventory.", description: "Clusters: subtitle under the page title saying the page covers registered locations, their connectivity and node inventory" })}
         actions={can(me, "cluster:manage") && <Button onPress={() => setRegisterOpen(true)}>{intl.formatMessage({ id: "web.routes.clusters.register_cluster", defaultMessage: "Register cluster", description: "Clusters: button at the top right that opens the dialog for registering a new cluster; shown only to users who can manage clusters; keep it short" })}</Button>} />
       {registerOpen && <RegisterClusterDialog open onOpenChange={setRegisterOpen} />}
+      {sftpFor && <ClusterSftpDrawer cluster={sftpFor.name} label={sftpFor.label} onClose={() => setSftpFor(null)} />}
       {isLoading ? (
         <LoadingCard message={intl.formatMessage({ id: "web.routes.clusters.loading_clusters", defaultMessage: "Loading clusters…", description: "Clusters: loading text shown while the list of registered clusters is being fetched" })} />
       ) : error ? (
@@ -78,6 +81,7 @@ export function ClustersPage() {
                     <Button onPress={() => void navigate({ to: "/clusters/$clusterId", params: { clusterId: cluster.name }, search: { tab: "overview" } })} aria-label={intl.formatMessage({ id: "web.routes.clusters.open_cluster_named", defaultMessage: "Open cluster {name}", description: "Accessible cluster details button label" }, { name: cluster.displayName || cluster.name })}>{intl.formatMessage({ id: "web.routes.clusters.open_cluster", defaultMessage: "Open cluster", description: "Open cluster details button" })}</Button>
                     <Button variant="outline" onPress={() => void navigate({ to: "/servers", search: { cluster: cluster.name } })} aria-label={intl.formatMessage({ id: "web.routes.clusters.view_servers_in", defaultMessage: "View servers in {name}", description: "Clusters: accessible label of the View servers button; {name} is the cluster display name" }, { name: cluster.displayName || cluster.name })}>{intl.formatMessage({ id: "web.routes.clusters.view_servers", defaultMessage: "View servers", description: "Clusters: button on a cluster card that opens the server list for that cluster; keep it short; its screen-reader name also includes the cluster name" })}</Button>
                     {cluster.canViewInventory === true && <Button variant="outline" onPress={() => void navigate({ to: "/nodes", search: { cluster: cluster.name } })} aria-label={intl.formatMessage({ id: "web.routes.clusters.view_nodes_in", defaultMessage: "View nodes in {name}", description: "Clusters: accessible label of the View nodes button; {name} is the cluster display name" }, { name: cluster.displayName || cluster.name })}>{intl.formatMessage({ id: "web.routes.clusters.view_nodes", defaultMessage: "View nodes", description: "Clusters: button on a cluster card that opens the node inventory for that cluster; shown only when the user can view inventory; keep it short" })}</Button>}
+                    {can(me, "cluster:manage") && <Button variant="outline" onPress={() => setSftpFor({ name: cluster.name, label: cluster.displayName || cluster.name })} aria-label={intl.formatMessage({ id: "web.routes.clusters.sftp_for", defaultMessage: "SFTP for {name}", description: "Clusters: accessible label of the SFTP button on a cluster card; {name} is the cluster display name" }, { name: cluster.displayName || cluster.name })}>{intl.formatMessage({ id: "web.routes.clusters.sftp", defaultMessage: "SFTP", description: "Clusters: button on a cluster card that opens the cluster's SFTP endpoint drawer; shown only to users who can manage clusters; keep it short" })}</Button>}
                   </div>
                 </CardContent>
               </Card>
