@@ -4,12 +4,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "@/test/server";
-import { renderWithQuery } from "@/test/render";
+import { makeClient, renderWithQuery } from "@/test/render";
 import { makeUser } from "@/test/factories";
 import { BackupDestinationsPanel } from "./BackupDestinationsPanel";
 
 describe("BackupDestinationsPanel", () => {
-  it("binds list, create and confirmed deletion to the cluster and namespace", async () => {
+  it.each([undefined, "games-east"])("binds list, create and confirmed deletion to the cluster and namespace %s", async (namespace) => {
     const requests: string[] = [];
     let exists = false;
     server.use(http.all("/backup-destinations", ({ request }) => {
@@ -21,7 +21,7 @@ describe("BackupDestinationsPanel", () => {
       exists = false;
       return new HttpResponse(null, { status: 204 });
     }));
-    renderWithQuery(<BackupDestinationsPanel clusterId="east" />);
+    renderWithQuery(<BackupDestinationsPanel clusterId="east" namespace={namespace} />);
     await userEvent.click(await screen.findByRole("button", { name: "Add destination" }));
     await userEvent.type(screen.getByLabelText("Name (DNS label)"), "repo");
     await userEvent.type(screen.getByLabelText("Restic URL"), "s3:example/repo");
@@ -36,7 +36,7 @@ describe("BackupDestinationsPanel", () => {
     for (const request of requests) {
       const params = new URL(request).searchParams;
       expect(params.get("cluster")).toBe("east");
-      expect(params.get("namespace")).toBe("gameplane-games");
+      expect(params.get("namespace")).toBe(namespace ?? "gameplane-games");
     }
   });
 
@@ -147,7 +147,9 @@ describe("BackupDestinationsPanel", () => {
         new HttpResponse("Server error", { status: 500 }),
       ),
     );
-    renderWithQuery(<BackupDestinationsPanel clusterId="local" />);
+    const client = makeClient();
+    client.setQueryDefaults(["backup-destinations"], { retryDelay: 0 });
+    renderWithQuery(<BackupDestinationsPanel clusterId="local" />, { client });
     expect(await screen.findByText(/error/i)).toBeInTheDocument();
   });
 

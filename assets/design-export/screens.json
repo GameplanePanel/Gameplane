@@ -1419,5 +1419,12 @@
     "name": "States/Backup schedule — Edit with restricted snapshot strategy",
     "width": 1524,
     "height": 582
+  },
+  {
+    "file": "46479436-2",
+    "figId": "338080293:2",
+    "name": "Gameplane/Dialog/Back up now (No destinations)",
+    "width": 480,
+    "height": 279
   }
 ]

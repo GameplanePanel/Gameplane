@@ -105,7 +105,7 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
   const backupNowDisabled = !resourceCan(permissions, "backups:write") || !lone || createNow.isPending;
   const backupNowHint =
     destinationsLoaded && destinations.length === 0
-      ? intl.formatMessage({ id: "web.routes.tabs.backups.backup_now_hint_no_destination", defaultMessage: "No backup destination configured. Add one in admin settings.", description: "Backups tab: hint under the Back up now button when no backup destination exists; points to admin settings" })
+      ? intl.formatMessage({ id: "web.routes.tabs.backups.backup_now_hint_no_destination", defaultMessage: "No backup destination configured. See this server’s Settings → Scheduled backups.", description: "Backups tab: directs the user to the server settings section with the destination management link" })
       : destinations.length > 1
         ? intl.formatMessage({ id: "web.routes.tabs.backups.backup_now_hint_many_destinations", defaultMessage: "Multiple destinations configured — use the Backups page to pick one.", description: "Backups tab: hint under the Back up now button when several backup destinations exist; points to the dashboard Backups page to choose one" })
         : undefined;
