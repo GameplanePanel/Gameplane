@@ -422,7 +422,7 @@ func TestSFTPStore_LookupSessionRejectsBadRows(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			s, uid := sftpFault(t.Context(), t)
+			s, uid := sftpFault(ctx, t)
 			token, _, err := s.IssueSFTPSession(ctx, uid, "local", "password", 0)
 			if err != nil {
 				t.Fatalf("IssueSFTPSession: %v", err)
@@ -435,12 +435,12 @@ func TestSFTPStore_LookupSessionRejectsBadRows(t *testing.T) {
 	}
 
 	t.Run("permission load failure", func(t *testing.T) {
-		s, uid := sftpFault(t.Context(), t)
+		s, uid := sftpFault(ctx, t)
 		token, _, err := s.IssueSFTPSession(ctx, uid, "local", "password", 0)
 		if err != nil {
 			t.Fatalf("IssueSFTPSession: %v", err)
 		}
-		mustExecSFTP(t.Context(), t, s, `DROP TABLE user_role_bindings`)
+		mustExecSFTP(ctx, t, s, `DROP TABLE user_role_bindings`)
 		_, _, err = s.LookupSFTPSessionToken(ctx, token)
 		if err == nil || errors.Is(err, sql.ErrNoRows) || errors.Is(err, errSessionInvalid) || errors.Is(err, errSessionExpired) {
 			t.Fatalf("lookup error = %v, want an unclassified database error", err)
