@@ -433,9 +433,11 @@ const backupDefaultFSGroup int64 = 65532
 // default. An applied record with no group means the image default, which the
 // backup pod gives as 65532. A StatefulSet from before spec 030 (no security
 // annotations) also has no applied record here, so its backups keep using the
-// template group as before. The result is never nil.
+// template group as before, without the server's pending override: that
+// override reaches the volume only when the server restarts. The result is
+// never nil.
 func appliedBackupFSGroup(ctx context.Context, reader client.Reader, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) (*int64, error) {
-	recorded, err := securityAppliedRecorded(ctx, reader, gs)
+	recorded, preFeature, err := securityAppliedRecorded(ctx, reader, gs)
 	if err != nil {
 		return nil, fmt.Errorf("read applied filesystem group: %w", err)
 	}
@@ -447,9 +449,12 @@ func appliedBackupFSGroup(ctx context.Context, reader client.Reader, gs *gamepla
 		}
 	}
 	var group *int64
-	if applied != nil {
+	switch {
+	case applied != nil:
 		group = applied.FSGroup.Value
-	} else {
+	case preFeature:
+		group = resolveGameSecurity(tmpl, nil).FSGroup.Value
+	default:
 		group = resolveGameSecurity(tmpl, gs).FSGroup.Value
 	}
 	if group == nil {
@@ -461,17 +466,20 @@ func appliedBackupFSGroup(ctx context.Context, reader client.Reader, gs *gamepla
 
 // securityAppliedRecorded reports whether gs's own StatefulSet carries the
 // spec 030 security annotations (observed, or on its pod template). A missing
-// or foreign StatefulSet, or one from before the feature, reports false.
-func securityAppliedRecorded(ctx context.Context, reader client.Reader, gs *gameplanev1alpha1.GameServer) (bool, error) {
+// or foreign StatefulSet reports false for both results. preFeature is true
+// when gs's own StatefulSet exists without the annotations, that is, it was
+// created before the feature and has not been rolled since.
+func securityAppliedRecorded(ctx context.Context, reader client.Reader, gs *gameplanev1alpha1.GameServer) (recorded, preFeature bool, err error) {
 	var ss appsv1.StatefulSet
 	if err := reader.Get(ctx, client.ObjectKeyFromObject(gs), &ss); err != nil {
 		if apierrors.IsNotFound(err) {
-			return false, nil
+			return false, false, nil
 		}
-		return false, fmt.Errorf("read statefulset for applied security: %w", err)
+		return false, false, fmt.Errorf("read statefulset for applied security: %w", err)
 	}
 	if !metav1.IsControlledBy(&ss, gs) {
-		return false, nil
+		return false, false, nil
 	}
-	return ss.Annotations[securityAppliedObservedAnnotation] != "" || ss.Spec.Template.Annotations[securityAppliedAnnotation] != "", nil
+	recorded = ss.Annotations[securityAppliedObservedAnnotation] != "" || ss.Spec.Template.Annotations[securityAppliedAnnotation] != ""
+	return recorded, !recorded, nil
 }
