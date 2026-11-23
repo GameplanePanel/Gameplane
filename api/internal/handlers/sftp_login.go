@@ -318,6 +318,9 @@ type sftpServersHandler struct {
 type sftpServerItem struct {
 	Namespace string `json:"namespace"`
 	Server    string `json:"server"`
+	// Write reports whether the file-access check lets the session change files on this server, so the
+	// SFTP endpoint refuses an upload when the file is opened instead of when it is closed.
+	Write bool `json:"write"`
 }
 
 // list serves the session's servers. Only session-token callers may use it.
@@ -340,7 +343,9 @@ func (h *sftpServersHandler) list(w http.ResponseWriter, req *http.Request) {
 	}
 	items := make([]sftpServerItem, 0, len(refs))
 	for _, ref := range refs {
-		items = append(items, sftpServerItem{Namespace: ref.Namespace, Server: ref.Name})
+		target := rbac.FileTarget{Cluster: ref.Cluster, Namespace: ref.Namespace, Server: ref.Name}
+		write := h.files.Allow(ctx, user, rbac.FileCreate, target) == nil
+		items = append(items, sftpServerItem{Namespace: ref.Namespace, Server: ref.Name, Write: write})
 	}
 	writeJSON(w, map[string]any{"items": items})
 }

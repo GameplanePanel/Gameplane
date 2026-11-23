@@ -25,7 +25,7 @@ Request: `{"sessionTokens": ["gpsftp_…", …]}` (up to 500). Response 204, no 
 
 Only these routes accept a session token (guard like `MCPTokenGuard`); `cluster` is forced to the token's cluster:
 
-- `GET /sftp/v1/servers` (root listing: `{namespace, server}` pairs from the file-access check's `VisibleServers` for the token's cluster)
+- `GET /sftp/v1/servers` (root listing: `{namespace, server, write}` items from the file-access check's `VisibleServers` for the token's cluster; `write` is the same check's `create` decision for that server, so the endpoint refuses an upload when the file is opened)
 - `GET /servers/{name}/files/{list,stat,download}`
 - `POST /servers/{name}/files/{mkdir,rename}`, `DELETE /servers/{name}/files/delete`
 - `PUT /servers/{name}/files/stream?path=…&offset=N` (OD-6)
