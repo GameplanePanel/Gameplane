@@ -347,9 +347,16 @@ paths:
           description: OK
   '/schedules/{name}':
     delete:
+      parameters:
+        - { in: query, name: expectedUID, schema: { type: string }, description: "UID of the confirmed schedule. Supply together with expectedResourceVersion." }
+        - { in: query, name: expectedResourceVersion, schema: { type: string }, description: "Resource version of the confirmed schedule. Supply together with expectedUID." }
       responses:
-        '200':
-          description: OK
+        '204':
+          description: Schedule deleted
+        '400':
+          description: Incomplete or repeated delete preconditions
+        '409':
+          description: The schedule changed after confirmation
     get:
       responses:
         '200':

@@ -2,11 +2,11 @@ import { useTestLocation, navigateTestSearch, resetTestSearch } from "@/test/rou
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { ReactNode } from "react";
 import { http, HttpResponse } from "msw";
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "@/test/server";
-import { renderWithQuery } from "@/test/render";
-import { makeBackup, makeSchedule, makeServer, makeRestore } from "@/test/factories";
+import { makeClient, renderWithQuery } from "@/test/render";
+import { makeBackup, makeDestination, makeSchedule, makeServer, makeRestore } from "@/test/factories";
 
 vi.mock("@tanstack/react-router", () => ({
   useLocation: () => useTestLocation(),
@@ -41,8 +41,85 @@ describe("BackupsPage flows", () => {
     renderWithQuery(<BackupsPage />);
     // "Back up now" lives in the page header and opens the snapshot dialog.
     await userEvent.click(screen.getByRole("button", { name: /Back up now/i }));
+    await userEvent.click(serverSelect());
+    await userEvent.click(await screen.findByRole("option", { name: /^alpha · local \/ gameplane-games$/ }));
     expect(await screen.findByText(/No backup destinations configured/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Run snapshot/i })).toBeDisabled();
+  });
+
+  it("shows a destination lookup error without claiming the server has no destinations", async () => {
+    server.use(http.get("/backup-destinations", () => HttpResponse.text("Destination lookup failed", { status: 403 })));
+    renderWithQuery(<BackupsPage />);
+    await userEvent.click(screen.getByRole("button", { name: /Back up now/i }));
+    await userEvent.click(serverSelect());
+    await userEvent.click(await screen.findByRole("option", { name: /^alpha · local \/ gameplane-games$/ }));
+    const dialog = within(screen.getByRole("dialog"));
+    expect(await dialog.findByText("Destination lookup failed")).toBeInTheDocument();
+    expect(dialog.queryByText(/No backup destinations configured/i)).not.toBeInTheDocument();
+    expect(dialog.queryByRole("link", { name: "Manage destinations" })).not.toBeInTheDocument();
+    expect(dialog.getByRole("button", { name: /Run snapshot/i })).toBeDisabled();
+  });
+
+  it("clears cached destinations on the first denied refetch, even when retries are enabled", async () => {
+    const queryKey = ["backup-destinations", "local", "gameplane-games"];
+    const client = makeClient();
+    client.setQueryDefaults(queryKey, { retry: 3, retryDelay: 0 });
+    server.use(http.get("/backup-destinations", () => HttpResponse.json({
+      items: [makeDestination({ name: "private-repo" }), makeDestination({ name: "second-repo" })],
+    })));
+    renderWithQuery(<BackupsPage />, { client });
+    await userEvent.click(screen.getByRole("button", { name: /Back up now/i }));
+    await userEvent.click(serverSelect());
+    await userEvent.click(await screen.findByRole("option", { name: /^alpha · local \/ gameplane-games$/ }));
+    const dialog = within(screen.getByRole("dialog"));
+    const run = dialog.getByRole("button", { name: /Run snapshot/i });
+    await waitFor(() => expect(run).toBeEnabled());
+    expect(dialog.getByRole("button", { name: /Destination/i })).toBeInTheDocument();
+    const deniedRead = vi.fn(() => HttpResponse.text("Access withdrawn", { status: 403 }));
+    server.use(http.get("/backup-destinations", deniedRead));
+    await act(() => client.invalidateQueries({ queryKey }));
+    expect(await dialog.findByText("Access withdrawn")).toBeInTheDocument();
+    expect(deniedRead).toHaveBeenCalledTimes(1);
+    expect(dialog.queryByRole("button", { name: /Destination/i })).not.toBeInTheDocument();
+    expect(dialog.queryByRole("link", { name: "Manage destinations" })).not.toBeInTheDocument();
+    expect(run).toBeDisabled();
+  });
+
+  it("requires a new choice when the selected repository disappears and only one remains", async () => {
+    const remaining = makeDestination({ name: "primary-repo" });
+    const removed = makeDestination({ name: "archive-repo" });
+    let items = [remaining, removed];
+    let posted: unknown;
+    server.use(
+      http.get("/backup-destinations", () => HttpResponse.json({ items })),
+      http.post("/backups", async ({ request }) => {
+        posted = await request.json();
+        return HttpResponse.json(makeBackup());
+      }),
+    );
+    const { client } = renderWithQuery(<BackupsPage />);
+    await userEvent.click(screen.getByRole("button", { name: /Back up now/i }));
+    await userEvent.click(serverSelect());
+    await userEvent.click(await screen.findByRole("option", { name: /^alpha · local \/ gameplane-games$/ }));
+    const dialog = within(screen.getByRole("dialog"));
+    const picker = await dialog.findByRole("button", { name: /Destination/i });
+    await userEvent.click(picker);
+    await userEvent.click(await screen.findByRole("option", { name: "archive-repo" }));
+    expect(picker).toHaveTextContent("archive-repo");
+    const run = dialog.getByRole("button", { name: /Run snapshot/i });
+    expect(run).toBeEnabled();
+
+    items = [remaining];
+    await act(() => client.invalidateQueries({ queryKey: ["backup-destinations", "local", "gameplane-games"] }));
+    await waitFor(() => expect(run).toBeDisabled());
+    await userEvent.click(run);
+    expect(posted).toBeUndefined();
+    await userEvent.click(dialog.getByRole("button", { name: /Destination/i }));
+    expect(screen.queryByRole("option", { name: "archive-repo" })).not.toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("option", { name: "primary-repo" }));
+    await waitFor(() => expect(run).toBeEnabled());
+    await userEvent.click(run);
+    await waitFor(() => expect(posted).toMatchObject({ spec: { repoRef: { name: "primary-repo" } } }));
   });
 
   it("runs a snapshot for the selected server", async () => {

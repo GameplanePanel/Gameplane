@@ -1075,6 +1075,14 @@
         "defaultMessage": "·",
         "description": "Visual separator between two items"
     },
+    "web.backups.manage_destinations": {
+        "defaultMessage": "Gérer les destinations",
+        "description": "Link from backups to the selected cluster's destination configuration"
+    },
+    "web.cluster_configuration.scoped_backup_destinations": {
+        "defaultMessage": "Dépôts Restic pour les instantanés. Les identifiants sont stockés dans l’espace de noms {namespace}.",
+        "description": "Backup destinations: identifies the Kubernetes namespace selected by a server link"
+    },
     "web.components.app_layout.admin": {
         "defaultMessage": "Administration",
         "description": "Sidebar: heading of the admin navigation group"
@@ -1367,6 +1375,10 @@
         "defaultMessage": "Annuler",
         "description": "Schedule form: button that closes the form without creating a schedule; keep it short"
     },
+    "web.components.backups.schedule_form.changed": {
+        "defaultMessage": "Cette planification a changé. Rouvrez-la pour modifier sa dernière version.",
+        "description": "Schedule editor: conflict while saving a changed or replaced schedule"
+    },
     "web.components.backups.schedule_form.create_schedule": {
         "defaultMessage": "Créer la planification",
         "description": "Schedule form: submit button label"
@@ -1383,9 +1395,17 @@
         "defaultMessage": "Snapshot de volume CSI récurrent selon une expression cron. Aucun dépôt restic requis.",
         "description": "Schedule form: hint for the CSI snapshot schedule type"
     },
+    "web.components.backups.schedule_form.csi_policy_hint": {
+        "defaultMessage": "Les instantanés de volume nécessitent de conserver l’état d’alimentation du serveur et de sauvegarder uniquement le volume principal.",
+        "description": "Schedule editor: explains why the current restic backup policies prevent switching to CSI"
+    },
     "web.components.backups.schedule_form.destination": {
         "defaultMessage": "Destination",
         "description": "Schedule form: label above the dropdown that picks the backup destination"
+    },
+    "web.components.backups.schedule_form.edit_schedule": {
+        "defaultMessage": "Modifier {name}",
+        "description": "Schedule editor heading, where {name} is the existing backup schedule"
     },
     "web.components.backups.schedule_form.new_backup_schedule": {
         "defaultMessage": "Nouvelle planification de sauvegarde",
@@ -1410,6 +1430,10 @@
     "web.components.backups.schedule_form.retention_policy": {
         "defaultMessage": "Politique de rétention",
         "description": "Schedule form: label above the retention settings that decide how many old backups are kept"
+    },
+    "web.components.backups.schedule_form.save_changes": {
+        "defaultMessage": "Enregistrer les modifications",
+        "description": "Schedule editor: save changes to the existing schedule"
     },
     "web.components.backups.schedule_form.schedule_cron": {
         "defaultMessage": "Planification (cron)",
@@ -5195,10 +5219,6 @@
         "defaultMessage": "Active",
         "description": "Backups: column heading for the switch that turns a schedule on or off; keep it short"
     },
-    "web.routes.backups.admin_settings": {
-        "defaultMessage": "paramètres d'administration",
-        "description": "Backups: link text inside the no-destination note that opens the admin settings screen; keep it short"
-    },
     "web.routes.backups.back_up_now": {
         "defaultMessage": "Sauvegarder maintenant",
         "description": "Backups: button that opens the dialog for a one-off snapshot, and the heading of that dialog; keep it short"
@@ -5276,8 +5296,8 @@
         "description": "Backups: empty state when the backup list could not be loaded"
     },
     "web.routes.backups.no_backup_destinations_configured_add": {
-        "defaultMessage": "Aucune destination de sauvegarde configurée. Ajoutez-en une dans",
-        "description": "Backups: opening words of the note in the back-up-now dialog shown when no destination exists; the link and closing words follow it"
+        "defaultMessage": "Aucune destination de sauvegarde configurée.",
+        "description": "Back up now dialog: the selected server has no backup destinations"
     },
     "web.routes.backups.no_backups_match_the_current_filters": {
         "defaultMessage": "Aucune sauvegarde ne correspond aux filtres actuels.",
@@ -5390,10 +5410,6 @@
     "web.routes.backups.the_cron_schedule_will_be_removed": {
         "defaultMessage": "La planification cron sera supprimée. Les sauvegardes existantes sont conservées ; les nouveaux instantanés de cette planification ne seront plus lancés tant qu'elle n'est pas recréée.",
         "description": "Backups: text in the delete schedule dialog: the schedule is removed, existing backups stay, and new snapshots stop until it is recreated"
-    },
-    "web.routes.backups.to_enable_snapshots": {
-        "defaultMessage": "pour activer les instantanés.",
-        "description": "Backups: closing words of the no-destination note after the admin settings link, ending the sentence about enabling snapshots"
     },
     "web.routes.backups.trailing_backups": {
         "defaultMessage": "{shown} sur {total} {total, plural, one {sauvegarde} other {sauvegardes}}",
@@ -7040,8 +7056,8 @@
         "description": "Backups tab: hint under the Back up now button when several backup destinations exist; points to the dashboard Backups page to choose one"
     },
     "web.routes.tabs.backups.backup_now_hint_no_destination": {
-        "defaultMessage": "Aucune destination de backup configurée. Ajoutez-en une dans les paramètres d'administration.",
-        "description": "Backups tab: hint under the Back up now button when no backup destination exists; points to admin settings"
+        "defaultMessage": "Aucune destination de sauvegarde configurée. Consultez Paramètres → Sauvegardes planifiées sur ce serveur.",
+        "description": "Backups tab: directs the user to the server settings section with the destination management link"
     },
     "web.routes.tabs.backups.backups": {
         "defaultMessage": "Sauvegardes",
@@ -7055,13 +7071,25 @@
         "defaultMessage": "Terminé",
         "description": "Backups tab: column heading for when each backup finished in the backups table; keep it short"
     },
+    "web.routes.tabs.backups.delete_schedule_changed": {
+        "defaultMessage": "La planification a été modifiée ou supprimée. Vérifiez la planification actuelle avant de la supprimer.",
+        "description": "Server Backups tab: the schedule changed after the user opened the delete confirmation"
+    },
+    "web.routes.tabs.backups.delete_schedule_hint": {
+        "defaultMessage": "Supprimer cette planification arrête les prochaines exécutions. Les sauvegardes déjà effectuées sont conservées.",
+        "description": "Server Backups tab: explains the effect of deleting a schedule"
+    },
+    "web.routes.tabs.backups.edit": {
+        "defaultMessage": "Modifier",
+        "description": "Server Backups tab: opens the selected backup schedule for editing"
+    },
     "web.routes.tabs.backups.last_backup": {
         "defaultMessage": "Dernier backup",
         "description": "Backups tab: stat card label for the time of the most recent backup; the value shows that time relative to now, or Unavailable"
     },
     "web.routes.tabs.backups.managed_by_server_settings": {
         "defaultMessage": "Géré par les paramètres du serveur",
-        "description": "Backups tab: small badge on a schedule row meaning the schedule is set by the server settings and not edited here; keep it short"
+        "description": "Backups tab: opens the server settings that control this schedule"
     },
     "web.routes.tabs.backups.name": {
         "defaultMessage": "Nom",
@@ -8911,6 +8939,10 @@
         "defaultMessage": "=",
         "description": "Networking: separator shown between an annotation key and its value"
     },
+    "web.routes.tabs.settings.networking.load_balancer_hostname_hint": {
+        "defaultMessage": "Laissez ce champ vide pour utiliser le nom d’hôte du modèle ou l’adresse du LoadBalancer.",
+        "description": "Networking: explains which hostname a LoadBalancer server advertises when no override is set"
+    },
     "web.routes.tabs.settings.networking.loadbalancer_ip_allow_list": {
         "defaultMessage": "Liste d'autorisation des IP LoadBalancer",
         "description": "Networking: field label for the LoadBalancer IP allow-list, shown only when Expose is LoadBalancer; the accessible name of its text box is the same"
@@ -8944,7 +8976,7 @@
         "description": "Networking: warning title shown when the cluster has no address manager; the line below says the pool and address preference will be saved but not applied"
     },
     "web.routes.tabs.settings.networking.nodeport_hostname_hint": {
-        "defaultMessage": "Utilisez un nom DNS qui pointe vers un nœud accessible aux joueurs. Laissez ce champ vide pour utiliser l’adresse IP externe d’un nœud si elle est disponible.",
+        "defaultMessage": "Laissez ce champ vide pour utiliser le nom d’hôte du modèle ou l’adresse IP externe d’un nœud.",
         "description": "Networking: explains how the optional hostname determines the address advertised for a NodePort server"
     },
     "web.routes.tabs.settings.networking.one_cidr_per_line_restricts_which": {

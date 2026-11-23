@@ -463,6 +463,9 @@ spec:
             - --port-pool-template={{ . }}={{ $pool }}
             {{- end }}
             {{- end }}
+            {{- range $template, $hostname := .Values.operator.templateHostnames }}
+            - {{ printf "--template-hostname=%s=%s" $template $hostname | quote }}
+            {{- end }}
             - --zap-log-level={{ .Values.operator.logLevel }}
             {{- if .Values.operator.localModules.enabled }}
             - --module-local-root={{ .Values.operator.localModules.mountPath }}
