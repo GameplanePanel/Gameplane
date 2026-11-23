@@ -10787,6 +10787,10 @@
     "defaultMessage": "Done",
     "description": "Button that closes the link-created dialog"
   },
+  "web.routes.tabs.settings.share_links.edit_wake_permission": {
+    "defaultMessage": "Allow anyone with link {id} to wake the server",
+    "description": "Accessible name of the wake permission switch for the given share link ID"
+  },
   "web.routes.tabs.settings.share_links.expires": {
     "defaultMessage": "Expires",
     "description": "Table column header for the share link expiry date"
@@ -10830,6 +10834,10 @@
   "web.routes.tabs.settings.share_links.let_people_without_a_gameplane_account": {
     "defaultMessage": "Let people without a Gameplane account check this server's status and connection address. Only the owner can create or revoke links.",
     "description": "Share links: hint under the Share links heading saying people without an account can check the status and address, and only the owner can create or revoke links"
+  },
+  "web.routes.tabs.settings.share_links.link_id": {
+    "defaultMessage": "Link ID",
+    "description": "Label for the non-secret share link identifier in the creation dialog and table"
   },
   "web.routes.tabs.settings.share_links.long_lived_link_it_stays_valid_for_over": {
     "defaultMessage": "Long-lived link — it stays valid for over a year unless you revoke it.",
@@ -10902,6 +10910,14 @@
   "web.routes.tabs.settings.share_links.view_only": {
     "defaultMessage": "View only",
     "description": "Share links: table cell for a link that only allows viewing the server status"
+  },
+  "web.routes.tabs.settings.share_links.wake_permission_failed": {
+    "defaultMessage": "Could not change the link's wake permission.",
+    "description": "Share links: error shown when updating the start permission fails"
+  },
+  "web.routes.tabs.settings.share_links.wake_permission_hint": {
+    "defaultMessage": "Let people without a Gameplane account check this server's status and address. Turn on Can start to let anyone with that link wake the server.",
+    "description": "Share links: explains the effect of the Can start switch on everyone with the existing URL"
   },
   "web.routes.tabs.settings.share_links.you_will_not_see_this_link_again": {
     "defaultMessage": "You will not see this link again",
