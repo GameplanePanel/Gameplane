@@ -452,6 +452,22 @@ export const handlers = [
   }),
   http.delete("/backup-destinations/:name", () => new HttpResponse(null, { status: 204 })),
 
+  // Security settings (per-cluster root-override toggle)
+  http.get("/security-settings", ({ request }) => {
+    const cluster = new URL(request.url).searchParams.get("cluster") ?? "local";
+    return HttpResponse.json({ cluster, allowRootOverrides: false, present: true });
+  }),
+  http.put("/security-settings", async ({ request }) => {
+    const body = (await request.json().catch(() => null)) as {
+      allowRootOverrides?: boolean;
+    } | null;
+    return HttpResponse.json({
+      cluster: new URL(request.url).searchParams.get("cluster") ?? "local",
+      allowRootOverrides: body?.allowRootOverrides ?? false,
+      present: true,
+    });
+  }),
+
   // Modules: legacy /modules handler is preserved (some existing tests
   // hit it); the dashboard's actual paths are /modules/catalog and
   // /modules/sources, served below.

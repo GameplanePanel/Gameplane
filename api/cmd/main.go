@@ -233,6 +233,9 @@ func main() {
 		logger.Warn("oidc disabled", "err", err)
 	}
 	credentialsNS, moduleConfigMapNS := cfg.managementNamespaces()
+	// The security settings ConfigMap of the home cluster lives here (the
+	// operator's control-plane namespace). Remote clusters use their own.
+	reg.SetControlPlaneNamespace(moduleConfigMapNS)
 	authRegistry := auth.NewRegistry(store,
 		auth.NewK8sSecretReader(k8s, credentialsNS), oidcAuth, cfg.oidcDisplayName, helmPolicy)
 
@@ -421,12 +424,12 @@ func main() {
 			p.Use(sessions.RevalidateStreams(isStreamingRequest, 5*time.Second, rbac.StreamGrantValidator(reg)))
 		}
 
-		handlers.MountResources(p, reg, store)
+		handlers.MountResources(p, reg, store, auditor)
 		handlers.MountFleet(p, reg, store)
 		handlers.MountNamespaces(p, reg)
 		handlers.MountPodEvents(p, reg)
 		handlers.MountPods(p, reg, cfg.namespace)
-		handlers.MountLifecycle(p, reg)
+		handlers.MountLifecycle(p, reg, auditor)
 		handlers.MountShareLinks(p, reg, store)
 		handlers.MountOwnership(p, reg, store)
 		handlers.MountUsers(p, store, sessions, reg)
@@ -436,6 +439,7 @@ func main() {
 		telemetrySettings := handlers.TelemetrySettings{Dest: telemetryDest, Interval: cfg.telemetryInterval, Deps: telemetryDeps}
 		handlers.MountConfigWithTelemetry(p, store, auditor, oidcAuth != nil, cfg.gameDataStorageClass, helmPolicy, telemetrySettings)
 		handlers.MountTelemetry(p, store, telemetrySettings)
+		handlers.MountSecuritySettings(p, reg, auditor)
 		handlers.MountNotifications(p, notifier, k8s, credentialsNS)
 		handlers.MountAuthProviderSecrets(p, k8s, credentialsNS)
 		handlers.MountCluster(p, reg, store, Version, cfg.clusterOps, cfg.updateChannel)

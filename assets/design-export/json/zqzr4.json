@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Authentication (Admin mapping warning)",
   "type": "FRAME",
   "x": 4920,
-  "y": 80260,
+  "y": 82663,
   "width": 1440,
   "height": 2488,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -175,7 +175,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 220,
-                  "height": 492,
+                  "height": 356,
                   "component": "Gameplane/Admin Settings Nav",
                   "componentId": "1:3419",
                   "layout": {
@@ -187,12 +187,8 @@
                     "sizing": ["HUG", "FIXED"]
                   },
                   "texts": [
-                    "ACCOUNT",
-                    "Theme",
-                    "MCP tokens",
-                    "SFTP",
-                    "SERVER",
                     "General",
+                    "Theme",
                     "Authentication",
                     "Module sources",
                     "Mod registries",

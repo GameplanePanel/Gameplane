@@ -210,6 +210,24 @@ var serverEntries = []Entry{
 		Status:      http.StatusNotFound,
 	},
 	{
+		ID:          "server.security.forbidden",
+		English:     "changing security settings requires the servers:security permission",
+		Description: "API error from the GameServer save path (security_overrides.go) when a caller without servers:security changes spec.security.",
+		Status:      http.StatusForbidden,
+	},
+	{
+		ID:          "server.security.root_disabled",
+		English:     "root values (user 0, group 0, filesystem group 0, or the image default for user or group) are not allowed on this cluster until an administrator allows root overrides in that cluster's Configuration",
+		Description: "API error from the GameServer save path when a new or changed root value is saved while the cluster's allow-root-overrides setting is off. Argument setting names the first offending setting.",
+		Status:      http.StatusForbidden,
+	},
+	{
+		ID:          "server.security.invalid",
+		English:     "invalid security override: {detail}",
+		Description: "API error from the GameServer save path when spec.security has an invalid shape. Argument setting names the offending setting; argument detail says what is wrong.",
+		Status:      http.StatusUnprocessableEntity,
+	},
+	{
 		ID:          "server.shares.expires_at_in_past",
 		English:     "expiresAt must be in the future",
 		Description: "API error from the share-links API (shares.go:createShareHandler).",

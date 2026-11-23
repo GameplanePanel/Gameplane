@@ -116,13 +116,21 @@ type clusterRegistryView struct {
 	Message          string `json:"message,omitempty"`
 	ServerVersion    string `json:"serverVersion,omitempty"`
 	LastCheckTime    string `json:"lastCheckTime,omitempty"`
+	// ControlPlaneNamespace is the operator control-plane namespace of the
+	// remote install, where its security settings ConfigMap lives (spec 030, OD-10 A).
+	ControlPlaneNamespace string `json:"controlPlaneNamespace,omitempty"`
 }
 
 type clusterCreateReq struct {
-	Name        string `json:"name"`
-	DisplayName string `json:"displayName"`
-	Kubeconfig  string `json:"kubeconfig"`
+	Name                  string `json:"name"`
+	DisplayName           string `json:"displayName"`
+	Kubeconfig            string `json:"kubeconfig"`
+	ControlPlaneNamespace string `json:"controlPlaneNamespace,omitempty"`
 }
+
+// defaultClusterControlPlaneNamespace is recorded when a registration names no
+// control-plane namespace.
+const defaultClusterControlPlaneNamespace = "gameplane"
 
 type clustersListResp struct {
 	Items []clusterRegistryView `json:"items"`
@@ -168,6 +176,10 @@ func (h clustersHandler) list(w http.ResponseWriter, req *http.Request) {
 		}
 		item := clusterRegistryView{Name: id, CanViewInventory: u.Can("cluster:read", true, id, "")}
 		item.DisplayName, _, _ = unstructured.NestedString(registration.Object, "spec", "displayName")
+		item.ControlPlaneNamespace, _, _ = unstructured.NestedString(registration.Object, "spec", "controlPlaneNamespace")
+		if item.ControlPlaneNamespace == "" {
+			item.ControlPlaneNamespace = defaultClusterControlPlaneNamespace
+		}
 		item.Phase, _, _ = unstructured.NestedString(registration.Object, "status", "phase")
 		if item.CanViewInventory {
 			item.Message, _, _ = unstructured.NestedString(registration.Object, "status", "message")
@@ -200,6 +212,18 @@ func (h clustersHandler) create(w http.ResponseWriter, req *http.Request) {
 	if in.Name == h.reg.DefaultID() || in.Name == "*" {
 		httperr.WriteCode(w, req, http.StatusBadRequest,
 			errors.New("cluster name conflicts with reserved names"))
+		return
+	}
+
+	// The control-plane namespace is a Kubernetes namespace name, so it must be
+	// a DNS label. Empty means the default install namespace.
+	controlPlaneNS := in.ControlPlaneNamespace
+	if controlPlaneNS == "" {
+		controlPlaneNS = defaultClusterControlPlaneNamespace
+	}
+	if !dnsLabelRE.MatchString(controlPlaneNS) {
+		httperr.WriteCode(w, req, http.StatusBadRequest,
+			errors.New("controlPlaneNamespace must be a DNS label (lowercase, digits, hyphens)"))
 		return
 	}
 
@@ -250,6 +274,13 @@ func (h clustersHandler) create(w http.ResponseWriter, req *http.Request) {
 			},
 		},
 	}
+	// Only an explicit value is written; the CRD default supplies "gameplane"
+	// otherwise, so a registration without the field keeps its old shape.
+	if in.ControlPlaneNamespace != "" {
+		if spec, ok := clusterCR.Object["spec"].(map[string]any); ok {
+			spec["controlPlaneNamespace"] = in.ControlPlaneNamespace
+		}
+	}
 	if h.k.RegisterCluster != nil {
 		_, err = h.k.RegisterCluster(req.Context(), h.namespace, secret, clusterCR)
 	} else if h.k.IsStandalone() {
@@ -267,9 +298,10 @@ func (h clustersHandler) create(w http.ResponseWriter, req *http.Request) {
 	}
 
 	writeJSONCreated(w, clusterRegistryView{
-		Name:        in.Name,
-		DisplayName: in.DisplayName,
-		Phase:       "", // Will be populated by the operator
+		Name:                  in.Name,
+		DisplayName:           in.DisplayName,
+		Phase:                 "", // Will be populated by the operator
+		ControlPlaneNamespace: controlPlaneNS,
 	})
 }
 

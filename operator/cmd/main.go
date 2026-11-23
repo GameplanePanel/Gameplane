@@ -568,6 +568,7 @@ func main() {
 		WakeStartLimit:         wakeStartLimit,
 		WakeStartNamespace:     controlPlaneNamespaceDefault,
 		ControlPlaneNamespace:  controlPlaneNamespace,
+		EventRecorder:          mgr.GetEventRecorder("gameserver-controller"),
 		AgentClient:            agentClient,
 		OperationQuiescer:      agentClient,
 		PodAttacher: &controller.StopAttachClient{

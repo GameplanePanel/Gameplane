@@ -3,7 +3,7 @@
   "name": "Screen/Server Detail — Modpacks — Confirm install",
   "type": "FRAME",
   "x": 4920,
-  "y": 32970,
+  "y": 35101,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

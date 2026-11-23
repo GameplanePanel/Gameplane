@@ -312,6 +312,10 @@ var rules = []rule{
 	// to callers without config:manage.
 	{method: "GET", segment: "admin", prefix: "/admin/telemetry", perm: "config:read"},
 	{segment: "admin", prefix: "/admin/telemetry", perm: "config:manage"},
+	// Allow root overrides (spec 030) is a per-cluster switch next to the
+	// config rules: reads need config:read, the flip needs config:manage.
+	{method: "GET", segment: "security-settings", perm: "config:read"},
+	{segment: "security-settings", perm: "config:manage"},
 	{segment: "admin", perm: "*"},
 
 	// Network capture (feature 003-network-capture-sidecar): admin-only via

@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Updates",
   "type": "FRAME",
   "x": 0,
-  "y": 90666,
+  "y": 93069,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -176,7 +176,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 220,
-                  "height": 492,
+                  "height": 356,
                   "component": "Gameplane/Admin Settings Nav",
                   "componentId": "1:3419",
                   "layout": {
@@ -188,12 +188,8 @@
                     "sizing": ["HUG", "FIXED"]
                   },
                   "texts": [
-                    "ACCOUNT",
-                    "Theme",
-                    "MCP tokens",
-                    "SFTP",
-                    "SERVER",
                     "General",
+                    "Theme",
                     "Authentication",
                     "Module sources",
                     "Mod registries",

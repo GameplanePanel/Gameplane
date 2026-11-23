@@ -100,6 +100,17 @@ operator:
   # Remote-cluster kubeconfigs. A native API shares api.credentialsNamespace.
   # With no native API, empty uses the release namespace.
   controlPlaneNamespace: ""
+  # Remote operator-only installs (api.enabled=false): the identity the central
+  # panel uses on this cluster, as subjects of its registered kubeconfig. Each
+  # entry gets get, update and patch on the gameplane-security-settings
+  # ConfigMap only (the root-override switch), in the control-plane namespace.
+  # Empty creates no grant. The chart cannot see the kubeconfig, so the subject
+  # must be set by the operator of that cluster. Example:
+  #   securitySettingsSubjects:
+  #     - kind: ServiceAccount
+  #       name: panel-identity
+  #       namespace: panel-namespace
+  securitySettingsSubjects: []
   # Empty uses the release namespace. Non-default namespaces must already exist;
   # provision the referenced Secrets there before upgrading. These settings move
   # the operator's API reads, not the API pod or its mounted mTLS client material.

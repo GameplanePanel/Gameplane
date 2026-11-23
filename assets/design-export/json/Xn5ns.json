@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Console",
   "type": "FRAME",
   "x": 0,
-  "y": 27770,
+  "y": 29901,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
