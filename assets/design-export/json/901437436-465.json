@@ -1,9 +1,10 @@
 {
-  "file": "901437436-465",
+  "file": "1-39948",
+  "id": "1:39948",
   "name": "Screen/Server Detail — Settings · Security (Light)",
   "type": "FRAME",
   "x": 1640,
-  "y": 52539,
+  "y": 54439,
   "width": 1440,
   "height": 1001,
   "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
@@ -61,6 +62,7 @@
       ]
     },
     {
+      "id": "1:39966",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -105,6 +107,7 @@
           "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
+          "id": "1:39994",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -191,6 +194,7 @@
               ]
             },
             {
+              "id": "1:40019",
               "name": "Settings Content",
               "type": "FRAME",
               "x": 24,
@@ -248,6 +252,7 @@
                   ]
                 },
                 {
+                  "id": "1:40068",
                   "name": "Settings Panel Wrap",
                   "type": "FRAME",
                   "x": 224,
@@ -266,6 +271,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
+                      "id": "1:40145",
                       "name": "Settings Form",
                       "type": "FRAME",
                       "x": 0,
@@ -284,6 +290,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
+                          "id": "1:40200",
                           "name": "Form Body",
                           "type": "FRAME",
                           "x": 0,
@@ -365,6 +372,7 @@
                           ]
                         },
                         {
+                          "id": "1:40201",
                           "name": "Form Footer",
                           "type": "FRAME",
                           "x": 0,

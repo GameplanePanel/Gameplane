@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Mods (by ID)",
   "type": "FRAME",
   "x": 1640,
-  "y": 32139,
+  "y": 33801,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

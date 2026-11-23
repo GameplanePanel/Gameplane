@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Settings · Minecraft JVM heap validation",
   "type": "FRAME",
   "x": 11280,
-  "y": 41028,
+  "y": 43159,
   "width": 1440,
   "height": 980,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -250,6 +250,7 @@
                     "Scheduled backups",
                     "Network capture",
                     "Placement",
+                    "Security",
                     "RBAC & access",
                     "Share links",
                     "Danger zone"

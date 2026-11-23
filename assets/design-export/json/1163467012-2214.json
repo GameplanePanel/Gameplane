@@ -1,9 +1,10 @@
 {
-  "file": "1163467012-2214",
+  "file": "1-39956",
+  "id": "1:39956",
   "name": "Screen/Mobile — Server Detail — Settings · Security",
   "type": "FRAME",
   "x": 14760,
-  "y": 52539,
+  "y": 54439,
   "width": 375,
   "height": 1352,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -42,6 +43,7 @@
       "texts": ["mc-survival", "AD"]
     },
     {
+      "id": "1:39975",
       "name": "Server detail header",
       "type": "FRAME",
       "x": 0,
@@ -59,6 +61,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
+          "id": "1:40002",
           "name": "Wrapped server header",
           "type": "FRAME",
           "x": 16,
@@ -78,6 +81,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
+              "id": "1:40027",
               "name": "srvLeft",
               "type": "FRAME",
               "x": 0,
@@ -95,6 +99,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
+                  "id": "1:40076",
                   "name": "gameIcon",
                   "type": "FRAME",
                   "x": 0,
@@ -113,6 +118,7 @@
                   },
                   "children": [
                     {
+                      "id": "1:40153",
                       "name": "gameIconLabel",
                       "type": "TEXT",
                       "x": 8,
@@ -127,6 +133,7 @@
                   ]
                 },
                 {
+                  "id": "1:40077",
                   "name": "srvTitle",
                   "type": "FRAME",
                   "x": 48,
@@ -144,6 +151,7 @@
                   "layoutGrow": 1,
                   "children": [
                     {
+                      "id": "1:40154",
                       "name": "srvNameRow",
                       "type": "FRAME",
                       "x": 0,
@@ -160,6 +168,7 @@
                       },
                       "children": [
                         {
+                          "id": "1:40216",
                           "name": "srvName",
                           "type": "TEXT",
                           "x": 0,
@@ -196,6 +205,7 @@
                       ]
                     },
                     {
+                      "id": "1:40155",
                       "name": "srvSubtitle",
                       "type": "TEXT",
                       "x": 0,
@@ -213,6 +223,7 @@
               ]
             },
             {
+              "id": "1:40028",
               "name": "Wrapped server actions",
               "type": "FRAME",
               "x": 0,
@@ -230,6 +241,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
+                  "id": "1:40078",
                   "name": "Lifecycle actions",
                   "type": "FRAME",
                   "x": 0,
@@ -360,6 +372,7 @@
           ]
         },
         {
+          "id": "1:40003",
           "name": "Server tabs — scrolled to Settings",
           "type": "FRAME",
           "x": 16,
@@ -447,6 +460,7 @@
       ]
     },
     {
+      "id": "1:39976",
       "name": "Settings section tabs — scrolled to Security",
       "type": "FRAME",
       "x": 0,
@@ -469,6 +483,7 @@
       "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
       "children": [
         {
+          "id": "1:40004",
           "name": "snPlacement2",
           "type": "FRAME",
           "x": 8,
@@ -487,6 +502,7 @@
           },
           "children": [
             {
+              "id": "1:40029",
               "name": "text",
               "type": "TEXT",
               "x": 12,
@@ -501,6 +517,7 @@
           ]
         },
         {
+          "id": "1:40005",
           "name": "snSecurity",
           "type": "FRAME",
           "x": 101,
@@ -520,6 +537,7 @@
           "variables": {"fills/0/color": "surface/secondary"},
           "children": [
             {
+              "id": "1:40030",
               "name": "text",
               "type": "TEXT",
               "x": 12,
@@ -534,6 +552,7 @@
           ]
         },
         {
+          "id": "1:40006",
           "name": "snRBACaccess",
           "type": "FRAME",
           "x": 179,
@@ -552,6 +571,7 @@
           },
           "children": [
             {
+              "id": "1:40031",
               "name": "text",
               "type": "TEXT",
               "x": 12,
@@ -566,6 +586,7 @@
           ]
         },
         {
+          "id": "1:40007",
           "name": "snSharelinks",
           "type": "FRAME",
           "x": 301,
@@ -584,6 +605,7 @@
           },
           "children": [
             {
+              "id": "1:40032",
               "name": "text",
               "type": "TEXT",
               "x": 12,
@@ -600,6 +622,7 @@
       ]
     },
     {
+      "id": "1:39977",
       "name": "Form Body",
       "type": "FRAME",
       "x": 0,
@@ -679,6 +702,7 @@
       ]
     },
     {
+      "id": "1:39978",
       "name": "Form Footer",
       "type": "FRAME",
       "x": 0,

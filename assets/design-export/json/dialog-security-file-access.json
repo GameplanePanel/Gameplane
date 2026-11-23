@@ -3,7 +3,7 @@
   "name": "Gameplane/Dialog/Security File Access Warning",
   "type": "COMPONENT",
   "x": 1063,
-  "y": 10137,
+  "y": 10411,
   "width": 480,
   "height": 286,
   "fills": [{"type": "SOLID", "color": "#FFF7FB"}],

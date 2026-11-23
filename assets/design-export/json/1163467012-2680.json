@@ -1,9 +1,10 @@
 {
-  "file": "1163467012-2680",
+  "file": "1-39961",
+  "id": "1:39961",
   "name": "Screen/Cluster Details — Configuration — Remote (Security settings missing)",
   "type": "FRAME",
   "x": 25110,
-  "y": 66168,
+  "y": 68073,
   "width": 1440,
   "height": 1385,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -61,6 +62,7 @@
       ]
     },
     {
+      "id": "1:39987",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -103,6 +105,7 @@
           "texts": ["gameplane", "Clusters  ›  Remote lab  ›  Configuration", "Search servers…", "AD"]
         },
         {
+          "id": "1:40012",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -143,6 +146,7 @@
               "texts": ["Remote lab", "remote-lab · Registered workload cluster"]
             },
             {
+              "id": "1:40044",
               "name": "Cluster detail tabs",
               "type": "FRAME",
               "x": 24,
@@ -230,6 +234,7 @@
               ]
             },
             {
+              "id": "1:40045",
               "name": "Access",
               "type": "FRAME",
               "x": 24,
@@ -256,6 +261,7 @@
               },
               "children": [
                 {
+                  "id": "1:40100",
                   "name": "Access heading",
                   "type": "TEXT",
                   "x": 20,
@@ -270,6 +276,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
+                  "id": "1:40101",
                   "name": "Access description",
                   "type": "TEXT",
                   "x": 20,
@@ -286,6 +293,7 @@
               ]
             },
             {
+              "id": "1:40046",
               "name": "Storage",
               "type": "FRAME",
               "x": 24,
@@ -312,6 +320,7 @@
               },
               "children": [
                 {
+                  "id": "1:40102",
                   "name": "Storage heading",
                   "type": "TEXT",
                   "x": 20,
@@ -326,6 +335,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
+                  "id": "1:40103",
                   "name": "Storage description",
                   "type": "TEXT",
                   "x": 20,
@@ -342,6 +352,7 @@
               ]
             },
             {
+              "id": "1:40047",
               "name": "Backup destinations",
               "type": "FRAME",
               "x": 24,
@@ -368,6 +379,7 @@
               },
               "children": [
                 {
+                  "id": "1:40104",
                   "name": "Backup destinations heading",
                   "type": "TEXT",
                   "x": 20,
@@ -382,6 +394,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
+                  "id": "1:40105",
                   "name": "Backup destinations description",
                   "type": "TEXT",
                   "x": 20,
@@ -396,6 +409,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
+                  "id": "1:40106",
                   "name": "Empty backup destinations",
                   "type": "TEXT",
                   "x": 20,
@@ -478,6 +492,7 @@
               ]
             },
             {
+              "id": "1:40048",
               "name": "Remove cluster",
               "type": "FRAME",
               "x": 24,
@@ -500,6 +515,7 @@
               "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface", "strokes/0/color": "danger/soft"},
               "children": [
                 {
+                  "id": "1:40107",
                   "name": "Remove cluster heading",
                   "type": "TEXT",
                   "x": 20,
@@ -514,6 +530,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
+                  "id": "1:40108",
                   "name": "Remove cluster description",
                   "type": "TEXT",
                   "x": 20,

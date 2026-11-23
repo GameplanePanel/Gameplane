@@ -1,9 +1,10 @@
 {
-  "file": "1163467012-3228",
+  "file": "1-39964",
+  "id": "1:39964",
   "name": "Screen/Standalone — Register cluster (Invalid control-plane namespace)",
   "type": "FRAME",
   "x": 30030,
-  "y": 66168,
+  "y": 68073,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -61,6 +62,7 @@
       ]
     },
     {
+      "id": "1:39991",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -105,6 +107,7 @@
           "texts": ["gameplane", "Clusters", "Search servers…", "AD"]
         },
         {
+          "id": "1:40016",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -123,6 +126,7 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
+              "id": "1:40060",
               "name": "Clusters header",
               "type": "FRAME",
               "x": 24,
@@ -142,6 +146,7 @@
               "variables": {"fills/0/color": "background/background"},
               "children": [
                 {
+                  "id": "1:40130",
                   "name": "Title Col",
                   "type": "FRAME",
                   "x": 0,
@@ -158,6 +163,7 @@
                   },
                   "children": [
                     {
+                      "id": "1:40187",
                       "name": "phTitle",
                       "type": "TEXT",
                       "x": 0,
@@ -170,6 +176,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
+                      "id": "1:40188",
                       "name": "phSubtitle",
                       "type": "TEXT",
                       "x": 0,
@@ -184,6 +191,7 @@
                   ]
                 },
                 {
+                  "id": "1:40131",
                   "name": "Page actions",
                   "type": "FRAME",
                   "x": 995,
@@ -232,6 +240,7 @@
               ]
             },
             {
+              "id": "1:40061",
               "name": "No registered clusters",
               "type": "FRAME",
               "x": 24,
@@ -252,6 +261,7 @@
               "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
               "children": [
                 {
+                  "id": "1:40132",
                   "name": "Empty title",
                   "type": "TEXT",
                   "x": 24,
@@ -266,6 +276,7 @@
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
+                  "id": "1:40133",
                   "name": "Empty description",
                   "type": "TEXT",
                   "x": 24,
@@ -286,6 +297,7 @@
       ]
     },
     {
+      "id": "1:39992",
       "name": "Modal backdrop",
       "type": "FRAME",
       "x": 0,
@@ -304,6 +316,7 @@
       "absolute": true,
       "children": [
         {
+          "id": "1:40017",
           "name": "Register cluster dialog",
           "type": "FRAME",
           "x": 480,
@@ -330,6 +343,7 @@
           },
           "children": [
             {
+              "id": "1:40062",
               "name": "mTitle",
               "type": "TEXT",
               "x": 20,
@@ -343,6 +357,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
+              "id": "1:40063",
               "name": "mDescWrap",
               "type": "FRAME",
               "x": 20,
@@ -360,6 +375,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
+                  "id": "1:40134",
                   "name": "mDesc",
                   "type": "TEXT",
                   "x": 0,
@@ -376,6 +392,7 @@
               ]
             },
             {
+              "id": "1:40064",
               "name": "Registration fields",
               "type": "FRAME",
               "x": 20,
@@ -393,6 +410,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
+                  "id": "1:40135",
                   "name": "Name field",
                   "type": "FRAME",
                   "x": 0,
@@ -410,6 +428,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
+                      "id": "1:40189",
                       "name": "Name label",
                       "type": "TEXT",
                       "x": 0,
@@ -456,6 +475,7 @@
                   ]
                 },
                 {
+                  "id": "1:40136",
                   "name": "Display name field",
                   "type": "FRAME",
                   "x": 0,
@@ -473,6 +493,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
+                      "id": "1:40190",
                       "name": "Display name label",
                       "type": "TEXT",
                       "x": 0,
@@ -518,6 +539,7 @@
                   ]
                 },
                 {
+                  "id": "1:40137",
                   "name": "Kubeconfig field",
                   "type": "FRAME",
                   "x": 0,
@@ -535,6 +557,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
+                      "id": "1:40191",
                       "name": "Kubeconfig label",
                       "type": "TEXT",
                       "x": 0,
@@ -549,6 +572,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
+                      "id": "1:40192",
                       "name": "Kubeconfig textarea (eight rows)",
                       "type": "FRAME",
                       "x": 0,
@@ -577,6 +601,7 @@
                   ]
                 },
                 {
+                  "id": "1:40138",
                   "name": "Control-plane namespace field",
                   "type": "FRAME",
                   "x": 0,
@@ -594,6 +619,7 @@
                   "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
+                      "id": "1:40193",
                       "name": "Control-plane namespace label",
                       "type": "TEXT",
                       "x": 0,
@@ -638,6 +664,7 @@
                       "texts": ["Gameplane_CP"]
                     },
                     {
+                      "id": "1:40194",
                       "name": "Control-plane namespace error",
                       "type": "TEXT",
                       "x": 0,
@@ -652,6 +679,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/danger"}
                     },
                     {
+                      "id": "1:40195",
                       "name": "Control-plane namespace help",
                       "type": "TEXT",
                       "x": 0,
@@ -668,6 +696,7 @@
                   ]
                 },
                 {
+                  "id": "1:40139",
                   "name": "Connection helper",
                   "type": "TEXT",
                   "x": 0,
@@ -684,6 +713,7 @@
               ]
             },
             {
+              "id": "1:40065",
               "name": "mFooter",
               "type": "FRAME",
               "x": 20,
@@ -701,6 +731,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
+                  "id": "1:40140",
                   "name": "btnCancel",
                   "type": "FRAME",
                   "x": 296,
@@ -718,6 +749,7 @@
                   },
                   "children": [
                     {
+                      "id": "1:40196",
                       "name": "text",
                       "type": "TEXT",
                       "x": 12,
@@ -732,6 +764,7 @@
                   ]
                 },
                 {
+                  "id": "1:40141",
                   "name": "btnPrimary",
                   "type": "FRAME",
                   "x": 368,
@@ -752,6 +785,7 @@
                   "variables": {"fills/0/color": "accent/accent"},
                   "children": [
                     {
+                      "id": "1:40197",
                       "name": "text",
                       "type": "TEXT",
                       "x": 12,

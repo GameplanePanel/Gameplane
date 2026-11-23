@@ -1,9 +1,10 @@
 {
-  "file": "1163467012-259",
+  "file": "1-39957",
+  "id": "1:39957",
   "name": "Screen/Create Server — Step 3 Configure (Advanced security open)",
   "type": "FRAME",
   "x": 3280,
-  "y": 18792,
+  "y": 20454,
   "width": 1440,
   "height": 2461,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -61,6 +62,7 @@
       ]
     },
     {
+      "id": "1:39979",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -107,6 +109,7 @@
       ]
     },
     {
+      "id": "1:39980",
       "name": "ModalContainer",
       "type": "FRAME",
       "x": 0,
@@ -125,6 +128,7 @@
       "absolute": true,
       "children": [
         {
+          "id": "1:40008",
           "name": "Modal",
           "type": "FRAME",
           "x": 240,
@@ -171,6 +175,7 @@
               "texts": ["New game server", "Step 3 of 5 · Configure"]
             },
             {
+              "id": "1:40033",
               "name": "Location placement",
               "type": "FRAME",
               "x": 0,
@@ -191,6 +196,7 @@
               "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
+                  "id": "1:40079",
                   "name": "Location label",
                   "type": "TEXT",
                   "x": 24,
@@ -233,6 +239,7 @@
                   "texts": ["remote-lab / gameplane-games"]
                 },
                 {
+                  "id": "1:40080",
                   "name": "Changing location help",
                   "type": "TEXT",
                   "x": 24,
@@ -286,6 +293,7 @@
               ]
             },
             {
+              "id": "1:40034",
               "name": "Body",
               "type": "FRAME",
               "x": 0,
@@ -303,6 +311,7 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
+                  "id": "1:40081",
                   "name": "StepBody",
                   "type": "FRAME",
                   "x": 24,
@@ -360,6 +369,7 @@
                       "texts": ["Description", "Hardcore survival realm with curated mods. Invite only.", "Max 500 characters."]
                     },
                     {
+                      "id": "1:40156",
                       "name": "ResourceRow",
                       "type": "FRAME",
                       "x": 0,
@@ -377,6 +387,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
+                          "id": "1:40217",
                           "name": "Field",
                           "type": "FRAME",
                           "x": 0,
@@ -394,6 +405,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
+                              "id": "1:40295",
                               "name": "Label",
                               "type": "TEXT",
                               "x": 0,
@@ -407,6 +419,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
+                              "id": "1:40296",
                               "name": "CtrlRow",
                               "type": "FRAME",
                               "x": 0,
@@ -484,6 +497,7 @@
                               ]
                             },
                             {
+                              "id": "1:40297",
                               "name": "Helper",
                               "type": "TEXT",
                               "x": 0,
@@ -500,6 +514,7 @@
                           ]
                         },
                         {
+                          "id": "1:40218",
                           "name": "Field",
                           "type": "FRAME",
                           "x": 321.5,
@@ -517,6 +532,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
+                              "id": "1:40298",
                               "name": "Label",
                               "type": "TEXT",
                               "x": 0,
@@ -530,6 +546,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
+                              "id": "1:40299",
                               "name": "CtrlRow",
                               "type": "FRAME",
                               "x": 0,
@@ -607,6 +624,7 @@
                               ]
                             },
                             {
+                              "id": "1:40300",
                               "name": "Helper",
                               "type": "TEXT",
                               "x": 0,
@@ -625,6 +643,7 @@
                       ]
                     },
                     {
+                      "id": "1:40157",
                       "name": "ReserveLess",
                       "type": "FRAME",
                       "x": 0,
@@ -642,6 +661,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
+                          "id": "1:40219",
                           "name": "SwitchRow",
                           "type": "FRAME",
                           "x": 0,
@@ -672,6 +692,7 @@
                               "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "border/border"}
                             },
                             {
+                              "id": "1:40301",
                               "name": "Label",
                               "type": "TEXT",
                               "x": 48,
@@ -686,6 +707,7 @@
                           ]
                         },
                         {
+                          "id": "1:40220",
                           "name": "Helper",
                           "type": "TEXT",
                           "x": 0,
@@ -702,6 +724,7 @@
                       ]
                     },
                     {
+                      "id": "1:40158",
                       "name": "StoragePlacementRow",
                       "type": "FRAME",
                       "x": 0,
@@ -739,6 +762,7 @@
                           "texts": ["Persistent storage", "20Gi", "Mounted at /data (RWO PVC)."]
                         },
                         {
+                          "id": "1:40221",
                           "name": "NodePlacement",
                           "type": "FRAME",
                           "x": 321.5,
@@ -756,6 +780,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
+                              "id": "1:40302",
                               "name": "Label",
                               "type": "TEXT",
                               "x": 0,
@@ -768,6 +793,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
                             {
+                              "id": "1:40303",
                               "name": "Segmented",
                               "type": "FRAME",
                               "x": 0,
@@ -789,6 +815,7 @@
                               "variables": {"strokes/0/color": "border/border"},
                               "children": [
                                 {
+                                  "id": "1:40334",
                                   "name": "Seg",
                                   "type": "FRAME",
                                   "x": 4,
@@ -808,6 +835,7 @@
                                   "variables": {"fills/0/color": "accent/soft"},
                                   "children": [
                                     {
+                                      "id": "1:40346",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 12,
@@ -822,6 +850,7 @@
                                   ]
                                 },
                                 {
+                                  "id": "1:40335",
                                   "name": "Seg",
                                   "type": "FRAME",
                                   "x": 125,
@@ -839,6 +868,7 @@
                                   },
                                   "children": [
                                     {
+                                      "id": "1:40347",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 12,
@@ -853,6 +883,7 @@
                                   ]
                                 },
                                 {
+                                  "id": "1:40336",
                                   "name": "Seg",
                                   "type": "FRAME",
                                   "x": 216,
@@ -870,6 +901,7 @@
                                   },
                                   "children": [
                                     {
+                                      "id": "1:40348",
                                       "name": "Label",
                                       "type": "TEXT",
                                       "x": 12,
@@ -886,6 +918,7 @@
                               ]
                             },
                             {
+                              "id": "1:40304",
                               "name": "Helper",
                               "type": "TEXT",
                               "x": 0,
@@ -904,6 +937,7 @@
                       ]
                     },
                     {
+                      "id": "1:40159",
                       "name": "TemplateConfigSection",
                       "type": "FRAME",
                       "x": 0,
@@ -921,6 +955,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
+                          "id": "1:40222",
                           "name": "SectionLabel",
                           "type": "TEXT",
                           "x": 0,
@@ -1235,6 +1270,7 @@
                   ]
                 },
                 {
+                  "id": "1:40082",
                   "name": "Preview",
                   "type": "FRAME",
                   "x": 663,
@@ -1257,6 +1293,7 @@
                   "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
+                      "id": "1:40160",
                       "name": "PreviewHeader",
                       "type": "FRAME",
                       "x": 0,
@@ -1277,6 +1314,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
+                          "id": "1:40223",
                           "name": "IconWrap",
                           "type": "FRAME",
                           "x": 14,
@@ -1296,6 +1334,7 @@
                           "variables": {"fills/0/color": "default/default"},
                           "children": [
                             {
+                              "id": "1:40305",
                               "name": "GameIcon",
                               "type": "FRAME",
                               "x": 6,
@@ -1305,6 +1344,7 @@
                               "variables": {"fills/0/color": "muted"},
                               "children": [
                                 {
+                                  "id": "1:40337",
                                   "name": "path",
                                   "type": "VECTOR",
                                   "x": 1.3,
@@ -1318,6 +1358,7 @@
                           ]
                         },
                         {
+                          "id": "1:40224",
                           "name": "TitleGroup",
                           "type": "FRAME",
                           "x": 50,
@@ -1334,6 +1375,7 @@
                           },
                           "children": [
                             {
+                              "id": "1:40306",
                               "name": "Title",
                               "type": "TEXT",
                               "x": 0,
@@ -1346,6 +1388,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
+                              "id": "1:40307",
                               "name": "Subtitle",
                               "type": "TEXT",
                               "x": 0,
@@ -1362,6 +1405,7 @@
                       ]
                     },
                     {
+                      "id": "1:40161",
                       "name": "CodeBlockWrap",
                       "type": "FRAME",
                       "x": 0,
@@ -1380,6 +1424,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
+                          "id": "1:40225",
                           "name": "L0",
                           "type": "TEXT",
                           "x": 14,
@@ -1392,6 +1437,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40226",
                           "name": "L1",
                           "type": "TEXT",
                           "x": 14,
@@ -1404,6 +1450,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40227",
                           "name": "L2",
                           "type": "TEXT",
                           "x": 14,
@@ -1416,6 +1463,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40228",
                           "name": "L3",
                           "type": "TEXT",
                           "x": 14,
@@ -1428,6 +1476,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40229",
                           "name": "L4",
                           "type": "TEXT",
                           "x": 14,
@@ -1440,6 +1489,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40230",
                           "name": "L5",
                           "type": "TEXT",
                           "x": 14,
@@ -1452,6 +1502,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40231",
                           "name": "L6",
                           "type": "TEXT",
                           "x": 14,
@@ -1464,6 +1515,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40232",
                           "name": "L7",
                           "type": "TEXT",
                           "x": 14,
@@ -1476,6 +1528,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40233",
                           "name": "L8",
                           "type": "TEXT",
                           "x": 14,
@@ -1488,6 +1541,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40234",
                           "name": "L9",
                           "type": "TEXT",
                           "x": 14,
@@ -1500,6 +1554,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40235",
                           "name": "L10",
                           "type": "TEXT",
                           "x": 14,
@@ -1512,6 +1567,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40236",
                           "name": "L11",
                           "type": "TEXT",
                           "x": 14,
@@ -1524,6 +1580,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40237",
                           "name": "L12",
                           "type": "TEXT",
                           "x": 14,
@@ -1536,6 +1593,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40238",
                           "name": "L13",
                           "type": "TEXT",
                           "x": 14,
@@ -1548,6 +1606,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40239",
                           "name": "L14",
                           "type": "TEXT",
                           "x": 14,
@@ -1560,6 +1619,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40240",
                           "name": "L15",
                           "type": "TEXT",
                           "x": 14,
@@ -1572,6 +1632,7 @@
                           "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                         },
                         {
+                          "id": "1:40241",
                           "name": "L16",
                           "type": "TEXT",
                           "x": 14,
@@ -1586,6 +1647,7 @@
                       ]
                     },
                     {
+                      "id": "1:40162",
                       "name": "MemoryTip",
                       "type": "FRAME",
                       "x": 0,
@@ -1606,6 +1668,7 @@
                       "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
+                          "id": "1:40242",
                           "name": "TipText",
                           "type": "TEXT",
                           "x": 14,

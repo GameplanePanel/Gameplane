@@ -133,6 +133,41 @@
     "height": 760
   },
   {
+    "file": "security-advanced",
+    "figId": "1344695818:183",
+    "name": "Gameplane/Security Advanced",
+    "width": 860,
+    "height": 651
+  },
+  {
+    "file": "security-advanced-mobile",
+    "figId": "1344695818:343",
+    "name": "Gameplane/Security Advanced/Mobile",
+    "width": 327,
+    "height": 891
+  },
+  {
+    "file": "dialog-risky-security-value",
+    "figId": "1344695818:344",
+    "name": "Gameplane/Dialog/Risky Security Value",
+    "width": 480,
+    "height": 271
+  },
+  {
+    "file": "dialog-security-file-access",
+    "figId": "1344695818:363",
+    "name": "Gameplane/Dialog/Security File Access Warning",
+    "width": 480,
+    "height": 286
+  },
+  {
+    "file": "cluster-security-panel",
+    "figId": "1344695818:414",
+    "name": "Gameplane/Cluster Security Panel",
+    "width": 1132,
+    "height": 209
+  },
+  {
     "file": "UserMenu",
     "figId": "1:10020",
     "name": "Gameplane/Top Bar — User Menu",
