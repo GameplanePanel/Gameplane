@@ -30,7 +30,7 @@ Then in a break-glass session, `list_pods` with no namespace returns only those 
 
 ## 3. Multicluster (Story 3)
 
-Give `ops-a` a supplemental grant on the remote cluster for `gameplane-games`. `list_gameplane_resources kind=GameServer` with no cluster returns groups for both clusters; with `cluster=<unknown>` it returns "cluster not found or not permitted". Stop the remote cluster's gateway: the call still answers, listing it under `unavailable`.
+Give `ops-a` a supplemental grant on the remote cluster for `gameplane-games`. `list_gameplane_resources kind=GameServer` with no cluster returns groups for both clusters; with `cluster=<unknown>` it returns "cluster not found or not permitted". Stop the remote cluster's gateway: the call still answers, reporting it as `unavailable clusters: <id>` in the result.
 
 ## 4. Docs
 

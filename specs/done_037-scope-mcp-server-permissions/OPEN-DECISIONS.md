@@ -6,7 +6,7 @@ Only a decision valgul answers is written here as settled. OD-1 to OD-3 were ask
 
 Today a session has no Gameplane user: it reads with the pod's Kubernetes identity.
 
-- A. Personal MCP token: the user creates a read-only, expiring, revocable token in the dashboard (their profile) and puts it in their MCP client config. The token never grants more than the user's current permissions. Needs a small dashboard screen (Pencil design first). (Recommended: works for local and SSO users alike, revocable per token, no browser needed in the MCP client.)
+- A. Personal MCP token: the user creates a read-only, expiring, revocable token in the dashboard (their profile) and puts it in their MCP client config. The token never grants more than the user's current permissions. Needs a small dashboard screen (design.fig design first). (Recommended: works for local and SSO users alike, revocable per token, no browser needed in the MCP client.)
 - B. Sign in from the MCP client with the user's normal login (password or SSO in a browser window, like `kubectl` OIDC plugins). No new token screen, but each client must handle a browser login and SSO-only installs need a device-login flow.
 - C. Map the Kubernetes identity that opens `kubectl exec` to a Gameplane user. No Gameplane login at all, but only works for users who already have Kubernetes access, which most Gameplane users do not.
 
