@@ -95,7 +95,9 @@ func (h *sftpLoginHandler) login(w http.ResponseWriter, req *http.Request) {
 	base, rawTarget, hasTarget := splitSFTPUsername(body.Username)
 	actor := truncateRunes(base, sftpActorMaxRunes)
 	refuse := func(cause string) {
-		slog.Debug("sftp login refused", "cause", cause)
+		// The client and the audit trail get one generic reason; the operator's log names the cause so a
+		// refused login can be diagnosed (key not registered, wrong account, no access to the target, …).
+		slog.Info("sftp login refused", "user", actor, "cluster", caller.Cluster, "cause", cause)
 		h.auditLoginFailure(ctx, req, actor)
 		httperr.WriteMessage(w, req, messages.New("server.sftp.login_failed", nil))
 	}
