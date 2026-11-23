@@ -14,6 +14,7 @@ render "$scratch/nodeport.yaml" --set sftp.enabled=true --set sftp.serviceType=N
 render "$scratch/lb.yaml" --set sftp.enabled=true --set sftp.serviceType=LoadBalancer --set sftp.loadBalancerIP=203.0.113.10
 render "$scratch/remote.yaml" --set api.enabled=false --set sftp.enabled=true \
   --set sftp.apiURL=https://panel.example.com --set sftp.serviceTokenSecret=panel-sftp-token
+render "$scratch/hostkey.yaml" --set sftp.enabled=true --set sftp.hostKeySecret=panel-host-key
 python3 - "$scratch" <<'PY'
 import pathlib,sys,yaml
 root=pathlib.Path(sys.argv[1])
@@ -87,5 +88,34 @@ assert vols['service-token']['secret']['secretName']=='panel-sftp-token', vols['
 np=find(remote,'NetworkPolicy','gameplane-sftp')
 egress_ports=[p['port'] for rule in np['spec']['egress'] for p in rule.get('ports') or []]
 assert 443 in egress_ports, egress_ports
+
+# 6. Host key Secret: the API reads it from the release namespace, so its Role must grant get on that
+#    Secret name only. The default name is rendered by the chart; a custom name is supplied by the operator
+#    and the API env and the Role both carry it.
+def api_env_of(all_docs):
+    dep=find(all_docs,'Deployment','gameplane-api')
+    assert dep is not None, 'missing Deployment gameplane-api'
+    return {e['name']:e.get('value') for c in dep['spec']['template']['spec']['containers'] for e in c.get('env') or []}
+
+def check_host_key_role(all_docs, secret_name):
+    role=find(all_docs,'Role','gameplane-api-sftp-host-key')
+    assert role is not None, 'missing Role gameplane-api-sftp-host-key'
+    assert role['metadata']['namespace']=='gameplane-system', role['metadata']
+    assert role['rules']==[{'apiGroups':[''],'resources':['secrets'],'resourceNames':[secret_name],'verbs':['get']}], role['rules']
+    rb=find(all_docs,'RoleBinding','gameplane-api-sftp-host-key')
+    assert rb is not None and rb['roleRef']['name']=='gameplane-api-sftp-host-key', rb
+    assert rb['subjects']==[{'kind':'ServiceAccount','name':'gameplane-api','namespace':'gameplane-system'}], rb['subjects']
+
+check_host_key_role(local, 'gameplane-sftp-host-key')
+env=api_env_of(local)
+assert env['GAMEPLANE_SFTP_HOST_KEY_SECRET']=='gameplane-sftp-host-key', env
+assert env['GAMEPLANE_SFTP_ENABLED']=='true' and env['GAMEPLANE_SFTP_PORT']=='2222', env
+assert env['GAMEPLANE_SFTP_PUBLIC_ADDRESS']=='', env
+
+hostkey=docs('hostkey.yaml')
+env=api_env_of(hostkey)
+assert env['GAMEPLANE_SFTP_HOST_KEY_SECRET']=='panel-host-key', env
+check_host_key_role(hostkey, 'panel-host-key')
+assert find(hostkey,'Secret','gameplane-sftp-host-key') is None, 'custom hostKeySecret must not render the chart host key'
 print('sftp chart checks ok')
 PY

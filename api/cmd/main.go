@@ -442,13 +442,19 @@ func main() {
 		handlers.MountClusterActions(p, k8s, cfg.clusterOps, cfg.clusterExternalAddress)
 		// SFTP endpoint per cluster (spec 040, US4): the panel's own address comes from chart values and its
 		// host key fingerprint from the host key Secret; remote addresses are stored by PUT /clusters/{name}/sftp.
+		// The host key Secret is rendered in the release namespace, which is this pod's own namespace (not
+		// the credentials namespace, which may differ).
 		sftpMount := handlers.SFTPClusterMount{
 			Sessions:      sessions,
 			Kube:          k8s,
 			PublicAddress: os.Getenv("GAMEPLANE_SFTP_PUBLIC_ADDRESS"),
 			HostKeySecret: envOr("GAMEPLANE_SFTP_HOST_KEY_SECRET", "gameplane-sftp-host-key"),
-			Namespace:     credentialsNS,
+			Namespace:     cmp.Or(os.Getenv("GAMEPLANE_NAMESPACE"), cfg.namespace),
+			Enabled:       os.Getenv("GAMEPLANE_SFTP_ENABLED") == "true",
+			Port:          envOrInt("GAMEPLANE_SFTP_PORT", 2222),
 		}
+		// GET /users/me/sftp reports the panel's own endpoint (spec 040) only while SFTP is enabled.
+		handlers.SetSFTPEndpointSource(handlers.LocalSFTPEndpointSource(sftpMount, reg.DefaultID()))
 		if cfg.remoteClusters {
 			handlers.MountClustersWithSFTP(p, reg, k8s, credentialsNS, sftpMount)
 		} else {

@@ -124,27 +124,41 @@ describe("Files tab streaming upload", () => {
     expect(FakeXHR.instances[1].url).toBe("/servers/mc-survival/files/stream?path=%2Ftwo.jar");
   });
 
-  it("cancel aborts the running upload and marks it cancelled", async () => {
+  it("cancel aborts the running upload, keeps its row as cancelled until the batch ends", async () => {
     renderFiles();
     await screen.findByText("server.properties");
-    pick(new File(["0123456789"], "world.zip"));
+    pick(new File(["0123456789"], "world.zip"), new File(["x"], "next.zip"));
     await waitFor(() => expect(FakeXHR.instances).toHaveLength(1));
     const xhr = lastXHR();
-    fireEvent.click(within(tray()).getByRole("button", { name: "Cancel" }));
+    fireEvent.click(within(tray()).getAllByRole("button", { name: "Cancel" })[0]);
     await waitFor(() => expect(xhr.aborted).toBe(true));
     expect(await within(tray()).findByText("Cancelled")).toBeInTheDocument();
-    expect(FakeXHR.instances).toHaveLength(1);
+    // The batch goes on with the next file; the cancelled row is cleared when the batch is done.
+    await waitFor(() => expect(FakeXHR.instances).toHaveLength(2));
+    expect(FakeXHR.instances[1].url).toBe("/servers/mc-survival/files/stream?path=%2Fnext.zip");
+    act(() => lastXHR().finish(204));
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Upload progress" })).toBeNull());
   });
 
-  it("cancel all stops the running file and the waiting ones", async () => {
+  it("cancel all stops the running file, clears the waiting and cancelled rows", async () => {
     renderFiles();
     await screen.findByText("server.properties");
     pick(new File(["a"], "one.jar"), new File(["b"], "two.jar"));
     await waitFor(() => expect(FakeXHR.instances).toHaveLength(1));
     fireEvent.click(within(tray()).getByRole("button", { name: "Cancel all" }));
     await waitFor(() => expect(FakeXHR.instances[0].aborted).toBe(true));
-    expect(within(tray()).getAllByText("Cancelled")).toHaveLength(2);
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Upload progress" })).toBeNull());
     expect(FakeXHR.instances).toHaveLength(1);
+  });
+
+  it("keeps the Upload button disabled while a file uploads", async () => {
+    renderFiles();
+    await screen.findByText("server.properties");
+    pick(new File(["0123456789"], "world.zip"));
+    await waitFor(() => expect(FakeXHR.instances).toHaveLength(1));
+    expect(screen.getByRole("button", { name: /Upload/ })).toBeDisabled();
+    act(() => lastXHR().finish(204));
+    await waitFor(() => expect(screen.getByRole("button", { name: /Upload/ })).toBeEnabled());
   });
 
   it("shows the connection-lost message and retries the same file", async () => {
@@ -162,15 +176,24 @@ describe("Files tab streaming upload", () => {
     expect(FakeXHR.instances[1].url).toBe("/servers/mc-survival/files/stream?path=%2Ffabric-api.jar");
   });
 
-  it("shows the size-limit message for a 413 answer", async () => {
+  it("shows the size limit from the 413 problem detail when the API names it", async () => {
+    renderFiles();
+    await screen.findByText("server.properties");
+    pick(new File(["x"], "world-2026.zip"));
+    await waitFor(() => expect(FakeXHR.instances).toHaveLength(1));
+    const xhr = lastXHR();
+    xhr.responseHeaders["Content-Type"] = "application/problem+json";
+    act(() => xhr.finish(413, JSON.stringify({ type: "about:blank", title: "Request Entity Too Large", status: 413, detail: "request body exceeds the 21474836480 byte limit" })));
+    expect(await within(tray()).findByText("Larger than the 20 GiB upload limit")).toBeInTheDocument();
+  });
+
+  it("shows a generic size message for a 413 answer that does not name the limit", async () => {
     renderFiles();
     await screen.findByText("server.properties");
     pick(new File(["x"], "world-2026.zip"));
     await waitFor(() => expect(FakeXHR.instances).toHaveLength(1));
     act(() => lastXHR().finish(413, "too large"));
-    expect(
-      await within(tray()).findByText("Not uploaded: world-2026.zip is over the upload size limit (files.maxUploadSize)."),
-    ).toBeInTheDocument();
+    expect(await within(tray()).findByText("Larger than the upload limit")).toBeInTheDocument();
   });
 
   it("shows the not-enough-space message for a 507 answer", async () => {
@@ -179,9 +202,7 @@ describe("Files tab streaming upload", () => {
     pick(new File(["x"], "backup.tar"));
     await waitFor(() => expect(FakeXHR.instances).toHaveLength(1));
     act(() => lastXHR().finish(507, "disk full"));
-    expect(
-      await within(tray()).findByText("Not uploaded: backup.tar does not fit in the free space on the server's volume. Nothing was written."),
-    ).toBeInTheDocument();
+    expect(await within(tray()).findByText("Not enough free space on the server")).toBeInTheDocument();
   });
 
   it("refreshes the file list after a successful upload", async () => {

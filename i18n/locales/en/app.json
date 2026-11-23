@@ -9207,21 +9207,9 @@
     "defaultMessage": "{count} selected",
     "description": "Number of checked file paths."
   },
-  "web.routes.tabs.files.starting_body": {
-    "defaultMessage": "The server is stopped or asleep. Its files open in a short-lived file-only pod so you can edit them. The game does not start, and players cannot reach the pod.",
-    "description": "Files tab: explains that a stopped server's files open in a file-only pod and the game does not start"
-  },
-  "web.routes.tabs.files.starting_hint": {
-    "defaultMessage": "Usually ready in a few seconds. The list appears as soon as the pod is ready.",
-    "description": "Files tab: reassurance that the file list appears once the file-only pod is ready"
-  },
-  "web.routes.tabs.files.starting_preparing": {
-    "defaultMessage": "Preparing files…",
-    "description": "Files tab: caption under the indeterminate bar while the file-only pod starts"
-  },
   "web.routes.tabs.files.starting_timed_out_detail": {
-    "defaultMessage": "Files are starting, try again.",
-    "description": "Files tab: fallback text when the files pod did not become ready and the server gave no message"
+    "defaultMessage": "Files did not start. Try again.",
+    "description": "Files tab: text under the heading when the file-only pod was not ready in time; the user can retry"
   },
   "web.routes.tabs.files.starting_timed_out_nothing": {
     "defaultMessage": "Nothing was started. The server stays stopped, and no file was changed.",
@@ -9230,10 +9218,6 @@
   "web.routes.tabs.files.starting_timed_out_title": {
     "defaultMessage": "Files did not start",
     "description": "Files tab: heading shown when the file-only pod was not ready in time"
-  },
-  "web.routes.tabs.files.starting_title": {
-    "defaultMessage": "Files are starting",
-    "description": "Files tab: heading shown while the file-only pod for a stopped server starts"
   },
   "web.routes.tabs.files.upload": {
     "defaultMessage": "Upload",
@@ -9264,8 +9248,8 @@
     "description": "Upload tray row for a failed file: whole percent sent before it failed"
   },
   "web.routes.tabs.files.upload_no_space": {
-    "defaultMessage": "Not uploaded: {name} does not fit in the free space on the server's volume. Nothing was written.",
-    "description": "Upload error: the volume has too little free space for the file; {name} is the file name"
+    "defaultMessage": "Not enough free space on the server",
+    "description": "Upload error: the server's volume has too little free space for the file"
   },
   "web.routes.tabs.files.upload_note": {
     "defaultMessage": "Uploads go straight to the server volume. Cancelling removes the part written so far, and the old file stays.",
@@ -9276,8 +9260,12 @@
     "description": "Upload tray row while a file uploads: bytes sent, total size and whole percent"
   },
   "web.routes.tabs.files.upload_too_large": {
-    "defaultMessage": "Not uploaded: {name} is over the upload size limit (files.maxUploadSize).",
-    "description": "Upload error: the file is larger than the server's upload limit; {name} is the file name"
+    "defaultMessage": "Larger than the upload limit",
+    "description": "Upload error: the file is larger than the server's upload limit, when the limit is not known"
+  },
+  "web.routes.tabs.files.upload_too_large_limit": {
+    "defaultMessage": "Larger than the {limit} upload limit",
+    "description": "Upload error: the file is larger than the server's upload limit; {limit} is the limit with its unit, such as 20 GiB"
   },
   "web.routes.tabs.files.upload_tray": {
     "defaultMessage": "Upload progress",

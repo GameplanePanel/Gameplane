@@ -5,7 +5,7 @@ import { Button } from "@heroui/react";
 import { serverMessageText } from "@/lib/i18n/serverMessage";
 import { formatBytes } from "@/lib/utils";
 
-import { classifyUploadError, uploadPercent, type UploadItem } from "./uploadQueue";
+import { classifyUploadError, formatUploadLimit, uploadLimitBytes, uploadPercent, type UploadItem } from "./uploadQueue";
 
 export function UploadTray({ items, intl, onCancel, onCancelAll, onRetry }: {
   items: UploadItem[];
@@ -95,10 +95,15 @@ export function uploadErrorText(intl: IntlShape, item: UploadItem): string {
   switch (classifyUploadError(item.error)) {
     case "connection":
       return intl.formatMessage({ id: "web.routes.tabs.files.upload_connection_lost", defaultMessage: "Connection to the server was lost. The old file is unchanged. Retry to upload again.", description: "Upload error: the connection dropped mid-upload; the previous file is kept and the user can retry" });
-    case "too_large":
-      return intl.formatMessage({ id: "web.routes.tabs.files.upload_too_large", defaultMessage: "Not uploaded: {name} is over the upload size limit (files.maxUploadSize).", description: "Upload error: the file is larger than the server's upload limit; {name} is the file name" }, { name: item.file.name });
+    case "too_large": {
+      // The API names the limit in the 413 body when it knows it; otherwise the text stays generic.
+      const limit = uploadLimitBytes(item.error);
+      return limit === null
+        ? intl.formatMessage({ id: "web.routes.tabs.files.upload_too_large", defaultMessage: "Larger than the upload limit", description: "Upload error: the file is larger than the server's upload limit, when the limit is not known" })
+        : intl.formatMessage({ id: "web.routes.tabs.files.upload_too_large_limit", defaultMessage: "Larger than the {limit} upload limit", description: "Upload error: the file is larger than the server's upload limit; {limit} is the limit with its unit, such as 20 GiB" }, { limit: formatUploadLimit(limit) });
+    }
     case "no_space":
-      return intl.formatMessage({ id: "web.routes.tabs.files.upload_no_space", defaultMessage: "Not uploaded: {name} does not fit in the free space on the server's volume. Nothing was written.", description: "Upload error: the volume has too little free space for the file; {name} is the file name" }, { name: item.file.name });
+      return intl.formatMessage({ id: "web.routes.tabs.files.upload_no_space", defaultMessage: "Not enough free space on the server", description: "Upload error: the server's volume has too little free space for the file" });
     default:
       return serverMessageText(intl, item.error)
         ?? intl.formatMessage({ id: "web.routes.tabs.files.upload_failed", defaultMessage: "Upload failed.", description: "Upload error when the cause is not known" });

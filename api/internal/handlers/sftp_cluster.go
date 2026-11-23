@@ -33,7 +33,13 @@ type SFTPClusterMount struct {
 	PublicAddress string
 	// HostKeySecret names the Secret (key host_key) in Namespace that holds the panel's SFTP host key.
 	HostKeySecret string
-	Namespace     string
+	// Namespace is the release namespace: the host key Secret is rendered there, and the API's Role grants
+	// get on it there (charts/gameplane/templates/api.yaml).
+	Namespace string
+	// Enabled reports whether the panel's own SFTP endpoint is deployed (sftp.enabled).
+	Enabled bool
+	// Port is the SFTP port the endpoint listens on (sftp.port). PublicAddress may carry its own port instead.
+	Port int
 }
 
 // sftpClusterDeps is what the SFTP cluster routes need. Functions keep the handlers testable without a cluster.
@@ -69,7 +75,8 @@ func sftpHostKeyFingerprint(pemData []byte) (string, error) {
 	return ssh.FingerprintSHA256(pub), nil
 }
 
-// localSFTPFingerprint reads the panel's host key Secret and fingerprints it. A missing Secret or an
+// localSFTPFingerprint reads the panel's host key Secret and fingerprints it. A missing Secret, a Secret the
+// API may not read (a Forbidden answer means the release Role is missing its resourceNames rule) or an
 // unreadable key is logged and reported as "" so the cluster view still loads.
 func localSFTPFingerprint(k *kube.Client, ns, secretName string) func(ctx context.Context) (string, error) {
 	return func(ctx context.Context) (string, error) {
@@ -78,6 +85,10 @@ func localSFTPFingerprint(k *kube.Client, ns, secretName string) func(ctx contex
 		}
 		secret, err := k.Secrets(ns).Get(ctx, secretName, metav1.GetOptions{})
 		if apierrors.IsNotFound(err) {
+			return "", nil
+		}
+		if apierrors.IsForbidden(err) {
+			slog.Warn("sftp: no read access to host key secret, fingerprint not shown", "secret", secretName, "namespace", ns, "err", err)
 			return "", nil
 		}
 		if err != nil {
@@ -143,6 +154,39 @@ func validSFTPAddress(addr string) bool {
 		}
 	}
 	return true
+}
+
+// splitSFTPAddress splits a validated host, host:port or [v6]:port address. Without a port, defaultPort applies.
+func splitSFTPAddress(addr string, defaultPort int) (string, int) {
+	if host, port, err := net.SplitHostPort(addr); err == nil {
+		if n, convErr := strconv.Atoi(port); convErr == nil {
+			return host, n
+		}
+	}
+	return strings.TrimSuffix(strings.TrimPrefix(addr, "["), "]"), defaultPort
+}
+
+// LocalSFTPEndpointSource is the endpoint source for GET /users/me/sftp (spec 040). It reports the panel's own
+// cluster only while the SFTP endpoint is deployed and its public address is configured; otherwise it reports
+// no endpoint, which the personal page shows as null.
+func LocalSFTPEndpointSource(m SFTPClusterMount, defaultCluster string) SFTPEndpointSource {
+	fingerprint := localSFTPFingerprint(m.Kube, m.Namespace, m.HostKeySecret)
+	return func(ctx context.Context, cluster string) (SFTPEndpoint, bool) {
+		if !m.Enabled || cluster != defaultCluster || m.PublicAddress == "" {
+			return SFTPEndpoint{}, false
+		}
+		if !validSFTPAddress(m.PublicAddress) {
+			slog.Warn("sftp: publicAddress is not host or host:port, endpoint not shown", "address", m.PublicAddress)
+			return SFTPEndpoint{}, false
+		}
+		host, port := splitSFTPAddress(m.PublicAddress, m.Port)
+		fp, err := fingerprint(ctx)
+		if err != nil {
+			slog.Warn("sftp: host key fingerprint unavailable, endpoint shown without it", "err", err)
+			fp = ""
+		}
+		return SFTPEndpoint{Address: host, Port: port, HostKeyFingerprint: fp}, true
+	}
 }
 
 // sftpClusterView is the drawer payload: the endpoint and the active service tokens of one cluster.

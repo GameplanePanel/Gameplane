@@ -162,6 +162,32 @@ subjects:
   - kind: ServiceAccount
     name: gameplane-api
     namespace: {{ .Release.Namespace }}
+---
+# The panel's SFTP host key Secret lives in the release namespace (templates/sftp.yaml). The API reads only
+# that one Secret, for the fingerprint shown on the SFTP endpoint cards (spec 040, api/internal/handlers/sftp_cluster.go).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-api-sftp-host-key
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [{{ ((.Values.sftp | default dict).hostKeySecret | default "gameplane-sftp-host-key") | quote }}]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-api-sftp-host-key
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ .Release.Name }}-api-sftp-host-key }
+subjects:
+  - kind: ServiceAccount
+    name: gameplane-api
+    namespace: {{ .Release.Namespace }}
 {{- end }}
 {{- /*
   Safety guard: If switching an existing install to existingClaim, ensure the
@@ -442,6 +468,10 @@ spec:
               value: {{ (.Values.sftp).publicAddress | default "" | quote }}
             - name: GAMEPLANE_SFTP_HOST_KEY_SECRET
               value: {{ (.Values.sftp).hostKeySecret | default "gameplane-sftp-host-key" | quote }}
+            - name: GAMEPLANE_SFTP_ENABLED
+              value: "true"
+            - name: GAMEPLANE_SFTP_PORT
+              value: {{ printf "%d" (int (.Values.sftp).port) | quote }}
             {{- end }}
             {{- if .Values.api.oidc.enabled }}
             - name: GAMEPLANE_OIDC_CLIENT_SECRET

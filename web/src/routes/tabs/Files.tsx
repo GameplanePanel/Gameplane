@@ -46,7 +46,6 @@ import { createResourceClient, type FileEntry } from "@/lib/endpoints";
 import { cn } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { FileDrafts } from "@/lib/fileDrafts";
-import { useDelayedLoading } from "@/lib/useDelayedLoading";
 import { FileTreeRows } from "./FileTreeRows";
 import { FilesStarting } from "./FilesStarting";
 import { UploadTray } from "./UploadTray";
@@ -132,12 +131,9 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
     // The API waits up to 60 s for a file-only pod; retrying that wait only hides the timeout.
     retry: (failureCount, err) => !isFilesStartingError(err) && failureCount < 3,
   });
-  // A stopped or asleep server's list can take a while to come up; only a wait
-  // that outlasts the delay shows the starting state.
-  const listWaiting = entries === undefined && listError == null;
-  const startingWait = useDelayedLoading(listWaiting, { showAfterMs: 1500, initialImmediate: false });
-  const startsTimedOut = isFilesStartingError(listError);
-  const filesStarting: "starting" | "timed_out" | null = startsTimedOut ? "timed_out" : startingWait ? "starting" : null;
+  // The files-starting state shows only for the 503 the API answers when the file-only pod is not ready in
+  // time. A slow list is not a reason to show it.
+  const filesStarting = isFilesStartingError(listError);
 
   // Resolve the path itself. A large directory can have a truncated listing.
   useEffect(() => {
@@ -261,7 +257,10 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
     if (uploadRunning) return;
     const next = uploads.find((item) => item.status === "waiting");
     if (!next) {
-      if (uploads.length > 0 && uploads.every((item) => item.status === "done")) setUploads([]);
+      // The batch is over: its done and cancelled rows go. Failed rows stay until retried or replaced.
+      if (uploads.some((item) => item.status === "done" || item.status === "cancelled")) {
+        setUploads((current) => current.filter((item) => item.status === "failed"));
+      }
       return;
     }
     const id = next.id;
@@ -314,7 +313,8 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
 
   function cancelAllUploads() {
     for (const controller of uploadControllers.current.values()) controller.abort();
-    setUploads((current) => current.map((item) => (item.status === "waiting" ? { ...item, status: "cancelled" } : item)));
+    // Cancel all clears the batch's rows at once; failed rows stay so the user can retry them.
+    setUploads((current) => current.filter((item) => item.status === "failed"));
   }
 
   function retryUpload(id: number) {
@@ -347,7 +347,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
             variant="secondary"
             size="sm"
             onPress={() => uploadInputRef.current?.click()}
-            isDisabled={!canControl || filesStarting !== null}
+            isDisabled={!canControl || filesStarting || uploadRunning}
           >
             <Upload className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.tabs.files.upload", defaultMessage: "Upload", description: "Files tab: button that uploads a file to the current folder; shows a spinner while the upload runs; keep it short" })}</Button>
           <input
@@ -372,7 +372,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
 
       {opError && <ErrorBanner err={opError} onDismiss={() => setOpError(null)} />}
       {loadedFile?.error && <ErrorBanner err={loadedFile.error} />}
-      {listError && !startsTimedOut && <ErrorBanner err={listError} />}
+      {listError && !filesStarting && <ErrorBanner err={listError} />}
       {checked.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span>{intl.formatMessage({ id: "web.routes.tabs.files.selected_count", defaultMessage: "{count} selected", description: "Number of checked file paths." }, { count: checked.length })}</span>
@@ -396,7 +396,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
       </nav>}
       {filesStarting ? (
         <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-divider bg-surface">
-          <FilesStarting state={filesStarting} intl={intl} error={listError} onRetry={() => void refetch()} />
+          <FilesStarting intl={intl} onRetry={() => void refetch()} />
         </div>
       ) : (
       <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-divider bg-surface">

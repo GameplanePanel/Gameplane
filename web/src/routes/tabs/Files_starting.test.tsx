@@ -49,29 +49,44 @@ function renderFiles() {
 }
 
 describe("Files tab files-starting state", () => {
-  it("shows the starting state while the file list waits for the file-only pod", async () => {
+  it("does not show the starting state while a slow file list is still pending", async () => {
     fetchMock.mockImplementation(() => new Promise<Response>(() => {}));
     renderFiles();
-    expect(await screen.findByText("Files are starting", undefined, { timeout: 3000 })).toBeInTheDocument();
-    expect(screen.getByRole("status")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Upload/ })).toBeDisabled();
+    // Well past the old 1.5 s delay: a pending list never shows the state on a timer.
+    await act(async () => { await new Promise((done) => setTimeout(done, 1600)); });
+    expect(screen.queryByText("Files did not start")).not.toBeInTheDocument();
+    expect(screen.queryByText("Files are starting")).not.toBeInTheDocument();
   });
 
   it("does not show the starting state for a list that answers quickly", async () => {
     fetchMock.mockImplementation(async () => jsonRes(ROOT_ENTRIES));
     renderFiles();
     await screen.findByText("server.properties");
-    expect(screen.queryByText("Files are starting")).not.toBeInTheDocument();
+    expect(screen.queryByText("Files did not start")).not.toBeInTheDocument();
   });
 
   it("shows the timed-out state with Retry when the API answers server.files.starting", async () => {
     fetchMock.mockImplementation(async () => startingRes());
     renderFiles();
     expect(await screen.findByText("Files did not start")).toBeInTheDocument();
-    expect(screen.getByText("Files are starting, try again.")).toBeInTheDocument();
+    expect(screen.getByText("Files did not start. Try again.")).toBeInTheDocument();
     expect(screen.getByText("Nothing was started. The server stays stopped, and no file was changed.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
-    expect(screen.queryByText("Files are starting")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Upload/ })).toBeDisabled();
+  });
+
+  it("recognises the plain-text 503 the API sends to callers that did not ask for problem+json", async () => {
+    fetchMock.mockImplementation(async () => new Response("files are starting, try again in a moment\n", { status: 503 }));
+    renderFiles();
+    expect(await screen.findByText("Files did not start")).toBeInTheDocument();
+    expect(screen.queryByText(/files are starting, try again in a moment/)).not.toBeInTheDocument();
+  });
+
+  it("treats a 503 with another message as an ordinary list error", async () => {
+    fetchMock.mockImplementation(async () => new Response("agent unavailable", { status: 503 }));
+    renderFiles();
+    await waitFor(() => expect(screen.getByText(/agent unavailable/)).toBeInTheDocument());
+    expect(screen.queryByText("Files did not start")).not.toBeInTheDocument();
   });
 
   it("does not retry the starting request on its own", async () => {

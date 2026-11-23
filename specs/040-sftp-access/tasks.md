@@ -108,7 +108,7 @@
 
 ### Tests for User Story 3
 
-- [ ] T033 [P] [US3] Envtest `api/internal/handlers/sftp_envtest_test.go`: add/remove keys, duplicate fingerprint across users refused, password shown once, regenerate invalidates the old one, admin list and revoke, user disable and password reset revoke sessions, session-token and MCP-token requests refused.
+- [X] T033 [P] [US3] Envtest `api/internal/handlers/sftp_envtest_test.go`: add/remove keys, duplicate fingerprint across users refused, password shown once, regenerate invalidates the old one, admin list and revoke, user disable and password reset revoke sessions, session-token and MCP-token requests refused.
 
 ### Implementation for User Story 3
 
