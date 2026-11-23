@@ -18,7 +18,7 @@ import (
 var homeClientMounts = []string{
 	"handlers.MountAuthProviderSecrets",
 	"handlers.MountClusterActions",
-	"handlers.MountClusters",
+	"handlers.MountClustersWithSFTP",
 	"handlers.MountNotifications",
 	"handlers.MountRegistrySecrets",
 	"handlers.MountRegistryShareWithOptions",

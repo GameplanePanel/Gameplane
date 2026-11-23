@@ -77,6 +77,11 @@ rules:
   - apiGroups: [""]
     resources: ["pods/ephemeralcontainers"]
     verbs: ["get", "patch", "update"]
+  # File-only pod for a stopped server (spec 040, gameserver_files.go):
+  # create and remove <gs>-files in this namespace only.
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "delete"]
   # Per-GameServer agent identity: SA + heartbeat Role/RoleBinding
   # (resourceNames-scoped to one GameServer's status subresource).
   # Granting gameservers/status passes the RBAC escalation check because

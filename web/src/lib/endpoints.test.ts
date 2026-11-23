@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Audit, Auth, Clusters, Files, Logs, Players, Servers, Templates, Users, createResourceClient } from "./endpoints";
+import { Audit, Auth, Clusters, Files, Logs, Players, Servers, Templates, Users, UploadConnectionLostError, createResourceClient } from "./endpoints";
+import { APIError } from "./api";
 
 // Mock the cluster module so we don't depend on actual localStorage in tests
 vi.mock("./cluster", () => ({
@@ -352,5 +353,145 @@ describe("endpoints", () => {
       expect(called().url).toBe("/clusters");
       expect(called().init.method).toBe("GET");
     });
+  });
+});
+
+// FakeXHR stands in for XMLHttpRequest, which fetch mocks cannot intercept.
+class FakeXHR {
+  static instances: FakeXHR[] = [];
+  method = "";
+  url = "";
+  headers: Record<string, string> = {};
+  withCredentials = false;
+  status = 0;
+  statusText = "";
+  responseText = "";
+  responseHeaders: Record<string, string> = {};
+  body: unknown = undefined;
+  aborted = false;
+  upload: { onprogress: ((e: unknown) => void) | null } = { onprogress: null };
+  onload: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  ontimeout: (() => void) | null = null;
+  onabort: (() => void) | null = null;
+  open(method: string, url: string) { this.method = method; this.url = url; }
+  setRequestHeader(key: string, value: string) { this.headers[key] = value; }
+  getResponseHeader(key: string) { return this.responseHeaders[key] ?? null; }
+  send(body: unknown) { this.body = body; FakeXHR.instances.push(this); }
+  abort() { this.aborted = true; this.onabort?.(); }
+}
+
+describe("Files.uploadStream", () => {
+  beforeEach(() => {
+    FakeXHR.instances = [];
+    vi.stubGlobal("XMLHttpRequest", FakeXHR);
+  });
+
+  function lastXHR(): FakeXHR {
+    const xhr = FakeXHR.instances.at(-1);
+    expect(xhr).toBeDefined();
+    return xhr!;
+  }
+
+  it("PUTs the raw file body to files/stream with the target path", async () => {
+    const file = new File(["bytes"], "world.zip", { type: "application/zip" });
+    const done = Files.uploadStream("mc-survival", "/config", file);
+    const xhr = lastXHR();
+    expect(xhr.method).toBe("PUT");
+    expect(xhr.url).toBe("/servers/mc-survival/files/stream?path=%2Fconfig%2Fworld.zip");
+    expect(xhr.withCredentials).toBe(true);
+    expect(xhr.headers["Content-Type"]).toBe("application/octet-stream");
+    expect(xhr.body).toBe(file);
+    xhr.status = 200;
+    xhr.onload?.();
+    await expect(done).resolves.toBeUndefined();
+  });
+
+  it("joins a file onto the root folder without a doubled slash", () => {
+    void Files.uploadStream("mc-survival", "/", new File(["x"], "eula.txt"));
+    expect(lastXHR().url).toBe("/servers/mc-survival/files/stream?path=%2Feula.txt");
+  });
+
+  it("adds offset only when resuming past byte zero", () => {
+    void Files.uploadStream("mc-survival", "/", new File(["x"], "a.bin"), { offset: 0 });
+    expect(lastXHR().url).not.toContain("offset=");
+    void Files.uploadStream("mc-survival", "/", new File(["x"], "a.bin"), { offset: 4096 });
+    expect(lastXHR().url).toBe("/servers/mc-survival/files/stream?path=%2Fa.bin&offset=4096");
+  });
+
+  it("appends the namespace to the stream URL", () => {
+    void Files.uploadStream("mc-survival", "/", new File(["x"], "a.bin"), {}, "team-a");
+    expect(lastXHR().url).toBe("/servers/mc-survival/files/stream?path=%2Fa.bin&namespace=team-a");
+  });
+
+  it("sends the server UID header for a scoped client", () => {
+    const client = createResourceClient({ cluster: "local", uid: "uid-1" });
+    void client.Files.uploadStream("mc-survival", "/", new File(["x"], "a.bin"));
+    expect(lastXHR().headers["X-Gameplane-Server-UID"]).toBe("uid-1");
+  });
+
+  it("reports upload progress from the XHR upload events", () => {
+    const seen: Array<[number, number]> = [];
+    void Files.uploadStream("mc-survival", "/", new File(["0123456789"], "a.bin"), {
+      onProgress: (loaded, total) => seen.push([loaded, total]),
+    });
+    const xhr = lastXHR();
+    xhr.upload.onprogress?.({ lengthComputable: true, loaded: 4, total: 10 });
+    xhr.upload.onprogress?.({ lengthComputable: false, loaded: 5, total: 0 });
+    xhr.upload.onprogress?.({ lengthComputable: true, loaded: 10, total: 10 });
+    expect(seen).toEqual([[4, 10], [10, 10]]);
+  });
+
+  it("rejects with APIError carrying the status and body for a 507", async () => {
+    const done = Files.uploadStream("mc-survival", "/", new File(["x"], "big.tar"));
+    const xhr = lastXHR();
+    xhr.status = 507;
+    xhr.statusText = "Insufficient Storage";
+    xhr.responseText = "disk full";
+    xhr.responseHeaders["Content-Type"] = "text/plain";
+    xhr.onload?.();
+    const err = await done.catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(APIError);
+    expect((err as APIError).status).toBe(507);
+    expect((err as APIError).body).toBe("disk full");
+  });
+
+  it("keeps the 413 status so the caller can show the size-limit message", async () => {
+    const done = Files.uploadStream("mc-survival", "/", new File(["x"], "huge.zip"));
+    const xhr = lastXHR();
+    xhr.status = 413;
+    xhr.responseText = "too large";
+    xhr.onload?.();
+    await expect(done).rejects.toMatchObject({ status: 413 });
+  });
+
+  it("rejects with UploadConnectionLostError when no response arrives", async () => {
+    const done = Files.uploadStream("mc-survival", "/", new File(["x"], "a.bin"));
+    lastXHR().onerror?.();
+    await expect(done).rejects.toBeInstanceOf(UploadConnectionLostError);
+  });
+
+  it("rejects with UploadConnectionLostError on a request timeout", async () => {
+    const done = Files.uploadStream("mc-survival", "/", new File(["x"], "a.bin"));
+    lastXHR().ontimeout?.();
+    await expect(done).rejects.toBeInstanceOf(UploadConnectionLostError);
+  });
+
+  it("aborts the request and rejects with AbortError when the signal fires", async () => {
+    const controller = new AbortController();
+    const done = Files.uploadStream("mc-survival", "/", new File(["x"], "a.bin"), { signal: controller.signal });
+    const xhr = lastXHR();
+    controller.abort();
+    expect(xhr.aborted).toBe(true);
+    await expect(done).rejects.toMatchObject({ name: "AbortError" });
+  });
+
+  it("rejects without sending when the signal is already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    await expect(
+      Files.uploadStream("mc-survival", "/", new File(["x"], "a.bin"), { signal: controller.signal }),
+    ).rejects.toMatchObject({ name: "AbortError" });
+    expect(FakeXHR.instances).toHaveLength(0);
   });
 });

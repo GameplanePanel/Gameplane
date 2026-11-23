@@ -326,7 +326,7 @@ lint-web: ## Run web linters
 
 # -------- images --------
 # Standard-shaped images (Dockerfile path = <dir>/Dockerfile)
-IMAGES := operator api web agent telemetry-receiver sentinel mcp-server capture-sidecar
+IMAGES := operator api web agent telemetry-receiver sentinel mcp-server capture-sidecar sftp
 
 # The full set of image names `make images` builds, by their docker tag
 # names (not their Makefile target names — audit-syslog-bridge and the three

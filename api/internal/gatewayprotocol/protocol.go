@@ -48,12 +48,16 @@ func ParsePath(path string) (Target, string, error) {
 	return target, agentPath, nil
 }
 
+// DefaultStreamBodyLimit is the body cap for files/stream when the gateway has no configured
+// limit. The gateway replaces it with its configured FilesMaxUploadBytes.
+const DefaultStreamBodyLimit int64 = 20 << 30
+
 // Allowed returns the request body cap for the exact supported operation.
 func Allowed(method, path string) (int64, bool) {
 	switch method {
 	case http.MethodGet:
 		switch path {
-		case "/console", "/logs/tail", "/logs/download", "/logs/history", "/files/list", "/files/read", "/files/download", "/files/archive", "/players", "/players/banned", "/players/whitelist", "/players/operators", "/status", "/mods":
+		case "/console", "/logs/tail", "/logs/download", "/logs/history", "/files/list", "/files/stat", "/files/read", "/files/download", "/files/archive", "/players", "/players/banned", "/players/whitelist", "/players/operators", "/status", "/mods":
 			return 0, true
 		}
 	case http.MethodPost:
@@ -62,10 +66,16 @@ func Allowed(method, path string) (int64, bool) {
 			return 16 << 10, true
 		case "/files/archive":
 			return 0, true
+		case "/files/rename":
+			return 1 << 20, true
 		case "/mods/upload":
 			return 512 << 20, true
 		case "/files/write", "/files/create", "/files/upload", "/files/mkdir", "/players/kick", "/players/ban", "/players/unban", "/players/whitelist/add", "/players/whitelist/remove", "/mods/install":
 			return 64 << 20, true
+		}
+	case http.MethodPut:
+		if path == "/files/stream" {
+			return DefaultStreamBodyLimit, true
 		}
 	case http.MethodDelete:
 		if path == "/files/delete" || path == "/mods" {
@@ -79,7 +89,7 @@ func Allowed(method, path string) (int64, bool) {
 func Streaming(path string) bool { return path == "/console" || path == "/logs/tail" }
 
 func knownPath(path string) bool {
-	for _, method := range []string{http.MethodGet, http.MethodPost, http.MethodDelete} {
+	for _, method := range []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete} {
 		if _, ok := Allowed(method, path); ok {
 			return true
 		}

@@ -13,7 +13,7 @@ import "context"
 // Set/Name run in the same goroutine sequentially (Authenticate sets
 // before the handler runs; audit reads after it returns), so no locking
 // is needed.
-type ActorHolder struct{ name string }
+type ActorHolder struct{ name, source, target string }
 
 // Set records the resolved username. A nil receiver is a no-op so callers
 // needn't check whether a holder is present.
@@ -50,4 +50,45 @@ func actorHolderFrom(ctx context.Context) *ActorHolder {
 // authenticated entry points can attribute their audit rows too.
 func SetActor(ctx context.Context, name string) {
 	actorHolderFrom(ctx).Set(name)
+}
+
+// SetSource records the request source ("sftp" for SFTP endpoint requests). A nil receiver is a no-op.
+func (h *ActorHolder) SetSource(source string) {
+	if h != nil {
+		h.source = source
+	}
+}
+
+// Source returns the recorded request source, or "" if none was set.
+func (h *ActorHolder) Source() string {
+	if h == nil {
+		return ""
+	}
+	return h.source
+}
+
+// SetTarget records the audit target the request resolved to (for example "cluster/namespace/server path").
+// A nil receiver is a no-op.
+func (h *ActorHolder) SetTarget(target string) {
+	if h != nil {
+		h.target = target
+	}
+}
+
+// Target returns the recorded audit target, or "" if none was set.
+func (h *ActorHolder) Target() string {
+	if h == nil {
+		return ""
+	}
+	return h.target
+}
+
+// SetSource records the request source on the request's audit actor holder, if one is present.
+func SetSource(ctx context.Context, source string) {
+	actorHolderFrom(ctx).SetSource(source)
+}
+
+// SetAuditTarget records the audit target on the request's audit actor holder, if one is present.
+func SetAuditTarget(ctx context.Context, target string) {
+	actorHolderFrom(ctx).SetTarget(target)
 }

@@ -1,0 +1,269 @@
+{
+  "file": "1-46386",
+  "id": "1:46386",
+  "name": "Gameplane/Dialog/Generate SFTP password",
+  "type": "FRAME",
+  "x": 7920,
+  "y": 82663,
+  "width": 480,
+  "height": 300,
+  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+  "strokeWeight": 1,
+  "cornerRadius": 12,
+  "clips": true,
+  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+  "children": [
+    {
+      "id": "1:46411",
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 193,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+      "text": "Generate SFTP password",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "id": "1:46412",
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 440,
+      "height": 25,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:46460",
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 4,
+          "width": 440,
+          "height": 21,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "layoutGrow": 1,
+          "text": "Replaces your current password.",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "id": "1:46413",
+      "name": "mFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 228,
+      "width": 440,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:46461",
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 292,
+          "y": 20,
+          "width": 64,
+          "height": 32,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "children": [
+            {
+              "id": "1:46548",
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 40,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "id": "1:46462",
+          "name": "btnPrimary",
+          "type": "FRAME",
+          "x": 364,
+          "y": 20,
+          "width": 76,
+          "height": 32,
+          "opacity": 0.5,
+          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "accent/accent"},
+          "children": [
+            {
+              "id": "1:46549",
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 52,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "text": "Generate",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/foreground"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:46414",
+      "name": "Body",
+      "type": "FRAME",
+      "x": 20,
+      "y": 69,
+      "width": 440,
+      "height": 150,
+      "children": [
+        {
+          "id": "1:46463",
+          "name": "cardBody",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 368,
+          "height": 18,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "Length",
+          "font": ["Geist", 400, 14],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+        },
+        {
+          "id": "1:46464",
+          "name": "cardBody",
+          "type": "TEXT",
+          "x": 340,
+          "y": 0,
+          "width": 368,
+          "height": 18,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "32 characters",
+          "font": ["Geist", 400, 14],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+        },
+        {
+          "id": "1:46465",
+          "name": "Slider track",
+          "type": "RECTANGLE",
+          "x": 0,
+          "y": 30,
+          "width": 440,
+          "height": 4
+        },
+        {
+          "id": "1:46466",
+          "name": "Slider fill",
+          "type": "RECTANGLE",
+          "x": 0,
+          "y": 30,
+          "width": 264,
+          "height": 4,
+          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+          "variables": {"fills/0/color": "accent/accent"}
+        },
+        {
+          "id": "1:46467",
+          "name": "Slider knob",
+          "type": "RECTANGLE",
+          "x": 257,
+          "y": 25,
+          "width": 14,
+          "height": 14,
+          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+          "cornerRadius": 7,
+          "variables": {"fills/0/color": "accent/accent"}
+        },
+        {
+          "id": "1:46468",
+          "name": "cardBody",
+          "type": "TEXT",
+          "x": 0,
+          "y": 44,
+          "width": 368,
+          "height": 18,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "20",
+          "font": ["Geist", 400, 14],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+        },
+        {
+          "id": "1:46469",
+          "name": "cardBody",
+          "type": "TEXT",
+          "x": 420,
+          "y": 44,
+          "width": 368,
+          "height": 18,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "40",
+          "font": ["Geist", 400, 14],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+        },
+        {
+          "id": "1:46470",
+          "name": "cardBody",
+          "type": "TEXT",
+          "x": 0,
+          "y": 78,
+          "width": 440,
+          "height": 36,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "Each character is drawn at random from the 94 printable ASCII characters (no spaces) with a cryptographically secure generator.",
+          "font": ["Geist", 400, 14],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+        }
+      ]
+    }
+  ]
+}

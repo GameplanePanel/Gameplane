@@ -11,7 +11,13 @@ import (
 	"time"
 )
 
-// TestMultiCluster_MCPTokenRemoteGrant proves that a personal MCP token
+// TestMultiCluster_TokenRemoteGrant checks the per-cluster tokens of a
+// registered REMOTE cluster: the personal MCP token (below) and, in the
+// sftp-remote-endpoint subtest, the remote cluster's SFTP endpoint and SFTP
+// service tokens (remoteSFTPEndpointChecks, multicluster_sftp_e2e_test.go).
+// Both share one admin login, because this bucket is at its login ceiling.
+//
+// The MCP part proves that a personal MCP token
 // follows its owner's per-cluster grants on a registered REMOTE cluster, not
 // just the home cluster. The owner has no local grant at all, and only a
 // namespace-scoped servers:read grant on the remote cluster. With that token:
@@ -28,7 +34,7 @@ import (
 // retried on 429. Go runs non-parallel tests before the parallel ones resume,
 // so this test's two logins happen first, and it waits at the end until the
 // limiter has refilled them (IP limiter: 5 per minute).
-func TestMultiCluster_MCPTokenRemoteGrant(t *testing.T) {
+func TestMultiCluster_TokenRemoteGrant(t *testing.T) {
 	_, clusterBName := ensureClusterB(t)
 
 	envInstance.BootstrapAdmin(t, adminUsername, adminPassword)
@@ -120,6 +126,11 @@ func TestMultiCluster_MCPTokenRemoteGrant(t *testing.T) {
 	if status != http.StatusBadRequest && status != http.StatusForbidden {
 		t.Errorf("GET /pods kube-system on remote cluster with namespace-only grant: status=%d want a 400/403 refusal body=%s", status, b)
 	}
+
+	// --- Remote SFTP endpoint and service tokens (spec 040, T052) -----------
+	t.Run("sftp-remote-endpoint", func(t *testing.T) {
+		remoteSFTPEndpointChecks(t, admin, clusterID)
+	})
 }
 
 // mcpMCCreateRole creates a custom role and removes it at cleanup.

@@ -20,6 +20,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"golang.org/x/sys/unix"
 
 	"github.com/GameplanePanel/gameplane/agent/internal/httpjson"
 )
@@ -38,6 +39,16 @@ var errDotfile = errors.New("dotfile access denied")
 
 // errFileExists is a client-safe conflict for create-only operations.
 var errFileExists = errors.New("file already exists")
+
+// errNoSpace refuses a stream upload the volume cannot hold.
+var errNoSpace = errors.New("not enough free space on the volume")
+
+// errBadRename refuses a rename the kernel rejects as invalid, such as moving
+// a directory into itself.
+var errBadRename = errors.New("invalid rename")
+
+// errBadOffset refuses a resume offset beyond the existing file's size.
+var errBadOffset = errors.New("offset beyond existing file size")
 
 // hasDotComponent reports whether the slash-separated relative path rel
 // (already stripped of its leading slash) has a dot-prefixed component.
@@ -76,24 +87,52 @@ type handler struct {
 	beforeOpen func(stage, dir, name string)
 	// Test seam for a filesystem that refuses access-metadata restoration.
 	preserveAccess func(*os.File, fileAccess) error
+
+	// maxUploadBytes caps one /files/stream upload (offset prefix included).
+	maxUploadBytes int64
+	// freeBytes is a test seam for the free-space check of /files/stream;
+	// nil uses statfs on the target directory.
+	freeBytes func(dirFD int) (uint64, error)
+}
+
+// DefaultMaxUploadBytes is the /files/stream limit when no option sets one
+// (Helm files.maxUploadSize, spec 040 OD-6).
+const DefaultMaxUploadBytes int64 = 20 << 30
+
+// Option configures Mount.
+type Option func(*handler)
+
+// WithMaxUploadBytes sets the /files/stream size limit; n <= 0 keeps the default.
+func WithMaxUploadBytes(n int64) Option {
+	return func(h *handler) {
+		if n > 0 {
+			h.maxUploadBytes = n
+		}
+	}
 }
 
 // Mount registers the file-browser HTTP handlers on the supplied router.
-func Mount(r chi.Router, root string) {
-	h := &handler{root: filepath.Clean(root)}
+func Mount(r chi.Router, root string, opts ...Option) {
+	h := &handler{root: filepath.Clean(root), maxUploadBytes: DefaultMaxUploadBytes}
+	for _, opt := range opts {
+		opt(h)
+	}
 	r.Route("/files", func(r chi.Router) {
 		// Transfers can legitimately outlive the ordinary operation timeout.
 		r.Get("/download", h.download)
 		r.Get("/archive", h.archive)
 		r.Post("/archive", h.archive)
 		r.Post("/upload", h.upload)
+		r.Put("/stream", h.stream)
 		r.Group(func(bounded chi.Router) {
 			bounded.Use(middleware.Timeout(30 * time.Second))
 			bounded.Get("/list", h.list)
+			bounded.Get("/stat", h.stat)
 			bounded.Get("/read", h.read)
 			bounded.Post("/write", h.write)
 			bounded.Post("/create", h.create)
 			bounded.Post("/mkdir", h.mkdir)
+			bounded.Post("/rename", h.rename)
 			bounded.Delete("/delete", h.del)
 		})
 	})
@@ -452,6 +491,12 @@ func httpErr(w http.ResponseWriter, err error) {
 		http.Error(w, errFileExists.Error(), http.StatusConflict)
 	case errors.Is(err, errPreserveAccess):
 		http.Error(w, "cannot preserve existing file access; the file changed or the filesystem does not support its group/POSIX ACL permissions", http.StatusConflict)
+	case errors.Is(err, errNoSpace) || errors.Is(err, unix.ENOSPC):
+		http.Error(w, errNoSpace.Error(), http.StatusInsufficientStorage)
+	case errors.Is(err, errBadOffset):
+		http.Error(w, errBadOffset.Error(), http.StatusRequestedRangeNotSatisfiable)
+	case errors.Is(err, errBadRename):
+		http.Error(w, errBadRename.Error(), http.StatusBadRequest)
 	case errors.Is(err, os.ErrNotExist):
 		http.Error(w, "not found", http.StatusNotFound)
 	case errors.Is(err, os.ErrPermission):

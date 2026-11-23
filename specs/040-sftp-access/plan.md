@@ -71,7 +71,7 @@ operator/cmd/main.go         --files-idle-timeout
 api/internal/db/migrations/common/024_sftp_credentials.sql
 api/internal/auth/sftp.go    keys, passwords, service tokens, sessions, guard (+ tests)
 api/internal/handlers/sftp.go  profile, admin, cluster token routes (+ envtest)
-api/internal/handlers/sftp_login.go  /sftp/v1/login, /sftp/v1/sessions/check
+api/internal/handlers/sftp_login.go  /sftp/v1/login, /sftp/v1/sessions/check, /sftp/v1/sessions/end
 api/internal/rbac/fileaccess.go  FileAccess helper: the one place file permissions are decided (R8)
 api/internal/ws/dialer.go    mount files/stat, files/rename, files/stream; ensure file-only access on stopped servers
 api/internal/gatewayprotocol/  stat, rename, stream as allowed operations; stream long-running
@@ -84,15 +84,11 @@ test/e2e/sftp_test.go, test/e2e/buckets.sh, test/e2e/multicluster_sftp_test.go
 docs/sftp.md, docs/security.md, docs/architecture.md; changelog/unreleased/<PR>-sftp-access.md
 ```
 
-### Delivery (stacked PRs, each green in CI before the next merges)
+### Delivery (one Gameplane PR plus one sftp repo PR; valgul 2026-11-23)
 
-1. **Spec PR** (docs only): this folder.
-2. **Agent PR**: stat, rename, stream + `agent/specs.md`.
-3. **Operator PR**: file-only pod, selector switch, start ordering, NetworkPolicy for `gameplane-files`.
-4. **API PR**: migration, credentials, SFTP login/session, guard, new file routes, ensure-files, gateway protocol, audit source.
-5. **SFTP component PR** in `GameplanePanel/sftp` (OD-7 A).
-6. **Design PR** then **Web PR**: profile section, admin revoke, cluster token, Files tab starting state (after design sign-off).
-7. **Chart + docs + E2E PR**: `sftp.yaml`, values, submodule add/pointer, Makefile image, docs, changelog, E2E buckets.
+1. **Spec PRs** (docs only, merged): #1065, #1066, #1068.
+2. **Gameplane PR** `feat/040-sftp-access`: agent, operator, API, design then web (after design sign-off), chart, docs, changelog, E2E buckets and the `sftp` submodule pointer, as separate commits in that order.
+3. **SFTP component PR** in `GameplanePanel/sftp` (OD-7 A), branch `feat/initial-server` to `main`. It merges first; the Gameplane PR then points the `sftp` submodule at the merged commit.
 
 ## Complexity Tracking
 

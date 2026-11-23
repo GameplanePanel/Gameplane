@@ -55,7 +55,7 @@ sftp -P 2222 'bob+events/lobby@<node-ip>'    # fails like a wrong password
 ## 6. Upload, rename, delete, permissions (US2)
 
 ```sh
-sftp> put big-world.zip survival/      # 2 GiB; interrupt, then: reput
+sftp> put big-world.zip survival/      # 2 GiB; interrupt: no partial file remains, then put again
 sftp> rename survival/a.txt survival/b.txt
 sftp> mkdir survival/new && rmdir survival/new
 sftp> rm creative/x.txt                # as bob: Permission denied

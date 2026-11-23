@@ -25,6 +25,7 @@ on:
       - 'audit-syslog-bridge'
       - 'tunnel'
       - 'capture-sidecar'
+      - 'sftp'
       - 'web/package*.json'
       - '.github/workflows/devcontainers.yaml'
   push:
@@ -44,6 +45,7 @@ on:
       - 'audit-syslog-bridge'
       - 'tunnel'
       - 'capture-sidecar'
+      - 'sftp'
       - 'web/package*.json'
       - '.github/workflows/devcontainers.yaml'
 

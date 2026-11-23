@@ -1,6 +1,6 @@
 name: build e2e images
 description: >
-  Build the operator/api/agent/sentinel/capture-sidecar/telemetry-receiver/fakeoidc/mcp-server/audit-syslog-bridge/tunnel-frp
+  Build the operator/api/agent/sentinel/capture-sidecar/telemetry-receiver/fakeoidc/mcp-server/sftp/audit-syslog-bridge/tunnel-frp
   (+ gameprobe) images the kind e2e suites load into the cluster, tagged
   gameplane-test/<component>:e2e exactly like make e2e-images, via buildx bake
   — then `docker save` all eleven into a single tar uploaded as an artifact
@@ -19,7 +19,7 @@ runs:
       shell: bash
       run: ./hack/submodules.sh init
     - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
-    - name: bake e2e images (operator/api/agent/sentinel/capture-sidecar/telemetry-receiver/fakeoidc/mcp-server/audit-syslog-bridge/tunnel-frp)
+    - name: bake e2e images (operator/api/agent/sentinel/capture-sidecar/telemetry-receiver/fakeoidc/mcp-server/sftp/audit-syslog-bridge/tunnel-frp)
       uses: docker/bake-action@d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b # v7.3.0
       with:
         files: containers/docker-bake.hcl
@@ -34,6 +34,7 @@ runs:
           e2e-telemetry-receiver.cache-from=type=gha,scope=e2e-telemetry-receiver-${{ inputs.arch }}
           e2e-fakeoidc.cache-from=type=gha,scope=e2e-fakeoidc-${{ inputs.arch }}
           e2e-mcp-server.cache-from=type=gha,scope=e2e-mcp-server-${{ inputs.arch }}
+          e2e-sftp.cache-from=type=gha,scope=e2e-sftp-${{ inputs.arch }}
           e2e-audit-syslog-bridge.cache-from=type=gha,scope=e2e-audit-syslog-bridge-${{ inputs.arch }}
           e2e-tunnel-frp.cache-from=type=gha,scope=e2e-tunnel-frp-${{ inputs.arch }}
           e2e-operator.cache-to=type=gha,mode=max,scope=e2e-operator-${{ inputs.arch }}
@@ -44,6 +45,7 @@ runs:
           e2e-telemetry-receiver.cache-to=type=gha,mode=max,scope=e2e-telemetry-receiver-${{ inputs.arch }}
           e2e-fakeoidc.cache-to=type=gha,mode=max,scope=e2e-fakeoidc-${{ inputs.arch }}
           e2e-mcp-server.cache-to=type=gha,mode=max,scope=e2e-mcp-server-${{ inputs.arch }}
+          e2e-sftp.cache-to=type=gha,mode=max,scope=e2e-sftp-${{ inputs.arch }}
           e2e-audit-syslog-bridge.cache-to=type=gha,mode=max,scope=e2e-audit-syslog-bridge-${{ inputs.arch }}
           e2e-tunnel-frp.cache-to=type=gha,mode=max,scope=e2e-tunnel-frp-${{ inputs.arch }}
     - name: bake gameprobe image
@@ -67,6 +69,7 @@ runs:
           gameplane-test/telemetry-receiver:e2e \
           gameplane-test/fakeoidc:e2e \
           gameplane-test/mcp-server:e2e \
+          gameplane-test/sftp:e2e \
           gameplane-test/audit-syslog-bridge:e2e \
           gameplane-test/tunnel-frp:e2e \
           gameplane-test/gameprobe:e2e \

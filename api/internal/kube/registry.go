@@ -6,6 +6,7 @@ import (
 	"sort"
 	"sync"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -269,4 +270,17 @@ func (r *Registry) GetServer(ctx context.Context, cluster, ns, name string) (*un
 		return nil, fmt.Errorf("cluster %q not registered", cluster)
 	}
 	return c.GetServer(ctx, ns, name)
+}
+
+// ListServers lists the GameServers of ns on the named cluster (rbac.ServerLister).
+func (r *Registry) ListServers(ctx context.Context, cluster, ns string) ([]unstructured.Unstructured, error) {
+	c, ok := r.Get(cluster)
+	if !ok {
+		return nil, fmt.Errorf("cluster %q not registered", cluster)
+	}
+	list, err := c.Dynamic.Resource(GVRs["servers"]).Namespace(ns).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("list servers: %w", err)
+	}
+	return list.Items, nil
 }

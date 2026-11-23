@@ -666,6 +666,12 @@ flowchart LR
   Opt-in per GameServer via `spec.capture.enabled` and admin-only (`captures:manage`
   permission). Disabled by default; enabled cluster-wide via `capture.enabled`
   Helm value. See the [`GameplanePanel/capture-sidecar`](https://github.com/GameplanePanel/capture-sidecar) repo (the `capture-sidecar/` submodule).
+- **sftp [optional]**: an SFTP endpoint for game server files (submodule
+  `GameplanePanel/sftp`, the `sftp/` folder; spec 040), enabled by `sftp.enabled`.
+  It holds no game volumes and no credential store: each login and file
+  operation is decided by the API as the signed-in user, and each cluster
+  endpoint authenticates to the API with its own service token. See
+  [sftp.md](sftp.md) and [security.md](security.md#sftp-endpoint-spec-040-optional).
 - **mcp-server [optional]**: a standalone, strictly read-only MCP server (submodule `GameplanePanel/mcp`) —
   its tool handlers only ever hold a `*kube.Client` (`mcp-server/internal/kube`),
   whose sole exported methods are List/Get-shaped; the underlying typed/

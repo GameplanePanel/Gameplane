@@ -47,6 +47,9 @@ import { cn } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { FileDrafts } from "@/lib/fileDrafts";
 import { FileTreeRows } from "./FileTreeRows";
+import { FilesStarting } from "./FilesStarting";
+import { UploadTray } from "./UploadTray";
+import { isFilesStartingError, type UploadItem } from "./uploadQueue";
 
 const ROOT = "/";
 
@@ -116,13 +119,31 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
   const [newFileOpen, setNewFileOpen] = useState(false);
 
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploads, setUploadState] = useState<UploadItem[]>([]);
+  // uploadsRef mirrors uploads so the queue can decide its next step from
+  // event handlers and upload callbacks without waiting for a render.
+  const uploadsRef = useRef<UploadItem[]>([]);
+  const uploadIdRef = useRef(0);
+  const uploadControllers = useRef(new Map<number, AbortController>());
 
   const dirty = serverContent !== null && editorValue !== serverContent;
 
   const { data: entries, error: listError, isFetching, refetch } = useQuery({
     queryKey: listKey(cwd),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Files.list(name, cwd, ns),
+    // The API waits up to 60 s for a file-only pod; retrying that wait only hides the timeout.
+    // Other errors keep the client's default retry policy.
+    retry: (failureCount, err) => {
+      if (isFilesStartingError(err)) return false;
+      const base = qc.getDefaultOptions().queries?.retry ?? 3;
+      if (typeof base === "boolean") return base;
+      if (typeof base === "number") return failureCount < base;
+      return base(failureCount, err);
+    },
   });
+  // The files-starting state shows only for the 503 the API answers when the file-only pod is not ready in
+  // time. A slow list is not a reason to show it.
+  const filesStarting = isFilesStartingError(listError);
 
   // Resolve the path itself. A large directory can have a truncated listing.
   useEffect(() => {
@@ -239,20 +260,92 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
     onError: (err: Error) => setOpError(err.message),
   });
 
-  const uploadMutation = useMutation({
-    mutationFn: (files: FileList) => Files.upload(name, cwd, files, ns),
-    onSuccess: async () => {
-      void qc.invalidateQueries({ queryKey: ["fleet"] });
-      await qc.invalidateQueries({ queryKey: listKey(cwd) });
-      setOpError(null);
-    },
-    onError: (err: Error) => setOpError(err.message),
-  });
+  // Uploads run one at a time through the streaming route (FR-018b). Each file
+  // keeps its own state so the tray can show progress, cancel and retry.
+  const uploadRunning = uploads.some((item) => item.status === "uploading");
+  function setUploads(update: (current: UploadItem[]) => UploadItem[]) {
+    uploadsRef.current = update(uploadsRef.current);
+    setUploadState(uploadsRef.current);
+  }
+
+  // pumpUploads starts the next waiting file when none is running. It runs
+  // after every change to the queue: a new batch, a retry, a cancel, or an
+  // upload that settles.
+  function pumpUploads() {
+    const current = uploadsRef.current;
+    if (current.some((item) => item.status === "uploading")) return;
+    const next = current.find((item) => item.status === "waiting");
+    if (!next) {
+      // The batch is over: its done and cancelled rows go. Failed rows stay until retried or replaced.
+      if (current.some((item) => item.status === "done" || item.status === "cancelled")) {
+        setUploads((list) => list.filter((item) => item.status === "failed"));
+      }
+      return;
+    }
+    const id = next.id;
+    const controller = new AbortController();
+    uploadControllers.current.set(id, controller);
+    setUploads((list) => list.map((item) => (item.id === id ? { ...item, status: "uploading", loaded: 0 } : item)));
+    const settle = (patch: Partial<UploadItem>) => {
+      uploadControllers.current.delete(id);
+      setUploads((list) => list.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+      pumpRef.current();
+    };
+    void Files.uploadStream(name, next.dir, next.file, {
+      signal: controller.signal,
+      onProgress: (loaded) => setUploads((list) => list.map((item) => (item.id === id && item.status === "uploading" ? { ...item, loaded } : item))),
+    }, ns)
+      .then(() => {
+        settle({ status: "done", loaded: next.file.size });
+        void qc.invalidateQueries({ queryKey: ["fleet"] });
+        void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "files", name, next.dir, ns) });
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") settle({ status: "cancelled" });
+        else settle({ status: "failed", error: err });
+      });
+  }
+  // A settling upload calls the latest pumpUploads, so the next file uses the current server and client.
+  const pumpRef = useRef(pumpUploads);
+  useLayoutEffect(() => { pumpRef.current = pumpUploads; });
+
+  // Leaving the browser (or switching server) cancels what is still in flight.
+  useEffect(() => {
+    const controllers = uploadControllers.current;
+    return () => { for (const controller of controllers.values()) controller.abort(); };
+  }, []);
+
+  function enqueueUploads(files: File[]) {
+    const items: UploadItem[] = files.map((file) => ({ id: ++uploadIdRef.current, file, dir: cwd, status: "waiting", loaded: 0 }));
+    // A new batch replaces the finished rows; cancelled rows stay until then.
+    setUploads((current) => [...current.filter((item) => item.status !== "done" && item.status !== "cancelled"), ...items]);
+    pumpUploads();
+  }
 
   function onUploadPicked(e: ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
-    if (canControl && files && files.length > 0) uploadMutation.mutate(files);
+    if (canControl && files && files.length > 0) enqueueUploads(Array.from(files));
     e.target.value = "";
+  }
+
+  function cancelUpload(id: number) {
+    const controller = uploadControllers.current.get(id);
+    if (controller) controller.abort();
+    else {
+      setUploads((current) => current.map((item) => (item.id === id && item.status === "waiting" ? { ...item, status: "cancelled" } : item)));
+      pumpUploads();
+    }
+  }
+
+  function cancelAllUploads() {
+    for (const controller of uploadControllers.current.values()) controller.abort();
+    // Cancel all clears the batch's rows at once; failed rows stay so the user can retry them.
+    setUploads((current) => current.filter((item) => item.status === "failed"));
+  }
+
+  function retryUpload(id: number) {
+    setUploads((current) => current.map((item) => (item.id === id && item.status === "failed" ? { ...item, status: "waiting", loaded: 0, error: undefined } : item)));
+    pumpUploads();
   }
 
   function downloadSelected() {
@@ -281,13 +374,9 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
             variant="secondary"
             size="sm"
             onPress={() => uploadInputRef.current?.click()}
-            isDisabled={!canControl || uploadMutation.isPending}
+            isDisabled={!canControl || filesStarting || uploadRunning}
           >
-            {uploadMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4" />
-            )} {intl.formatMessage({ id: "web.routes.tabs.files.upload", defaultMessage: "Upload", description: "Files tab: button that uploads a file to the current folder; shows a spinner while the upload runs; keep it short" })}</Button>
+            <Upload className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.tabs.files.upload", defaultMessage: "Upload", description: "Files tab: button that uploads a file to the current folder; shows a spinner while the upload runs; keep it short" })}</Button>
           <input
             ref={uploadInputRef}
             type="file"
@@ -310,7 +399,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
 
       {opError && <ErrorBanner err={opError} onDismiss={() => setOpError(null)} />}
       {loadedFile?.error && <ErrorBanner err={loadedFile.error} />}
-      {listError && <ErrorBanner err={listError} />}
+      {listError && !filesStarting && <ErrorBanner err={listError} />}
       {checked.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span>{intl.formatMessage({ id: "web.routes.tabs.files.selected_count", defaultMessage: "{count} selected", description: "Number of checked file paths." }, { count: checked.length })}</span>
@@ -332,6 +421,11 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
           }}><X aria-hidden="true" className="size-3" /></button>
         </div>)}
       </nav>}
+      {filesStarting ? (
+        <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-divider bg-surface">
+          <FilesStarting intl={intl} onRetry={() => void refetch()} />
+        </div>
+      ) : (
       <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-divider bg-surface">
         <aside
           className={cn(
@@ -448,6 +542,17 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
           )}
         </main>
       </div>
+      )}
+
+      {uploads.length > 0 && (
+        <UploadTray
+          items={uploads}
+          intl={intl}
+          onCancel={cancelUpload}
+          onCancelAll={cancelAllUploads}
+          onRetry={retryUpload}
+        />
+      )}
 
       {confirmDelete && (
         <ConfirmDialog

@@ -238,6 +238,7 @@ jobs:
               - 'audit-syslog-bridge'
               - 'tunnel'
               - 'capture-sidecar'
+              - 'sftp'
               - 'hack/trivy-scan-images.sh'
               - 'hack/check-image-scan_test.sh'
             # Narrower than e2etree on purpose: this backs a job that only
@@ -271,6 +272,7 @@ jobs:
               - 'audit-syslog-bridge'
               - 'tunnel'
               - 'capture-sidecar'
+              - 'sftp'
               - '.gitmodules'
               - 'hack/submodules.sh'
               - 'hack/check-submodule-freshness.sh'
@@ -320,6 +322,7 @@ jobs:
               - 'audit-syslog-bridge'
               - 'tunnel'
               - 'capture-sidecar'
+              - 'sftp'
               - '.hadolint.yaml'
               - 'hack/check-hadolint_test.sh'
               - 'hack/testdata/hadolint/**'
@@ -1238,6 +1241,8 @@ jobs:
         run: bash charts/gameplane/tests/monitoring-rules.sh
       - name: check MCP server RBAC scope
         run: bash charts/gameplane/tests/mcp-server-rbac.sh
+      - name: check SFTP endpoint renders
+        run: bash charts/gameplane/tests/sftp.sh
 
   standalone-compose:
     name: standalone Compose smoke
@@ -1930,7 +1935,7 @@ jobs:
         # The arm64 job below uses the same steps/settings except for the
         # wake-hostport, network-isolation, management-placement,
         # backup-preparation, monitoring, recovery and standalone drills, which run once on amd64.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads, wake-hostport, network-isolation, management-placement, backup-preparation, monitoring, recovery, standalone]
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads, wake-hostport, network-isolation, management-placement, backup-preparation, monitoring, recovery, standalone, sftp]
         arch: [amd64]
         include:
           - bucket: monitoring
@@ -1997,6 +2002,10 @@ jobs:
           - bucket: restricted-workloads
             parallel: 1
             test_timeout: 25m # Includes real projected-token rotation and node capture cleanup.
+            job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: sftp
+            parallel: 1
+            test_timeout: 20m # chart enable, SFTP login, 32 MiB round trip, stopped-server and revocation checks
             job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
     env:
       CLUSTER: gameplane-e2e
@@ -2929,7 +2938,7 @@ jobs:
               'go-e2e-unit': (n) => n === 'go (test/e2e)',
               'api-postgres': (n) => n === 'api (postgres)',
               'e2e-buckets': (n) => n === 'e2e bucket coverage',
-              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery|standalone) \//.test(n) && n.includes('/ amd64 '),
+              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery|standalone|sftp) \//.test(n) && n.includes('/ amd64 '),
               'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads) \//.test(n) && n.includes('/ arm64 '),
               'e2e-multicluster': (n) => n.startsWith('e2e multicluster /') && n.includes('/ amd64 '),
               'e2e-multicluster-arm64': (n) => n.startsWith('e2e multicluster /') && n.includes('/ arm64 '),
@@ -3082,7 +3091,7 @@ jobs:
             const bucketSet = new Set();
             for (const j of apiJobs) {
               const n = j.name || '';
-              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery|standalone) \//);
+              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery|standalone|sftp) \//);
               const executionGated = m && ['wake-hostport', 'recovery', 'standalone'].includes(m[1]);
               if (m && !executionGated) bucketSet.add(m[1]);
               // Partial selection can complete these legs without running

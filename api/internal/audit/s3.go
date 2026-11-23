@@ -260,6 +260,9 @@ func encodeEvent(buf *bytes.Buffer, e Event) {
 	if e.Reason != "" {
 		p["reason"] = e.Reason
 	}
+	if e.Source != "" {
+		p["source"] = e.Source
+	}
 	_ = json.NewEncoder(buf).Encode(p)
 }
 

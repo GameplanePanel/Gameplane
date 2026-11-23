@@ -230,8 +230,8 @@ EOF
     install_metallb
     apply_metallb_pools
 
-    echo "loading gameplane-test/{operator,api,agent,sentinel,capture-sidecar,telemetry-receiver,mcp-server,audit-syslog-bridge,tunnel-frp}:${TAG} images into kind"
-    for img in operator api agent sentinel capture-sidecar telemetry-receiver mcp-server audit-syslog-bridge tunnel-frp; do
+    echo "loading gameplane-test/{operator,api,agent,sentinel,capture-sidecar,telemetry-receiver,mcp-server,sftp,audit-syslog-bridge,tunnel-frp}:${TAG} images into kind"
+    for img in operator api agent sentinel capture-sidecar telemetry-receiver mcp-server sftp audit-syslog-bridge tunnel-frp; do
         if ! docker image inspect "gameplane-test/${img}:${TAG}" >/dev/null 2>&1; then
             echo "  missing local image gameplane-test/${img}:${TAG} — building"
             dockerfile="${REPO}/${img}/Dockerfile"

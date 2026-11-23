@@ -103,6 +103,38 @@ spec:
               app.kubernetes.io/name: gameplane-operator
       ports:
         - { protocol: TCP, port: 8090 }
+---
+# File-only pods (spec 040) serve /files on the agent port while a server is stopped. Only
+# the API and operator may reach them, and only on that port.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-to-files
+  namespace: {{ $namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: gameplane-files
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        {{- if (eq (include "gameplane.apiEnabled" .) "true") }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: gameplane-api
+        {{- end }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: gameplane-operator
+      ports:
+        - { protocol: TCP, port: 8090 }
 {{- $capture := .Values.capture | default dict }}
 {{- if $capture.enabled }}
 ---
