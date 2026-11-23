@@ -155,7 +155,7 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - `/backups` — GET, POST: list and create Backup CRDs
 - `/backups/{name}` — GET, PUT, DELETE: manage Backup CRDs (namespaced, cluster-dispatch)
 - `/schedules` — GET, POST: list and create BackupSchedule CRDs
-- `/schedules/{name}` — GET, PUT, DELETE: manage BackupSchedule CRDs (namespaced, cluster-dispatch)
+- `/schedules/{name}` — GET, PUT, DELETE: manage BackupSchedule CRDs (namespaced, cluster-dispatch). DELETE accepts the optional query parameters `expectedUID` and `expectedResourceVersion` together. Kubernetes checks both against the live schedule and returns 409 if either changed.
 - `/restores` — GET, POST: list and create Restore CRDs
 - `/restores/{name}` — GET, PUT, DELETE: manage Restore CRDs (namespaced, cluster-dispatch)
 - `/backup-destinations` — GET, POST: list and create restic repo Secrets

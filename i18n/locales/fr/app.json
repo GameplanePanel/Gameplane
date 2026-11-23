@@ -1367,6 +1367,10 @@
         "defaultMessage": "Annuler",
         "description": "Schedule form: button that closes the form without creating a schedule; keep it short"
     },
+    "web.components.backups.schedule_form.changed": {
+        "defaultMessage": "Cette planification a changé. Rouvrez-la pour modifier sa dernière version.",
+        "description": "Schedule editor: conflict while saving a changed or replaced schedule"
+    },
     "web.components.backups.schedule_form.create_schedule": {
         "defaultMessage": "Créer la planification",
         "description": "Schedule form: submit button label"
@@ -1383,9 +1387,17 @@
         "defaultMessage": "Snapshot de volume CSI récurrent selon une expression cron. Aucun dépôt restic requis.",
         "description": "Schedule form: hint for the CSI snapshot schedule type"
     },
+    "web.components.backups.schedule_form.csi_policy_hint": {
+        "defaultMessage": "Les instantanés de volume nécessitent de conserver l’état d’alimentation du serveur et de sauvegarder uniquement le volume principal.",
+        "description": "Schedule editor: explains why the current restic backup policies prevent switching to CSI"
+    },
     "web.components.backups.schedule_form.destination": {
         "defaultMessage": "Destination",
         "description": "Schedule form: label above the dropdown that picks the backup destination"
+    },
+    "web.components.backups.schedule_form.edit_schedule": {
+        "defaultMessage": "Modifier {name}",
+        "description": "Schedule editor heading, where {name} is the existing backup schedule"
     },
     "web.components.backups.schedule_form.new_backup_schedule": {
         "defaultMessage": "Nouvelle planification de sauvegarde",
@@ -1410,6 +1422,10 @@
     "web.components.backups.schedule_form.retention_policy": {
         "defaultMessage": "Politique de rétention",
         "description": "Schedule form: label above the retention settings that decide how many old backups are kept"
+    },
+    "web.components.backups.schedule_form.save_changes": {
+        "defaultMessage": "Enregistrer les modifications",
+        "description": "Schedule editor: save changes to the existing schedule"
     },
     "web.components.backups.schedule_form.schedule_cron": {
         "defaultMessage": "Planification (cron)",
@@ -7055,13 +7071,25 @@
         "defaultMessage": "Terminé",
         "description": "Backups tab: column heading for when each backup finished in the backups table; keep it short"
     },
+    "web.routes.tabs.backups.delete_schedule_changed": {
+        "defaultMessage": "La planification a été modifiée ou supprimée. Vérifiez la planification actuelle avant de la supprimer.",
+        "description": "Server Backups tab: the schedule changed after the user opened the delete confirmation"
+    },
+    "web.routes.tabs.backups.delete_schedule_hint": {
+        "defaultMessage": "Supprimer cette planification arrête les prochaines exécutions. Les sauvegardes déjà effectuées sont conservées.",
+        "description": "Server Backups tab: explains the effect of deleting a schedule"
+    },
+    "web.routes.tabs.backups.edit": {
+        "defaultMessage": "Modifier",
+        "description": "Server Backups tab: opens the selected backup schedule for editing"
+    },
     "web.routes.tabs.backups.last_backup": {
         "defaultMessage": "Dernier backup",
         "description": "Backups tab: stat card label for the time of the most recent backup; the value shows that time relative to now, or Unavailable"
     },
     "web.routes.tabs.backups.managed_by_server_settings": {
         "defaultMessage": "Géré par les paramètres du serveur",
-        "description": "Backups tab: small badge on a schedule row meaning the schedule is set by the server settings and not edited here; keep it short"
+        "description": "Backups tab: opens the server settings that control this schedule"
     },
     "web.routes.tabs.backups.name": {
         "defaultMessage": "Nom",

@@ -406,12 +406,14 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
 
 3. **Backups Tab** (`web/src/routes/tabs/Backups.tsx`, 290 lines)
    - Per-server backup list (snapshots created via the /backups page or on-demand)
+   - Users with schedule write access can edit or delete standalone schedules here. The **Managed by server settings** action opens the selected server’s **Settings → Scheduled backups**, where users with server write access can edit its inline backup policy.
    - Table columns: backup name, phase (Pending/Succeeded/Failed), size, completion time, actions
    - Open backup detail drawer, trigger restore dialog, delete backup
    - Uses HeroUI Table, Button, Modal (restore trigger), ui/ PhaseChip
 
 4. **Settings Tab** (`web/src/routes/tabs/Settings.tsx`, 396 lines)
    - Sub-section navigation tabs (11 sections below) via HeroUI Tabs
+   - Opening Settings from the tab bar starts in **General**. The managed schedule action passes `initialSection="backups"` to start in **Scheduled backups**.
    - Layout: left sidebar with section buttons, right panel for section content
    - Each section maintains independent form state, save/discard flow, per-field validation
 

@@ -1412,5 +1412,12 @@
     "name": "Screen/Admin Settings — Mod registries (Key from startup flag)",
     "width": 1440,
     "height": 900
+  },
+  {
+    "file": "1494270493-26",
+    "figId": "1494270493:26",
+    "name": "States/Backup schedule — Edit with restricted snapshot strategy",
+    "width": 1524,
+    "height": 582
   }
 ]
