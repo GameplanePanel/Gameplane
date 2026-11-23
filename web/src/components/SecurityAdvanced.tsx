@@ -141,7 +141,9 @@ function SettingStatus({ applied, desired }: { applied?: StatusEntry; desired?: 
   const shown = applied ?? desired;
   if (shown === undefined) return null;
   const shownText = entryText(intl, shown);
-  const pending = desired !== undefined && entryKey(desired) !== entryKey(applied);
+  // Pending means a saved change the running server has not applied yet, so a
+  // server that has never started (no applied record) shows none (FR-009).
+  const pending = applied !== undefined && desired !== undefined && entryKey(desired) !== entryKey(applied);
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
       <span>
