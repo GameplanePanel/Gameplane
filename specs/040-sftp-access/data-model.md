@@ -53,7 +53,7 @@ At most 2 active per cluster (rotation).
 | digest | TEXT NOT NULL UNIQUE | SHA-256 of `gpsftp_…` session token |
 | session_epoch | BIGINT NOT NULL | copied from `users.session_epoch` |
 | expires_at | TEXT NOT NULL | now + 15 min, extended on use (sliding, at most once a minute) |
-| revoked_at | TEXT | set when the credential is removed or regenerated |
+| revoked_at | TEXT | set when the credential is removed or regenerated, or when the SFTP server ends a session it turned away (`POST /sftp/v1/sessions/end`) |
 
 Expired rows are swept with the MCP token sweeper.
 

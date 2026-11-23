@@ -173,6 +173,7 @@
 - [ ] T053 [P] Docs: new `docs/sftp.md` (enable, connect with FileZilla/WinSCP/`sftp`, host key check, credentials, per-server login, remote clusters, stopped servers), threat-model entry in `docs/security.md`, component in `docs/architecture.md`, `sftp/specs.md` and `sftp/README.md`, `operator` and `api` docs for the annotation and routes.
 - [ ] T054 Changelog `changelog/unreleased/<PR>-sftp-access.md` in the chart PR per `changelog/unreleased/README.md` (new Helm values `sftp.*`, `files.maxUploadSize`, `operator.filesIdleTimeout`).
 - [ ] T055 Run every scenario in `specs/040-sftp-access/quickstart.md` on a dev cluster and record results in the chart PR.
+- [X] T056 `POST /sftp/v1/sessions/end` in `api/internal/handlers/sftp_login.go` (`end`) and `EndSFTPSessions` in `api/internal/auth/sftp_revoke.go`, per contracts/api.md: lets the SFTP server revoke a session it refused after login (session cap, failed SSH handshake); same service-token auth and cluster binding as `sessions/check`; unit tests in `api/internal/handlers/sftp_end_test.go`.
 
 ---
 

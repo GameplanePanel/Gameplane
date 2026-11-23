@@ -71,7 +71,7 @@ operator/cmd/main.go         --files-idle-timeout
 api/internal/db/migrations/common/024_sftp_credentials.sql
 api/internal/auth/sftp.go    keys, passwords, service tokens, sessions, guard (+ tests)
 api/internal/handlers/sftp.go  profile, admin, cluster token routes (+ envtest)
-api/internal/handlers/sftp_login.go  /sftp/v1/login, /sftp/v1/sessions/check
+api/internal/handlers/sftp_login.go  /sftp/v1/login, /sftp/v1/sessions/check, /sftp/v1/sessions/end
 api/internal/rbac/fileaccess.go  FileAccess helper: the one place file permissions are decided (R8)
 api/internal/ws/dialer.go    mount files/stat, files/rename, files/stream; ensure file-only access on stopped servers
 api/internal/gatewayprotocol/  stat, rename, stream as allowed operations; stream long-running

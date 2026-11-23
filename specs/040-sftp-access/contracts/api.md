@@ -17,6 +17,10 @@ The API splits `username` at the last `+` (R4). A target login also asks the fil
 
 Request: `{"sessionTokens": ["gpsftp_…", …]}` (up to 500). Response: `{"revoked": ["gpsftp_…", …]}`. Called every 30 s.
 
+### `POST /sftp/v1/sessions/end`
+
+Request: `{"sessionTokens": ["gpsftp_…", …]}` (up to 500). Response 204, no body. Revokes each listed session issued for the service token's cluster, in one transaction; unknown, foreign-cluster and already revoked tokens are ignored without error. The SFTP server calls it when it turns away a session after login (per-user session cap reached, SSH handshake failed) so the API session does not linger. Not audited.
+
 ## Called by the SFTP server (bearer: SFTP session token `gpsftp_…`)
 
 Only these routes accept a session token (guard like `MCPTokenGuard`); `cluster` is forced to the token's cluster:

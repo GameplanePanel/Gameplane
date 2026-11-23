@@ -814,6 +814,9 @@ func shouldLog(req *http.Request) bool {
 	case req.URL.Path == "/sftp/v1/sessions/check":
 		// Endpoints poll this route every 30 seconds; it is not an audit event.
 		return false
+	case req.URL.Path == "/sftp/v1/sessions/end":
+		// Session housekeeping by the endpoint, like sessions/check.
+		return false
 	case strings.HasPrefix(req.URL.Path, "/auth/oidc/"):
 		// Login events are audited only on success via the session
 		// creation path; OIDC callbacks themselves are too noisy.

@@ -160,8 +160,8 @@ func (s *SessionStore) SFTPSessionGuard(next http.Handler) http.Handler {
 	})
 }
 
-// SFTPServiceAuth authenticates the SFTP endpoint's service token on /sftp/v1/login and
-// /sftp/v1/sessions/check. Anything else is refused with the generic 401.
+// SFTPServiceAuth authenticates the SFTP endpoint's service token on /sftp/v1/login,
+// /sftp/v1/sessions/check and /sftp/v1/sessions/end. Anything else is refused with the generic 401.
 func (s *SessionStore) SFTPServiceAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		var (

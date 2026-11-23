@@ -40,6 +40,7 @@ func MountSFTPLogin(r chi.Router, sessions *auth.SessionStore, store *db.Store, 
 		r.Use(sessions.SFTPServiceAuth)
 		r.Post("/sftp/v1/login", h.login)
 		r.Post("/sftp/v1/sessions/check", h.check)
+		r.Post("/sftp/v1/sessions/end", h.end)
 	})
 }
 
@@ -254,6 +255,38 @@ func (h *sftpLoginHandler) check(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 	writeJSON(w, map[string]any{"revoked": revoked})
+}
+
+// end revokes sessions the endpoint turned away. Unknown or foreign tokens are ignored.
+func (h *sftpLoginHandler) end(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	caller, ok := auth.SFTPCallerFromContext(ctx)
+	if !ok {
+		httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
+		return
+	}
+	var body struct {
+		SessionTokens []string `json:"sessionTokens"`
+	}
+	if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+		httperr.WriteMessage(w, req, messages.New("server.common.invalid_json", nil))
+		return
+	}
+	if len(body.SessionTokens) > sftpCheckMaxTokens {
+		httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
+		return
+	}
+	digests := make([]string, 0, len(body.SessionTokens))
+	for _, tok := range body.SessionTokens {
+		if strings.HasPrefix(tok, auth.SFTPSessionTokenPrefix) {
+			digests = append(digests, auth.SFTPTokenDigest(tok))
+		}
+	}
+	if err := h.sessions.EndSFTPSessions(ctx, caller.Cluster, digests); err != nil {
+		httperr.WriteMessage(w, req, messages.New("server.generic.503", nil))
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 type sftpServersHandler struct {
