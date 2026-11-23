@@ -393,6 +393,9 @@ func main() {
 	// rbac.Middleware and handlers.MountPods read it to gate pod and event reads.
 	scope.SetControlPlaneNamespace(cfg.namespace)
 
+	// Internal reads use the same selected cluster and credentials as
+	// browser-facing agent routes, including remote-only management installs.
+	agentLister := ws.NewClusterAgentClient(reg, credentialsNS, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)
 	// Protected API
 	r.Group(func(p chi.Router) {
 		p.Use(sessions.Authenticate)
@@ -437,6 +440,9 @@ func main() {
 		handlers.MountSystemLogs(p, k8s, cfg.namespace)
 		handlers.MountModulesWithRegistry(p, reg, moduleConfigMapNS)
 		handlers.MountRegistrySecrets(p, k8s, credentialsNS)
+		handlers.MountRegistryShareWithOptions(p, k8s, credentialsNS, handlers.RegistryShareOptions{
+			StartupKeySet: cfg.curseforgeAPIKey != "",
+		})
 		// Precedence: a runtime, admin-configured key (DB row + labelled
 		// Secret, resolved lazily per registry.DBKeyFunc) always wins over
 		// the startup --curseforge-api-key flag, so adding/rotating a key
@@ -448,10 +454,12 @@ func main() {
 			registry.DBKeyFunc(store, registry.NewK8sSecretReader(k8s, credentialsNS)),
 			registry.StaticKeys(map[string]string{"curseforge": cfg.curseforgeAPIKey}),
 		))
-		handlers.MountRegistryWithRegistry(p, reg, regSet)
-		// Internal reads use the same selected cluster and credentials as
-		// browser-facing agent routes, including remote-only management installs.
-		agentLister := ws.NewClusterAgentClient(reg, credentialsNS, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)
+		handlers.MountRegistryWithOptions(p, reg, regSet, handlers.RegistryOptions{
+			Audit:     auditor,
+			Home:      k8s,
+			ControlNS: credentialsNS,
+			Files:     agentLister,
+		})
 		handlers.MountModUpdatesWithRegistry(p, reg, regSet, agentLister)
 		// ID-managed mods (ARK CurseForge ids, Project Zomboid MOD_IDS,
 		// Steam Workshop lists): the API only writes GameServer.spec.mods.ids;
@@ -492,6 +500,7 @@ func main() {
 			jobs.Go(func() { sessions.RunGC(leaderCtx, time.Hour) })
 			jobs.Go(func() { notify.New(store, k8s, credentialsNS).RunWithRegistry(leaderCtx, reg) })
 			jobs.Go(func() { reporter.Run(leaderCtx) })
+			jobs.Go(func() { handlers.RunModpackAdoptSweep(leaderCtx, reg, agentLister, logger) })
 			jobs.Go(func() {
 				auditor.RunRetention(leaderCtx, time.Duration(cfg.auditRetentionDays)*24*time.Hour, 24*time.Hour, logger)
 			})

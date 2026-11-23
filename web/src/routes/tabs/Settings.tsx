@@ -100,12 +100,13 @@ const SECTIONS: { key: SectionKey; label: MessageDescriptor; icon: typeof Settin
 
 export interface SettingsTabProps {
   gs?: GameServer;
+  initialSection?: SectionKey;
   name: string;
   ns?: string;
   onDirtyChange?: (dirty: boolean) => void;
 }
 
-export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
+export function SettingsTab({ gs, name, ns, initialSection = "general", onDirtyChange }: SettingsTabProps) {
   const mobile = useMediaQuery("(max-width: 767px)");
   const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
@@ -115,7 +116,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
   const resourceClient = useResourceClient(resourceTarget);
   const { Servers } = resourceClient;
   const qc = useQueryClient();
-  const [section, setSection] = useState<SectionKey>("general");
+  const [section, setSection] = useState<SectionKey>(initialSection);
   const [draft, setDraft] = useState<GameServer | null>(null);
   const [conflict, setConflict] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -50,9 +50,14 @@ Changing targets discards pending join results and commands.
 `/clusters/<id>?tab=configuration` owns kubeconfig access, read-only installation
 storage, backup destinations and remote registration removal. Kubeconfig issuance
 and installation storage remain local-only. Remote access and storage are managed
-in that cluster's installation. Backup destination requests and drafts bind to
-the explicit cluster and `gameplane-games` namespace, with that scope's destination
-permissions. Removal requires confirmation and never applies to Local.
+in that cluster's installation. Backup destination requests, drafts and permissions
+use the selected cluster and namespace. Opening cluster configuration directly
+defaults to `gameplane-games`. Removal requires confirmation and never applies to Local.
+
+From a server’s **Settings → Scheduled backups**, **Manage destinations** opens
+that server’s cluster configuration with its namespace selected. The **Back up now**
+dialog offers the same link when the server has no destinations. Both links require
+permission to read and manage destinations in that cluster and namespace.
 
 Panel settings retain central authentication, telemetry, registries and
 notifications. Old `/admin?section=backups` links lead users to the owning cluster
@@ -85,3 +90,8 @@ Accounts, roles, audit and installation settings remain centrally managed. Their
 requests do not inherit the inventory selection. Combined panels manage the local
 module catalog; standalone panels require an explicit remote target for modules
 and sources.
+
+**MCP access.** Personal MCP tokens read through the API with the same per-cluster
+grants as the dashboard. A session lists every cluster the user may read, and an
+ungranted cluster answers like an unknown one. See
+[`docs/security.md`](security.md#mcp-server-optional).

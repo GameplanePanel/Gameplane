@@ -381,7 +381,7 @@ export type ShareLinkCreateBody = { canStart: boolean } & (
   | { expiresAt?: never; neverExpires?: never; expiresIn?: never }
 );
 
-// Share link management. Authenticated operations (create, list, revoke) require
+// Share link management. Authenticated operations (create, list, edit, revoke) require
 // an active session and server ownership; public operations (resolve, start) are
 // rate-limited but require no auth. Invalid links remain neutral; resolve keeps
 // transient failures available for retry without exposing details in public UI.
@@ -401,6 +401,12 @@ function makeShares(request: typeof api) {
   // Lists all share links for a server. The list never includes raw tokens.
   list: (server: string, ns?: string) =>
     api<ShareLink[]>(withNS(`/servers/${encodeURIComponent(server)}:shares`, ns)),
+
+  setCanStart: (server: string, id: string, canStart: boolean, ns?: string) =>
+    api<void>(
+      withNS(`/servers/${encodeURIComponent(server)}/shares/${encodeURIComponent(id)}`, ns),
+      { method: "PATCH", body: { canStart } }
+    ),
 
   // DELETE /servers/{name}/shares/{id} (authenticated, owner-only).
   // Revokes a share link, rendering its token invalid immediately.

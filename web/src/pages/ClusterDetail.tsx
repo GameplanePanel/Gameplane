@@ -27,7 +27,7 @@ const DEFAULT_CONTROL_PLANE_NAMESPACE = "gameplane";
 
 export function ClusterDetailPage() {
   const { clusterId } = useParams({ from: "/app-layout/clusters/$clusterId" });
-  const { tab = "overview" } = useSearch({ from: "/app-layout/clusters/$clusterId" });
+  const { tab = "overview", ns } = useSearch({ from: "/app-layout/clusters/$clusterId" });
   const intl = useOptionalIntl();
   const navigate = useNavigate();
   const installation = useInstallation();
@@ -45,12 +45,12 @@ export function ClusterDetailPage() {
     {installation.isError && installationFailure}
     {registry.isError && registryFailure}
     <PageHeader title={clusterName} description={intl.formatMessage({ id: "web.cluster_detail.description", defaultMessage: "Cluster connectivity, nodes and configuration.", description: "Cluster detail page description" })} actions={<Button variant="outline" onPress={() => void navigate({ to: "/servers", search: { cluster: cluster.name } })}>{intl.formatMessage({ id: "web.routes.clusters.view_servers", defaultMessage: "View servers", description: "Clusters: button on a cluster card that opens the server list for that cluster; keep it short; its screen-reader name also includes the cluster name" })}</Button>} />
-    <Tabs selectedKey={selected} onSelectionChange={(key) => void navigate({ to: "/clusters/$clusterId", params: { clusterId }, search: { tab: String(key) as ClusterTab } })}>
+    <Tabs selectedKey={selected} onSelectionChange={(key) => void navigate({ to: "/clusters/$clusterId", params: { clusterId }, search: { tab: String(key) as ClusterTab, ns } })}>
       <Tabs.List aria-label={intl.formatMessage({ id: "web.cluster_detail.tabs", defaultMessage: "Cluster detail tabs", description: "Accessible cluster tab navigation label" })}>{(Object.keys(tabs) as ClusterTab[]).map((key) => <Tab key={key} id={key}>{intl.formatMessage(tabs[key])}</Tab>)}</Tabs.List>
     </Tabs>
     {selected === "overview" && <ClusterOverview cluster={cluster} />}
     {selected === "nodes" && (cluster.canViewInventory === true ? <div className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-muted">{intl.formatMessage({ id: "web.cluster_detail.fixed_cluster", defaultMessage: "Cluster: {name}", description: "Fixed cluster scope label above embedded nodes" }, { name: clusterName })}</p><Button variant="outline" onPress={() => void navigate({ to: "/nodes", search: {} })}>{intl.formatMessage({ id: "web.cluster_detail.all_nodes", defaultMessage: "View all nodes", description: "Link from cluster nodes to fleet nodes" })}</Button></div><NodeInventory key={cluster.name} clusterId={cluster.name} embedded /></div> : <ErrorCard message={intl.formatMessage({ id: "web.cluster_detail.inventory_denied", defaultMessage: "You don't have permission to view node inventory on this cluster.", description: "Cluster node inventory access denied" })} />)}
-    {selected === "configuration" && <ClusterConfiguration key={cluster.name} cluster={cluster} />}
+    {selected === "configuration" && <ClusterConfiguration key={cluster.name} cluster={cluster} destinationNamespace={ns} />}
   </div>;
 }
 

@@ -29,8 +29,9 @@ import (
 )
 
 // destinationLabel marks a Secret as a Gameplane backup destination. The
-// agent and operator never read this label — it's purely a discovery
-// hint for the API.
+// agent never reads this label. The operator reads it only to decide
+// whether any destination exists for a modpack removal or change backup
+// (spec 035); otherwise it is a discovery hint for the API.
 const destinationLabel = "gameplane.local/backup-destination"
 
 // MountDestinations wires /backup-destinations onto the supplied router.

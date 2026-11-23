@@ -406,14 +406,24 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
 
 3. **Backups Tab** (`web/src/routes/tabs/Backups.tsx`, 290 lines)
    - Per-server backup list (snapshots created via the /backups page or on-demand)
+   - Users with schedule write access can edit or delete standalone schedules here. The **Managed by server settings** action opens the selected server’s **Settings → Scheduled backups**, where users with server write access can edit its inline backup policy.
    - Table columns: backup name, phase (Pending/Succeeded/Failed), size, completion time, actions
    - Open backup detail drawer, trigger restore dialog, delete backup
    - Uses HeroUI Table, Button, Modal (restore trigger), ui/ PhaseChip
 
 4. **Settings Tab** (`web/src/routes/tabs/Settings.tsx`, 396 lines)
    - Sub-section navigation tabs (11 sections below) via HeroUI Tabs
+   - Opening Settings from the tab bar starts in **General**. The managed schedule action passes `initialSection="backups"` to start in **Scheduled backups**.
    - Layout: left sidebar with section buttons, right panel for section content
    - Each section maintains independent form state, save/discard flow, per-field validation
+
+### Modpacks tab (spec 035, planned)
+
+Status: the API and CRD side has landed; the web work (specs/035-curseforge-modpacks tasks, not yet implemented) has not. Contracts: `specs/035-curseforge-modpacks/contracts/ui-modpacks-tab.md` and `api-modpack.md`; designs are in `design.pen`.
+
+- **Types and client (planned):** `web/src/types.ts` gains `ModpackDecl` fields `versionEnv`, `apiKeyEnv`, `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile`, the provider fields `modpacksOnly` and `ftb`, and the `GET /servers/{name}/modpack` view (`active`, `phase`, `message`, `backupName`, `keyShared`, `missingFiles`, `missingFilesUnknown`, `downloadsPath`, `backupAvailable`). `Servers.installModpack` moves from `{ ref }` to `{ provider, project, version, title, versionName, backupFirst }`; new `Servers.modpack`, `Servers.removeModpack(name, backupFirst)` and an admin `Registries.curseforgeShare` get/put. The install call returns 202; the tab polls the GET view until `phase` is `Applied`.
+- **Surfaces (planned):** registry switch (Modrinth, CurseForge, FTB; CurseForge hidden when `modpacksBlockedReason` is set); version picker for the server's Minecraft version and loader with newest preselected and release/beta badges; confirmation dialog with "Back up first" and a downgrade warning; Active modpack card (title, registry, version or "Not pinned", phase, Change version, Remove, "Retry remove" after a failed removal backup); missing-files notice with links and the `downloads/` upload instructions, or a start-the-server note when `missingFilesUnknown`; admin Mod registries "Share the CurseForge key with game servers" switch, disabled with a reason when only the startup flag supplies the key.
+- Mods tab hides providers with `modsBrowse=false`. Until these land, the existing Modpacks tab (`Modpacks.tsx`) is unchanged.
 
 ### Settings Sub-Sections (T101–T111)
 
@@ -872,6 +882,7 @@ package.json                # @gameplane/web v0.4.3; dev: vite, npm scripts for 
 8. **Users** (`/users`) → `UsersPage` (gated by `users:manage` permission)
    - Create/edit/delete users and OIDC links
    - Manage role bindings per namespace
+   - Row menu "MCP tokens" opens a dialog listing the selected user's personal MCP tokens (`GET /users/{id}/mcp-tokens`, query key `["user-mcp-tokens", id]`): name, prefix, expiry, last used, and an Active / Expired / Revoked state; no secrets. Revoke appears per active row only for viewers with `users:manage` (`DELETE /users/{id}/mcp-tokens/{tokenId}`), and the list refetches after a revoke. The dialog refreshes the Expired state each minute
 
 9. **AdminSettings** (`/admin`) → `AdminSettingsPage` (gated by `config:manage` permission)
    - Sections: General (version), Telemetry (destination, tiers, install ID, preview, status), Authentication (OIDC providers), Mod registries (API keys),
@@ -1004,6 +1015,13 @@ The warning is shown regardless of how many groups are being added (single or mu
     - Uses HeroUI Card, Button, Chip, Spinner; brand header with ShieldCheck icon; address copy button
     - Built directly from HeroUI primitives; no ui/ atom components
 
+14. **MCP tokens** (`/settings/mcp-tokens`) → `McpTokensPage` (`web/src/routes/McpTokens.tsx`)
+    - No permission gate: every signed-in user manages their own tokens (spec 037, OD-5). Reached from the user menu and from the settings sub-nav (item under Theme)
+    - List via `GET /users/me/mcp-tokens` (query key `["mcp-tokens"]`) with loading, error and empty states; the empty state shows only after a successful load
+    - Rows show name, prefix, created, expiry, last used (relative, or "Never") and an Active / Expired / Revoked state. Expired and revoked rows are greyed with a badge and have no Revoke
+    - Create dialog: name required, lifetime 7, 30, 90 or 365 days, default 30. Success moves to a one-time reveal with Copy buttons for the token and for an MCP client config snippet that uses the panel origin, plus a copy-failure hint when the clipboard refuses. The secret is dropped from component state and from the mutation cache on Done (`gcTime: 0`)
+    - Revoke asks for confirmation, calls `DELETE /users/me/mcp-tokens/{id}`, and refetches the list
+
 ## ServerDetail Tabs
 
 Visible tab set depends on server template + active version:
@@ -1064,7 +1082,7 @@ Save fetches the latest server and applies only the changes from the original ba
 10. **RBAC & access** — Server owner + collaborator list, permission inheritance. The `setCollaborators` mutation runs unconditionally at component render (not gated by an early return), so hook invocation order is consistent. The mutation's namespace is derived from the GameServer's `metadata.namespace` (or `gameplane-games` as fallback); when no server is loaded, the mutation returns early without calling the API. On success, the mutation invalidates the `["server", gs.metadata.name]` query cache, clears input state, and resets errors; on error, it sets a locally-rendered error message and does not clear input, allowing retry.
 11. **Danger zone** — Wipe world data (confirm-dialog), transfer ownership (confirm-dialog), delete server (confirm-dialog); no Clone action (`web/src/routes/tabs/settings/Danger.tsx`)
 
-**Share links (T179):** Mounted in `Settings.tsx` by slice 5 (`ShareLinksSection`). `ShareLinksSection` (`web/src/routes/tabs/settings/ShareLinks.tsx`). Create/list/revoke share links per server; table shows Created, Expires, Can start capability (view-only vs. can-start), Status (Active/Expired/Revoked). The status shows Revoked when revokedAt is set, regardless of expiry state. Create dialog opens to set expiry and start permission; success shows Created dialog with full URL and one-time copy prompt (token hashed server-side and unrecoverable after close). Revoke dialog (AlertDialog danger) confirms destruction. Empty state when no links exist. Visible only to users with the API-enforced permission (owner/admin create/revoke, viewers see list read-only if API permits). Uses HeroUI Modal/ModalBackdrop/ModalContainer/ModalDialog/ModalHeader/ModalHeading/ModalBody/ModalFooter, AlertDialog family, Button, Table, Select, ListBox, ListBoxItem, Label, Description, Switch, Chip. Only Active links show a Revoke button; Expired and Revoked rows show "—" (design xCJlu).
+**Share links (T179):** `ShareLinksSection` in `web/src/routes/tabs/settings/ShareLinks.tsx` lets the server owner create, list, edit and revoke links. The table shows each link's non-secret ID, creation date, expiry, wake permission and status. An active row has a **Can start** switch and a **Revoke** button. Changing the switch updates wake access for everyone with the existing URL. Expired and revoked rows show a read-only capability chip. Revocation takes precedence over expiry. The create dialog sets expiry and wake permission, then shows the same link ID alongside the URL and its one-time copy prompt. The revoke dialog confirms revocation. An empty state appears when the server has no links (design xCJlu).
 
 **Configurable expiry (feature 017, `ShareLinks.tsx`):** The expiry selector offers exactly six choices — 15 days, 30 days, 60 days, 90 days, No expiry, Custom (date picker) — with 30 days pre-selected, replacing the old fixed 24h/7d/30d/90d menu and its "Maximum 90 days" help text. Selecting "No expiry" shows the warning "This link works until you revoke it." and sends `neverExpires: true`. Selecting "Custom" shows a date picker restricted to dates strictly after today (no maximum); choosing a date 365 days or more out additionally shows "Long-lived link — it stays valid for over a year unless you revoke it." Presets and the custom date are converted client-side to an absolute RFC3339 instant (a custom date is valid through 23:59:59 in the owner's local time) and sent as `expiresAt`; the dialog never sends the deprecated `expiresIn`. The Expires column renders "Never" for a link with `expiresAt: null`, and such a link is never shown as "Expired".
 

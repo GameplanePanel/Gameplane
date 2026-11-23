@@ -54,12 +54,14 @@ type GameServerReconciler struct {
 	// WakeStartLimit caps simultaneous idle cold starts across managed namespaces.
 	WakeStartLimit     int
 	WakeStartNamespace string
-	Scheme             *runtime.Scheme
-
-	// ControlPlaneNamespace holds the cluster's security settings ConfigMap
-	// (gameplane-security-settings, spec 030 OD-7). Empty means root overrides
-	// are disallowed (fail closed).
+	// ControlPlaneNamespace holds the managed mod-registry key Secret that
+	// modpack servers receive a CurseForge key from, and the cluster's
+	// security settings ConfigMap (gameplane-security-settings, spec 030
+	// OD-7). Empty disables key sharing and disallows root overrides (fail
+	// closed).
 	ControlPlaneNamespace string
+	Scheme                *runtime.Scheme
+
 	// EventRecorder emits a Warning event on a GameServer held back from
 	// starting by the root-override rule. Nil-safe: unit and envtest setups
 	// may leave it unset.
@@ -148,6 +150,9 @@ type GameServerReconciler struct {
 	// is treated exactly as "none": mutate nothing and report the
 	// unhonored request, never silently fall back to the default pool.
 	AddressManager string
+
+	// TemplateHostnames supplies player-facing Service hostnames by GameTemplate name.
+	TemplateHostnames map[string]string
 
 	// PortPools gives the servers of each pooled template Service ports of
 	// their own on a shared endpoint (--port-pool, --port-pool-template); see
@@ -273,11 +278,14 @@ const (
 //
 // +kubebuilder:rbac:groups=gameplane.local,resources=gameservers,verbs=get;list;watch
 // +kubebuilder:rbac:groups=gameplane.local,resources=gametemplates,verbs=get;list;watch
+// +kubebuilder:rbac:groups=gameplane.local,resources=backups,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch
 // Secret reads/writes are granted only by namespace Roles in config/rbac and
 // the chart, matching cmd/main.go's per-object Secret cache namespace set.
+// Key sharing reads gameplane-modreg-curseforge from the control-plane
+// namespace (same namespace Role).
 // +kubebuilder:rbac:groups=core,resources=services;persistentvolumeclaims;configmaps,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=pods;pods/log,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=pods/ephemeralcontainers,verbs=get;list;watch
@@ -394,6 +402,16 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
 	}
 
+	// Spec 035: start a modpack change before any pod template is built, so
+	// this pass already renders status.modpack.applied.
+	if err := r.reconcileModpackChange(ctx, &gs, &tmpl); err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile modpack change")
+		return ctrl.Result{}, err
+	}
+
 	if err := r.reconcilePVC(ctx, &gs, &tmpl); err != nil {
 		logger.Error(err, "reconcile PVC")
 		return ctrl.Result{}, err
@@ -449,6 +467,13 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := r.reconcileRCONSecret(ctx, &gs, &tmpl); err != nil {
 		logger.Error(err, "reconcile rcon Secret")
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileModpackKey(ctx, &gs, &tmpl); err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile modpack key Secret")
 		return ctrl.Result{}, err
 	}
 	// Idle policy runs before the replica computation so a sleep or wake
@@ -560,6 +585,20 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile StatefulSet")
 		return ctrl.Result{}, err
 	}
+	if err := r.reconcileModpackRollout(ctx, &gs); err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile modpack rollout")
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileModpackAnnotations(ctx, &gs); err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile modpack annotations")
+		return ctrl.Result{}, err
+	}
 	var recoveryRetry time.Duration
 	if replicas == 1 && stopRequeue == 0 {
 		recoveryRetry, err = r.recoverObsoleteFailedPod(ctx, &gs)
@@ -626,7 +665,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// the sleep deadline or the next wake window; take whichever comes first,
 	// or nothing fires the transition until an unrelated event happens to
 	// wake the reconciler.
-	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry}
+	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry, modpackKeyRequeue(&gs)}
 	if _, held, _ := lifecycleOwner(&gs); held {
 		hints = append(hints, 5*time.Second)
 	}
@@ -665,16 +704,31 @@ func (r *GameServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.PersistentVolumeClaim{}).
 		Owns(&networkingv1.NetworkPolicy{}).
 		Owns(&gameplanev1alpha1.BackupSchedule{}).
+		Owns(&gameplanev1alpha1.Backup{}).
 		Owns(&corev1.Secret{}).
 		Owns(&corev1.ConfigMap{}).
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&rbacv1.Role{}).
 		Owns(&rbacv1.RoleBinding{}).
 		Watches(&corev1.Pod{}, handler.EnqueueRequestsFromMapFunc(r.mapPodToGameServer)).
+		// Modpack backups carry no owner reference (they outlive the server), so
+		// Owns(&Backup{}) never fires for them; map them to spec.serverRef instead.
+		Watches(&gameplanev1alpha1.Backup{}, handler.EnqueueRequestsFromMapFunc(mapModpackBackupToGameServer)).
 		Watches(&gameplanev1alpha1.GameTemplate{}, handler.EnqueueRequestsFromMapFunc(r.mapTemplateToGameServers),
 			builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.mapSecuritySettingsToGameServers)).
 		Complete(r)
+}
+
+// mapModpackBackupToGameServer maps a Backup carrying the modpack-change label
+// to the server named by spec.serverRef in the same namespace. Other Backups
+// map to nothing: their GameServer is woken through Owns(&Backup{}) as before.
+func mapModpackBackupToGameServer(_ context.Context, obj client.Object) []reconcile.Request {
+	b, ok := obj.(*gameplanev1alpha1.Backup)
+	if !ok || b.Labels[modpackBackupLabel] == "" || b.Spec.ServerRef.Name == "" {
+		return nil
+	}
+	return []reconcile.Request{{NamespacedName: types.NamespacedName{Namespace: b.Namespace, Name: b.Spec.ServerRef.Name}}}
 }
 
 // Template creation and spec changes must wake servers that failed before any
@@ -2072,6 +2126,12 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		}
 		// Volumes and InitContainers are assigned wholesale so removing
 		// configFiles from the template strips them on the next reconcile.
+		// Spec 035 R5: a removal empties the active loader's mods mount once
+		// (before the game starts); nil for every other state.
+		var initContainers []corev1.Container
+		if wipe := modpackWipeInit(r.ConfigInitImage, gs, tmpl, ver, r.AgentResources); wipe != nil {
+			initContainers = append(initContainers, *wipe)
+		}
 		if len(mc.files) > 0 {
 			items := make([]corev1.KeyToPath, 0, len(mc.files))
 			for _, f := range mc.files {
@@ -2086,10 +2146,9 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 					},
 				},
 			})
-			ss.Spec.Template.Spec.InitContainers = []corev1.Container{buildConfigInitContainerResolved(r.ConfigInitImage, tmpl, securityFSGroup, r.AgentResources)}
-		} else {
-			ss.Spec.Template.Spec.InitContainers = nil
+			initContainers = append(initContainers, buildConfigInitContainerResolved(r.ConfigInitImage, tmpl, securityFSGroup, r.AgentResources))
 		}
+		ss.Spec.Template.Spec.InitContainers = initContainers
 		// Per-(version+loader) mod volume, nested at storage.mountPath/<path>
 		// so the game image reads mods from its usual dir while they persist
 		// on their own PVC. Assigned wholesale with the rest, so switching to
@@ -2661,7 +2720,14 @@ func buildGameContainer(
 	if e := modIDListEnv(tmpl, gs, env); e != nil {
 		env = append(env, *e)
 	}
-	env = append(env, gs.Spec.Env...)
+	// Spec 035: for a server with a managed modpack spec.env is stripped of
+	// every modpack-declared env name and the applied pack's env follows it
+	// (legacy servers are returned unchanged); see gameserver_modpack.go.
+	env = append(env, modpackSpecEnv(gs, tmpl)...)
+	env = append(env, modpackPackEnv(gs, tmpl)...)
+	if e := modpackKeyEnv(gs, tmpl); e != nil {
+		env = append(env, *e)
+	}
 	// The operator-managed RCON password wins, so the game and the agent
 	// sidecar always agree on it.
 	if e := rconGameEnv(gs, tmpl); e != nil {

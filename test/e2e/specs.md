@@ -46,6 +46,19 @@ The `test/e2e` module is Gameplane's end-to-end test suite: it stands up a real 
 
 It was one of three `go.work` modules without CI lint coverage until this feature (`api`, `agent`, and `test/e2e` — see FR-001); all 13 `go.work` members (`netguard`, `gameaction`, `gameproto`, `operator`, `agent`, `api`, `sentinel`, `audit-syslog-bridge`, `telemetry-receiver`, `mcp-server`, `svcutil`, `tunnel`, and `test/e2e`) are golangci-lint gated in CI now — see the `lint` job's matrix in `.github/workflows/ci.yaml`. `test/e2e` lints with `--build-tags=e2e`, same tier as `operator`/`api`'s `--build-tags=envtest`, run as their own step so the catch-all lint step excludes all three and nothing is linted twice.
 
+### Modpack drills (spec 035)
+
+`TestGameServer_Modpack_CurseForgeThenModrinth`, `TestGameServer_Modpack_PinSurvivesRestarts` and
+`TestGameServer_Modpack_RemoveKeepsWorld` run in `bot-fast` (one runner per test, one admin login each, game-bot gate:
+`GAMEPLANE_E2E_GAME_BOT=1`). They install a small CurseForge Fabric pack (Essentials Mods [FABRIC], file 8021547) and a
+Modrinth pack (FPS Modpack, `kedIKix5`) through `POST /servers/{name}/modpack` with the itzg image's built-in CurseForge
+key, and assert the operator's `Applied` phase, a Ready game pod and the rendered env (no `CF_*` after switching to
+Modrinth), a pinned `CF_FILE_ID` and `.curseforge-manifest.json` `fileId` across three restarts, and an empty mods
+folder with an untouched world folder and a plain Fabric server after removal. The tests build a template mirroring the
+minecraft-java 2.13.0 providers block and skip when `modules/minecraft-java` is checked out without it.
+`TestGameServer_Modpack_BlockedModManualDownload` (manual browser download) and `TestGameServer_Modpack_FTBInstall`
+(~170 MB pack) are in no bucket; run them by hand with `GAMEPLANE_E2E_GAME_BOT=1`.
+
 ## Responsibilities
 
 The operator bucket includes `TestGameServer_TemplateOnRequestRetainsData`: a
@@ -81,6 +94,23 @@ node to exercise the explicit unavailable/replaced-node condition. This bucket
 runs alone because it changes node scheduling. Its GameServer and template names
 are unique per run; it uses the chart-owned game namespace so the operator's
 configured Secret scope and RBAC apply. Runtime results come from CI.
+
+### Standalone Helm panel
+
+The amd64 `standalone` bucket runs `TestStandalone_HelmPanelLifecycle` (spec 025,
+OD-6 and OD-7). It installs the chart's panel-only profile (`api.standalone=true`,
+`operator.enabled=false`, `web.enabled=false`) as a second Helm release in the
+fixed namespace `e2e-standalone-panel`, with `api.remoteAllowedCIDRs` set to the
+in-cluster Kubernetes API address. It checks one replica, `Recreate` and no
+service-account token; bootstraps an admin; checks empty clusters and fleet with
+no `local` cluster, `/admin/installation` (standalone, and 401 when anonymous) and
+the 501 from system logs; refuses plain-HTTP, disallowed-destination and
+unverified-TLS kubeconfigs; registers the Kind cluster with a ServiceAccount token;
+creates a GameServer through the panel and waits for the operator's StatefulSet;
+replaces the kubeconfig, revokes the first token and reads the server again;
+restarts the API pod and reads it again; then deletes the server and the
+registration. The panel has its own database, key and login limiter (3 logins),
+so it spends none of the shared panel's login budget.
 
 ### Panel recovery drill
 
@@ -206,7 +236,7 @@ rows. Each matrix leg skips cluster setup only when its selected test pattern
 is empty; full-scope and affected-component runs must include the affected
 buckets.
 
-The CI report counts `wake-hostport` and `recovery` only when their exact
+The CI report counts `wake-hostport`, `recovery` and `standalone` only when their exact
 `run go e2e (<bucket>)` test step completes with success or failure. Skipped,
 cancelled or absent test steps do not count as executed drills.
 

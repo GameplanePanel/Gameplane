@@ -43,6 +43,12 @@ export function useModRegistrySave() {
       }
       return next;
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ["config"] }),
+    // The share switch reads the managed key's state, which a save or delete changes.
+    onSettled: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["config"] }),
+        qc.invalidateQueries({ queryKey: ["admin", "curseforge-share"] }),
+      ]);
+    },
   });
 }

@@ -45,6 +45,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   hangar: "Hangar",
   factorio: "Factorio Mod Portal",
   steam: "Steam Workshop",
+  ftb: "FTB",
   spigot: "SpigotMC",
   github: "GitHub Releases",
   umod: "uMod",
@@ -109,8 +110,17 @@ export function RegistryBrowser({
     queryFn: ({ signal }) => client.withSignal(signal).Servers.registryProviders(name, ns),
   });
   const available = (providersQ.data ?? []).filter(
-    (p) => p.available && (type !== "modpack" || p.modpacks),
+    (p) =>
+      p.available &&
+      (type === "modpack" ? p.modpacks && !p.modpacksBlockedReason : p.modsBrowse !== false),
   );
+  // CurseForge is hidden from the Modpacks switch until an admin shares the key.
+  const curseForgeNeedsSharedKey =
+    type === "modpack" &&
+    (providersQ.data ?? []).some(
+      (p) =>
+        p.available && p.modpacks && p.modpacksBlockedReason === "curseforge_key_not_shared",
+    );
   // Fall back to the first available provider until one is picked (or if a
   // stale pick is no longer offered).
   const provider = picked && available.some((p) => p.provider === picked) ? picked : available[0]?.provider;
@@ -146,9 +156,18 @@ export function RegistryBrowser({
   const showChips = !!categories && categories.length > 0;
   const chipsInteractive = !!provider && CATEGORY_FILTERABLE_PROVIDERS.has(provider);
 
+  const sharedKeyHint = curseForgeNeedsSharedKey ? (
+    <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.registry_browser.curseforge_needs_shared_key", defaultMessage: "CurseForge packs for Minecraft 1.16.5 need the shared CurseForge key. An admin can turn on “Share the CurseForge key with game servers” in Settings → Mod registries.", description: "Registry browser: muted hint under the modpack switch explaining CurseForge is hidden until an admin shares the CurseForge key with game servers" })}</p>
+  ) : null;
+
   // No usable provider (none declared, or all need config like a CurseForge key).
   if (!providersQ.isLoading && available.length === 0) {
-    return <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.registry_browser.in_app_browse_isn_t_available_for_this", defaultMessage: "In-app browse isn’t available for this server.", description: "Registry browser: message shown instead of the results when no usable registry provider exists for this server, so in-app browsing is unavailable" })}</p>;
+    return (
+      <div className="flex flex-col gap-2">
+        <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.registry_browser.in_app_browse_isn_t_available_for_this", defaultMessage: "In-app browse isn’t available for this server.", description: "Registry browser: message shown instead of the results when no usable registry provider exists for this server, so in-app browsing is unavailable" })}</p>
+        {sharedKeyHint}
+      </div>
+    );
   }
 
   return (
@@ -168,6 +187,7 @@ export function RegistryBrowser({
           </Tabs.List>
         </Tabs>
       )}
+      {sharedKeyHint}
 
       <div className="flex items-center gap-2">
         <Input

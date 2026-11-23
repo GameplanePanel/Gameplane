@@ -155,7 +155,7 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - `/backups` — GET, POST: list and create Backup CRDs
 - `/backups/{name}` — GET, PUT, DELETE: manage Backup CRDs (namespaced, cluster-dispatch)
 - `/schedules` — GET, POST: list and create BackupSchedule CRDs
-- `/schedules/{name}` — GET, PUT, DELETE: manage BackupSchedule CRDs (namespaced, cluster-dispatch)
+- `/schedules/{name}` — GET, PUT, DELETE: manage BackupSchedule CRDs (namespaced, cluster-dispatch). DELETE accepts the optional query parameters `expectedUID` and `expectedResourceVersion` together. Kubernetes checks both against the live schedule and returns 409 if either changed.
 - `/restores` — GET, POST: list and create Restore CRDs
 - `/restores/{name}` — GET, PUT, DELETE: manage Restore CRDs (namespaced, cluster-dispatch)
 - `/backup-destinations` — GET, POST: list and create restic repo Secrets
@@ -169,7 +169,9 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - `/modules/catalog` — GET: merged catalog across sources, with installation state
 - `/modules/{name}/locales/{tag}` — GET: the module's translated messages for a language as a flat id → message map, read from the operator-written `<name>-locales` ConfigMap. The tag falls back to its base language; an unknown or malformed tag, or a module without translations, returns `200 {}`; values are the validated ICU message strings, uncompiled. 404 only when the Module does not exist. Requires `modules:read`.
 - `/modules/builder/{archetypes,scaffold,validate,preview,export}` — module builder workflow
-- `/servers/{name}/mods/registry/providers`, `/servers/{name}/mods/registry/search`, `/servers/{name}/mods/registry/projects/{project}/versions`, `/servers/{name}/mods/registry/projects/{project}/modpack` (GET), `POST /servers/{name}/modpack` — live mod registry queries (CurseForge, Modrinth, Spigot, etc.)
+- `/servers/{name}/mods/registry/providers`, `/servers/{name}/mods/registry/search`, `/servers/{name}/mods/registry/projects/{project}/versions` (`?type=modpack` returns pack versions for the server's Minecraft version and loader, newest first), `/servers/{name}/mods/registry/projects/{project}/modpack` (GET, deps-mode packs) — live mod registry queries (CurseForge, Modrinth, FTB, Spigot, etc.)
+- `/servers/{name}/modpack` — GET: active pack, phase, backup, missing manual-download files; POST: install or change version (202, writes `spec.modpack` only); DELETE `?backupFirst=`: remove the pack (202, deletes `spec.modpack`, sets `gameplane.local/modpack-remove`). See [Modpacks (spec 035)](#modpacks-spec-035)
+- `/admin/registries/curseforge/share` — GET/PUT: admin toggle for sharing the managed CurseForge key with game servers (`config:manage`)
 - `/servers/{name}/mods/updates` — GET: available updates for a mod
 - `/servers/{name}/mods/ids` — GET, PUT: ID-managed mods (ARK CurseForge IDs, Project Zomboid MOD_IDs, Steam Workshop lists)
 - `/cluster`, `/cluster/info`, `/cluster/stats` — GET: selected-cluster version, nodes, storage and optional usage. Require cluster-wide `cluster:read` on the selected cluster (or wildcard cluster); namespace grants cannot read node inventory. Remote requests use only that registry client's nodes, PVs, metrics and version, never home-cluster inventory. A registered cluster whose client is unavailable returns 503; an authorized unknown selector returns 400. Kubernetes denials retain their status with generic messages. Metrics-server absence remains optional and omits usage rather than reporting zero. Remote info returns the registration ID as its name, `clusterOps: false`, no local update channel, and the central API's `gameplaneVersion`. Node pod counts are populated from a cluster-wide Pending+Running pod list (paginated in 500-pod chunks with server-side terminal-pod filtering); counts are omitted entirely (not zero) when the list fails. Per-cluster counts are cached for ~15 seconds.
@@ -639,6 +641,8 @@ Verify from `/api/go.mod`.
 **Public share power policy:** `GET /shares/{token}` includes `manuallyStopped` (the server's explicit stop setting) and `canStart` (the link permits waking and the server is not manually stopped). The existing `status` remains the observed phase. `POST /shares/{token}/start` is wake-only: an authorized link to a manually stopped server returns 409 with the stable generic JSON body `{"error":"server stopped"}` without stamping a wake or changing `spec.suspend`. Idle-asleep servers still receive a conditional wake annotation and 202; the operator owns reconciliation. Invalid and view-only start requests retain the identical neutral 404 response.
 
 **006_share_links.sql:** (unauthenticated server access tokens)
+- The owner's list includes active, expired and revoked links belonging to the current GameServer. It omits links minted for an earlier server with the same name, using the same UID and legacy creation-time checks as public resolution.
+- The server owner can send `PATCH /servers/{name}/shares/{id}` with a boolean `canStart` field to change an active link's wake permission. The response is 204. The update matches the cluster, namespace, server incarnation and link ID. Expired, revoked and unmatched links return 404. Everyone using the existing URL sees the new permission on their next request.
 - Creates `share_links` table: signed, revocable tokens for unauthenticated access to a single GameServer's status and connection address, optionally with start capability
 - Token never stored; only SHA-256 hash persisted and indexed for O(1) lookup
 - Revocation (`DELETE /servers/{name}/shares/{id}`, `db.Store.RevokeShareLink`) matches the link's cluster, namespace, server name and id; no match returns `db.ErrShareLinkNotFound`, which the handler answers with 404
@@ -979,4 +983,4 @@ The version cap also applies behind API path prefixes. SPDY TLS/header negotiati
 
 Standalone `/modules/*` requests require one explicit registered remote `cluster` selector and cluster-wide module permission on that target. The selected remote operator owns module reconciliation; upload ConfigMaps use the configured operator namespace. Combined installs retain local module ownership and reject remote selectors on this surface. Local node credential minting is incompatible with standalone startup; Kubernetes system-log endpoints return 501 and the dashboard directs administrators to container logs.
 
-See [standalone installation](../docs/standalone-panel.md) and [design](../specs/025-standalone-panel/spec.md).
+See [standalone installation](../docs/standalone-panel.md) and [design](../specs/done_025-standalone-panel/spec.md).

@@ -275,8 +275,18 @@ TestGameServer_WakeOnConnect_PingDoesNotWake
 TestGameServer_WakeOnConnect_LoginWakes
 TestColdWakeFleet_ConcurrentJoins
 TestGameServer_WakeOnConnect_UnarmedNoSentinel
+TestGameServer_Modpack_CurseForgeThenModrinth
+TestGameServer_Modpack_PinSurvivesRestarts
+TestGameServer_Modpack_RemoveKeepsWorld
 EOF
 }
+
+# The three TestGameServer_Modpack_* tests (spec 035: T017, T031, T040) boot a
+# real itzg Minecraft server with a CurseForge or Modrinth pack, so they sit
+# here with the other real-Minecraft tests. Every bot-fast test runs on its own
+# runner (hack/ci_scope.py bots), so each one's single admin login spends a
+# fresh login budget; none of the api buckets has headroom. They need public
+# egress to CurseForge and Modrinth and the module 2.13.0 providers block.
 
 # Games with heavy resource requirements, excluded from default CI execution.
 # This bucket is DELIBERATELY never run in CI — not on PRs, not nightly, not
@@ -438,10 +448,14 @@ EOF
 
 # optional-components owns its cluster: TestOptionalComponents_Lifecycle runs
 # `helm upgrade --reuse-values` to enable the MCP server and the audit-syslog
-# bridge, so it is the bucket's only test. Login budget: 2 (one admin, one
-# restricted user).
+# bridge, so it owns the bucket's cluster. Login budget: 2 (one admin, one
+# restricted user). TestOptionalComponents_MCPScope is the bucket's other test:
+# it is non-parallel, so Go runs it before the parallel lifecycle test resumes,
+# it re-enables the MCP server itself, scales the API to 0 and back, disables
+# the MCP server again on cleanup, and makes no logins.
 bucket_optional_components() { cat <<'EOF'
 TestOptionalComponents_Lifecycle
+TestOptionalComponents_MCPScope
 EOF
 }
 
@@ -490,7 +504,18 @@ TestBackup_PreparationAndSameNodeCopy
 EOF
 }
 
-unbucketed() { :; }
+# TestGameServer_Modpack_BlockedModManualDownload (spec 035, T046) is excluded
+# from every CI bucket: its last step needs a jar the operator downloads by
+# hand in a browser (CurseForge serves a blocked mod only to a browser
+# session), and it skips unless GAMEPLANE_E2E_CF_BLOCKED_* is set.
+# TestGameServer_Modpack_FTBInstall (spec 035, T052) is excluded because even
+# the smallest modern FTB pack is ~170 MB of mods plus a heavy first boot,
+# which exceeds the CI runner budget. Both are hand runs only.
+unbucketed() { cat <<'EOF'
+TestGameServer_Modpack_BlockedModManualDownload
+TestGameServer_Modpack_FTBInstall
+EOF
+}
 
 bucket_monitoring() { cat <<'EOF'
 TestMonitoring_DiscoveryPerformanceAndPolicy
@@ -501,8 +526,18 @@ bucket_network_isolation() {
 	printf '%s\n' TestNetworkIsolation_EnforcedAndUpgrade TestNetworkIsolation_ProbeOutput
 }
 
+# standalone owns its cluster (spec 025 OD-7): TestStandalone_HelmPanelLifecycle
+# installs the chart's panel-only profile as a second Helm release in the fixed
+# namespace e2e-standalone-panel and registers this Kind cluster as its remote.
+# Zero shared panel logins; the standalone panel has its own login limiter
+# (3 logins).
+bucket_standalone() { cat <<'EOF'
+TestStandalone_HelmPanelLifecycle
+EOF
+}
+
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery standalone
 }
 
 list_bucket() {
@@ -530,6 +565,7 @@ list_bucket() {
 	management-placement) bucket_management_placement ;;
 	backup-preparation) bucket_backup_preparation ;;
 	recovery) bucket_recovery ;;
+	standalone) bucket_standalone ;;
 	monitoring) bucket_monitoring ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2

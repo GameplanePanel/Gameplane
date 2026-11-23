@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Capture (No access)",
   "type": "FRAME",
   "x": 9840,
-  "y": 37339,
+  "y": 37128,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Mod registries",
   "type": "FRAME",
   "x": 0,
-  "y": 87078,
+  "y": 85089,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

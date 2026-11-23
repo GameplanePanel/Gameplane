@@ -4,7 +4,7 @@
   "name": "Screen/Clusters — Registered clusters",
   "type": "FRAME",
   "x": 0,
-  "y": 66168,
+  "y": 64190,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

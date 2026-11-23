@@ -16,6 +16,7 @@ import { ClustersPage } from "@/routes/Clusters";
 import { UsersPage } from "@/routes/Users";
 import { AdminSettingsPage } from "@/routes/AdminSettings";
 import { ThemeSettingsPage } from "@/routes/ThemeSettings";
+import { McpTokensPage } from "@/routes/McpTokens";
 import { CreateServerWizard } from "@/routes/CreateServer";
 import { BackupsPage } from "@/routes/Backups";
 import { AuditLogPage } from "@/routes/AuditLog";
@@ -113,9 +114,13 @@ const clusterDetailRoute = new Route({
   getParentRoute: () => appLayoutRoute,
   path: "/clusters/$clusterId",
   component: ClusterDetailPage,
-  validateSearch: (search: Record<string, unknown>): { tab?: "overview" | "nodes" | "configuration" } => ({
-    tab: search.tab === "nodes" || search.tab === "configuration" ? search.tab : "overview",
-  }),
+  validateSearch: (search: Record<string, unknown>): { tab?: "overview" | "nodes" | "configuration"; ns?: string } => {
+    const ns = search.ns;
+    if (ns !== undefined && (typeof ns !== "string" || !/^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$/.test(ns))) {
+      throw new Error("Invalid destination namespace");
+    }
+    return { tab: search.tab === "nodes" || search.tab === "configuration" ? search.tab : "overview", ns };
+  },
 });
 
 const clustersRoute = new Route({
@@ -156,6 +161,14 @@ const themeSettingsRoute = new Route({
   getParentRoute: () => appLayoutRoute,
   path: "/settings/theme",
   component: ThemeSettingsPage,
+});
+
+// Personal MCP tokens (spec 037): every signed-in user manages their own
+// tokens, so like Theme the route has no RequirePermission gate.
+const mcpTokensRoute = new Route({
+  getParentRoute: () => appLayoutRoute,
+  path: "/settings/mcp-tokens",
+  component: McpTokensPage,
 });
 
 const auditLogRoute = new Route({
@@ -216,6 +229,7 @@ export const routeTree = rootRoute.addChildren([
     usersRoute,
     adminRoute,
     themeSettingsRoute,
+    mcpTokensRoute,
     auditLogRoute,
     adminLogsRoute,
     backupsRoute,

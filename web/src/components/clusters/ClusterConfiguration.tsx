@@ -20,11 +20,16 @@ import { ClusterSection } from "./ClusterSection";
 
 const CLUSTER_OPS_KEY = "clusterOps.enabled";
 
-export function ClusterConfiguration({ cluster }: { cluster: ClusterRegistry }) {
-  return <ConfigurationTarget key={cluster.name} cluster={cluster} />;
+interface ConfigurationProps {
+  cluster: ClusterRegistry;
+  destinationNamespace?: string;
 }
 
-function ConfigurationTarget({ cluster }: { cluster: ClusterRegistry }) {
+export function ClusterConfiguration(props: ConfigurationProps) {
+  return <ConfigurationTarget key={props.cluster.name} {...props} />;
+}
+
+function ConfigurationTarget({ cluster, destinationNamespace }: ConfigurationProps) {
   const intl = useOptionalIntl();
   const identity = useMe();
   const installation = useInstallation();
@@ -90,7 +95,7 @@ function ConfigurationTarget({ cluster }: { cluster: ClusterRegistry }) {
     {canReadConfig && config.isPending && <LoadingCard message={intl.formatMessage({ id: "web.cluster_configuration.loading_storage", defaultMessage: "Loading storage settings…", description: "Cluster storage loading state" })} />}
     {canReadConfig && config.isError && <ErrorCard message={intl.formatMessage({ id: "web.cluster_configuration.storage_error", defaultMessage: "Couldn't load storage settings.", description: "Cluster storage read failure" })} onRetry={() => void config.refetch()} />}
     {canReadConfig && config.data?.installTimeSettings && <StorageSection settings={config.data.installTimeSettings} />}
-    <BackupDestinationsPanel clusterId={cluster.name} />
+    <BackupDestinationsPanel clusterId={cluster.name} namespace={destinationNamespace} />
     <SecuritySettingsPanel clusterId={cluster.name} />
     {cluster.name !== "local" && canManage && <ClusterSection className="border border-danger/30" title={intl.formatMessage({ id: "web.cluster_configuration.remove_registration", defaultMessage: "Remove registration", description: "Cluster removal section title" })} subtitle={intl.formatMessage({ id: "web.routes.clusters.removes_this_panel_s_connection_to_the", defaultMessage: "Removes this panel's connection to the cluster. Running workloads remain on the cluster.", description: "Clusters: text in the remove-cluster confirmation dialog saying the panel's connection is removed while running workloads stay on the cluster" })}>
       <Button variant="danger" onPress={() => { remove.reset(); setRemoveOpen(true); }} aria-label={intl.formatMessage({ id: "web.routes.clusters.remove_cluster_named", defaultMessage: "Remove cluster {name}", description: "Clusters: accessible label of the Remove button; {name} is the cluster display name" }, { name: cluster.displayName || cluster.name })}>{intl.formatMessage({ id: "web.cluster_configuration.remove_registration", defaultMessage: "Remove registration", description: "Cluster removal section title" })}</Button>

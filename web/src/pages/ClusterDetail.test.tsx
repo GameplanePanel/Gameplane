@@ -4,12 +4,12 @@ import { screen } from "@testing-library/react";
 import { server } from "@/test/server";
 import { renderWithQuery } from "@/test/render";
 import { setCurrentCluster } from "@/lib/cluster";
-const route = vi.hoisted(() => ({ clusterId: "east", tab: "overview" }));
-vi.mock("@tanstack/react-router", () => ({ useParams: () => ({ clusterId: route.clusterId }), useSearch: () => ({ tab: route.tab }), useNavigate: () => vi.fn() }));
+const route = vi.hoisted(() => ({ clusterId: "east", tab: "overview", ns: undefined as string | undefined }));
+vi.mock("@tanstack/react-router", () => ({ useParams: () => ({ clusterId: route.clusterId }), useSearch: () => ({ tab: route.tab, ns: route.ns }), useNavigate: () => vi.fn() }));
 vi.mock("@/components/nodes/NodeInventory", () => ({ NodeInventory: ({ clusterId }: { clusterId?: string }) => <div>Inventory for {clusterId}</div> }));
 import { ClusterDetailPage } from "./ClusterDetail";
 
-afterEach(() => { route.clusterId = "east"; route.tab = "overview"; setCurrentCluster("local"); });
+afterEach(() => { route.clusterId = "east"; route.tab = "overview"; route.ns = undefined; setCurrentCluster("local"); });
 describe("ClusterDetailPage", () => {
   it("uses its route registration independently of remembered selection", async () => {
     setCurrentCluster("west");
@@ -18,6 +18,20 @@ describe("ClusterDetailPage", () => {
     renderWithQuery(<ClusterDetailPage />);
     expect(await screen.findByRole("heading", { name: "East", level: 1 })).toBeInTheDocument();
     expect(screen.getByText("Inventory for east")).toBeInTheDocument();
+  });
+
+  it("opens destination configuration in the namespace from a server link", async () => {
+    route.tab = "configuration";
+    route.ns = "games-east";
+    server.use(
+      http.get("/clusters", () => HttpResponse.json({ items: [{ name: "east", displayName: "East", phase: "Healthy" }] })),
+      http.get("/backup-destinations", ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        return HttpResponse.json({ items: [{ name: params.get("cluster") + "/" + params.get("namespace") }] });
+      }),
+    );
+    renderWithQuery(<ClusterDetailPage />);
+    expect(await screen.findByText("east/games-east")).toBeInTheDocument();
   });
 
   it("does not mount inventory for a registry entry without its explicit capability", async () => {

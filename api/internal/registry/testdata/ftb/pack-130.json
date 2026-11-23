@@ -1,0 +1,2336 @@
+{
+  "art": [
+    {
+      "compressed": false,
+      "height": 512,
+      "id": -1,
+      "mirrors": [],
+      "order": 0,
+      "sha1": "68956ac57b28ce4ebbe9535820311af863f682bb",
+      "title": "Logo",
+      "type": "square",
+      "updated": 0,
+      "url": "https://cdn.feed-the-beast.com/blob/5b/5b10fbf6e78546a5a4be81a2d311718cc24d29e4277e747028d787d6fec0be46.webp",
+      "width": 512
+    },
+    {
+      "compressed": false,
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1,
+      "sha1": "e1373197e44478979d456ad60f6b8577014eb932",
+      "title": "Background",
+      "type": "splash",
+      "updated": 0,
+      "url": "https://cdn.feed-the-beast.com/blob/98/98b53e2120cbc2dca41d65b5aac42862671f1d8b76d8374cd2cdde32bc24bb6e.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1027,
+      "id": -1,
+      "mirrors": [],
+      "order": 1002,
+      "sha1": "b12ba42eb0a97486cd5efedcfb136ec996b11997",
+      "title": "Spawn",
+      "type": "screenshot",
+      "updated": 1761732737,
+      "url": "https://cdn.feed-the-beast.com/blob/98/98433704039cf25f1b4a63ca76ca8757bfd15da43778a6ee0dc85f72b04cef5e.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1027,
+      "id": -1,
+      "mirrors": [],
+      "order": 1003,
+      "sha1": "89a06f065a8643daea3288bba311d16a3885231e",
+      "title": "Cave starter",
+      "type": "screenshot",
+      "updated": 1761732780,
+      "url": "https://cdn.feed-the-beast.com/blob/fc/fc911eb09aa9bc57cbfcdb63e3510174e1ddab91a97cff1bba5a75c338b9b9d7.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1027,
+      "id": -1,
+      "mirrors": [],
+      "order": 1004,
+      "sha1": "494f8f9aac63c8ec3386033678fcc207f151472e",
+      "title": "Cherry Grove Starter",
+      "type": "screenshot",
+      "updated": 1761732800,
+      "url": "https://cdn.feed-the-beast.com/blob/9d/9d64d449bd1e1575395646e8b3aa1e1b56d7125b7e19066746d71ca0dc71fdd9.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1005,
+      "sha1": "047f6c4373b3b3538ad97a161084a84acbec9402",
+      "title": "Arcane Grove",
+      "type": "screenshot",
+      "updated": 1761732834,
+      "url": "https://cdn.feed-the-beast.com/blob/51/51f4b185bf5c4c93394360a764559d4ea1495f07c00598ce40644f7940f78560.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1006,
+      "sha1": "b3a8ff7965357dfca6fc2f074e6300a743ef45bb",
+      "title": "A mysterious boss appears!",
+      "type": "screenshot",
+      "updated": 1761732887,
+      "url": "https://cdn.feed-the-beast.com/blob/9d/9d574d9ffe810c380ab3309a0fc8cfa7d93a0c5e96c54a63dcd2d5436d3c56eb.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1007,
+      "sha1": "961e4b95452c66903e21145e4f27ad6f8bb252b5",
+      "title": "The end",
+      "type": "screenshot",
+      "updated": 1761732928,
+      "url": "https://cdn.feed-the-beast.com/blob/af/afd250b491a023d38bc82fe9fb8db9da0ad70af8d03d1a7b4110d61f7c172e45.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1008,
+      "sha1": "f4dec9e715382954521912579ef15e7f9dc5f434",
+      "title": "Healing spring",
+      "type": "screenshot",
+      "updated": 1761732944,
+      "url": "https://cdn.feed-the-beast.com/blob/4a/4ad2331330f994f880319be0cba9700722b8d70458a7fd55e878dfe051c93d09.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1027,
+      "id": -1,
+      "mirrors": [],
+      "order": 1009,
+      "sha1": "2f95415dbb61db31f86dd84e66e5f6fa7c88d655",
+      "title": "Mangrove Starter",
+      "type": "screenshot",
+      "updated": 1761732978,
+      "url": "https://cdn.feed-the-beast.com/blob/62/62a8af9b23b8e5ee182431b98416a574690f8feaba909bc941751bf9ee90250b.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1010,
+      "sha1": "a3a57594f767d298f1753719ab7a129c0f830f25",
+      "title": "Taking a dive",
+      "type": "screenshot",
+      "updated": 1761733011,
+      "url": "https://cdn.feed-the-beast.com/blob/50/50e2a8ebdbc659e9b5a43e6d5071f5efae4f7abf392c2768d0667e2435c6abe1.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1011,
+      "sha1": "3cdc262abfdb3bcd71cac81b225b4de6e2f6a178",
+      "title": "Is that a Yeti?!",
+      "type": "screenshot",
+      "updated": 1761733029,
+      "url": "https://cdn.feed-the-beast.com/blob/c2/c26e7ba0a2576bc9a772c4cae2a053f6069b687fc6a65240246c4b44837492ec.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1012,
+      "sha1": "996583d77c248b79ef4a7e17d05fe0d2a510f0cb",
+      "title": "Weeping Well",
+      "type": "screenshot",
+      "updated": 1761733050,
+      "url": "https://cdn.feed-the-beast.com/blob/8a/8a42aa7c5c278a3e8e500d732fbcb76b8a33c8a3943a9385bf3590b86bcab7ac.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1013,
+      "sha1": "2c93f96887e12311ecfb1616d749394229c30ac0",
+      "title": "Void",
+      "type": "screenshot",
+      "updated": 1761733087,
+      "url": "https://cdn.feed-the-beast.com/blob/54/54f5717e6c9513202332295c3893edb52dd0a1b68348af3931b6f90bc136f2a9.webp",
+      "width": 1920
+    },
+    {
+      "compressed": false,
+      "description": "",
+      "height": 1080,
+      "id": -1,
+      "mirrors": [],
+      "order": 1014,
+      "sha1": "1e786a38a8543058d99d0e1c75bc7e3560483cc6",
+      "title": "Nether dungeon",
+      "type": "screenshot",
+      "updated": 1761733107,
+      "url": "https://cdn.feed-the-beast.com/blob/44/446049dc732525b734960776801b43dcd758c89b027003e5137f1b1ac3c8ddbd.webp",
+      "width": 1920
+    }
+  ],
+  "authors": [
+    {
+      "id": -1,
+      "name": "FTB Team",
+      "type": "team",
+      "updated": 0,
+      "website": "https://www.feed-the-beast.com/"
+    }
+  ],
+  "featured": true,
+  "id": 130,
+  "installs": 2219810,
+  "links": [
+    {
+      "id": -1,
+      "link": "https://docs.feed-the-beast.com",
+      "name": "Wiki",
+      "type": "misc"
+    },
+    {
+      "id": -1,
+      "link": "https://github.com/ftbteam/ftb-modpack-issues/issues",
+      "name": "Issue Tracker",
+      "type": "misc"
+    }
+  ],
+  "meta": {
+    "curseforgeProjectId": 1373378,
+    "isLegacy": false,
+    "supportsWorlds": true
+  },
+  "name": "FTB StoneBlock 4",
+  "notification": "",
+  "plays": 13442764,
+  "plays_14d": 1453747,
+  "private": false,
+  "provider": "modpacks.ch",
+  "rating": {
+    "age": 7,
+    "alcoholdrugs": false,
+    "configured": false,
+    "frightening": true,
+    "gambling": false,
+    "id": -1,
+    "language": false,
+    "nuditysexual": false,
+    "sterotypeshate": false,
+    "verified": false,
+    "violence": true
+  },
+  "released": 1761746400,
+  "slug": "ftb-stoneblock-4",
+  "status": "success",
+  "synopsis": "The stone remembers. Dive into StoneBlock 4, the next evolution of Minecraft’s underground survival: explore handcrafted Vaults, learn from ancient Echoes, power the World Engine, all on 1.21.1 ",
+  "tags": [
+    {
+      "id": 9,
+      "name": "FTB"
+    },
+    {
+      "id": 103,
+      "name": "1.21.1"
+    },
+    {
+      "id": 24,
+      "name": "Adventure"
+    },
+    {
+      "id": 29,
+      "name": "Challenge"
+    },
+    {
+      "id": 26,
+      "name": "Combat"
+    },
+    {
+      "id": 23,
+      "name": "Exploration"
+    },
+    {
+      "id": 22,
+      "name": "Large"
+    },
+    {
+      "id": 12,
+      "name": "Magic"
+    },
+    {
+      "id": 55,
+      "name": "NeoForge"
+    },
+    {
+      "id": 46,
+      "name": "Progression"
+    },
+    {
+      "id": 14,
+      "name": "Questing"
+    },
+    {
+      "id": 13,
+      "name": "Tech"
+    }
+  ],
+  "type": "release",
+  "updated": 1761733221,
+  "versions": [
+    {
+      "id": 100140,
+      "name": "1.0.0",
+      "private": false,
+      "released": 1761664502,
+      "specs": {
+        "id": -1,
+        "minimum": 5120,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.209"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1761664502
+    },
+    {
+      "id": 100141,
+      "name": "1.0.1",
+      "private": false,
+      "released": 1761819603,
+      "specs": {
+        "id": -1,
+        "minimum": 5120,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1761819603
+    },
+    {
+      "id": 100142,
+      "name": "1.0.2",
+      "private": false,
+      "released": 1762032602,
+      "specs": {
+        "id": -1,
+        "minimum": 5120,
+        "recommended": 6144
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "archived",
+      "updated": 1762040967
+    },
+    {
+      "id": 100143,
+      "name": "1.0.3",
+      "private": false,
+      "released": 1762040702,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1762040702
+    },
+    {
+      "id": 100144,
+      "name": "1.0.4",
+      "private": false,
+      "released": 1762205402,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1762205402
+    },
+    {
+      "id": 100145,
+      "name": "1.0.5",
+      "private": false,
+      "released": 1762209902,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "archived",
+      "updated": 1762242381
+    },
+    {
+      "id": 100146,
+      "name": "1.0.6",
+      "private": false,
+      "released": 1762223403,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "archived",
+      "updated": 1762242373
+    },
+    {
+      "id": 100147,
+      "name": "1.0.7",
+      "private": false,
+      "released": 1762225502,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1762225502
+    },
+    {
+      "id": 100148,
+      "name": "1.0.8",
+      "private": false,
+      "released": 1762463702,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1762463702
+    },
+    {
+      "id": 100150,
+      "name": "1.1.0",
+      "private": false,
+      "released": 1763076602,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1763076602
+    },
+    {
+      "id": 100151,
+      "name": "1.1.1",
+      "private": false,
+      "released": 1763319902,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1763319902
+    },
+    {
+      "id": 100152,
+      "name": "1.1.2",
+      "private": false,
+      "released": 1763506802,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1763506802
+    },
+    {
+      "id": 100156,
+      "name": "1.2.0",
+      "private": false,
+      "released": 1764105002,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1764105002
+    },
+    {
+      "id": 100157,
+      "name": "1.2.1",
+      "private": false,
+      "released": 1764200402,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1764200402
+    },
+    {
+      "id": 100158,
+      "name": "1.3.0",
+      "private": false,
+      "released": 1764864902,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.213"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1764864902
+    },
+    {
+      "id": 100159,
+      "name": "1.4.0",
+      "private": false,
+      "released": 1765252502,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.216"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1765252502
+    },
+    {
+      "id": 100164,
+      "name": "1.5.0",
+      "private": false,
+      "released": 1765912503,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.216"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1765912503
+    },
+    {
+      "id": 100171,
+      "name": "1.6.0",
+      "private": false,
+      "released": 1767757203,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.216"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1767757203
+    },
+    {
+      "id": 100174,
+      "name": "1.7.0",
+      "private": false,
+      "released": 1769805602,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.218"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1769805602
+    },
+    {
+      "id": 100175,
+      "name": "1.7.1",
+      "private": false,
+      "released": 1770067202,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.218"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "archived",
+      "updated": 1770116899
+    },
+    {
+      "id": 100176,
+      "name": "1.7.2",
+      "private": false,
+      "released": 1770117303,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.218"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1770117303
+    },
+    {
+      "id": 100177,
+      "name": "1.7.3",
+      "private": false,
+      "released": 1770132002,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.218"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1770132002
+    },
+    {
+      "id": 100180,
+      "name": "1.8.0",
+      "private": false,
+      "released": 1770750602,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.219"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1770801457
+    },
+    {
+      "id": 100212,
+      "name": "1.8.1",
+      "private": false,
+      "released": 1773228602,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.219"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1773228602
+    },
+    {
+      "id": 100214,
+      "name": "1.9.0",
+      "private": false,
+      "released": 1773782702,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.219"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1773782702
+    },
+    {
+      "id": 100219,
+      "name": "1.9.1",
+      "private": false,
+      "released": 1773880202,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.220"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1773880202
+    },
+    {
+      "id": 100232,
+      "name": "1.9.3",
+      "private": false,
+      "released": 1774221302,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.220"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "archived",
+      "updated": 1775205222
+    },
+    {
+      "id": 100235,
+      "name": "1.9.4",
+      "private": false,
+      "released": 1774403702,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.220"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1774403702
+    },
+    {
+      "id": 100249,
+      "name": "1.9.5",
+      "private": false,
+      "released": 1775030702,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.220"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1775030702
+    },
+    {
+      "id": 100256,
+      "name": "1.9.6",
+      "private": false,
+      "released": 1775242802,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.222"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1775242802
+    },
+    {
+      "id": 100262,
+      "name": "1.10.0",
+      "private": false,
+      "released": 1775615702,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.222"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1775615702
+    },
+    {
+      "id": 100272,
+      "name": "1.11.0",
+      "private": false,
+      "released": 1776315002,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.224"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1776315002
+    },
+    {
+      "id": 100284,
+      "name": "1.11.1",
+      "private": false,
+      "released": 1777035902,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.224"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1777035902
+    },
+    {
+      "id": 100298,
+      "name": "1.12.0",
+      "private": false,
+      "released": 1778118002,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.224"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1778118002
+    },
+    {
+      "id": 100309,
+      "name": "1.13.0",
+      "private": false,
+      "released": 1778606402,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.228"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1778606402
+    },
+    {
+      "id": 100312,
+      "name": "1.13.1",
+      "private": false,
+      "released": 1778617202,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.228"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1778617202
+    },
+    {
+      "id": 100330,
+      "name": "1.14.0",
+      "private": false,
+      "released": 1779883649,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.228"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1779883649
+    },
+    {
+      "id": 100338,
+      "name": "1.14.1",
+      "private": false,
+      "released": 1780240951,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.230"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1780240951
+    },
+    {
+      "id": 100344,
+      "name": "1.14.2",
+      "private": false,
+      "released": 1780449404,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.233"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1780449404
+    },
+    {
+      "id": 100366,
+      "name": "1.15.0",
+      "private": false,
+      "released": 1781318703,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.233"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1781318703
+    },
+    {
+      "id": 100368,
+      "name": "1.15.2",
+      "private": false,
+      "released": 1781587803,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.233"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1781587803
+    },
+    {
+      "id": 100372,
+      "name": "1.15.3",
+      "private": false,
+      "released": 1781687103,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.233"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1781687103
+    },
+    {
+      "id": 100408,
+      "name": "1.16.0",
+      "private": false,
+      "released": 1783000428,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.233"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1783000428
+    },
+    {
+      "id": 100429,
+      "name": "1.17.0",
+      "private": false,
+      "released": 1784922904,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.243"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1784922904
+    },
+    {
+      "id": 100437,
+      "name": "1.17.1",
+      "private": false,
+      "released": 1785255744,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.243"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1785255744
+    },
+    {
+      "id": 100440,
+      "name": "1.17.2",
+      "private": false,
+      "released": 1785334503,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.243"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1785334503
+    },
+    {
+      "id": 100456,
+      "name": "1.18.0",
+      "private": false,
+      "released": 1786147448,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.243"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1786147448
+    },
+    {
+      "id": 100459,
+      "name": "1.19.0",
+      "private": false,
+      "released": 1786458903,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.248"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1786458903
+    },
+    {
+      "id": 100462,
+      "name": "1.19.1",
+      "private": false,
+      "released": 1786502103,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.248"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1786502103
+    },
+    {
+      "id": 100484,
+      "name": "1.20.0",
+      "private": false,
+      "released": 1787776802,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.248"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1787776802
+    },
+    {
+      "id": 100489,
+      "name": "1.20.1",
+      "private": false,
+      "released": 1788302702,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.248"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1788302702
+    },
+    {
+      "id": 100501,
+      "name": "1.21.0",
+      "private": false,
+      "released": 1788984902,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.248"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1788984902
+    },
+    {
+      "id": 100515,
+      "name": "1.22.0",
+      "private": false,
+      "released": 1790090702,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.250"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1790090702
+    },
+    {
+      "id": 100554,
+      "name": "1.23.0",
+      "private": false,
+      "released": 1791775502,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.250"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1791775502
+    },
+    {
+      "id": 100570,
+      "name": "1.24.0",
+      "private": false,
+      "released": 1792618202,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.262"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1792618202
+    },
+    {
+      "id": 100574,
+      "name": "1.24.1",
+      "private": false,
+      "released": 1792622102,
+      "specs": {
+        "id": -1,
+        "minimum": 6144,
+        "recommended": 8192
+      },
+      "targets": [
+        {
+          "id": -1,
+          "name": "minecraft",
+          "type": "game",
+          "updated": 0,
+          "version": "1.21.1"
+        },
+        {
+          "id": -1,
+          "name": "neoforge",
+          "type": "modloader",
+          "updated": 0,
+          "version": "21.1.262"
+        },
+        {
+          "id": -1,
+          "name": "java",
+          "type": "runtime",
+          "updated": 0,
+          "version": "21.0.4+7-LTS"
+        }
+      ],
+      "type": "release",
+      "updated": 1792622102
+    }
+  ]
+}

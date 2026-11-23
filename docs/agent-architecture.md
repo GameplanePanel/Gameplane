@@ -53,7 +53,7 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | Task | Read |
 | --- | --- |
 | Translations, language packs, localized server or module messages (i18n) | `docs/translating.md`, `specs/019-localization-language-packs/contracts/` (`pack-format.md`, `server-messages.md`, `i18n-api.md`, `module-locales.md`, `check-tool.md`), and the Internationalization section of `web/specs.md` |
-| CI test selection: which jobs, packages and tests a PR runs (`hack/ci_scope.py`, `hack/check_changed_coverage.py`, `test/e2e/suite-components.json`, the `changes` job in `.github/workflows/ci.yaml`) | `docs/contributing.md` ("How CI picks tests"), `specs/023-change-based-test-selection/contracts/` (`ci-scope-cli.md`, `suite-components.md`, `changed-coverage.md`) |
+| CI test selection: which jobs, packages and tests a PR runs (`hack/ci_scope.py`, `hack/check_changed_coverage.py`, `test/e2e/suite-components.json`, the `changes` job in `.github/workflows/ci.yaml`) | `docs/contributing.md` ("How CI picks tests"), `specs/done_023-change-based-test-selection/contracts/` (`ci-scope-cli.md`, `suite-components.md`, `changed-coverage.md`) |
 | Add a CRD field | `operator/specs.md`, `AGENTS.md` (rule 7 and "Common workflows"), `docs/architecture.md` |
 | Add an API route | `api/specs.md`, `docs/security.md`, `web/specs.md` (client-side code in `web/src/lib/api.ts`) |
 | Add or change a dashboard screen | `web/specs.md`, `docs/layout.md` (web app), `assets/design-export/MANIFEST.md`, `docs/contributing.md` ("Design first for UI changes") |
@@ -62,6 +62,8 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | Add a DB migration | `api/specs.md`, `api/internal/db/migrations/README.md` |
 | Change CI or a workflow | `docs/contributing.md` ("CI and workflows", "How CI picks tests") |
 | Server security overrides (run-as user or group, fsGroup, ownership check, root rule, per-cluster allow-root setting) | `docs/security.md` ("Server security overrides"), `docs/module-authoring.md` ("Security context"), `operator/specs.md`, `api/specs.md`, `operator/internal/controller/security_overrides.go`, `operator/internal/controller/security_settings.go`, `api/internal/handlers/security_overrides.go`, `api/internal/handlers/security_settings.go`, `web/src/components/SecurityAdvanced.tsx`, `web/src/components/clusters/SecuritySettingsPanel.tsx` |
+| Change personal MCP tokens or the MCP read routes (`api/internal/auth/mcptokens.go`, `api/internal/handlers/mcp_tokens.go`, `api/internal/handlers/pods.go`, `web/src/routes/McpTokens.tsx`, the MCP tokens dialog in `web/src/routes/Users.tsx`) | `api/specs.md`, `web/specs.md`, `docs/security.md` ("mcp-server (optional)") |
+| Change MCP server RBAC or namespace scope (`charts/gameplane/templates/mcp-server.yaml`, `charts/gameplane/tests/mcp-server-rbac.sh`) | `docs/security.md` ("mcp-server (optional)"), `mcp-server/specs.md` |
 | Decide where new code goes | `docs/layout.md` |
 
 ## How to use this index

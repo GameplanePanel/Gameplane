@@ -31,7 +31,7 @@ change, the one compile check to run, and how long CI takes.
 
 Times are GitHub Actions wall clock for one PR run, measured 2026-10-20: runs
 2507, 2525 and 2524, and 11 Go PR runs for the median. Change-based test
-selection (`specs/023-change-based-test-selection/`) shortens Go runs as it
+selection (`specs/done_023-change-based-test-selection/`) shortens Go runs as it
 lands, so treat these as upper bounds.
 
 Gates a first PR trips on:
@@ -208,7 +208,7 @@ add the test name pattern under `suites` with the components and paths it exerci
 list the component under `unexercised` with a reason. The `e2e bucket coverage` job
 (`ci_scope.py verify-suites`) fails when a registered test matches no entry or a
 component is missing. The full rules are in
-`specs/023-change-based-test-selection/contracts/suite-components.md`.
+`specs/done_023-change-based-test-selection/contracts/suite-components.md`.
 
 ## Testing
 
