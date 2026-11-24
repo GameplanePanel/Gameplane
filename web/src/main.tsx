@@ -7,6 +7,17 @@ import { RouterProvider as AriaRouterProvider } from "react-aria-components";
 import { routeTree } from "@/router/tree";
 import { createAriaNavigate, createAriaUseHref } from "@/lib/ariaRouter";
 import { AppI18nProvider } from "@/lib/i18n/I18nProvider";
+// Fonts are bundled, not loaded from Google Fonts: a third-party stylesheet
+// would run in the dashboard origin on every page, the login page included,
+// and the CSP would have to allow it (see cspHeader in vite.config.ts).
+// The weights match what the design uses (Geist 400-700, JetBrains Mono 400-600).
+import "@fontsource/geist/400.css";
+import "@fontsource/geist/500.css";
+import "@fontsource/geist/600.css";
+import "@fontsource/geist/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/600.css";
 import "@/styles/globals.css";
 
 const router = createRouter({ routeTree });

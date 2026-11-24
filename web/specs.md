@@ -48,6 +48,8 @@ These are CRD/API contracts; no new rollout controls or visual flow are defined.
 
 **Internal readiness:** Dashboard nginx returns 404 for `/readyz`, including query strings and normalized paths, before SPA routing or API proxying. Kubelet probes reach the API directly; public traffic cannot consume its database readiness slot. The nginx proxy smoke test checks rejection against a live upstream and confirms ordinary proxying still works.
 
+**Browser hardening:** nginx sends the SPA shell with a build-generated `Content-Security-Policy` (`cspHeader` in `vite.config.ts`: inline boot scripts allowed only by hash, no third-party script, style or font hosts), `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy: no-referrer` and HSTS. Fonts (Geist, JetBrains Mono) are bundled from `@fontsource/*`, so no page, the login page included, loads a third-party stylesheet or tells a font CDN who visits. nginx runs with `server_tokens off`, so neither its `Server` header nor its own error pages carry a version. Production builds drop `public/mockServiceWorker.js` (`dropMockWorker` in `vite.config.ts`); only the E2E mock mode serves it.
+
 **Pre-auth privacy:** The login page and any unauthenticated screen must not leak internal state: no hostnames, cluster names, server counts, version strings, user lists, or "user not found" errors. See docs/security.md "pre-auth privacy" and CLAUDE.md rule 3.
 
 **Cluster-bound WebSocket:** Server streams carry the open server's explicit cluster and namespace. Reconnects retain that target; leaving the server view closes its streams. Changing an infrastructure selection cannot retarget a stream. Pod logs and PTY attach use the target Kubernetes client; remote agent streams use the configured authenticated gateway and fail closed when unavailable.
@@ -158,7 +160,7 @@ This rule was enforced by lint and review throughout the rebuild: any rebuilt fi
 **Appearance selection:** Two mechanisms work together to avoid theme flicker on page load:
 
 1. **Boot script in `index.html`** (T053; extended by feature 016 — see "User Theme Customization" below):
-   - Runs as the first script in `<head>` (before Google Fonts)
+   - Runs as the first script in `<head>` (before any stylesheet)
    - Reads `localStorage.getItem("gameplane-theme-prefs")` first (feature 016 prefs cache, authoritative); the legacy `gameplane-theme` key (light/dark/system only) remains the fallback when the prefs cache is absent
    - Resolves system theme via `window.matchMedia("(prefers-color-scheme: dark)")`
    - Sets `document.documentElement.classList` (add/remove "dark" and "light") and `document.documentElement.dataset.theme`, plus `data-theme-preset` ("pink" | "legacy") and `data-theme-type` ("preset" | "custom_colors")

@@ -92,6 +92,11 @@ server {
     listen       [::]:8080;
     server_name  _;
 
+    # No nginx version in the Server header or on nginx's own error pages:
+    # those reach unauthenticated visitors, who must never learn versions
+    # (login privacy, AGENTS.md core rule 3).
+    server_tokens off;
+
     # Matches the ingress's nginx.ingress.kubernetes.io/proxy-body-size (see
     # charts/gameplane/values.yaml, ingress.annotations). Without this, nginx's
     # compiled-in 1m default rejects dashboard file/mod uploads with 413.
