@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	corev1 "k8s.io/api/core/v1"
@@ -241,10 +242,32 @@ func project(s *corev1.Secret) destinationView {
 	_, hasPwString := s.StringData["password"]
 	return destinationView{
 		Name:        s.Name,
-		URL:         url,
+		URL:         redactRepoURL(url),
 		HasPassword: hasPwData || hasPwString,
 		CreatedAt:   s.CreationTimestamp.Format("2006-01-02T15:04:05Z"),
 	}
+}
+
+// redactRepoURL hides the password in a restic repository URL's userinfo
+// (rest:https://user:pass@host/repo), so destinations:read holders never see it.
+// URLs without a userinfo password are returned unchanged.
+func redactRepoURL(repo string) string {
+	i := strings.Index(repo, "://")
+	if i < 0 {
+		return repo
+	}
+	start := i + len("://")
+	rest := repo[start:]
+	at := strings.LastIndex(rest, "@")
+	if at < 0 {
+		return repo
+	}
+	userinfo := rest[:at]
+	colon := strings.IndexByte(userinfo, ':')
+	if colon < 0 || strings.ContainsAny(userinfo[:colon], "/?#") {
+		return repo
+	}
+	return repo[:start] + userinfo[:colon] + ":***" + rest[at:]
 }
 
 func isDestination(s *corev1.Secret) bool {

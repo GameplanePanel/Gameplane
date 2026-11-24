@@ -17,6 +17,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -200,17 +201,27 @@ func (s *WebhookSink) post(ctx context.Context, e Event) {
 	resp, err := s.client.Do(req)
 	if err != nil {
 		webhookEvents.WithLabelValues("failed").Inc()
-		slog.Warn("audit webhook post failed", "err", err, "url", s.url)
+		slog.Warn("audit webhook post failed", "err", redactURLErr(err))
 		return
 	}
 	defer func() { _ = resp.Body.Close() }()
-	_, _ = io.Copy(io.Discard, resp.Body)
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 64<<10))
 	if resp.StatusCode >= 300 {
 		webhookEvents.WithLabelValues("failed").Inc()
-		slog.Warn("audit webhook non-2xx", "status", resp.StatusCode, "url", s.url)
+		slog.Warn("audit webhook non-2xx", "status", resp.StatusCode)
 		return
 	}
 	webhookEvents.WithLabelValues("sent").Inc()
+}
+
+// redactURLErr drops the request URL from an HTTP client error so a token in
+// the webhook URL never reaches the logs.
+func redactURLErr(err error) error {
+	var uerr *url.Error
+	if errors.As(err, &uerr) {
+		return uerr.Err
+	}
+	return err
 }
 
 // webhookPayload is the JSON shipped to the webhook: the audit event minus the

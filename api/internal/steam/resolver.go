@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -17,6 +18,9 @@ import (
 
 // unavailableWarnInterval bounds how often the "resolver unavailable" warn log is emitted.
 const unavailableWarnInterval = time.Minute
+
+// maxSteamResponseBytes caps a GetPlayerSummaries reply (100 players is a few KiB).
+const maxSteamResponseBytes = 1 << 20
 
 // Resolver resolves Steam IDs to display names via the Steam Web API.
 // It batches requests, caches results with positive and negative TTL,
@@ -253,7 +257,7 @@ func (r *Resolver) getPlayerSummaries(ctx context.Context, ids []string) (map[st
 		} `json:"response"`
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&steamResp); err != nil {
+	if err := json.NewDecoder(io.LimitReader(resp.Body, maxSteamResponseBytes)).Decode(&steamResp); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 

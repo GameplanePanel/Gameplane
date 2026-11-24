@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"sort"
 	"strconv"
@@ -196,6 +197,15 @@ func (h *ownershipHandler) transfer(w http.ResponseWriter, req *http.Request) {
 		}
 	}) {
 		return
+	}
+	// Links minted by the previous owner must not outlive their ownership:
+	// the old owner would keep the address, status and wake access. A
+	// failure is logged, not surfaced: the transfer already happened.
+	if prev := obj.GetAnnotations()[ownerIDAnnotation]; prev != strconv.FormatInt(body.UserID, 10) && h.db != nil {
+		clusterID, _ := scope.ResolveCluster(req, h.reg) // validated by resolveCluster above
+		if rerr := h.db.RevokeShareLinksForServer(req.Context(), clusterID, ns, name); rerr != nil {
+			slog.Warn("revoke share links after ownership transfer", "server", name, "namespace", ns, "err", rerr)
+		}
 	}
 	w.WriteHeader(http.StatusNoContent)
 }

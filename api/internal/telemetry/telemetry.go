@@ -381,11 +381,21 @@ func (r *Reporter) postOnce(ctx context.Context, body []byte, sig, pow string) (
 	}
 	resp, err := r.client.Do(req)
 	if err != nil {
-		return 0, fmt.Errorf("telemetry post: %w", err)
+		return 0, fmt.Errorf("telemetry post: %w", withoutURL(err))
 	}
 	defer func() { _ = resp.Body.Close() }()
 	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4096))
 	return resp.StatusCode, nil
+}
+
+// withoutURL drops the request URL from an HTTP client error so a custom
+// endpoint's credentials never reach the logs.
+func withoutURL(err error) error {
+	var uerr *url.Error
+	if errors.As(err, &uerr) {
+		return uerr.Err
+	}
+	return err
 }
 
 // challengeReply is the body of the provider's GET /v1/challenge.
