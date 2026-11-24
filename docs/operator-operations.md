@@ -263,3 +263,36 @@ cleanup after saving and game ownership have already been restored. Inspect the
 condition/event identities before deleting retained storage manually. Existing
 PVCs remain usable after source Backup retention; administrator-managed external
 snapshots keep their direct-CRD behavior.
+
+## Scheduled backup retention and provenance
+
+A `BackupSchedule` only prunes Backups it can prove it created for the server
+that exists now. When it fires, it records the schedule's UID and the
+GameServer's UID in the Backup's immutable `spec.origin`. Retention and
+`concurrencyPolicy: Replace` act only on Backups whose origin matches the live
+schedule and server. Deleting a server or schedule and creating a new one with
+the same name therefore never deletes, forgets or cancels the old one's
+Backups.
+
+Retention counts a Backup only once it is a usable restore point: `Succeeded`
+with a `status.snapshotID` (and, for CSI snapshots, a bound
+`status.volumeSnapshotContentName`). A Backup still waiting for its Restic
+summary does not take a keep slot, so the previous usable snapshot stays until
+a newer one has its ID.
+
+Backups created before this change, manual Backups and a predecessor's Backups
+have no matching origin and are never pruned automatically. To find them:
+
+```sh
+kubectl get backups -n <namespace> -l gameplane.local/backup-schedule=<schedule> \
+  -o custom-columns=NAME:.metadata.name,SCHEDULE_UID:.spec.origin.scheduleUID,SERVER_UID:.spec.origin.serverUID,SNAPSHOT:.status.snapshotID,DONE:.status.completionTime
+kubectl get backupschedule <schedule> -n <namespace> -o jsonpath='{.metadata.uid}{"\n"}'
+kubectl get gameserver <server> -n <namespace> -o jsonpath='{.metadata.uid}{"\n"}'
+```
+
+Rows with an empty or different `SCHEDULE_UID` or `SERVER_UID` are outside
+automatic retention. Check that the snapshot is one you no longer need (for
+example with `restic snapshots` against the Backup's repository) and that no
+Restore references it, then retire it with `kubectl delete backup <name> -n
+<namespace>`. Deleting a restic Backup also forgets its snapshot in the
+repository the Backup itself names.

@@ -25,9 +25,14 @@ func TestTrimBackups_IgnoresTerminatingBackups(t *testing.T) {
 				Namespace: "ns",
 				Labels:    map[string]string{"gameplane.local/backup-schedule": "sched"},
 			},
+			Spec: gameplanev1alpha1.BackupSpec{
+				ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "srv"},
+				Origin:    retentionOrigin(),
+			},
 			Status: gameplanev1alpha1.BackupStatus{
 				Phase:          gameplanev1alpha1.BackupPhaseSucceeded,
 				CompletionTime: &ct,
+				SnapshotID:     "snap-" + name,
 			},
 		}
 		if terminating {
@@ -44,11 +49,12 @@ func TestTrimBackups_IgnoresTerminatingBackups(t *testing.T) {
 	old := mk("old", 3*time.Hour, false)
 
 	s := scrapeScheme(t)
-	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(newest, mid, old).Build()
+	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(retentionServer(), newest, mid, old).Build()
 	r := &BackupScheduleReconciler{Client: cl, Scheme: s}
 	sched := &gameplanev1alpha1.BackupSchedule{
-		ObjectMeta: metav1.ObjectMeta{Name: "sched", Namespace: "ns"},
+		ObjectMeta: metav1.ObjectMeta{Name: "sched", Namespace: "ns", UID: retentionScheduleUID},
 		Spec: gameplanev1alpha1.BackupScheduleSpec{
+			ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "srv"},
 			Retention: &gameplanev1alpha1.BackupRetention{KeepLast: 1},
 		},
 	}

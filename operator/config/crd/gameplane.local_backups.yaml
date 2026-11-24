@@ -57,6 +57,43 @@ spec:
           spec:
             description: BackupSpec is the desired state of a one-shot backup.
             properties:
+              origin:
+                description: |-
+                  Origin records which BackupSchedule generated this Backup and which
+                  GameServer it captured, by UID. The schedule controller sets it when it
+                  fires and it can never change afterwards. Retention and the Replace
+                  concurrency policy act only on Backups whose origin matches the live
+                  schedule and server, so a schedule or server recreated under the same
+                  name can never prune or cancel its predecessor's Backups. Absent on
+                  manual Backups and on scheduled Backups created before this field
+                  existed; those are never pruned automatically.
+                properties:
+                  scheduleName:
+                    description: ScheduleName is the BackupSchedule's name when it
+                      fired.
+                    maxLength: 253
+                    minLength: 1
+                    type: string
+                  scheduleUID:
+                    description: ScheduleUID is the UID of the BackupSchedule that
+                      fired.
+                    maxLength: 128
+                    minLength: 1
+                    type: string
+                  serverUID:
+                    description: |-
+                      ServerUID is the UID of the GameServer named by spec.serverRef when the
+                      schedule fired. Empty when that server did not exist at the time; such
+                      a Backup is never pruned automatically.
+                    maxLength: 128
+                    type: string
+                required:
+                - scheduleName
+                - scheduleUID
+                type: object
+                x-kubernetes-validations:
+                - message: origin is immutable
+                  rule: self == oldSelf
               powerPolicy:
                 description: PowerPolicy preserves power by default; stop-copy-restart
                   temporarily stops under lifecycle ownership.
@@ -143,6 +180,8 @@ spec:
               rule: self.strategy != 'volume-snapshot' || ((!has(self.powerPolicy)
                 || self.powerPolicy == 'preserve') && (!has(self.volumePolicy) ||
                 self.volumePolicy == 'primary-only'))
+            - message: origin can only be set when the Backup is created
+              rule: has(self.origin) == has(oldSelf.origin)
           status:
             description: BackupStatus is the observed state of a Backup.
             properties:

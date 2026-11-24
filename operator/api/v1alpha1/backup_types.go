@@ -36,7 +36,20 @@ const BackupSnapshotFinalizer = "gameplane.local/backup-snapshot-finalizer"
 // BackupSpec is the desired state of a one-shot backup.
 // +kubebuilder:validation:XValidation:rule="self.strategy == 'volume-snapshot' || has(self.repoRef)",message="repoRef is required for the restic-snapshot strategy"
 // +kubebuilder:validation:XValidation:rule="self.strategy != 'volume-snapshot' || ((!has(self.powerPolicy) || self.powerPolicy == 'preserve') && (!has(self.volumePolicy) || self.volumePolicy == 'primary-only'))",message="stopped and all-data policies require restic-snapshot"
+// +kubebuilder:validation:XValidation:rule="has(self.origin) == has(oldSelf.origin)",message="origin can only be set when the Backup is created"
 type BackupSpec struct {
+	// Origin records which BackupSchedule generated this Backup and which
+	// GameServer it captured, by UID. The schedule controller sets it when it
+	// fires and it can never change afterwards. Retention and the Replace
+	// concurrency policy act only on Backups whose origin matches the live
+	// schedule and server, so a schedule or server recreated under the same
+	// name can never prune or cancel its predecessor's Backups. Absent on
+	// manual Backups and on scheduled Backups created before this field
+	// existed; those are never pruned automatically.
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="origin is immutable"
+	// +optional
+	Origin *BackupOrigin `json:"origin,omitempty"`
+
 	// PowerPolicy preserves power by default; stop-copy-restart temporarily stops under lifecycle ownership.
 	// +kubebuilder:validation:Enum=preserve;stop-copy-restart
 	// +optional
@@ -87,6 +100,26 @@ type BackupSpec struct {
 	// Tags are attached to the restic snapshot for filtering.
 	// +optional
 	Tags []string `json:"tags,omitempty"`
+}
+
+// BackupOrigin is the immutable provenance of a scheduled Backup.
+type BackupOrigin struct {
+	// ScheduleName is the BackupSchedule's name when it fired.
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=253
+	ScheduleName string `json:"scheduleName"`
+
+	// ScheduleUID is the UID of the BackupSchedule that fired.
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=128
+	ScheduleUID string `json:"scheduleUID"`
+
+	// ServerUID is the UID of the GameServer named by spec.serverRef when the
+	// schedule fired. Empty when that server did not exist at the time; such
+	// a Backup is never pruned automatically.
+	// +kubebuilder:validation:MaxLength=128
+	// +optional
+	ServerUID string `json:"serverUID,omitempty"`
 }
 
 // LocalObjectRef references a namespaced object by name only. Assumed

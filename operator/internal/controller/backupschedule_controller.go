@@ -11,6 +11,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/robfig/cron/v3"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -43,6 +44,7 @@ type BackupScheduleReconciler struct {
 
 // +kubebuilder:rbac:groups=gameplane.local,resources=backupschedules,verbs=get;list;watch
 // +kubebuilder:rbac:groups=gameplane.local,resources=backups,verbs=get;list;watch
+// +kubebuilder:rbac:groups=gameplane.local,resources=gameservers,verbs=get;list;watch
 
 func (r *BackupScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
@@ -119,7 +121,11 @@ func (r *BackupScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			return ctrl.Result{}, err
 		}
 		if fire {
-			if err := r.fire(ctx, &sched, now); err != nil {
+			serverUID, err := r.liveServerUID(ctx, &sched)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+			if err := r.fire(ctx, &sched, now, serverUID); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
@@ -168,8 +174,12 @@ func (r *BackupScheduleReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+// fire creates the Backup for one schedule occurrence. Besides the
+// name-based schedule label (kept for listing), it records the schedule's and
+// the server's UIDs in the immutable spec.origin: retention and the Replace
+// policy only ever act on Backups whose origin matches the live objects.
 func (r *BackupScheduleReconciler) fire(
-	ctx context.Context, sched *gameplanev1alpha1.BackupSchedule, at time.Time,
+	ctx context.Context, sched *gameplanev1alpha1.BackupSchedule, at time.Time, serverUID types.UID,
 ) error {
 	b := &gameplanev1alpha1.Backup{
 		ObjectMeta: metav1.ObjectMeta{
@@ -178,6 +188,11 @@ func (r *BackupScheduleReconciler) fire(
 			Labels:    map[string]string{"gameplane.local/backup-schedule": sched.Name},
 		},
 		Spec: gameplanev1alpha1.BackupSpec{
+			Origin: &gameplanev1alpha1.BackupOrigin{
+				ScheduleName: sched.Name,
+				ScheduleUID:  string(sched.UID),
+				ServerUID:    string(serverUID),
+			},
 			ServerRef:    sched.Spec.ServerRef,
 			RepoRef:      sched.Spec.RepoRef,
 			Strategy:     sched.Spec.Strategy,
@@ -213,7 +228,7 @@ func (r *BackupScheduleReconciler) inFlightBackups(
 }
 
 // updateLastSuccessfulTime advances Status.LastSuccessfulTime to the
-// completion time of the newest Succeeded Backup this schedule owns.
+// completion time of the newest restorable Backup this schedule owns.
 // It only ever moves forward: retention trimming (or manual cleanup) can
 // delete the Backup that produced the current high-water mark, and
 // re-deriving from whichever succeeded Backups remain must never rewind
@@ -230,7 +245,10 @@ func (r *BackupScheduleReconciler) updateLastSuccessfulTime(
 	var newest *metav1.Time
 	for i := range list.Items {
 		b := &list.Items[i]
-		if b.Status.Phase != gameplanev1alpha1.BackupPhaseSucceeded || b.Status.CompletionTime == nil {
+		// A Succeeded Backup still waiting for its snapshot identity is not a
+		// recovery point yet (Restore would refuse it), so it must not count as
+		// the schedule's last success.
+		if !backupRestorable(b) {
 			continue
 		}
 		if newest == nil || b.Status.CompletionTime.After(newest.Time) {
@@ -248,6 +266,11 @@ func (r *BackupScheduleReconciler) updateLastSuccessfulTime(
 // concurrencyPolicy: Forbid skips while a previous backup is still in flight,
 // Replace deletes the in-flight ones first, Allow always fires. An empty policy
 // is treated as the CRD default (Forbid).
+//
+// Forbid is non-destructive, so any in-flight Backup carrying the schedule
+// label holds it back. Replace is destructive: it only cancels Backups this
+// exact schedule generated for the live server (see backupFromSchedule), never
+// a predecessor's that happens to share the name.
 func (r *BackupScheduleReconciler) shouldFire(
 	ctx context.Context, sched *gameplanev1alpha1.BackupSchedule,
 	now, scheduled time.Time, active []gameplanev1alpha1.Backup,
@@ -263,7 +286,14 @@ func (r *BackupScheduleReconciler) shouldFire(
 	case "Allow":
 		// No constraint.
 	case "Replace":
+		serverUID, err := r.liveServerUID(ctx, sched)
+		if err != nil {
+			return false, err
+		}
 		for i := range active {
+			if !backupFromSchedule(&active[i], sched, serverUID) {
+				continue
+			}
 			if err := r.Delete(ctx, &active[i]); err != nil && !apierrors.IsNotFound(err) {
 				return false, fmt.Errorf("replace in-flight backup %s: %w", active[i].Name, err)
 			}
