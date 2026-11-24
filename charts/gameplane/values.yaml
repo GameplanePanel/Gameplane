@@ -836,6 +836,12 @@ sftp:
   idleTimeout: 15m
   maxSessionsPerUser: 4
   maxTransfersPerUser: 8
+  # Connections one source IP may have open before login finishes; more are closed at once. Raise it
+  # when many users reach the pod from one address (a LoadBalancer that rewrites client IPs).
+  maxPreAuthPerIP: 8
+  # /metrics (port 9102, no authentication) is served only when serviceMonitors.enabled is true, on a
+  # separate in-cluster gameplane-sftp-metrics Service; the public SFTP Service carries only SSH.
+  # Remote mode (apiURL set) requires an https:// URL.
   replicas: 1
   nodeSelector: {}
   tolerations: []

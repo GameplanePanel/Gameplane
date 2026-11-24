@@ -1,0 +1,3 @@
+# SFTP endpoint hardening
+
+The SFTP endpoint now refuses a plain `http://` API address in remote mode (`sftp.apiURL` must be `https://`) and never follows redirects from the API, closes connections whose session the API has not confirmed for 2 minutes, stops running SFTP uploads and downloads when their session is revoked on SQLite installs too, caps channels per connection and logins in progress per source IP (new value `sftp.maxPreAuthPerIP`, default 8), and serves its unauthenticated metrics only when `serviceMonitors.enabled` is set, on a separate in-cluster `gameplane-sftp-metrics` Service. See [SFTP access](../../docs/sftp.md).

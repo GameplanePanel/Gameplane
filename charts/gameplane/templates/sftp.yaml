@@ -14,6 +14,9 @@ sftp.serviceTokenSecret must hold the token created there.
 {{- if and $local (not $apiEnabled) }}
 {{- fail "sftp.enabled=true with api.enabled=false requires sftp.apiURL (the central panel the SFTP pod logs in to)" }}
 {{- end }}
+{{- if and (not $local) (not (hasPrefix "https://" $sftp.apiURL)) }}
+{{- fail "sftp.apiURL must be an https:// URL: the SFTP pod sends the service token, passwords and session tokens to it" }}
+{{- end }}
 {{- if and (not $local) (not $sftp.serviceTokenSecret) }}
 {{- fail "sftp.apiURL is set (remote mode): sftp.serviceTokenSecret must name a Secret with the service token (key token) created in the central panel" }}
 {{- end }}
@@ -30,6 +33,8 @@ sftp.serviceTokenSecret must hold the token created there.
 {{- /* Local mode always uses the chart-generated token the API seeds; remote mode uses the operator-supplied Secret. */}}
 {{- $tokenSecret := ternary "gameplane-sftp-service-token" $sftp.serviceTokenSecret $local }}
 {{- $apiURL := ternary (printf "http://gameplane-api.%s.svc" .Release.Namespace) $sftp.apiURL $local }}
+{{- /* /metrics has no authentication: it listens on the pod address only when a ServiceMonitor scrapes it, and never on the public SFTP Service. */}}
+{{- $metrics := .Values.serviceMonitors.enabled }}
 {{- /* Generated once: lookup returns the live Secret on install and upgrade; offline renders regenerate it. */}}
 {{- if not $sftp.hostKeySecret }}
 {{- $old := lookup "v1" "Secret" .Release.Namespace "gameplane-sftp-host-key" }}
@@ -95,6 +100,11 @@ spec:
             - { name: GAMEPLANE_SFTP_LISTEN, value: {{ printf ":%d" (int $sftp.port) | quote }} }
             - { name: GAMEPLANE_SFTP_HOST_KEY, value: /etc/gameplane/sftp/hostkeys }
             - { name: GAMEPLANE_SFTP_API_URL, value: {{ $apiURL | quote }} }
+            {{- if $local }}
+            # Local mode talks to the API Service over the pod network, which has no TLS listener;
+            # the SFTP NetworkPolicy limits this pod's egress to the API pods.
+            - { name: GAMEPLANE_SFTP_ALLOW_INSECURE_API, value: "true" }
+            {{- end }}
             - { name: GAMEPLANE_SFTP_SERVICE_TOKEN_FILE, value: /etc/gameplane/sftp-token/token }
             {{- if $sftp.apiCASecret }}
             - { name: GAMEPLANE_SFTP_CA_FILE, value: /etc/gameplane/sftp-ca/ca.crt }
@@ -102,11 +112,18 @@ spec:
             - { name: GAMEPLANE_SFTP_IDLE_TIMEOUT, value: {{ $sftp.idleTimeout | quote }} }
             - { name: GAMEPLANE_SFTP_MAX_SESSIONS_PER_USER, value: {{ printf "%d" (int $sftp.maxSessionsPerUser) | quote }} }
             - { name: GAMEPLANE_SFTP_MAX_TRANSFERS_PER_USER, value: {{ printf "%d" (int $sftp.maxTransfersPerUser) | quote }} }
+            - { name: GAMEPLANE_SFTP_MAX_PREAUTH_PER_IP, value: {{ printf "%d" (int ($sftp.maxPreAuthPerIP | default 8)) | quote }} }
             - { name: GAMEPLANE_SFTP_DEFAULT_NAMESPACE, value: {{ .Values.gamesNamespace | quote }} }
+            {{- if $metrics }}
             - { name: GAMEPLANE_SFTP_METRICS_ADDR, value: ":9102" }
+            {{- else }}
+            - { name: GAMEPLANE_SFTP_METRICS_ADDR, value: "" }
+            {{- end }}
           ports:
             - { name: ssh, containerPort: {{ int $sftp.port }} }
+            {{- if $metrics }}
             - { name: metrics, containerPort: 9102 }
+            {{- end }}
           livenessProbe:  { tcpSocket: { port: ssh }, initialDelaySeconds: 5, periodSeconds: 20 }
           readinessProbe: { tcpSocket: { port: ssh }, initialDelaySeconds: 2, periodSeconds: 10 }
           resources: {{- toYaml $sftp.resources | nindent 12 }}
@@ -162,6 +179,39 @@ spec:
       {{- if and (eq $sftp.serviceType "NodePort") $sftp.nodePort }}
       nodePort: {{ int $sftp.nodePort }}
       {{- end }}
+{{- if $metrics }}
+---
+# In-cluster scrape target only; the public gameplane-sftp Service never carries the metrics port.
+apiVersion: v1
+kind: Service
+metadata:
+  name: gameplane-sftp-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: gameplane-sftp-metrics
+    {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector: { app.kubernetes.io/name: gameplane-sftp }
+  ports:
+    - { name: metrics, port: 9102, targetPort: metrics }
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gameplane-sftp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gameplane.labels" . | nindent 4 }}
+    {{- with .Values.serviceMonitors.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels: { app.kubernetes.io/name: gameplane-sftp-metrics }
+  endpoints:
+    - { port: metrics, interval: 30s, path: /metrics }
+{{- end }}
 {{- if .Values.networkPolicies.enabled }}
 ---
 # SFTP clients come from the internet, so ingress is open on the SFTP port only. Egress is
@@ -180,6 +230,16 @@ spec:
   ingress:
     - ports:
         - { protocol: TCP, port: {{ int $sftp.port }} }
+    {{- if $metrics }}
+    {{- with .Values.serviceMonitors.scrapeNamespaceSelector }}
+    # Prometheus only, on the metrics port (serviceMonitors.scrapeNamespaceSelector).
+    - from:
+        - namespaceSelector:
+            {{- toYaml . | nindent 12 }}
+      ports:
+        - { protocol: TCP, port: 9102 }
+    {{- end }}
+    {{- end }}
   egress:
     - to:
         - namespaceSelector:
