@@ -420,9 +420,14 @@ func main() {
 		// bottleneck there is the dashboard's own polling).
 		p.Use(mutationRateLimit)
 		p.Use(rbac.MiddlewareWithFiles(reg, fileAccess))
+		// PostgreSQL panels re-check every long stream. On SQLite only SFTP session transfers are
+		// re-checked, so a revoked or expired SFTP session cannot keep an upload or download running
+		// after the SFTP endpoint has been told to drop it.
+		revalidate := auth.SFTPSessionStream(isStreamingRequest)
 		if store.Driver == "postgres" {
-			p.Use(sessions.RevalidateStreams(isStreamingRequest, 5*time.Second, rbac.StreamGrantValidator(reg)))
+			revalidate = isStreamingRequest
 		}
+		p.Use(sessions.RevalidateStreams(revalidate, 5*time.Second, rbac.StreamGrantValidator(reg)))
 
 		handlers.MountResources(p, reg, store, auditor)
 		handlers.MountFleet(p, reg, store)

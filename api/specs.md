@@ -356,6 +356,8 @@ trust assumptions, rotation behavior and surfaces outside this protocol.
 
 **Permissions:** reading needs `servers:read` (or ownership or collaborator access); writing, renaming and deleting need `servers:write` (or the same ownership or collaborator access). The data-root and server folders are read-only over SFTP.
 
+**Running transfers:** every SFTP session stream (download and `files/stream` upload) is wrapped by `RevalidateStreams` on SQLite as well as PostgreSQL (`auth.SFTPSessionStream` selects them on SQLite; PostgreSQL re-checks every stream). Every 5 s the session token is looked up again; a revoked, expired or epoch-mismatched session, or changed permissions, cancel the request context and so the transfer. Each successful re-check slides the session (at most once a minute), so a long transfer keeps its session alive.
+
 ### OIDC role mapping and Helm-seeded provider (install-time configuration)
 
 **Helm-seeded provider synthesis & coexistence:**

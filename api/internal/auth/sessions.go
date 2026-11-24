@@ -295,6 +295,9 @@ func (s *SessionStore) streamRecheck(req *http.Request) (func(context.Context) (
 			if err != nil || sess.ID != sessionID {
 				return nil, false
 			}
+			// A running transfer is use of the session: slide it (at most once a minute), so a
+			// long upload or download is not cut when the 15-minute lifetime runs out mid-stream.
+			s.slideSFTPSession(ctx, sessionID)
 			return u, true
 		}, true
 	}

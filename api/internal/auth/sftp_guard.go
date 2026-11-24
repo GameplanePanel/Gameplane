@@ -194,3 +194,12 @@ func (s *SessionStore) SFTPServiceAuth(next http.Handler) http.Handler {
 		next.ServeHTTP(w, req.WithContext(ctx))
 	})
 }
+
+// SFTPSessionStream narrows isStream to requests made with an SFTP session token, for
+// RevalidateStreams on panels that do not re-check every stream.
+func SFTPSessionStream(isStream func(*http.Request) bool) func(*http.Request) bool {
+	return func(req *http.Request) bool {
+		caller, ok := SFTPCallerFromContext(req.Context())
+		return ok && caller.SessionID != 0 && isStream(req)
+	}
+}
