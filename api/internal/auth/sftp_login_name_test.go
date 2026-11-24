@@ -127,3 +127,27 @@ func TestSFTPLoginName_DatabaseErrors(t *testing.T) {
 		}
 	}
 }
+
+// A panel username always wins: an account created later with the name another user chose gets its own
+// login back, and the user who chose the name falls back to the default until they choose again.
+func TestSFTPLoginName_LaterUsernameWins(t *testing.T) {
+	ctx := context.Background()
+	s, _ := sftpFault(ctx, t)
+	early := addNameUser(ctx, t, s, "early@example.com", "earlyname")
+	if err := s.SetSFTPLoginName(ctx, early, "late@example.com"); err != nil {
+		t.Fatalf("set: %v", err)
+	}
+	if got, _ := s.ResolveSFTPLoginName(ctx, "late@example.com"); got != "early@example.com" {
+		t.Fatalf("resolve before the account exists = %q", got)
+	}
+	addNameUser(ctx, t, s, "late@example.com", "latename")
+	if got, err := s.ResolveSFTPLoginName(ctx, "late@example.com"); err != nil || got != "late@example.com" {
+		t.Fatalf("resolve after the account exists = %q, %v; want the new account", got, err)
+	}
+	if got, custom, err := s.SFTPLoginName(ctx, early); err != nil || got != "earlyname" || custom {
+		t.Fatalf("early user's login name = %q, %v, %v; want earlyname default", got, custom, err)
+	}
+	if got, _ := s.ResolveSFTPLoginName(ctx, "earlyname"); got != "early@example.com" {
+		t.Fatalf("early user's default does not resolve: %q", got)
+	}
+}

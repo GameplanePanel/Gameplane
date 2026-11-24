@@ -50,7 +50,8 @@ func nameClaims(ctx context.Context, q queryer, name string, userID int64) (int,
 	return n, nil
 }
 
-// SFTPLoginName returns the name userID logs in with over SFTP: the chosen name when set; otherwise the
+// SFTPLoginName returns the name userID logs in with over SFTP: the chosen name when set and no other
+// account has it as its panel username; otherwise the
 // display name when it is a valid login name and no other account holds it as a username, chosen name or
 // display name; otherwise the panel username. custom reports whether the name was chosen.
 func (s *SessionStore) SFTPLoginName(ctx context.Context, userID int64) (name string, custom bool, err error) {
@@ -65,7 +66,17 @@ func (s *SessionStore) SFTPLoginName(ctx context.Context, userID int64) (name st
 		return "", false, fmt.Errorf("sftp login name: %w", err)
 	}
 	if chosen.Valid {
-		return chosen.String, true, nil
+		// A panel username always wins at login, so a chosen name that another account later took as its
+		// panel username no longer logs in; the default applies until the user chooses again.
+		var taken int
+		if err := s.db.DB.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM users WHERE id <> ? AND username = ?`, userID, chosen.String,
+		).Scan(&taken); err != nil {
+			return "", false, fmt.Errorf("sftp login name: chosen: %w", err)
+		}
+		if taken == 0 {
+			return chosen.String, true, nil
+		}
 	}
 	if display.Valid && display.String != username && ValidSFTPLoginName(display.String) {
 		n, err := nameClaims(ctx, s.db.DB, display.String, userID)
@@ -114,25 +125,26 @@ func (s *SessionStore) SetSFTPLoginName(ctx context.Context, userID int64, name 
 	return nil
 }
 
-// ResolveSFTPLoginName maps the name typed at the SFTP login to a panel username. A chosen SFTP login name
-// matches first, then a panel username (it always works), then a display name that is the account's
+// ResolveSFTPLoginName maps the name typed at the SFTP login to a panel username. A panel username matches
+// first (it always works, even when another account chose the same name before this account existed),
+// then a chosen SFTP login name, then a display name that is the account's
 // default login name (see SFTPLoginName). An unknown name comes back unchanged, and the lookup that
 // follows refuses it like any other unknown user. The credential is still checked against that account.
 func (s *SessionStore) ResolveSFTPLoginName(ctx context.Context, name string) (string, error) {
 	var username string
-	err := s.db.DB.QueryRowContext(ctx, `SELECT username FROM users WHERE sftp_username = ?`, name).Scan(&username)
-	if err == nil {
-		return username, nil
-	}
-	if !errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("resolve sftp login name: %w", err)
-	}
-	err = s.db.DB.QueryRowContext(ctx, `SELECT username FROM users WHERE username = ?`, name).Scan(&username)
+	err := s.db.DB.QueryRowContext(ctx, `SELECT username FROM users WHERE username = ?`, name).Scan(&username)
 	if err == nil {
 		return username, nil
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
 		return "", fmt.Errorf("resolve sftp login name: username: %w", err)
+	}
+	err = s.db.DB.QueryRowContext(ctx, `SELECT username FROM users WHERE sftp_username = ?`, name).Scan(&username)
+	if err == nil {
+		return username, nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("resolve sftp login name: %w", err)
 	}
 	if !ValidSFTPLoginName(name) {
 		return name, nil
