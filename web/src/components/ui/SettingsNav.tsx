@@ -91,7 +91,7 @@ const itemClass = (active: boolean) =>
   cn(
     "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
     "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
-    active ? "bg-surface text-fg" : "text-muted hover:bg-surface/60 hover:text-fg",
+    active ? "bg-surface text-accent-soft-foreground" : "text-muted hover:bg-surface/60 hover:text-fg",
   );
 
 export function SettingsNav({
