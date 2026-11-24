@@ -5,6 +5,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -2889,9 +2890,11 @@ func TestGameServer_TunnelCreatesDeploymentAndPolicy(t *testing.T) {
 // NetworkPolicy rendered for the playit provider actually grants the "all
 // ports" egress its comment promises (F-262): playit's control-plane and
 // relay endpoints aren't published on a fixed set of ports, so unlike frp
-// (ServerPort) and tailscale (443/41641) it gets a second egress rule with
-// no Ports (all ports/protocols) and no To (any destination), in addition
-// to -- not instead of -- the DNS/advertised-port rule every provider gets.
+// (ServerPort) and tailscale (443/41641) its provider rule has no Ports (all
+// ports/protocols). That rule reaches public addresses only: private and
+// link-local ranges are excepted, so the relay cannot dial in-cluster
+// services or cloud metadata. DNS keeps its own any-destination rule, and the
+// advertised ports go to this server's own pods only.
 func TestGameServer_TunnelPlayitPolicyAllowsAllPorts(t *testing.T) {
 	ns := newNamespace(t)
 	startMgr(t, ns, withGameServerReconciler(t, ns))
@@ -2920,30 +2923,46 @@ func TestGameServer_TunnelPlayitPolicyAllowsAllPorts(t *testing.T) {
 			types.NamespacedName{Namespace: ns, Name: "tunnel-playit-gs-tunnel-egress"}, &np); err != nil {
 			return false, "tunnel network policy: " + err.Error()
 		}
-		if len(np.Spec.Egress) != 2 {
-			return false, fmt.Sprintf("egress rules = %d, want 2 (dns/advertised-ports + all-ports): %+v", len(np.Spec.Egress), np.Spec.Egress)
+		if len(np.Spec.Egress) != 3 {
+			return false, fmt.Sprintf("egress rules = %d, want 3 (dns + all-ports public + advertised backend): %+v", len(np.Spec.Egress), np.Spec.Egress)
 		}
 
-		// The first rule (DNS + advertised ports) must be unchanged by the
-		// playit branch: no provider-specific ports leak into it.
+		// The first rule is DNS only, to any destination: no
+		// provider-specific or advertised ports leak into it.
 		first := np.Spec.Egress[0]
-		if len(first.Ports) == 0 {
-			return false, "first egress rule has no ports, want DNS ports at least"
+		if len(first.Ports) != 2 {
+			return false, fmt.Sprintf("first egress rule ports = %+v, want the two DNS ports", first.Ports)
+		}
+		for _, p := range first.Ports {
+			if p.Port == nil || p.Port.IntValue() != 53 {
+				return false, fmt.Sprintf("first egress rule carries non-DNS port %+v", p)
+			}
 		}
 		if len(first.To) != 0 {
 			return false, fmt.Sprintf("first egress rule restricts To=%+v, want any destination", first.To)
 		}
 
 		// The second rule is playit's "all ports" grant: no Ports field
-		// (meaning all ports/protocols per NetworkPolicy semantics) and no
-		// To field (any destination), matching how frp/tailscale pick
-		// destinations.
+		// (meaning all ports/protocols per NetworkPolicy semantics), to
+		// every public address with the private ranges excepted.
 		second := np.Spec.Egress[1]
 		if len(second.Ports) != 0 {
 			return false, fmt.Sprintf("second egress rule has Ports=%+v, want none (all ports)", second.Ports)
 		}
-		if len(second.To) != 0 {
-			return false, fmt.Sprintf("second egress rule restricts To=%+v, want any destination", second.To)
+		wantPublic := []networkingv1.NetworkPolicyPeer{
+			{IPBlock: &networkingv1.IPBlock{CIDR: "0.0.0.0/0", Except: []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16"}}},
+			{IPBlock: &networkingv1.IPBlock{CIDR: "::/0", Except: []string{"fc00::/7", "fe80::/10"}}},
+		}
+		if !reflect.DeepEqual(second.To, wantPublic) {
+			return false, fmt.Sprintf("second egress rule To=%+v, want public addresses only", second.To)
+		}
+
+		// The third rule carries the advertised ports to this server's own
+		// game and waker pods.
+		third := np.Spec.Egress[2]
+		if len(third.Ports) == 0 || len(third.To) != 1 || third.To[0].PodSelector == nil || third.To[0].IPBlock != nil ||
+			third.To[0].PodSelector.MatchLabels["app.kubernetes.io/instance"] != "tunnel-playit-gs" {
+			return false, fmt.Sprintf("third egress rule = %+v, want advertised ports to this server's pods", third)
 		}
 		return true, ""
 	})

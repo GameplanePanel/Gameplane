@@ -31,6 +31,7 @@ cleanup() {
   done
   k delete gameserver "$local_game" "$csi_game" -n "$ns" --ignore-not-found --wait=false
   k delete gametemplate "$local_game" --ignore-not-found --wait=false
+  k -n default delete pod aux-worker-drill-client --ignore-not-found --wait=false >/dev/null || true
   k patch "$op" -n "$panel" --type=json --patch-file "$work/restore.json" >/dev/null
   k rollout status "$op" -n "$panel" --timeout=3m
 }
@@ -147,6 +148,16 @@ wait_for unschedulable
 k uncordon "$aux"
 wait_for pod_on tunnel "$aux"
 relay=$(pod_on tunnel "$aux")
+# Players join from outside the games namespace. A relay may only reach its
+# own server's pods on the advertised ports, not node or load-balancer
+# addresses, so the join checks run from a client pod on the same
+# management worker, in a namespace without Gameplane's NetworkPolicies.
+client=aux-worker-drill-client
+k -n default delete pod "$client" --ignore-not-found --wait=true >/dev/null
+k -n default run "$client" --image="$image" --restart=Never --command \
+  --overrides="$(jq -nc --arg node "$aux" --arg key "$key" '{spec:{nodeName:$node,tolerations:[{key:$key,operator:"Exists",effect:"NoSchedule"}]}}')" \
+  -- sleep 3600 >/dev/null
+k -n default wait --for=condition=Ready "pod/$client" --timeout=2m >/dev/null
 nodeIP=$(k get node "$games" -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}')
 exercise_modes() {
   local marker claim pv mode worker endpoint service_type
@@ -185,7 +196,7 @@ exercise_modes() {
          -z "$(k -n "$ns" get pod "$game-0" --ignore-not-found -o name)" ]]
     }
     wait_for parked
-    join_world() { [[ "$(k -n "$ns" exec "$relay" -- wget -T 6 -qO- "http://$endpoint/world" 2>/dev/null)" == "$marker" ]]; }
+    join_world() { [[ "$(k -n default exec "$client" -- wget -T 6 -qO- "http://$endpoint/world" 2>/dev/null)" == "$marker" ]]; }
     wait_for join_world
     [[ "$(k -n "$ns" get pod "$game-0" -o jsonpath='{.spec.nodeName}')" == "$games" ]]
     [[ "$(k -n "$ns" get pvc "$game-data" -o jsonpath='{.metadata.uid}')" == "$claim" ]]

@@ -72,6 +72,32 @@ spec:
       ports:
         - { protocol: TCP, port: 443 }
         - { protocol: TCP, port: 6443 }
+{{- if not .Values.networkPolicies.tenantIsolation }}
+---
+# A playit tunnel relay publishes its assigned address on the GameServer
+# status through the kube-apiserver. The operator's legacy tunnel egress
+# policy only opens public addresses, so the apiserver endpoint gets its own
+# grant here, for playit relays only (the operator labels them). Under
+# tenantIsolation administrators supply this policy themselves.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-playit-tunnel-to-apiserver
+  namespace: {{ $namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: gameplane-tunnel
+      gameplane.local/tunnel-provider: playit
+  policyTypes: [Egress]
+  egress:
+    - to:
+        {{- include "gameplane.apiServerEgressPeers" . | trim | nindent 8 }}
+      ports:
+        - { protocol: TCP, port: 443 }
+        - { protocol: TCP, port: 6443 }
+{{- end }}
 ---
 # Allow the API and operator pods (in the system namespace) to reach
 # every game pod's agent on port 8090. The API proxies console/files/

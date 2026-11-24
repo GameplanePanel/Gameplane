@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"regexp"
 	"strconv"
 	"strings"
@@ -27,6 +28,9 @@ const (
 	tunnelValue        = "gameplane-tunnel"
 	tunnelAuthVolume   = "tunnel-auth"
 	tunnelAuthMountDir = "/etc/gameplane/tunnel-auth"
+	// tunnelProviderLabel marks playit relay pods for the chart's apiserver
+	// egress policy.
+	tunnelProviderLabel = "gameplane.local/tunnel-provider"
 )
 
 var tailscaleTagPattern = regexp.MustCompile(`^(tag:)?[A-Za-z][A-Za-z0-9-]*$`)
@@ -246,6 +250,11 @@ func (r *GameServerReconciler) reconcileTunnel(
 		dep.Spec.Template.Labels = map[string]string{
 			tunnelLabel:                  tunnelValue,
 			"app.kubernetes.io/instance": gs.Name,
+		}
+		// The chart's allow-playit-tunnel-to-apiserver policy selects playit
+		// relays by this label: only they publish an address through the API.
+		if tunnel.Provider == "playit" {
+			dep.Spec.Template.Labels[tunnelProviderLabel] = "playit"
 		}
 
 		// Container ports: advertised ports only, mirroring buildGameContainer
@@ -559,7 +568,8 @@ func (r *GameServerReconciler) clearTunnelCredentialRefused(ctx context.Context,
 }
 
 // The restricted profile admits both halves of the same-namespace relay path.
-// Legacy provider/DNS egress remains available when the profile is disabled.
+// Without it, the legacy profile adds DNS and provider egress to public
+// addresses (see legacyTunnelEgress).
 func (r *GameServerReconciler) reconcileTunnelNetworkPolicy(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 	plan tunnelPlan,
@@ -578,7 +588,7 @@ func (r *GameServerReconciler) reconcileTunnelNetworkPolicy(
 		egress = &networkingv1.NetworkPolicySpec{PodSelector: tunnel, PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeEgress}}
 		ports := networkPolicyPortsFromTemplate(tmpl)
 		if !r.RestrictTunnelEgress {
-			egress.Egress = legacyTunnelEgress(gs.Spec.Networking.Tunnel, ports)
+			egress.Egress = legacyTunnelEgress(gs.Spec.Networking.Tunnel, ports, backend, r.TunnelEgressExceptCIDRs, r.TunnelEgressAllowCIDRs)
 		} else if len(ports) > 0 {
 			egress.Egress = []networkingv1.NetworkPolicyEgressRule{{
 				To: []networkingv1.NetworkPolicyPeer{{PodSelector: &backend}}, Ports: ports,
@@ -612,28 +622,43 @@ func (r *GameServerReconciler) applyTunnelPolicy(ctx context.Context, gs *gamepl
 	return err
 }
 
-func legacyTunnelEgress(tunnel *gameplanev1alpha1.GameServerTunnel, advertised []networkingv1.NetworkPolicyPort) []networkingv1.NetworkPolicyEgressRule {
-	// Egress rules: allow DNS, advertised ports for inbound relay traffic,
-	// and the provider's relay endpoint ports for outbound control traffic.
-	egressPorts := make([]networkingv1.NetworkPolicyPort, 0)
+// DefaultTunnelEgressExceptCIDRs are the destinations a legacy (non-
+// restricted) tunnel relay may not dial on its provider ports: RFC 1918,
+// link-local (cloud metadata) and their IPv6 equivalents. They match the
+// chart's networkPolicies.gameEgress.privateCIDRs defaults.
+var DefaultTunnelEgressExceptCIDRs = []string{
+	"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16",
+	"fc00::/7", "fe80::/10",
+}
 
-	// DNS: UDP and TCP port 53 to any destination (required by all providers).
+// legacyTunnelEgress is the egress a tunnel relay gets outside the
+// restricted profile: DNS anywhere, the provider's relay ports (every port
+// for playit) to public addresses only, and the advertised ports to this
+// server's own game and waker pods. Private and link-local ranges stay
+// closed on the provider rule so a relay cannot reach in-cluster services,
+// the node or cloud metadata; allow lists LAN relays an administrator
+// approved, and a frp serverAddr given as a literal private IP is added so
+// LAN frp servers keep working.
+func legacyTunnelEgress(
+	tunnel *gameplanev1alpha1.GameServerTunnel, advertised []networkingv1.NetworkPolicyPort,
+	backend metav1.LabelSelector, except, allow []string,
+) []networkingv1.NetworkPolicyEgressRule {
 	tcpProto := corev1.ProtocolTCP
 	udpProto := corev1.ProtocolUDP
 	dnsPort := intstr.FromInt(53)
-	egressPorts = append(egressPorts,
-		networkingv1.NetworkPolicyPort{
-			Protocol: &udpProto,
-			Port:     &dnsPort,
+	rules := []networkingv1.NetworkPolicyEgressRule{{
+		// DNS to any destination: cluster DNS and NodeLocal DNSCache sit
+		// in private ranges.
+		Ports: []networkingv1.NetworkPolicyPort{
+			{Protocol: &udpProto, Port: &dnsPort},
+			{Protocol: &tcpProto, Port: &dnsPort},
 		},
-		networkingv1.NetworkPolicyPort{
-			Protocol: &tcpProto,
-			Port:     &dnsPort,
-		},
-	)
+	}}
 
-	// Provider relay egress: the ports the tunnel process dials outbound.
 	if tunnel != nil {
+		var providerPorts []networkingv1.NetworkPolicyPort
+		provider := true
+		allowed := append([]string(nil), allow...)
 		switch tunnel.Provider {
 		case "frp":
 			// frp: outbound to the frp server on ServerAddr:ServerPort (default 7000).
@@ -643,43 +668,88 @@ func legacyTunnelEgress(tunnel *gameplanev1alpha1.GameServerTunnel, advertised [
 					serverPort = 7000
 				}
 				port := intstr.FromInt32(serverPort)
-				egressPorts = append(egressPorts, networkingv1.NetworkPolicyPort{
-					Protocol: &tcpProto,
-					Port:     &port,
-				})
+				providerPorts = append(providerPorts, networkingv1.NetworkPolicyPort{Protocol: &tcpProto, Port: &port})
+				if cidr, ok := frpLiteralServerCIDR(tunnel.Frp.ServerAddr); ok {
+					allowed = append(allowed, cidr)
+				}
+			} else {
+				provider = false
 			}
-
 		case "tailscale":
-			// tailscale: outbound to control plane on TCP 443 and DERP relays on UDP 41641.
+			// tailscale: control plane and DERP on TCP 443, direct UDP 41641.
 			httpsPort := intstr.FromInt(443)
-			derpPort := intstr.FromInt(41641)
-			egressPorts = append(egressPorts,
-				networkingv1.NetworkPolicyPort{
-					Protocol: &tcpProto,
-					Port:     &httpsPort,
-				},
-				networkingv1.NetworkPolicyPort{
-					Protocol: &udpProto,
-					Port:     &derpPort,
-				},
+			directPort := intstr.FromInt(41641)
+			providerPorts = append(providerPorts,
+				networkingv1.NetworkPolicyPort{Protocol: &tcpProto, Port: &httpsPort},
+				networkingv1.NetworkPolicyPort{Protocol: &udpProto, Port: &directPort},
 			)
-
+		case "playit":
+			// playit's relay/control-plane ports aren't statically known, so
+			// its provider rule has no Ports (= all ports and protocols).
+		default:
+			provider = false
+		}
+		if provider {
+			rules = append(rules, networkingv1.NetworkPolicyEgressRule{
+				To: publicTunnelPeers(except, allowed), Ports: providerPorts,
+			})
 		}
 	}
 
-	// Egress with no "To" means "to any destination".
-	egressRules := []networkingv1.NetworkPolicyEgressRule{{
-		Ports: append(egressPorts, advertised...),
-		// Empty To = allow to any destination
-	}}
-	if tunnel != nil && tunnel.Provider == "playit" {
-		// playit's relay/control-plane ports aren't statically known, so
-		// grant it a separate rule with no Ports (= all ports/protocols)
-		// and no To (= any destination), on top of the DNS/advertised-port
-		// rule above.
-		egressRules = append(egressRules, networkingv1.NetworkPolicyEgressRule{})
+	if len(advertised) > 0 {
+		b := backend
+		rules = append(rules, networkingv1.NetworkPolicyEgressRule{
+			To: []networkingv1.NetworkPolicyPeer{{PodSelector: &b}}, Ports: advertised,
+		})
 	}
-	return egressRules
+	return rules
+}
+
+// publicTunnelPeers is every IPv4 and IPv6 address outside except, plus each
+// allow CIDR. except entries must already be canonical CIDRs; an entry of the
+// other family is left out of that family's block, since an ipBlock except
+// must sit inside its cidr.
+func publicTunnelPeers(except, allow []string) []networkingv1.NetworkPolicyPeer {
+	if len(except) == 0 {
+		except = DefaultTunnelEgressExceptCIDRs
+	}
+	var v4, v6 []string
+	for _, cidr := range except {
+		if strings.Contains(cidr, ":") {
+			v6 = append(v6, cidr)
+		} else {
+			v4 = append(v4, cidr)
+		}
+	}
+	peers := []networkingv1.NetworkPolicyPeer{
+		{IPBlock: &networkingv1.IPBlock{CIDR: "0.0.0.0/0", Except: v4}},
+		{IPBlock: &networkingv1.IPBlock{CIDR: "::/0", Except: v6}},
+	}
+	seen := map[string]bool{}
+	for _, cidr := range allow {
+		if seen[cidr] {
+			continue
+		}
+		seen[cidr] = true
+		peers = append(peers, networkingv1.NetworkPolicyPeer{IPBlock: &networkingv1.IPBlock{CIDR: cidr}})
+	}
+	return peers
+}
+
+// frpLiteralServerCIDR returns a host CIDR for a frp serverAddr written as an
+// IP address, so a LAN frp server keeps its egress under the public-only
+// provider rule. Loopback, link-local (cloud metadata) and unspecified
+// addresses are never granted.
+func frpLiteralServerCIDR(addr string) (string, bool) {
+	ip := net.ParseIP(strings.Trim(strings.TrimSpace(addr), "[]"))
+	if ip == nil || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() ||
+		ip.IsUnspecified() || ip.IsMulticast() {
+		return "", false
+	}
+	if v4 := ip.To4(); v4 != nil {
+		return v4.String() + "/32", true
+	}
+	return ip.String() + "/128", true
 }
 
 // getTunnel fetches the tunnel Deployment, reporting exists=false when absent.

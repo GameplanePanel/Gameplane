@@ -99,8 +99,10 @@ type GameTemplateSpec struct {
 	Ports []GamePort `json:"ports,omitempty"`
 
 	// SentinelIsolation restricts a wake sentinel to its own server's advertised
-	// ports. Templates opt in after module connectivity validation; absent or
-	// false retains the legacy namespace-wide sentinel allowances.
+	// ports. A template that advertises any port gets this by default (a
+	// running server takes it at its next start); true applies it at once and
+	// requires an advertised port. Only a template with no advertised port
+	// keeps the legacy namespace-wide sentinel allowances.
 	// +optional
 	SentinelIsolation bool `json:"sentinelIsolation,omitempty"`
 

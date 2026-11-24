@@ -127,6 +127,15 @@ type GameServerReconciler struct {
 	TunnelTailscaleImage string
 	TunnelPlayitImage    string
 	RestrictTunnelEgress bool
+	// TunnelEgressExceptCIDRs are the ranges a legacy tunnel relay may not
+	// dial on its provider ports (empty: DefaultTunnelEgressExceptCIDRs).
+	// TunnelEgressAllowCIDRs are LAN relay ranges an administrator allows
+	// anyway. Both are canonical CIDRs and unused with RestrictTunnelEgress.
+	TunnelEgressExceptCIDRs []string
+	TunnelEgressAllowCIDRs  []string
+	// AllowedImageRegistries limits GameServer spec.image overrides to
+	// these registry hosts or host/path prefixes. Empty leaves them open.
+	AllowedImageRegistries []string
 
 	// AgentCASecretName / AgentCASecretNamespace point at the cluster-
 	// wide Secret holding `ca.crt` + `ca.key` used to sign the
@@ -394,6 +403,19 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := validateHostportPorts(&gs, &tmpl); err != nil {
 		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+	}
+	if err := validateSidecarPorts(&tmpl); err != nil {
+		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+	}
+	if err := r.validateImageOverride(&gs); err != nil {
+		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+	}
+	if err := r.validateServiceAccountOverride(ctx, &gs); err != nil {
+		var rejected workloadPolicyRejection
+		if errors.As(err, &rejected) {
+			return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+		}
+		return ctrl.Result{}, err
 	}
 	if tmpl.Spec.SentinelIsolation && len(networkPolicyPortsFromTemplate(&tmpl)) == 0 {
 		cleanupErr := r.revokeInvalidSentinelIsolationExposure(ctx, &gs)
@@ -2087,11 +2109,20 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		}
 		ss.Spec.ServiceName = gs.Name
 		ss.Spec.Selector = &metav1.LabelSelector{MatchLabels: labels}
+		// Default sentinel isolation (any advertised port) reaches a running
+		// game at its next start, so the upgrade that turns it on restarts no
+		// game; an explicit template opt-in applies at once. Until then the
+		// chart's legacy rules still cover the unlabeled pod, and the
+		// per-server grants already exist.
+		isolate := sentinelIsolated(tmpl)
+		if !securityRefresh && !tmpl.Spec.SentinelIsolation {
+			isolate = ss.Spec.Template.Labels[sentinelIsolationLabel] == "true"
+		}
 		ss.Spec.Template.Labels = make(map[string]string, len(labels)+1)
 		for key, value := range labels {
 			ss.Spec.Template.Labels[key] = value
 		}
-		if tmpl.Spec.SentinelIsolation {
+		if isolate {
 			ss.Spec.Template.Labels[sentinelIsolationLabel] = "true"
 		}
 		// Stamp (or clear) the config fingerprint without touching

@@ -83,7 +83,8 @@ func TestSentinelOptOutCleansGrantsAfterDelayedCacheVisibility(t *testing.T) {
 	}})
 	reader := &isolationDrainReader{Reader: c}
 	r.APIReader = reader
-	tmpl.Spec.SentinelIsolation = false
+	// Opting out now also takes withdrawing the advertised port.
+	tmpl.Spec.SentinelIsolation, tmpl.Spec.Ports[0].Advertise = false, false
 	if err := r.reconcileSentinelIsolation(t.Context(), gs, tmpl); err != nil {
 		t.Fatal(err)
 	}

@@ -384,6 +384,18 @@ spec:
             - --tunnel-playit-image={{ include "gameplane.tunnelPlayitImage" . }}
             {{- if .Values.networkPolicies.tenantIsolation }}
             - --restrict-tunnel-egress
+            {{- else }}
+            {{- /* tunnelEgress is absent after --reuse-values from a release that predates it; the operator then uses its built-in defaults. */}}
+            {{- $tunnelEgress := .Values.networkPolicies.tunnelEgress | default dict }}
+            {{- range $tunnelEgress.exceptCIDRs }}
+            - {{ printf "--tunnel-egress-except-cidr=%s" . | quote }}
+            {{- end }}
+            {{- range $tunnelEgress.allowCIDRs }}
+            - {{ printf "--tunnel-egress-allow-cidr=%s" . | quote }}
+            {{- end }}
+            {{- end }}
+            {{- range (.Values.operator.allowedImageRegistries | default list) }}
+            - {{ printf "--allowed-image-registry=%s" . | quote }}
             {{- end }}
             {{- if .Values.operator.configInitImage }}
             - --config-init-image={{ .Values.operator.configInitImage }}
