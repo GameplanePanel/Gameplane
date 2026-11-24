@@ -392,6 +392,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if err := validateProbeHosts(effectiveGameProbes(&gs, &tmpl)); err != nil {
 		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
 	}
+	if err := validateHostportPorts(&gs, &tmpl); err != nil {
+		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
+	}
 	if tmpl.Spec.SentinelIsolation && len(networkPolicyPortsFromTemplate(&tmpl)) == 0 {
 		cleanupErr := r.revokeInvalidSentinelIsolationExposure(ctx, &gs)
 		phaseErr := r.setPhase(ctx, &gs,
