@@ -315,34 +315,34 @@ func TestOptionalComponents_Lifecycle(t *testing.T) {
 
 		// The frp relay may dial only public addresses unless the server is
 		// allowed: this in-cluster frps is reached by hostname, the case
-		// networkPolicies.tunnelEgress.allowCIDRs is for. Allow its pod IP
-		// (NetworkPolicy sees the Service traffic after translation).
-		var frpsIP string
-		envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
-			pods, err := envInstance.K8s.CoreV1().Pods(ocNS).List(ctx, metav1.ListOptions{LabelSelector: "app.kubernetes.io/name=e2e-frps"})
-			if err != nil {
-				return false, err.Error()
+		// networkPolicies.tunnelEgress.allowCIDRs is for. NetworkPolicy sees
+		// the Service traffic after translation, at the frps pod IP, and the
+		// frp-identity-health subtest restarts frps, so allow the nodes' pod
+		// ranges rather than one pod IP.
+		nodes, err := envInstance.K8s.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatalf("list nodes: %v", err)
+		}
+		var frpsAllow []string
+		for _, node := range nodes.Items {
+			cidrs := node.Spec.PodCIDRs
+			if len(cidrs) == 0 && node.Spec.PodCIDR != "" {
+				cidrs = []string{node.Spec.PodCIDR}
 			}
-			for _, pod := range pods.Items {
-				if pod.DeletionTimestamp == nil && pod.Status.PodIP != "" {
-					frpsIP = pod.Status.PodIP
-					return true, ""
-				}
+			for _, cidr := range cidrs {
+				frpsAllow = append(frpsAllow, fmt.Sprintf("networkPolicies.tunnelEgress.allowCIDRs[%d]=%s", len(frpsAllow), cidr))
 			}
-			return false, "waiting for the e2e-frps pod IP"
-		})
-		frpsCIDR := frpsIP + "/32"
-		if strings.Contains(frpsIP, ":") {
-			frpsCIDR = frpsIP + "/128"
+		}
+		if len(frpsAllow) == 0 {
+			t.Fatal("no node pod CIDRs to allow the in-cluster frps")
 		}
 
-		helmUpgradeReuse(ctx, t,
+		helmUpgradeReuse(ctx, t, append([]string{
 			"mcpServer.enabled=true",
 			"api.audit.webhook.syslogBridge.enabled=true",
 			"api.audit.webhook.syslogBridge.syslog.addr=e2e-syslog-sink:514",
-			"api.audit.webhook.authSecretRef.name="+ocAuditSecret,
-			"networkPolicies.tunnelEgress.allowCIDRs[0]="+frpsCIDR,
-		)
+			"api.audit.webhook.authSecretRef.name=" + ocAuditSecret,
+		}, frpsAllow...)...)
 
 		ready := func(ns, name string) func() (bool, string) {
 			return func() (bool, string) {
