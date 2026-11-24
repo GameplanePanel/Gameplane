@@ -132,6 +132,9 @@ func main() {
 		tunnelTailscaleImage             string
 		tunnelPlayitImage                string
 		restrictTunnelEgress             bool
+		tunnelEgressExceptCIDR           cidrListFlag
+		tunnelEgressAllowCIDR            cidrListFlag
+		allowedImageRegistries           cidrListFlag
 		agentLogLevel                    string
 		agentMaxUploadBytes              int64
 		filesIdleTimeout                 time.Duration
@@ -226,6 +229,13 @@ func main() {
 			"Point at a private registry mirror for air-gapped installs.")
 	flag.BoolVar(&restrictTunnelEgress, "restrict-tunnel-egress", false,
 		"Only grant tunnel egress to this server's advertised backend ports; administrators supply provider egress policies.")
+	flag.Var(&tunnelEgressExceptCIDR, "tunnel-egress-except-cidr",
+		"Range a tunnel relay may not dial on its provider ports without --restrict-tunnel-egress. Repeatable. Defaults to "+
+			"10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16, fc00::/7 and fe80::/10 when not supplied.")
+	flag.Var(&tunnelEgressAllowCIDR, "tunnel-egress-allow-cidr",
+		"Private range a tunnel relay may dial on its provider ports anyway (a LAN frp server reached by hostname). Repeatable.")
+	flag.Var(&allowedImageRegistries, "allowed-image-registry",
+		"Registry host or host/path prefix a GameServer spec.image override may use. Repeatable. Unset leaves overrides unrestricted.")
 	flag.StringVar(&tunnelPlayitImage, "tunnel-playit-image", controller.DefaultTunnelPlayitImage,
 		"Image for the Playit tunnel relay pod that routes players through a Playit tunnel. "+
 			"Point at a private registry mirror for air-gapped installs.")
@@ -502,6 +512,20 @@ func main() {
 		probeIngressFromCIDR[i] = ipnet.String()
 	}
 
+	for _, list := range []struct {
+		name  string
+		cidrs cidrListFlag
+	}{{"--tunnel-egress-except-cidr", tunnelEgressExceptCIDR}, {"--tunnel-egress-allow-cidr", tunnelEgressAllowCIDR}} {
+		for i, cidr := range list.cidrs {
+			_, ipnet, err := net.ParseCIDR(cidr)
+			if err != nil {
+				setupLog.Error(err, "invalid "+list.name+" value", "cidr", cidr)
+				os.Exit(1)
+			}
+			list.cidrs[i] = ipnet.String()
+		}
+	}
+
 	secretNamespaces := []string{agentCASecretNamespace, moduleNamespace}
 	if remoteClusters {
 		secretNamespaces = append(secretNamespaces, controlPlaneNamespace)
@@ -544,33 +568,36 @@ func main() {
 	}
 
 	if err := (&controller.GameServerReconciler{
-		Client:                 mgr.GetClient(),
-		APIReader:              mgr.GetAPIReader(),
-		Scheme:                 mgr.GetScheme(),
-		AgentImage:             agentImage,
-		AgentResources:         agentResources,
-		SentinelResources:      sentinelResources,
-		TunnelResources:        tunnelResources,
-		TailscaleMaxSessions:   tailscaleMaxSessions,
-		TailscaleUDPQueue:      tailscaleUDPQueue,
-		AgentImagePullPolicy:   agentImagePullPolicy,
-		ConfigInitImage:        configInitImage,
-		SentinelImage:          sentinelImage,
-		TunnelFrpImage:         tunnelFrpImage,
-		TunnelTailscaleImage:   tunnelTailscaleImage,
-		TunnelPlayitImage:      tunnelPlayitImage,
-		RestrictTunnelEgress:   restrictTunnelEgress,
-		AgentLogLevel:          agentLogLevel,
-		AgentMaxUploadBytes:    agentMaxUploadBytes,
-		FilesIdleTimeout:       filesIdleTimeout,
-		AgentCASecretName:      agentCASecretName,
-		AgentCASecretNamespace: agentCASecretNamespace,
-		WakeStartLimit:         wakeStartLimit,
-		WakeStartNamespace:     controlPlaneNamespaceDefault,
-		ControlPlaneNamespace:  controlPlaneNamespace,
-		EventRecorder:          mgr.GetEventRecorder("gameserver-controller"),
-		AgentClient:            agentClient,
-		OperationQuiescer:      agentClient,
+		Client:                  mgr.GetClient(),
+		APIReader:               mgr.GetAPIReader(),
+		Scheme:                  mgr.GetScheme(),
+		AgentImage:              agentImage,
+		AgentResources:          agentResources,
+		SentinelResources:       sentinelResources,
+		TunnelResources:         tunnelResources,
+		TailscaleMaxSessions:    tailscaleMaxSessions,
+		TailscaleUDPQueue:       tailscaleUDPQueue,
+		AgentImagePullPolicy:    agentImagePullPolicy,
+		ConfigInitImage:         configInitImage,
+		SentinelImage:           sentinelImage,
+		TunnelFrpImage:          tunnelFrpImage,
+		TunnelTailscaleImage:    tunnelTailscaleImage,
+		TunnelPlayitImage:       tunnelPlayitImage,
+		RestrictTunnelEgress:    restrictTunnelEgress,
+		TunnelEgressExceptCIDRs: tunnelEgressExceptCIDR,
+		TunnelEgressAllowCIDRs:  tunnelEgressAllowCIDR,
+		AllowedImageRegistries:  allowedImageRegistries,
+		AgentLogLevel:           agentLogLevel,
+		AgentMaxUploadBytes:     agentMaxUploadBytes,
+		FilesIdleTimeout:        filesIdleTimeout,
+		AgentCASecretName:       agentCASecretName,
+		AgentCASecretNamespace:  agentCASecretNamespace,
+		WakeStartLimit:          wakeStartLimit,
+		WakeStartNamespace:      controlPlaneNamespaceDefault,
+		ControlPlaneNamespace:   controlPlaneNamespace,
+		EventRecorder:           mgr.GetEventRecorder("gameserver-controller"),
+		AgentClient:             agentClient,
+		OperationQuiescer:       agentClient,
 		PodAttacher: &controller.StopAttachClient{
 			Config:    mgr.GetConfig(),
 			Clientset: kubernetes.NewForConfigOrDie(mgr.GetConfig()),

@@ -494,6 +494,23 @@ When `networkPolicies.enabled=true` (default) the chart applies:
   defined in `networkPolicies.gameEgress.privateCIDRs` (by default: 10.0.0.0/8,
   172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 to block in-cluster and
   cloud-metadata access). Ports customizable via `networkPolicies.gameEgress.ports`.
+- `<gameserver-name>-tunnel-egress` — created by the **operator** for each
+  GameServer with a tunnel. Outside `tenantIsolation` it allows DNS to any
+  destination, the advertised ports to this server's own game and waker pods
+  only, and the provider's relay ports (frp `serverPort`, Tailscale TCP 443
+  and UDP 41641, every port for playit) to public addresses only:
+  `networkPolicies.tunnelEgress.exceptCIDRs` (RFC 1918, link-local,
+  `fc00::/7`, `fe80::/10` by default) stay closed, so a relay cannot reach
+  in-cluster services, nodes or cloud metadata. A frp `serverAddr` written
+  as an IP address is added as a /32 or /128 (never loopback or link-local);
+  list a LAN frp server reached by hostname in
+  `networkPolicies.tunnelEgress.allowCIDRs`. Tailscale direct connections to
+  LAN peers fall back to DERP. With `tenantIsolation` the operator grants only
+  the backend path and administrators supply provider egress (see above).
+- `allow-playit-tunnel-to-apiserver` — outside `tenantIsolation`, allows
+  playit relay pods (labelled `gameplane.local/tunnel-provider: playit`) the
+  same apiserver addresses as `allow-agent-to-apiserver`, on TCP 443 and
+  6443, so they can publish their assigned address.
 
 **Note:** `default-deny-egress` applies to all pods in the games namespace
 (`podSelector: {}`), while `allow-agent-to-apiserver` and

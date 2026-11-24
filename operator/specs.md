@@ -120,6 +120,34 @@ are unaffected. Restore and forget pods, and frp and Tailscale tunnel pods,
 mount no ServiceAccount token; only a playit tunnel runs as its own
 ServiceAccount.
 
+### Workload guards
+
+These refusals are workload rejections too (Ready/Failed with the reason, a
+suspended server still scales down; `gameserver_workload_guards.go`):
+
+- **Sidecar ports** (`validateSidecarPorts`): a template may not advertise TCP
+  8090 (agent mTLS control), 9090 (agent plain-HTTP metrics) or 9091 (capture
+  sidecar). The sidecars share the game pod's network namespace, so an
+  advertised one would publish the sidecar on the game Service, Hostport or
+  tunnel. UDP and unadvertised ports are unaffected. A held rollout to such a
+  template is refused before it drains the server.
+- **ServiceAccount override** (`validateServiceAccountOverride`): a
+  `spec.serviceAccountName` may not name this server's own tunnel or sentinel
+  account, a ServiceAccount another object controls (another server's agent,
+  tunnel or sentinel account) or one labelled
+  `app.kubernetes.io/managed-by: Helm` (chart component accounts). A missing
+  account is left to the StatefulSet controller.
+- **Image override** (`validateImageOverride`): with
+  `--allowed-image-registry` set (repeatable; Helm
+  `operator.allowedImageRegistries`), `spec.image` must sit under one of the
+  registry hosts or host/path prefixes, on a path boundary, with Docker Hub
+  short names expanded (`itzg/x` is `docker.io/itzg/x`). Unset leaves the
+  override open. Template and version images are module-controlled and not
+  checked.
+
+The API already limits `spec.serviceAccountName` and `spec.image` to
+administrators; the last two guards are the operator's own defence in depth.
+
 ### Hostport wake handoff
 
 Hostport wake-on-connect keeps a durable endpoint node name and Node UID in
@@ -433,7 +461,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
   - Graceful stop: if template has Lifecycle.Stop sequence, orchestrate via agent before scaling down.
   - Node affinity: honor spec.nodeSelector and spec.affinity preferences.
   - Ingress NetworkPolicy: enforce per-template advertised ports, admit CIDRs from `--game-ingress-from-cidr`.
-  - Tunnel NetworkPolicies use the relay's provider ports in compatibility mode. With `--restrict-tunnel-egress`, a server's tunnel gets egress to its own game or waker and the backend gets the matching ingress from that tunnel. Both rules select only the same namespace, server instance and advertised port/protocol. The chart covers DNS and administrators supply provider egress.
+  - Tunnel NetworkPolicies (`reconcileTunnelNetworkPolicy`). Without `--restrict-tunnel-egress` (compatibility mode, `legacyTunnelEgress`), the relay gets three egress rules: DNS (UDP/TCP 53) to any destination; its provider's ports (frp `serverPort`, default 7000; Tailscale TCP 443 and UDP 41641; playit every port) to `0.0.0.0/0` and `::/0` minus `--tunnel-egress-except-cidr` (default 10/8, 172.16/12, 192.168/16, 169.254/16, fc00::/7, fe80::/10; IPv4 and IPv6 entries go to their own block), plus each `--tunnel-egress-allow-cidr` and a frp `serverAddr` written as an IP (/32 or /128; never loopback, link-local, multicast or unspecified); and the advertised ports to its own game or waker pods only. Playit relay pods carry `gameplane.local/tunnel-provider: playit`, which the chart's `allow-playit-tunnel-to-apiserver` policy selects for address publication. With `--restrict-tunnel-egress`, a server's tunnel gets egress to its own game or waker and the backend gets the matching ingress from that tunnel. Both rules select only the same namespace, server instance and advertised port/protocol. The chart covers DNS and administrators supply provider egress.
   - Probe NetworkPolicy (`probe_policy.go`): with `--probe-ingress-policy`, reconcile an owned `<gs>-probes` policy admitting `--probe-ingress-from-cidr` to exactly the ports the game container's tcpSocket, httpGet (no `host`) and grpc liveness, readiness and startup probes use; named ports stay named. Exec probes need no network. With the flag off, no network probe, or no CIDRs, delete the policy if the GameServer controls it (a rule with no ports would admit every port). Replaces the chart's catch-all `allow-kubelet-probes` rule.
   - Template env ownership: Secret and ConfigMap references in the GameTemplate's and GameVersion's `env` must pass the same ownership rule as `spec.env` (`validateTemplateEnvSources` reuses `validateServerEnvSources`), so a template cannot mount another server's Secret into this server's pod.
   - Sentinel NetworkPolicies: `GameTemplate.spec.sentinelIsolation` defaults false. When true, reconcile owned `<gs>-sentinel-ingress` and `<gs>-sentinel-egress` policies joining only the same namespace/server instance on advertised protocol/port tuples. An opted-in template with zero advertised ports revokes its owned game-ingress and sentinel policies plus public/game-direct Services through uncached, UID/resourceVersion-guarded cleanup before reporting actionable `Ready=False`; it creates no workloads or unrestricted grants, preserves foreign resources and the agent Service, and reports the failure even when cleanup needs a retry. Set `gameplane.local/sentinel-isolation=true` on both pod templates, without changing immutable workload selectors. On opt-out, roll the labels off both workloads and retain the per-server grants until uncached reads confirm both controllers observed the unlabeled templates and completed their rollouts, and neither game nor sentinel pods still carry the label. Settled opt-outs first probe cached sentinel policies and skip live rollout reads when no owned grants exist. The owned NetworkPolicy watch must remain enabled: delayed cache visibility enqueues another cleanup pass. The matching chart excludes opted-in sources and destinations from legacy grants; other policies remain additive.

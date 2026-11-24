@@ -199,6 +199,9 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 		if err := validateHostportPorts(gs, target); err != nil {
 			return effective, false, err
 		}
+		if err := validateSidecarPorts(target); err != nil {
+			return effective, false, err
+		}
 		if op.Baseline {
 			if r.baselineNeedsDrain(op) {
 				drained, err := r.templateWorkloadDrained(ctx, gs)

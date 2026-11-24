@@ -196,6 +196,11 @@ operator:
     frp: ""   # defaults to {image.registry}/tunnel-frp:{image.tag}
     tailscale: ""   # defaults to {image.registry}/tunnel-tailscale:{image.tag}
     playit: ""   # defaults to {image.registry}/tunnel-playit:{image.tag}
+  # Registry hosts or host/path prefixes (e.g. ghcr.io, docker.io/itzg) a
+  # GameServer spec.image override may pull from. Empty (default) leaves the
+  # admin-only override unrestricted; template and version images are
+  # module-controlled and never checked.
+  allowedImageRegistries: []
   # Images the operator injects into game/backup pods. Retag these to a
   # private registry mirror for air-gapped installs (Docker Hub blocked).
   configInitImage: busybox:1.38.0
@@ -698,6 +703,23 @@ networkPolicies:
   # explicitly there when the endpoint is public. Re-run helm upgrade if
   # the API server endpoint changes.
   apiServerCIDRs: []
+  # Tunnel relay egress outside tenantIsolation. A relay may resolve DNS
+  # anywhere, reach its own server's game pods on the advertised ports, and
+  # dial its provider's ports (frp serverPort, Tailscale 443/41641, any port
+  # for playit) on public addresses only: exceptCIDRs stay closed so a relay
+  # cannot reach in-cluster services, nodes or cloud metadata. A frp
+  # serverAddr written as an IP is always allowed; list a LAN frp server
+  # reached by hostname in allowCIDRs (e.g. 192.168.1.20/32). Unused with
+  # tenantIsolation, where administrators supply provider egress policies.
+  tunnelEgress:
+    exceptCIDRs:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+      - 169.254.0.0/16
+      - fc00::/7
+      - fe80::/10
+    allowCIDRs: []
   # Egress allowance for game pods to reach the public internet. Game
   # servers download their binaries, assets, and mods on first start
   # (Fabric meta, Mojang, Steam, mod registries); without this the

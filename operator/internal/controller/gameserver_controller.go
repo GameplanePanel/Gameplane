@@ -127,6 +127,15 @@ type GameServerReconciler struct {
 	TunnelTailscaleImage string
 	TunnelPlayitImage    string
 	RestrictTunnelEgress bool
+	// TunnelEgressExceptCIDRs are the ranges a legacy tunnel relay may not
+	// dial on its provider ports (empty: DefaultTunnelEgressExceptCIDRs).
+	// TunnelEgressAllowCIDRs are LAN relay ranges an administrator allows
+	// anyway. Both are canonical CIDRs and unused with RestrictTunnelEgress.
+	TunnelEgressExceptCIDRs []string
+	TunnelEgressAllowCIDRs  []string
+	// AllowedImageRegistries limits GameServer spec.image overrides to
+	// these registry hosts or host/path prefixes. Empty leaves them open.
+	AllowedImageRegistries []string
 
 	// AgentCASecretName / AgentCASecretNamespace point at the cluster-
 	// wide Secret holding `ca.crt` + `ca.key` used to sign the
@@ -394,6 +403,19 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := validateHostportPorts(&gs, &tmpl); err != nil {
 		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+	}
+	if err := validateSidecarPorts(&tmpl); err != nil {
+		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+	}
+	if err := r.validateImageOverride(&gs); err != nil {
+		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+	}
+	if err := r.validateServiceAccountOverride(ctx, &gs); err != nil {
+		var rejected workloadPolicyRejection
+		if errors.As(err, &rejected) {
+			return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+		}
+		return ctrl.Result{}, err
 	}
 	if tmpl.Spec.SentinelIsolation && len(networkPolicyPortsFromTemplate(&tmpl)) == 0 {
 		cleanupErr := r.revokeInvalidSentinelIsolationExposure(ctx, &gs)
