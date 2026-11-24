@@ -447,6 +447,8 @@ func (r *BackupReconciler) buildForgetPodSpec(b *gameplanev1alpha1.Backup) corev
 
 	return corev1.PodSpec{
 		RestartPolicy: corev1.RestartPolicyNever,
+		// restic never talks to the Kubernetes API.
+		AutomountServiceAccountToken: ptrTo(false),
 		SecurityContext: &corev1.PodSecurityContext{
 			RunAsNonRoot:   &nonRoot,
 			RunAsUser:      &uid,
