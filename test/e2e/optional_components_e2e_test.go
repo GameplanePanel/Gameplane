@@ -313,11 +313,35 @@ func TestOptionalComponents_Lifecycle(t *testing.T) {
 			t.Fatalf("create audit webhook secret: %v", err)
 		}
 
+		// The frp relay may dial only public addresses unless the server is
+		// allowed: this in-cluster frps is reached by hostname, the case
+		// networkPolicies.tunnelEgress.allowCIDRs is for. Allow its pod IP
+		// (NetworkPolicy sees the Service traffic after translation).
+		var frpsIP string
+		envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
+			pods, err := envInstance.K8s.CoreV1().Pods(ocNS).List(ctx, metav1.ListOptions{LabelSelector: "app.kubernetes.io/name=e2e-frps"})
+			if err != nil {
+				return false, err.Error()
+			}
+			for _, pod := range pods.Items {
+				if pod.DeletionTimestamp == nil && pod.Status.PodIP != "" {
+					frpsIP = pod.Status.PodIP
+					return true, ""
+				}
+			}
+			return false, "waiting for the e2e-frps pod IP"
+		})
+		frpsCIDR := frpsIP + "/32"
+		if strings.Contains(frpsIP, ":") {
+			frpsCIDR = frpsIP + "/128"
+		}
+
 		helmUpgradeReuse(ctx, t,
 			"mcpServer.enabled=true",
 			"api.audit.webhook.syslogBridge.enabled=true",
 			"api.audit.webhook.syslogBridge.syslog.addr=e2e-syslog-sink:514",
 			"api.audit.webhook.authSecretRef.name="+ocAuditSecret,
+			"networkPolicies.tunnelEgress.allowCIDRs[0]="+frpsCIDR,
 		)
 
 		ready := func(ns, name string) func() (bool, string) {
