@@ -1076,8 +1076,10 @@ Anyone can therefore post reports. Defences:
   body cap, and every string matched against a pattern or a fixed list, so
   hostile text can't create unbounded categories or reach the dashboard
 - a per-source daily limit on accepted reports (`INGEST_SOURCE_DAILY_LIMIT`,
-  default `20`, tolerant of shared NAT) and a rate limit on the public
-  summary, both held in memory only
+  default `20`, tolerant of shared NAT), a per-source request rate on
+  `/ingest` that also counts refused and malformed reports
+  (`INGEST_SOURCE_PER_MINUTE`, default `60`), and a rate limit on the public
+  summary, all held in memory only
 - optional proof-of-work (`INGEST_POW`, off by default; see below), which
   raises the cost of bulk reports in proportion to the request rate
 - only daily aggregates and expiring activity records are stored; raw

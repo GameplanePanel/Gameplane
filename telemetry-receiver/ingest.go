@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/subtle"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -29,9 +28,20 @@ const (
 )
 
 func (s *server) ingest(w http.ResponseWriter, req *http.Request) {
+	// The request budget comes first and counts every request, so refused
+	// and malformed reports (which never reach the daily limit) cannot be
+	// sent at an unbounded rate to burn signature checks, store reads or
+	// AUTH_TOKEN guesses.
+	if s.ingestLimiter != nil && !s.ingestLimiter.allow(sourceIP(req, s.cfg.trustedProxyCIDRs), s.now()) {
+		s.rateLimited.WithLabelValues(routeIngest).Inc()
+		w.Header().Set("Retry-After", "60")
+		http.Error(w, "rate limit exceeded", http.StatusTooManyRequests)
+		return
+	}
 	if s.cfg.authToken != "" {
-		got := req.Header.Get("Authorization")
-		if subtle.ConstantTimeCompare([]byte(got), []byte(s.cfg.authToken)) != 1 {
+		// tokenEqual hashes both sides, so the comparison does not reveal
+		// the token's length the way ConstantTimeCompare on raw bytes does.
+		if !tokenEqual(req.Header.Get("Authorization"), s.cfg.authToken) {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}

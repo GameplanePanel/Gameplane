@@ -17,7 +17,7 @@ Optional collector for the usage telemetry that Gameplane installs report daily.
 - **Extended identity checks**: an extended report must carry a valid `Gameplane-Telemetry-Signature` (Ed25519 over the exact body bytes, under the key in `ext.key`). The receiver also refuses a send time outside `[now - 36h, now + 1h]` (`stale`), a key that differs from the one that first claimed the install ID (`id_claimed`) and a send time not later than the last accepted one (`replay`)
 - **Proof-of-work (optional)**: with `INGEST_POW=true`, `/ingest` requires a solved challenge from `/v1/challenge` before the body is read; difficulty adapts to the challenge rate
 - **Aggregation and storage**: daily aggregates and expiring per-install activity records in SQLite (`$DATA_DIR/telemetry.db`); an install ID is stored only as `HMAC-SHA256(pepper, installID)`
-- **Per-source limits**: accepted reports per source per UTC day (`INGEST_SOURCE_DAILY_LIMIT`), login attempts, summary reads and challenge requests, all held in memory; source addresses come from the TCP peer, or from `X-Forwarded-For` only when the peer is inside `TRUSTED_PROXY_CIDRS`
+- **Per-source limits**: `/ingest` requests per source per minute, refused ones included (`INGEST_SOURCE_PER_MINUTE`), accepted reports per source per UTC day (`INGEST_SOURCE_DAILY_LIMIT`), login attempts, summary reads and challenge requests, all held in memory; source addresses come from the TCP peer, or from `X-Forwarded-For` only when the peer is inside `TRUSTED_PROXY_CIDRS`
 - **Dashboard**: server-rendered HTML with inline SVG charts and no JavaScript, behind one operator token; the same view model is served as JSON at `/api/v1/views`. Every range ends on today (UTC), which is still in progress
 - **Public summary (optional)**: `GET /v1/summary` returns five counts when `PUBLIC_SUMMARY=true`
 - **Version sanitization**: invalid syntax is bucketed as `"invalid"`. Retain at most 128 distinct strings matching `^[A-Za-z0-9][A-Za-z0-9._+-]{0,31}$` per process for the Prometheus label; additional versions share `"other"`. The two bucket names are reserved, for at most 130 series. Retained labels are never evicted; restart resets the budget with the counters.
@@ -69,7 +69,7 @@ The full contract is `specs/done_022-default-telemetry-dashboard/contracts/recei
 | `/v1/challenge` | GET | `200` JSON `{challenge, bits, expiresAt}`, `Cache-Control: no-store` | `404` unless `INGEST_POW=true`; `429` (10 per minute, burst 5 per source) |
 | `/healthz` | GET | `200 OK`, body `"ok"` | Never errors |
 
-`/ingest` runs its checks in this order: `AUTH_TOKEN`, proof-of-work, body read, decode, extended identity checks, per-source daily limit, store. A refused report changes no stored data. Every other path, including `/metrics`, answers `404`.
+`/ingest` runs its checks in this order: per-source request budget (`429` with `Retry-After: 60`), `AUTH_TOKEN`, proof-of-work, body read, decode, extended identity checks, per-source daily limit, store. A refused report changes no stored data. Every other path, including `/metrics`, answers `404`.
 
 ### Dashboard listener (`DASHBOARD_LISTEN_ADDR`)
 
@@ -96,6 +96,7 @@ The session cookie is `gp_telemetry_session` (`HttpOnly; Secure; SameSite=Strict
 | `PUBLIC_SUMMARY` | `false` | `true` enables `/v1/summary` |
 | `TRUSTED_PROXY_CIDRS` | *(empty)* | Comma-separated CIDRs whose `X-Forwarded-For` is trusted; a malformed entry stops startup |
 | `INGEST_SOURCE_DAILY_LIMIT` | `20` | Accepted reports per source per UTC day; `0` means unlimited; negative is refused |
+| `INGEST_SOURCE_PER_MINUTE` | `60` | `/ingest` requests per source per minute (burst of the same size), counting refused and malformed ones; `0` means unlimited; negative is refused |
 | `RETENTION_DAYS` | `730` | Daily aggregate retention; minimum `365` |
 | `ACTIVITY_EXPIRY_DAYS` | `90` | Activity record expiry; minimum `31` |
 | `ID_PEPPER` | *(empty)* | HMAC pepper for install IDs. Empty means one is generated and kept in the database |
