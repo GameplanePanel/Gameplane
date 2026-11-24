@@ -136,6 +136,13 @@ created through SSO is usually named by its email address, for example
 A username that itself contains `+` cannot be used over SFTP, because `+`
 starts the server part.
 
+Your SFTP username, shown under **Settings, SFTP**, is your display name by
+default, so SSO users do not have to type their email address: `alice` and
+`alice+survival` work. If another account already has that name, or it has a
+space, `/` or `+`, your SFTP username is your panel username instead. You can
+choose another SFTP username on the same page, or reset it to the default. Your
+panel username always keeps working too.
+
 Permissions:
 
 - Reading needs `servers:read` on the server, or the usual ownership or

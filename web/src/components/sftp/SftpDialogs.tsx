@@ -26,6 +26,7 @@ import { useOptionalIntl } from "@/lib/i18n/format";
 import {
   addSftpKey,
   generateSftpPassword,
+  setSftpLoginName,
   SFTP_PASSWORD_DEFAULT_LENGTH,
   SFTP_PASSWORD_MAX_LENGTH,
   SFTP_PASSWORD_MIN_LENGTH,
@@ -220,6 +221,97 @@ export function GeneratePasswordDialog({
               <Button size="sm" onPress={() => void submit()} isDisabled={busy}>
                 {intl.formatMessage({ id: "web.components.sftp.generate", defaultMessage: "Generate", description: "SFTP generate dialog: submit button label; keep it short" })}
               </Button>
+            </ModalFooter>
+          </ModalDialog>
+        </ModalContainer>
+      </ModalBackdrop>
+    </Modal>
+  );
+}
+
+// ChangeLoginNameDialog sets the SFTP username (design Dialog/Change SFTP
+// username 1041846705-1, -38 taken). The server validates; its refusal
+// (server.sftp.login_name_invalid, login_name_taken) shows under the input.
+export function ChangeLoginNameDialog({
+  open,
+  loginName,
+  onClose,
+  onSaved,
+  save = setSftpLoginName,
+}: {
+  open: boolean;
+  loginName: string;
+  onClose: () => void;
+  onSaved: () => void;
+  /** Injection seam for tests; production uses the real client. */
+  save?: (loginName: string) => Promise<unknown>;
+}) {
+  const intl = useOptionalIntl();
+  const [value, setValue] = useState(loginName);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setValue(loginName);
+      setError(null);
+    }
+  }
+
+  const close = () => {
+    if (busy) return;
+    setError(null);
+    onClose();
+  };
+  const submit = async (next: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await save(next);
+      onSaved();
+    } catch (err) {
+      setError(errorTextIntl(intl, err, intl.formatMessage({ id: "web.components.sftp.login_name_failed", defaultMessage: "Could not change the SFTP username.", description: "SFTP change-username dialog: fallback error when the server gives no message" })));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={open} onOpenChange={(o) => !o && close()}>
+      <ModalBackdrop isDismissable={!busy} isKeyboardDismissDisabled={busy}>
+        <ModalContainer>
+          <ModalDialog className={dialogClass}>
+            <ModalHeader>
+              <ModalHeading>{intl.formatMessage({ id: "web.components.sftp.change_sftp_username", defaultMessage: "Change SFTP username", description: "SFTP change-username dialog: heading and the title of the dialog" })}</ModalHeading>
+            </ModalHeader>
+            <ModalBody className="space-y-2">
+              <Label htmlFor="sftp-login-name" className="sr-only">{intl.formatMessage({ id: "web.components.sftp.sftp_username", defaultMessage: "SFTP username", description: "SFTP change-username dialog: label above the username field" })}</Label>
+              <Input
+                id="sftp-login-name"
+                fullWidth
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                aria-invalid={error ? true : undefined}
+                aria-describedby="sftp-login-name-hint"
+                className={error ? "border-danger" : undefined}
+                disabled={busy}
+              />
+              {error ? (
+                <p id="sftp-login-name-hint" role="alert" className="text-xs text-danger">{error}</p>
+              ) : (
+                <Description id="sftp-login-name-hint" className="text-xs text-muted">{intl.formatMessage({ id: "web.components.sftp.login_name_hint", defaultMessage: "Up to 64 characters, no spaces, / or +.", description: "SFTP change-username dialog: hint under the username field listing the rules" })}</Description>
+              )}
+            </ModalBody>
+            <ModalFooter className="flex items-center justify-between gap-2">
+              <Button variant="ghost" size="sm" onPress={() => void submit("")} isDisabled={busy}>{intl.formatMessage({ id: "web.components.sftp.reset_to_default", defaultMessage: "Reset to default", description: "SFTP change-username dialog: button that restores the default username; keep it short" })}</Button>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onPress={close} isDisabled={busy}>{intl.formatMessage({ id: "web.components.sftp.cancel", defaultMessage: "Cancel", description: "SFTP dialogs: button that closes the dialog without changes; keep it short" })}</Button>
+                <Button size="sm" onPress={() => void submit(value.trim())} isDisabled={busy || value.trim() === ""}>
+                  {intl.formatMessage({ id: "web.components.sftp.save", defaultMessage: "Save", description: "SFTP change-username dialog: submit button label; keep it short" })}
+                </Button>
+              </div>
             </ModalFooter>
           </ModalDialog>
         </ModalContainer>

@@ -64,6 +64,7 @@ A user, including one who signs in with SSO and has no Gameplane password, opens
 **Acceptance Scenarios**:
 
 1. **Given** a signed-in user, **When** they open their profile, **Then** they see the SFTP address, port, their SFTP username and the host key fingerprint to check on first connect.
+1a. **Given** an SSO user named by their email address whose display name no other account uses, **When** they open Settings, SFTP, **Then** their SFTP username is the display name, they can log in with it (or with the email address), and they can change it there (FR-005a).
 2. **Given** a user revokes a credential or an admin disables the user, **When** a session using it is open, **Then** it is closed within one minute and new logins with it fail.
 3. **Given** five failed logins in a row for one username or source address, **When** more attempts follow, **Then** they are slowed down and refused the same way the dashboard login rate limit does, and the failure message never says whether the user exists.
 
@@ -131,6 +132,7 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 
 **Authentication**
 
+- **FR-005a**: Each user MUST have one SFTP username (valgul, 2026-11-24). By default it is their display name when that name is a valid login name (no space, control character, `/` or `+`, at most 64 characters) and no other account has it as username, SFTP username or display name; otherwise it is their panel username (for SSO, usually the email address). The user MUST be able to choose another SFTP username in Settings, SFTP, and clear the choice to return to the default. A chosen name another account holds as username, SFTP username or display name MUST be refused. The panel username MUST keep working as a login name.
 - **FR-005**: Users MUST authenticate with an SFTP credential tied to their Gameplane user, which works for local and SSO users alike: an SSH public key or a generated SFTP password (OD-2). The dashboard login password MUST NOT be accepted.
 - **FR-006**: Users MUST be able to add, list and remove their own SFTP SSH public keys in their profile; admins with `users:manage` MUST be able to list and remove any user's.
 - **FR-006a**: Each user MUST be able to have at most one generated SFTP password. Gameplane generates it, shows it exactly once, and stores only a hash. It never expires. The user can only regenerate it (the old one stops working at once) or revoke it; admins with `users:manage` can revoke any user's.

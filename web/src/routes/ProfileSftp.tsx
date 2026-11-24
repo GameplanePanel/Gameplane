@@ -11,7 +11,7 @@ import { Copy, KeyRound, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SettingsNav } from "@/components/ui/SettingsNav";
-import { AddKeyDialog, GeneratePasswordDialog, PasswordShownOnceDialog } from "@/components/sftp/SftpDialogs";
+import { AddKeyDialog, ChangeLoginNameDialog, GeneratePasswordDialog, PasswordShownOnceDialog } from "@/components/sftp/SftpDialogs";
 import { can, useMe } from "@/lib/auth";
 import { errorTextIntl } from "@/lib/errors";
 import { formatRelative } from "@/lib/utils";
@@ -43,6 +43,7 @@ export function ProfileSftpPage() {
   const [removingKey, setRemovingKey] = useState<SftpKey | null>(null);
   const [generating, setGenerating] = useState(false);
   const [revoking, setRevoking] = useState(false);
+  const [changingName, setChangingName] = useState(false);
   const [shown, setShown] = useState<{ password: string; length: number } | null>(null);
 
   const refresh = () => void qc.invalidateQueries({ queryKey: SFTP_QUERY_KEY });
@@ -85,7 +86,7 @@ export function ProfileSftpPage() {
             </Card>
           ) : (
             <>
-              <AddressCard data={data} />
+              <AddressCard data={data} onChangeName={() => setChangingName(true)} />
               <KeysCard
                 keys={data.keys}
                 onAdd={() => setAddingKey(true)}
@@ -106,6 +107,16 @@ export function ProfileSftpPage() {
         onClose={() => setAddingKey(false)}
         onAdded={() => {
           setAddingKey(false);
+          refresh();
+        }}
+      />
+
+      <ChangeLoginNameDialog
+        open={changingName}
+        loginName={data?.loginName ?? ""}
+        onClose={() => setChangingName(false)}
+        onSaved={() => {
+          setChangingName(false);
           refresh();
         }}
       />
@@ -152,7 +163,7 @@ export function ProfileSftpPage() {
   );
 }
 
-function AddressCard({ data }: { data: SftpSelf }) {
+function AddressCard({ data, onChangeName }: { data: SftpSelf; onChangeName: () => void }) {
   const intl = useOptionalIntl();
   const ep = data.endpoint;
   const label = "text-sm text-muted";
@@ -188,10 +199,21 @@ function AddressCard({ data }: { data: SftpSelf }) {
       <div className="space-y-2 border-t border-default-200 pt-4">
         <h3 className="text-sm font-semibold">{intl.formatMessage({ id: "web.routes.profile_sftp.username", defaultMessage: "Username", description: "SFTP page: heading of the username forms" })}</h3>
         <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.profile_sftp.log_in_with_one_of", defaultMessage: "Log in with one of these usernames and your SSH key or SFTP password.", description: "SFTP page: instruction above the username forms" })}</p>
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <span className={label}>{intl.formatMessage({ id: "web.routes.profile_sftp.sftp_username", defaultMessage: "SFTP username", description: "SFTP page: label of the row that shows the username to type in an SFTP client" })}</span>
+          <div className="flex items-center gap-3">
+            <span className={value}>{data.loginName}</span>
+            <span className="rounded-full border border-default-200 px-2 py-0.5 text-xs text-muted">{data.customLoginName
+              ? intl.formatMessage({ id: "web.routes.profile_sftp.username_custom", defaultMessage: "Custom", description: "SFTP page: small tag beside the SFTP username when the user chose it" })
+              : intl.formatMessage({ id: "web.routes.profile_sftp.username_default", defaultMessage: "Default", description: "SFTP page: small tag beside the SFTP username when it is the default" })}</span>
+            <Button variant="outline" size="sm" onPress={onChangeName}>{intl.formatMessage({ id: "web.routes.profile_sftp.change", defaultMessage: "Change", description: "SFTP page: button that opens the change SFTP username dialog; keep it short" })}</Button>
+          </div>
+        </div>
+        <p className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.profile_sftp.username_help", defaultMessage: "Defaults to your display name. Your panel username ({username}) always works too.", description: "SFTP page: explains the default SFTP username; {username} is the panel username" }, { username: data.username })}</p>
         <ul className="space-y-2 text-sm">
-          <li><code className="font-mono">{data.username}</code> <span className="text-muted">{intl.formatMessage({ id: "web.routes.profile_sftp.username_all_servers", defaultMessage: "Lists every server you can read, one folder each", description: "SFTP page: explains the plain username form" })}</span></li>
-          <li><code className="font-mono">{intl.formatMessage({ id: "web.routes.profile_sftp.username_server_form", defaultMessage: "{username}+'<'server'>'", description: "SFTP page: the user+server username form; <server> is a placeholder the user replaces with a server name" }, { username: data.username })}</code> <span className="text-muted">{intl.formatMessage({ id: "web.routes.profile_sftp.username_one_server", defaultMessage: "Opens straight in the files of that server", description: "SFTP page: explains the user+server username form" })}</span></li>
-          <li><code className="font-mono">{intl.formatMessage({ id: "web.routes.profile_sftp.username_namespace_form", defaultMessage: "{username}+mods/'<'server'>'", description: "SFTP page: the user+namespace/server username form; mods is an example namespace, <server> a placeholder" }, { username: data.username })}</code> <span className="text-muted">{intl.formatMessage({ id: "web.routes.profile_sftp.username_namespace", defaultMessage: "Opens a server in another namespace (mods)", description: "SFTP page: explains the user+namespace/server username form; mods is an example namespace name" })}</span></li>
+          <li><code className="font-mono">{data.loginName}</code> <span className="text-muted">{intl.formatMessage({ id: "web.routes.profile_sftp.username_all_servers", defaultMessage: "Lists every server you can read, one folder each", description: "SFTP page: explains the plain username form" })}</span></li>
+          <li><code className="font-mono">{intl.formatMessage({ id: "web.routes.profile_sftp.username_server_form", defaultMessage: "{username}+'<'server'>'", description: "SFTP page: the user+server username form; <server> is a placeholder the user replaces with a server name" }, { username: data.loginName })}</code> <span className="text-muted">{intl.formatMessage({ id: "web.routes.profile_sftp.username_one_server", defaultMessage: "Opens straight in the files of that server", description: "SFTP page: explains the user+server username form" })}</span></li>
+          <li><code className="font-mono">{intl.formatMessage({ id: "web.routes.profile_sftp.username_namespace_form", defaultMessage: "{username}+mods/'<'server'>'", description: "SFTP page: the user+namespace/server username form; mods is an example namespace, <server> a placeholder" }, { username: data.loginName })}</code> <span className="text-muted">{intl.formatMessage({ id: "web.routes.profile_sftp.username_namespace", defaultMessage: "Opens a server in another namespace (mods)", description: "SFTP page: explains the user+namespace/server username form; mods is an example namespace name" })}</span></li>
         </ul>
       </div>
     </Card>

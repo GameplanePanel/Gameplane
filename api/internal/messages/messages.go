@@ -121,6 +121,18 @@ var entries = []Entry{
 		Status:      http.StatusNotFound,
 	},
 	{
+		ID:          "server.sftp.login_name_invalid",
+		English:     "SFTP username must be 1 to 64 characters without spaces, \"/\" or \"+\"",
+		Description: "API error when a chosen SFTP username is empty, too long or has a space, control character, slash or plus sign (sftp.go:writeSFTPErr).",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.sftp.login_name_taken",
+		English:     "this SFTP username is already used by another account",
+		Description: "API error when a chosen SFTP username is another account's username, SFTP username or display name (sftp.go:writeSFTPErr).",
+		Status:      http.StatusConflict,
+	},
+	{
 		ID:          "server.sftp.password_length_invalid",
 		English:     "length must be 20 to 40",
 		Description: "API error when a generated SFTP password length is outside 20 to 40 (sftp.go:writeSFTPErr).",

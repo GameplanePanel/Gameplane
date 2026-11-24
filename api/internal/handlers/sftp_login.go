@@ -126,6 +126,14 @@ func (h *sftpLoginHandler) login(w http.ResponseWriter, req *http.Request) {
 		refuse("username")
 		return
 	}
+	// An SSO account is named by its email address; its display name works too when no other
+	// account shares it. From here on base is the panel username the name resolved to.
+	resolved, err := h.sessions.ResolveSFTPLoginName(ctx, base)
+	if err != nil {
+		refuse("username")
+		return
+	}
+	base = resolved
 	var target *sftpLoginTarget
 	if hasTarget {
 		t, valid := parseSFTPTarget(rawTarget)
