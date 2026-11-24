@@ -134,3 +134,24 @@ func TestSFTPLoginName_Refusals(t *testing.T) {
 		}
 	}
 }
+
+func TestSFTPLoginName_RouteErrors(t *testing.T) {
+	env := newSFTPLoginEnv(t)
+	uid, _ := insertSFTPUser(t, env, "dn.err@example.com", "dnerr")
+	if rr := sftpSelfDo(t, sftpSelfRouter(env.sessions, env.store, uid, true), http.MethodPut, "/me/sftp/login-name", `{"loginName":"x"}`); rr.Code != http.StatusForbidden {
+		t.Errorf("as sftp caller: status %d, want 403", rr.Code)
+	}
+	self := sftpSelfRouter(env.sessions, env.store, uid, false)
+	if rr := sftpSelfDo(t, self, http.MethodPut, "/me/sftp/login-name", `{`); rr.Code != http.StatusBadRequest {
+		t.Errorf("bad json: status %d, want 400", rr.Code)
+	}
+	if err := env.store.Close(); err != nil {
+		t.Fatalf("close store: %v", err)
+	}
+	if rr := sftpSelfDo(t, self, http.MethodPut, "/me/sftp/login-name", `{"loginName":"x"}`); rr.Code < 500 {
+		t.Errorf("dead store: status %d, want 5xx", rr.Code)
+	}
+	if rr := env.login(t, sftpLoginRouter(env), map[string]any{"username": "dnerr", "password": "pw"}); rr.Code == http.StatusOK {
+		t.Errorf("login on a dead store succeeded")
+	}
+}
