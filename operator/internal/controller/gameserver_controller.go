@@ -393,7 +393,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
 	}
 	if err := validateHostportPorts(&gs, &tmpl); err != nil {
-		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
+		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
 	}
 	if tmpl.Spec.SentinelIsolation && len(networkPolicyPortsFromTemplate(&tmpl)) == 0 {
 		cleanupErr := r.revokeInvalidSentinelIsolationExposure(ctx, &gs)

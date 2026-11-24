@@ -89,6 +89,8 @@ var hostportReservedPorts = map[int32]string{
 // validateHostportPorts refuses Hostport exposure when an advertised game
 // port would bind a privileged (below 1024) or reserved node port. The check
 // covers the game pod and the sentinel, which bind the same advertised ports.
+// It returns a workloadPolicyRejection, so a suspended server can still drain
+// (reconcileRejectedGameWorkload) and a rollout is refused before it starts.
 func validateHostportPorts(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
 	if gs.Spec.Networking.Expose != "Hostport" {
 		return nil
@@ -98,10 +100,10 @@ func validateHostportPorts(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1al
 			continue
 		}
 		if p.ContainerPort < 1024 {
-			return fmt.Errorf("networking.expose=Hostport cannot bind port %d (%s): host ports below 1024 are reserved for the node; use NodePort or LoadBalancer", p.ContainerPort, p.Name)
+			return workloadPolicyRejection{fmt.Errorf("networking.expose=Hostport cannot bind port %d (%s): host ports below 1024 are reserved for the node; use NodePort or LoadBalancer", p.ContainerPort, p.Name)}
 		}
 		if use, ok := hostportReservedPorts[p.ContainerPort]; ok {
-			return fmt.Errorf("networking.expose=Hostport cannot bind port %d (%s): the node uses it for the %s; use NodePort or LoadBalancer", p.ContainerPort, p.Name, use)
+			return workloadPolicyRejection{fmt.Errorf("networking.expose=Hostport cannot bind port %d (%s): the node uses it for the %s; use NodePort or LoadBalancer", p.ContainerPort, p.Name, use)}
 		}
 	}
 	return nil

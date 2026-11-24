@@ -110,8 +110,9 @@ not recreated to enable remote parity.
 
 `networking.expose=Hostport` binds each advertised port as a host port, and a
 host port is a DNAT rule on the node's own addresses. The reconciler therefore
-refuses Hostport (Ready/Failed with the reason, before any workload change)
-when an advertised port is below 1024 or one the node itself serves: 2379/2380
+refuses Hostport as a workload rejection (Ready/Failed with the reason; a
+held rollout to such a template is refused before it drains the server, and
+a suspended server still scales down) when an advertised port is below 1024 or one the node itself serves: 2379/2380
 (etcd), 6443 (API server), 8472 (flannel VXLAN), 10250/10255 (kubelet), 10256
 (kube-proxy), 10257, 10259, 51820/51821 (flannel WireGuard)
 (`validateHostportPorts`, `gameserver_hostport.go`). NodePort and LoadBalancer

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
@@ -32,6 +33,12 @@ func TestValidateHostportPortsRefusesNodePorts(t *testing.T) {
 		err := validateHostportPorts(gs, tmpl)
 		if err == nil || !strings.Contains(err.Error(), tc.want) {
 			t.Errorf("port %d: got %v, want an error naming %q", tc.port, err, tc.want)
+		}
+		// A workload rejection lets a suspended server still drain and
+		// refuses a rollout before it starts.
+		var rejected workloadPolicyRejection
+		if !errors.As(err, &rejected) {
+			t.Errorf("port %d: %T is not a workloadPolicyRejection", tc.port, err)
 		}
 	}
 }
