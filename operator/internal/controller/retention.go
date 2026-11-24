@@ -143,8 +143,12 @@ func backupRestorable(b *gameplanev1alpha1.Backup) bool {
 func (r *BackupScheduleReconciler) liveServerUID(
 	ctx context.Context, sched *gameplanev1alpha1.BackupSchedule,
 ) (types.UID, error) {
+	var reader client.Reader = r.Client
+	if r.APIReader != nil {
+		reader = r.APIReader
+	}
 	var gs gameplanev1alpha1.GameServer
-	err := r.Get(ctx, types.NamespacedName{Namespace: sched.Namespace, Name: sched.Spec.ServerRef.Name}, &gs)
+	err := reader.Get(ctx, types.NamespacedName{Namespace: sched.Namespace, Name: sched.Spec.ServerRef.Name}, &gs)
 	if apierrors.IsNotFound(err) {
 		return "", nil
 	}

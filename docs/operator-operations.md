@@ -296,3 +296,7 @@ example with `restic snapshots` against the Backup's repository) and that no
 Restore references it, then retire it with `kubectl delete backup <name> -n
 <namespace>`. Deleting a restic Backup also forgets its snapshot in the
 repository the Backup itself names.
+
+Roll the operator back only together with its CRDs. An older operator does
+not know `spec.origin`, so its updates to a scheduled Backup would drop the
+field and the apiserver refuses them; such a Backup could not finish deletion.

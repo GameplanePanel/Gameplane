@@ -39,7 +39,12 @@ const conditionScheduleValid = "ScheduleValid"
 // is enforced by deleting oldest Backups that fall outside keep-* rules.
 type BackupScheduleReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	// APIReader reads the target GameServer uncached in liveServerUID, so a
+	// watch lag right after a server is recreated can never make the old
+	// server's UID look live (#960). Wired from mgr.GetAPIReader() in
+	// cmd/main.go; may be nil in tests, in which case the cached Client is used.
+	APIReader client.Reader
+	Scheme    *runtime.Scheme
 }
 
 // +kubebuilder:rbac:groups=gameplane.local,resources=backupschedules,verbs=get;list;watch
@@ -228,7 +233,9 @@ func (r *BackupScheduleReconciler) inFlightBackups(
 }
 
 // updateLastSuccessfulTime advances Status.LastSuccessfulTime to the
-// completion time of the newest restorable Backup this schedule owns.
+// completion time of the newest restorable Backup this schedule provably
+// generated for the live server (backupFromSchedule), so a schedule recreated
+// under a reused name never inherits its predecessor's last success.
 // It only ever moves forward: retention trimming (or manual cleanup) can
 // delete the Backup that produced the current high-water mark, and
 // re-deriving from whichever succeeded Backups remain must never rewind
@@ -242,9 +249,16 @@ func (r *BackupScheduleReconciler) updateLastSuccessfulTime(
 		client.MatchingLabels{"gameplane.local/backup-schedule": sched.Name}); err != nil {
 		return err
 	}
+	serverUID, err := r.liveServerUID(ctx, sched)
+	if err != nil {
+		return err
+	}
 	var newest *metav1.Time
 	for i := range list.Items {
 		b := &list.Items[i]
+		if !backupFromSchedule(b, sched, serverUID) {
+			continue
+		}
 		// A Succeeded Backup still waiting for its snapshot identity is not a
 		// recovery point yet (Restore would refuse it), so it must not count as
 		// the schedule's last success.

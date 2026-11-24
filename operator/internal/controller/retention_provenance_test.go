@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -60,7 +59,7 @@ func provScheduleObj(uid, serverUID types.UID, repo string, keepLast int32) *gam
 func provBackup(name, schedUID, serverUID, repo, snapshotID string, phase gameplanev1alpha1.BackupPhase, completed time.Duration) *gameplanev1alpha1.Backup {
 	b := &gameplanev1alpha1.Backup{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name, Namespace: provNS,
+			Name: name, Namespace: provNS, UID: types.UID(name + "-uid"),
 			Labels:     map[string]string{"gameplane.local/backup-schedule": provSchedule},
 			Finalizers: []string{gameplanev1alpha1.BackupSnapshotFinalizer},
 		},
@@ -105,14 +104,21 @@ func provDeleting(t *testing.T, cl client.Client, name string) bool {
 	return !b.DeletionTimestamp.IsZero()
 }
 
-func provNoJobs(t *testing.T, cl client.Client) {
+// provIntact asserts the Backup still exists as the same object (same UID)
+// and carries no deletion timestamp. Only a deletion starts the snapshot
+// finalizer that builds the `restic forget --prune` Job (backup_forget.go), so
+// an intact Backup cannot have its snapshot forgotten.
+func provIntact(t *testing.T, cl client.Client, want *gameplanev1alpha1.Backup) {
 	t.Helper()
-	var jobs batchv1.JobList
-	if err := cl.List(context.Background(), &jobs, client.InNamespace(provNS)); err != nil {
-		t.Fatalf("list jobs: %v", err)
+	var b gameplanev1alpha1.Backup
+	if err := cl.Get(context.Background(), types.NamespacedName{Namespace: provNS, Name: want.Name}, &b); err != nil {
+		t.Fatalf("get backup %s: %v", want.Name, err)
 	}
-	if len(jobs.Items) != 0 {
-		t.Errorf("found %d Jobs, want no forget Job", len(jobs.Items))
+	if b.UID != want.UID {
+		t.Errorf("backup %s UID = %q, want the original %q", want.Name, b.UID, want.UID)
+	}
+	if !b.DeletionTimestamp.IsZero() {
+		t.Errorf("backup %s got a deletion timestamp, which would forget its snapshot", want.Name)
 	}
 }
 
@@ -128,12 +134,8 @@ func TestTrimBackups_RecreatedScheduleKeepsPredecessorBackups(t *testing.T) {
 		provScheduleObj("new-sched-uid", "new-server-uid", "new-repo", 1),
 		oldOne, oldTwo,
 	)
-	for _, name := range []string{oldOne.Name, oldTwo.Name} {
-		if provDeleting(t, cl, name) {
-			t.Errorf("predecessor Backup %s got a deletion timestamp from the new schedule", name)
-		}
-	}
-	provNoJobs(t, cl)
+	provIntact(t, cl, oldOne)
+	provIntact(t, cl, oldTwo)
 }
 
 // #960: the schedule survives but its GameServer is recreated. Backups of the
@@ -145,12 +147,8 @@ func TestTrimBackups_RecreatedServerKeepsPredecessorBackups(t *testing.T) {
 	sched := provScheduleObj("sched-uid", "new-server-uid", "repo", 1)
 	sched.OwnerReferences = nil // a standalone schedule that names the server
 	cl := provReconcile(t, provServerObj("new-server-uid"), sched, oldOne, oldTwo)
-	for _, name := range []string{oldOne.Name, oldTwo.Name} {
-		if provDeleting(t, cl, name) {
-			t.Errorf("old server's Backup %s got a deletion timestamp", name)
-		}
-	}
-	provNoJobs(t, cl)
+	provIntact(t, cl, oldOne)
+	provIntact(t, cl, oldTwo)
 }
 
 // #960: a schedule still prunes its own generations normally, and leaves
@@ -252,13 +250,8 @@ func TestTrimBackups_WaitingForSnapshotIDKeepsLastRestorable(t *testing.T) {
 		provScheduleObj("sched-uid", "server-uid", "repo", 1),
 		usable, waiting,
 	)
-	if provDeleting(t, cl, "usable") {
-		t.Error("the last restorable Backup is being deleted while the newer one has no snapshot ID")
-	}
-	if provDeleting(t, cl, "waiting") {
-		t.Error("the Backup waiting for its snapshot ID is being deleted")
-	}
-	provNoJobs(t, cl)
+	provIntact(t, cl, usable)
+	provIntact(t, cl, waiting)
 
 	var sched gameplanev1alpha1.BackupSchedule
 	if err := cl.Get(context.Background(), types.NamespacedName{Namespace: provNS, Name: provSchedule}, &sched); err != nil {
@@ -297,10 +290,8 @@ func TestTrimBackups_LostSnapshotIDKeepsLastRestorable(t *testing.T) {
 		provScheduleObj("sched-uid", "server-uid", "repo", 1),
 		usable, lost,
 	)
-	if provDeleting(t, cl, "usable") {
-		t.Error("the last restorable Backup is being deleted after the newer one failed without an ID")
-	}
-	provNoJobs(t, cl)
+	provIntact(t, cl, usable)
+	provIntact(t, cl, lost)
 }
 
 // #961: a CSI Backup is restorable only once its VolumeSnapshotContent is bound.
@@ -334,5 +325,23 @@ func TestBackupRestorable(t *testing.T) {
 	noTime.Status.CompletionTime = nil
 	if backupRestorable(noTime) {
 		t.Error("a Backup without a completion time is restorable, want not")
+	}
+}
+
+// #960: a schedule recreated under a reused name must not inherit its
+// predecessor's last success; only its own restorable Backups count.
+func TestUpdateLastSuccessfulTime_IgnoresPredecessor(t *testing.T) {
+	old := provBackup("old", "old-sched-uid", "old-server-uid", "old-repo", "1111aaaa", gameplanev1alpha1.BackupPhaseSucceeded, time.Hour)
+	cl := provReconcile(t,
+		provServerObj("new-server-uid"),
+		provScheduleObj("new-sched-uid", "new-server-uid", "new-repo", 1),
+		old,
+	)
+	var sched gameplanev1alpha1.BackupSchedule
+	if err := cl.Get(context.Background(), types.NamespacedName{Namespace: provNS, Name: provSchedule}, &sched); err != nil {
+		t.Fatalf("get schedule: %v", err)
+	}
+	if sched.Status.LastSuccessfulTime != nil {
+		t.Errorf("lastSuccessfulTime = %v, want unset for a schedule that never succeeded", sched.Status.LastSuccessfulTime)
 	}
 }

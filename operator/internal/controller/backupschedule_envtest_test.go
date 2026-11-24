@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -571,13 +572,12 @@ func TestSchedule_LastSuccessfulTimeAdvancesAndNeverRewinds(t *testing.T) {
 	// Daily-midnight cron, frozen dormant so the scheduler itself doesn't
 	// fire an extra Backup that would confuse "newest".
 	sched := buildBackupSchedule(ns, "smp-sched", "smp", "repo", "0 0 * * *", nil)
-	if err := k8sClient.Create(context.Background(), sched); err != nil {
-		t.Fatalf("create schedule: %v", err)
-	}
+	origin := createScheduleWithServer(t, sched)
 	freezeSchedule(t, ns, sched.Name)
 
 	older := buildBackup(ns, "smp-sched-older", "smp", "repo")
 	older.Labels = map[string]string{"gameplane.local/backup-schedule": "smp-sched"}
+	older.Spec.Origin = origin
 	if err := k8sClient.Create(context.Background(), older); err != nil {
 		t.Fatalf("create older backup: %v", err)
 	}
@@ -594,6 +594,7 @@ func TestSchedule_LastSuccessfulTimeAdvancesAndNeverRewinds(t *testing.T) {
 
 	newer := buildBackup(ns, "smp-sched-newer", "smp", "repo")
 	newer.Labels = map[string]string{"gameplane.local/backup-schedule": "smp-sched"}
+	newer.Spec.Origin = origin
 	if err := k8sClient.Create(context.Background(), newer); err != nil {
 		t.Fatalf("create newer backup: %v", err)
 	}
@@ -708,13 +709,13 @@ func TestBackupOrigin_Immutable(t *testing.T) {
 	}
 	changed := stamped.DeepCopy()
 	changed.Spec.Origin = &gameplanev1alpha1.BackupOrigin{ScheduleName: "smp-sched", ScheduleUID: "other-uid", ServerUID: "srv-uid"}
-	if err := k8sClient.Update(ctx, changed); err == nil {
-		t.Error("changing spec.origin was accepted, want it refused")
+	if err := k8sClient.Update(ctx, changed); !apierrors.IsInvalid(err) {
+		t.Errorf("changing spec.origin: err = %v, want an Invalid refusal", err)
 	}
 	removed := stamped.DeepCopy()
 	removed.Spec.Origin = nil
-	if err := k8sClient.Update(ctx, removed); err == nil {
-		t.Error("removing spec.origin was accepted, want it refused")
+	if err := k8sClient.Update(ctx, removed); !apierrors.IsInvalid(err) {
+		t.Errorf("removing spec.origin: err = %v, want an Invalid refusal", err)
 	}
 
 	manual := buildBackup(ns, "manual", "smp", "repo")
@@ -722,8 +723,8 @@ func TestBackupOrigin_Immutable(t *testing.T) {
 		t.Fatalf("create backup without origin: %v", err)
 	}
 	manual.Spec.Origin = origin
-	if err := k8sClient.Update(ctx, manual); err == nil {
-		t.Error("adding spec.origin after creation was accepted, want it refused")
+	if err := k8sClient.Update(ctx, manual); !apierrors.IsInvalid(err) {
+		t.Errorf("adding spec.origin after creation: err = %v, want an Invalid refusal", err)
 	}
 }
 
