@@ -18,7 +18,7 @@ func TestWithoutURL(t *testing.T) {
 	}
 
 	plain := errors.New("plain failure")
-	if withoutURL(plain) != plain {
+	if !errors.Is(withoutURL(plain), plain) {
 		t.Errorf("non-URL error was not passed through unchanged")
 	}
 }

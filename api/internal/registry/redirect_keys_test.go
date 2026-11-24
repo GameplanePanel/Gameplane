@@ -7,10 +7,10 @@ import (
 )
 
 func TestStripKeysOnHostChange(t *testing.T) {
-	via := []*http.Request{httptest.NewRequest("GET", "https://api.curseforge.com/v1/x", nil)}
+	via := []*http.Request{httptest.NewRequestWithContext(t.Context(), "GET", "https://api.curseforge.com/v1/x", nil)}
 
 	t.Run("cross-host drops provider keys", func(t *testing.T) {
-		next := httptest.NewRequest("GET", "https://edge.example.com/f", nil)
+		next := httptest.NewRequestWithContext(t.Context(), "GET", "https://edge.example.com/f", nil)
 		next.Header.Set("x-api-key", "k1")
 		next.Header.Set("apikey", "k2")
 		if err := stripKeysOnHostChange(next, via); err != nil {
@@ -25,7 +25,7 @@ func TestStripKeysOnHostChange(t *testing.T) {
 	})
 
 	t.Run("same host keeps provider keys", func(t *testing.T) {
-		next := httptest.NewRequest("GET", "https://api.curseforge.com/v1/y", nil)
+		next := httptest.NewRequestWithContext(t.Context(), "GET", "https://api.curseforge.com/v1/y", nil)
 		next.Header.Set("x-api-key", "k1")
 		next.Header.Set("apikey", "k2")
 		if err := stripKeysOnHostChange(next, via); err != nil {
@@ -39,9 +39,9 @@ func TestStripKeysOnHostChange(t *testing.T) {
 	t.Run("ten redirects stop", func(t *testing.T) {
 		long := make([]*http.Request, 10)
 		for i := range long {
-			long[i] = httptest.NewRequest("GET", "https://api.curseforge.com/v1/x", nil)
+			long[i] = httptest.NewRequestWithContext(t.Context(), "GET", "https://api.curseforge.com/v1/x", nil)
 		}
-		next := httptest.NewRequest("GET", "https://api.curseforge.com/v1/z", nil)
+		next := httptest.NewRequestWithContext(t.Context(), "GET", "https://api.curseforge.com/v1/z", nil)
 		if err := stripKeysOnHostChange(next, long); err == nil {
 			t.Fatal("expected error after 10 redirects, got nil")
 		}

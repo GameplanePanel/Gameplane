@@ -18,7 +18,7 @@ func TestRedactURLErr(t *testing.T) {
 	}
 
 	plain := errors.New("plain failure")
-	if redactURLErr(plain) != plain {
+	if !errors.Is(redactURLErr(plain), plain) {
 		t.Errorf("non-URL error was not passed through unchanged")
 	}
 }
