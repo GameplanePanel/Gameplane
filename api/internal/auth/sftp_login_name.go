@@ -59,24 +59,20 @@ func (s *SessionStore) SFTPLoginName(ctx context.Context, userID int64) (name st
 		username string
 		chosen   sql.NullString
 		display  sql.NullString
+		taken    int
 	)
-	if err := s.db.DB.QueryRowContext(ctx,
-		`SELECT username, sftp_username, display_name FROM users WHERE id = ?`, userID,
-	).Scan(&username, &chosen, &display); err != nil {
+	// taken counts other accounts whose panel username is the chosen name: a panel username always wins
+	// at login, so such a chosen name no longer logs in and the default applies until the user chooses
+	// again.
+	if err := s.db.DB.QueryRowContext(ctx, `
+		SELECT u.username, u.sftp_username, u.display_name,
+			(SELECT COUNT(*) FROM users o WHERE o.id <> u.id AND o.username = u.sftp_username)
+		FROM users u WHERE u.id = ?`, userID,
+	).Scan(&username, &chosen, &display, &taken); err != nil {
 		return "", false, fmt.Errorf("sftp login name: %w", err)
 	}
-	if chosen.Valid {
-		// A panel username always wins at login, so a chosen name that another account later took as its
-		// panel username no longer logs in; the default applies until the user chooses again.
-		var taken int
-		if err := s.db.DB.QueryRowContext(ctx,
-			`SELECT COUNT(*) FROM users WHERE id <> ? AND username = ?`, userID, chosen.String,
-		).Scan(&taken); err != nil {
-			return "", false, fmt.Errorf("sftp login name: chosen: %w", err)
-		}
-		if taken == 0 {
-			return chosen.String, true, nil
-		}
+	if chosen.Valid && taken == 0 {
+		return chosen.String, true, nil
 	}
 	if display.Valid && display.String != username && ValidSFTPLoginName(display.String) {
 		n, err := nameClaims(ctx, s.db.DB, display.String, userID)
@@ -132,14 +128,11 @@ func (s *SessionStore) SetSFTPLoginName(ctx context.Context, userID int64, name 
 // follows refuses it like any other unknown user. The credential is still checked against that account.
 func (s *SessionStore) ResolveSFTPLoginName(ctx context.Context, name string) (string, error) {
 	var username string
-	err := s.db.DB.QueryRowContext(ctx, `SELECT username FROM users WHERE username = ?`, name).Scan(&username)
-	if err == nil {
-		return username, nil
-	}
-	if !errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("resolve sftp login name: username: %w", err)
-	}
-	err = s.db.DB.QueryRowContext(ctx, `SELECT username FROM users WHERE sftp_username = ?`, name).Scan(&username)
+	err := s.db.DB.QueryRowContext(ctx, `
+		SELECT username, 0 AS prio FROM users WHERE username = ?
+		UNION ALL
+		SELECT username, 1 AS prio FROM users WHERE sftp_username = ?
+		ORDER BY prio LIMIT 1`, name, name).Scan(&username, new(int))
 	if err == nil {
 		return username, nil
 	}
