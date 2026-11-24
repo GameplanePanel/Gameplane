@@ -380,9 +380,10 @@ intended for local `kind` development where mTLS is overkill.
 ### Tenant network profile
 
 Pre-provision a dedicated namespace per tenant and apply the cluster's restricted
-Pod Security Admission labels there. Upgrade each wake-enabled template to
-`spec.sentinelIsolation: true`, and verify its advertised ports before switching
-profiles. With `networkPolicies.tenantIsolation: true`, Helm owns the baseline
+Pod Security Admission labels there. Sentinel isolation is the default for any
+template that advertises a port; restart running servers that predate it (or set
+`spec.sentinelIsolation: true` on their templates), and verify their advertised
+ports before switching profiles. With `networkPolicies.tenantIsolation: true`, Helm owns the baseline
 policies in the primary namespace and every namespace in `operator.gameNamespaces`.
 Inventory policies with the same names before enabling this on an existing system.
 Removing a namespace from the list can remove its Helm-owned policies. Drain

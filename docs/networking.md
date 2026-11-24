@@ -7,31 +7,38 @@ Gameplane exposes game servers through Kubernetes Services, with optional integr
 NetworkPolicies are additive. An allowance in one policy cannot be narrowed by
 another policy. Enforcement also requires a CNI that implements NetworkPolicy.
 
-Modules may set `GameTemplate.spec.sentinelIsolation: true`. The operator then
-labels the game and sentinel pod templates and creates two owned policies:
-`<server>-sentinel-ingress` and `<server>-sentinel-egress`. They allow a sentinel
-to reach only its own server's advertised container ports, with the declared
-protocol. Zero advertised ports creates no allowance. Management ports must
-remain `advertise: false`. The legacy chart policies exclude opted-in sources
-and destinations. Templates without the field retain the existing broad
-sentinel-to-game allowance; module maintainers can adopt it after validating
-their proxy traffic.
+Every server whose template advertises a port gets sentinel isolation by
+default. The operator labels the game and sentinel pod templates and creates
+two owned policies: `<server>-sentinel-ingress` and `<server>-sentinel-egress`.
+They allow a sentinel to reach only its own server's advertised container
+ports, with the declared protocol. The sentinel only listens on and dials
+advertised ports, so wake works as before. Management ports must remain
+`advertise: false`. The legacy chart policies exclude isolated sources and
+destinations; only a template with no advertised port keeps the broad
+sentinel-to-game allowance (it has nothing to proxy).
 
-For an opted-in template, the operator applies the isolation in this order:
+A server that was running before the upgrade that made this the default keeps
+its unlabeled game pod, still covered by the legacy rules, until its next start
+(stop and start, or sleep and wake), so the upgrade restarts no game. The
+sentinel takes the label at once. Modules may still set
+`GameTemplate.spec.sentinelIsolation: true` to label running servers
+immediately; it requires an advertised port.
+
+The operator applies the isolation in this order:
 
 ```mermaid
 flowchart TD
-    T["GameTemplate sentinelIsolation: true"] --> P{"Advertised ports declared?"}
-    P -- no --> N["Reconcile stops with a Failed phase;<br/>existing sentinel exposure is revoked"]
+    T["GameTemplate"] --> P{"Advertised ports declared?"}
+    P -- "no, sentinelIsolation: true" --> N["Reconcile stops with a Failed phase;<br/>existing sentinel exposure is revoked"]
     P -- yes --> L["Game and sentinel pod templates labeled gameplane.local/sentinel-isolation: true"]
     L --> R["Pods roll out; StatefulSet selectors unchanged"]
     R --> Y["Per-server policies: &lt;server&gt;-sentinel-ingress and &lt;server&gt;-sentinel-egress"]
     Y --> Z["Sentinel reaches only its server's advertised ports"]
 ```
 
-Upgrade the CRDs, operator and chart together before opting in a template.
-Existing game pods roll out to acquire the isolation label; StatefulSet
-selectors stay unchanged. Do not claim isolation until both game and sentinel
+Upgrade the CRDs, operator and chart together. Existing game pods acquire the
+isolation label at their next start (or roll out at once with an explicit
+opt-in); StatefulSet selectors stay unchanged. Do not claim isolation until both game and sentinel
 pods have the label and the per-server policies exist. Other administrator-added
 policies can still grant wider access. Disabling chart NetworkPolicies or using
 a non-enforcing CNI does not provide this boundary.

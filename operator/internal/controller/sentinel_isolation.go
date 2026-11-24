@@ -18,10 +18,19 @@ import (
 
 const sentinelIsolationLabel = "gameplane.local/sentinel-isolation"
 
+// sentinelIsolated reports whether a server's wake sentinel is limited to its
+// own game on the advertised ports: always when the template advertises a
+// port (the sentinel only listens on, and dials, advertised ports), and on
+// explicit opt-in (which then requires a port). Without an advertised port
+// the sentinel has nothing to proxy and the legacy chart rules stay.
+func sentinelIsolated(tmpl *gameplanev1alpha1.GameTemplate) bool {
+	return tmpl.Spec.SentinelIsolation || len(networkPolicyPortsFromTemplate(tmpl)) > 0
+}
+
 // The chart's legacy policies exclude opted-in pods on both sides. Policies
 // are additive: these per-server grants cannot subtract a namespace-wide grant.
 func (r *GameServerReconciler) reconcileSentinelIsolation(ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
-	if !tmpl.Spec.SentinelIsolation {
+	if !sentinelIsolated(tmpl) {
 		// Probe the informer cache before making any live rollout reads. The
 		// controller's Owns(NetworkPolicy) watch is required here: delayed
 		// owned grants enqueue another pass after becoming visible in cache.
@@ -84,7 +93,7 @@ func (r *GameServerReconciler) reconcileSentinelIsolation(ctx context.Context, g
 			suffix, target, peer = "ingress", "gameplane-game", "gameplane-waker"
 		}
 		np := &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: gs.Name + "-sentinel-" + suffix, Namespace: gs.Namespace}}
-		if !tmpl.Spec.SentinelIsolation || len(ports) == 0 {
+		if !sentinelIsolated(tmpl) || len(ports) == 0 {
 			if err := r.Get(ctx, client.ObjectKeyFromObject(np), np); err != nil {
 				if client.IgnoreNotFound(err) != nil {
 					return err

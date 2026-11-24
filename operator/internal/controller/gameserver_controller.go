@@ -2109,11 +2109,20 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		}
 		ss.Spec.ServiceName = gs.Name
 		ss.Spec.Selector = &metav1.LabelSelector{MatchLabels: labels}
+		// Default sentinel isolation (any advertised port) reaches a running
+		// game at its next start, so the upgrade that turns it on restarts no
+		// game; an explicit template opt-in applies at once. Until then the
+		// chart's legacy rules still cover the unlabeled pod, and the
+		// per-server grants already exist.
+		isolate := sentinelIsolated(tmpl)
+		if !securityRefresh && !tmpl.Spec.SentinelIsolation {
+			isolate = ss.Spec.Template.Labels[sentinelIsolationLabel] == "true"
+		}
 		ss.Spec.Template.Labels = make(map[string]string, len(labels)+1)
 		for key, value := range labels {
 			ss.Spec.Template.Labels[key] = value
 		}
-		if tmpl.Spec.SentinelIsolation {
+		if isolate {
 			ss.Spec.Template.Labels[sentinelIsolationLabel] = "true"
 		}
 		// Stamp (or clear) the config fingerprint without touching

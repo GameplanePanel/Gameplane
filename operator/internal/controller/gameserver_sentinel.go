@@ -286,7 +286,7 @@ func (r *GameServerReconciler) reconcileSentinel(
 			sentinelLabel:                sentinelValue,
 			"app.kubernetes.io/instance": gs.Name,
 		}
-		if tmpl.Spec.SentinelIsolation {
+		if sentinelIsolated(tmpl) {
 			dep.Spec.Template.Labels[sentinelIsolationLabel] = "true"
 		}
 

@@ -87,8 +87,23 @@ func TestSentinelIsolationPolicies(t *testing.T) {
 	if err := c.List(t.Context(), &policies); err != nil || len(policies.Items) != 0 {
 		t.Fatalf("zero-port grants remain: %v %+v", err, policies.Items)
 	}
-	// Absent/default false preserves legacy behavior and creates no policies.
+	// Absent/default false isolates too once a port is advertised: the
+	// sentinel only listens on, and dials, advertised ports.
 	tmpl = singlePortTemplate(true, "minecraft")
+	if err := r.reconcileSentinelIsolation(t.Context(), gs, tmpl); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.List(t.Context(), &policies); err != nil || len(policies.Items) != 2 {
+		t.Fatalf("default template did not get per-server grants: %v %+v", err, policies.Items)
+	}
+	for _, policy := range policies.Items {
+		if !metav1.IsControlledBy(&policy, gs) {
+			t.Fatalf("default grant %s is not owned by the server", policy.Name)
+		}
+	}
+	// Absent/default false without an advertised port keeps the legacy
+	// behavior and creates no policies.
+	tmpl = singlePortTemplate(false, "none")
 	if err := r.reconcileSentinelIsolation(t.Context(), gs, tmpl); err != nil {
 		t.Fatal(err)
 	}
@@ -145,7 +160,8 @@ func TestSentinelIsolationOptOutWaitsForBothLivePodLabels(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	tmpl.Spec.SentinelIsolation = false
+	// Opting out now also takes withdrawing the advertised port.
+	tmpl.Spec.SentinelIsolation, tmpl.Spec.Ports[0].Advertise = false, false
 	for remaining := 2; remaining >= 0; remaining-- {
 		if err := r.reconcileSentinelIsolation(t.Context(), gs, tmpl); err != nil {
 			t.Fatal(err)
@@ -231,7 +247,8 @@ func TestSentinelIsolationOptOutWaitsForWorkloadControllers(t *testing.T) {
 			if err := r.reconcileSentinelIsolation(t.Context(), gs, tmpl); err != nil {
 				t.Fatal(err)
 			}
-			tmpl.Spec.SentinelIsolation = false
+			// Opting out now also takes withdrawing the advertised port.
+			tmpl.Spec.SentinelIsolation, tmpl.Spec.Ports[0].Advertise = false, false
 			if err := r.reconcileSentinelIsolation(t.Context(), gs, tmpl); err != nil {
 				t.Fatal(err)
 			}
@@ -240,5 +257,69 @@ func TestSentinelIsolationOptOutWaitsForWorkloadControllers(t *testing.T) {
 				t.Fatalf("old workload could recreate labeled pods without grants: %v %+v", err, policies.Items)
 			}
 		})
+	}
+}
+
+// Default isolation reaches a running game at its next start, so turning it
+// on restarts no game; an explicit opt-in labels the running workload at once.
+func TestSentinelDefaultIsolationLabelWaitsForNextStart(t *testing.T) {
+	r, gs, effective := revisionFixture(t)
+	effective.Spec.Ports = []gameplanev1alpha1.GamePort{{Name: "game", ContainerPort: 25565, Advertise: true}}
+	key := client.ObjectKeyFromObject(gs)
+	label := func(replicas int32) string {
+		t.Helper()
+		if err := r.reconcileStatefulSet(t.Context(), gs, effective, nil, &materializedConfig{}, replicas); err != nil {
+			t.Fatal(err)
+		}
+		var ss appsv1.StatefulSet
+		if err := r.Get(t.Context(), key, &ss); err != nil {
+			t.Fatal(err)
+		}
+		return ss.Spec.Template.Labels[sentinelIsolationLabel]
+	}
+	unlabel := func(replicas int32) {
+		t.Helper()
+		var ss appsv1.StatefulSet
+		if err := r.Get(t.Context(), key, &ss); err != nil {
+			t.Fatal(err)
+		}
+		delete(ss.Spec.Template.Labels, sentinelIsolationLabel)
+		ss.Spec.Replicas = &replicas
+		if err := r.Update(t.Context(), &ss); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := label(1); got != "true" {
+		t.Fatalf("new server with an advertised port: label %q, want true", got)
+	}
+	// A server that predates the default keeps running unlabeled.
+	unlabel(1)
+	if got := label(1); got != "" {
+		t.Fatalf("running server was relabeled (a restart): label %q", got)
+	}
+	// Its next start from zero replicas takes the label.
+	unlabel(0)
+	if got := label(1); got != "true" {
+		t.Fatalf("start from zero: label %q, want true", got)
+	}
+	// An explicit opt-in applies to the running server at once.
+	unlabel(1)
+	effective.Spec.SentinelIsolation = true
+	if got := label(1); got != "true" {
+		t.Fatalf("explicit opt-in on a running server: label %q, want true", got)
+	}
+}
+
+// Any advertised port isolates by default; without one only an explicit
+// opt-in would, and that is rejected before any workload exists.
+func TestSentinelIsolatedDefault(t *testing.T) {
+	for _, tc := range []struct {
+		advertise, optIn, want bool
+	}{{true, false, true}, {true, true, true}, {false, false, false}} {
+		tmpl := singlePortTemplate(tc.advertise, "minecraft")
+		tmpl.Spec.SentinelIsolation = tc.optIn
+		if got := sentinelIsolated(tmpl); got != tc.want {
+			t.Errorf("advertise=%v optIn=%v: sentinelIsolated = %v, want %v", tc.advertise, tc.optIn, got, tc.want)
+		}
 	}
 }

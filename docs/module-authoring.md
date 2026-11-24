@@ -26,12 +26,12 @@ flowchart LR
 
 ## Quickstart: Authoring with `gp-module` CLI & Web Builder
 
-For a validated wake proxy, add `sentinelIsolation: true` under the template's
-`spec`. The operator permits that server's sentinel to reach only its own
-advertised container ports, preserving each port's TCP/UDP/SCTP protocol.
-Leave management ports unadvertised. A template with no advertised ports grants
-no sentinel access. Omission preserves legacy behavior; adoption in the
-GameplanePanel/module repository is separate from the operator upgrade.
+A template that advertises a port isolates its wake sentinel by default: the
+operator permits that server's sentinel to reach only its own advertised
+container ports, preserving each port's TCP/UDP/SCTP protocol. Leave
+management ports unadvertised. Setting `sentinelIsolation: true` under the
+template's `spec` also applies it to running servers at once (instead of at
+their next start) and requires an advertised port.
 Test player joins, status queries and sleep/wake cycles with an enforcing CNI
 before publishing the opt-in. See [network policy migration](networking.md#networkpolicy-isolation-and-migration).
 

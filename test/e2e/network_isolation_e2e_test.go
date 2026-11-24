@@ -36,13 +36,26 @@ func TestNetworkIsolation_EnforcedAndUpgrade(t *testing.T) {
 	for _, pair := range [][2]string{{a, legacyTemplate}, {b, legacyTemplate}, {c, isolatedTemplate}} {
 		applyBusyboxGameServer(t, ns, pair[0], pair[1])
 	}
+	// Any advertised port isolates a server's sentinel by default, so new
+	// servers start labeled. A server that predates that default runs
+	// unlabeled until its next start; recreate that state by dropping the
+	// label from the running workloads. The operator must keep it off while
+	// the server runs, so the upgrade restarts no game.
+	for _, name := range []string{a, b} {
+		isolationGameIP(t, ns, name, true)
+		_, err := envInstance.K8s.AppsV1().StatefulSets(ns).Patch(ctx, name, types.JSONPatchType,
+			[]byte(`[{"op":"remove","path":"/spec/template/metadata/labels/gameplane.local~1sentinel-isolation"}]`), metav1.PatchOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 	aIP := isolationGameIP(t, ns, a, false)
 	bIP := isolationGameIP(t, ns, b, false)
 	cIP := isolationGameIP(t, ns, c, true)
 	probeA := isolationProbe(t, ns, a, false)
 	probeC := isolationProbe(t, ns, c, true)
 
-	// Compatibility: absent-field templates keep their existing broad grant.
+	// Compatibility: unlabeled pods keep their existing broad grant.
 	isolationHTTP(t, ns, probeA, bIP, 25575, true)
 	isolationHTTP(t, ns, probeC, cIP, 25566, true)
 	isolationHTTP(t, ns, probeC, cIP, 25575, false)
