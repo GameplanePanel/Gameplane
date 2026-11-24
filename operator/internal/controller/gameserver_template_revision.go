@@ -285,6 +285,15 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			if err := r.validateHostportArchitecture(ctx, gs, target); err != nil {
 				return effective, false, err
 			}
+			// Refuse a target that would bind a reserved node port or publish
+			// a sidecar port before it is claimed, so the rejection never holds
+			// the lifecycle owner.
+			if err := validateHostportPorts(gs, target); err != nil {
+				return effective, false, err
+			}
+			if err := validateSidecarPorts(target); err != nil {
+				return effective, false, err
+			}
 			if err := validateTemplateTransition(gs, effective, target); err != nil {
 				return nil, false, err
 			}

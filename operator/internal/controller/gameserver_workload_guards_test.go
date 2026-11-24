@@ -81,6 +81,19 @@ func TestImageAllowed(t *testing.T) {
 	if imageAllowed("ghcr.io.evil/x:1", []string{"ghcr.io"}) {
 		t.Error("a bare registry host must match on a path boundary")
 	}
+	// The authority, port included, must match exactly.
+	if imageAllowed("registry.example:5000/other/game:1", []string{"registry.example"}) {
+		t.Error("a host prefix must not allow the same host on another port")
+	}
+	if imageAllowed("registry.example/other/game:1", []string{"registry.example:5000"}) {
+		t.Error("a host:port prefix must not allow the host on its default port")
+	}
+	if !imageAllowed("registry.example:5000/other/game:1", []string{"registry.example:5000"}) {
+		t.Error("an explicit host:port prefix must allow its images")
+	}
+	if imageAllowed("ghcr.io:443/anything/x:1", []string{"ghcr.io/anything"}) {
+		t.Error("a host/path prefix must not allow the host on another port")
+	}
 }
 
 func TestValidateImageOverride(t *testing.T) {
@@ -243,5 +256,30 @@ func TestTunnelPodProviderLabelOnlyForPlayit(t *testing.T) {
 		if (provider == "playit") != (ok && label == "playit") {
 			t.Fatalf("%s tunnel pod labels = %v", provider, dep.Spec.Template.Labels)
 		}
+	}
+}
+
+// A rollout target that would publish a sidecar port is refused at admission,
+// before the lifecycle owner is claimed, so nothing is left held.
+func TestRolloutAdmissionRefusesSidecarPortsBeforeClaim(t *testing.T) {
+	r, gs, installed := revisionFixture(t)
+	gs.Spec.TemplateRollout = &gameplanev1alpha1.TemplateRolloutSpec{Policy: "Automatic"}
+	if err := r.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	installed.Spec.Ports = []gameplanev1alpha1.GamePort{{Name: "metrics", ContainerPort: 9090, Advertise: true}}
+	if err := r.Update(t.Context(), installed); err != nil {
+		t.Fatal(err)
+	}
+	_, claimed, err := r.reconcileTemplateRevision(t.Context(), gs)
+	var rejected workloadPolicyRejection
+	if !errors.As(err, &rejected) || claimed {
+		t.Fatalf("got claimed=%v err=%v, want an unclaimed workloadPolicyRejection", claimed, err)
+	}
+	if err := r.Get(t.Context(), client.ObjectKeyFromObject(gs), gs); err != nil {
+		t.Fatal(err)
+	}
+	if _, held, err := lifecycleOwner(gs); err != nil || held {
+		t.Fatalf("rejected target left the lifecycle owner held=%v err=%v", held, err)
 	}
 }

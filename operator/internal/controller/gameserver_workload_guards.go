@@ -92,13 +92,18 @@ func (r *GameServerReconciler) validateImageOverride(gs *gameplanev1alpha1.GameS
 		gs.Spec.Image, strings.Join(r.AllowedImageRegistries, ", "))}
 }
 
-// imageAllowed reports whether image sits under one of the prefixes, on a
-// path boundary. A prefix is a registry host ("ghcr.io") or a host and path
-// ("ghcr.io/gameplanepanel"). Docker Hub short names are expanded first
-// ("itzg/x" is "docker.io/itzg/x", "nginx" is "docker.io/library/nginx"), so a
-// prefix of "docker.io/itzg" matches both spellings.
+// imageAllowed reports whether image sits under one of the prefixes. A
+// prefix is a registry authority ("ghcr.io", "registry.local:5001") or an
+// authority and repository path ("ghcr.io/gameplanepanel"). The authority,
+// port included, must match exactly; a path matches on a path boundary.
+// Docker Hub short names are expanded first ("itzg/x" is "docker.io/itzg/x",
+// "nginx" is "docker.io/library/nginx"), so a prefix of "docker.io/itzg"
+// matches both spellings.
 func imageAllowed(image string, prefixes []string) bool {
-	ref := normalizeImageRef(image)
+	host, repo, _ := strings.Cut(normalizeImageRef(image), "/")
+	if host == "" || repo == "" {
+		return false
+	}
 	for _, prefix := range prefixes {
 		prefix = strings.TrimSuffix(strings.ToLower(strings.TrimSpace(prefix)), "/")
 		if prefix == "" {
@@ -106,20 +111,18 @@ func imageAllowed(image string, prefixes []string) bool {
 		}
 		// A prefix names a registry or a path on one, never an image, so
 		// Docker Hub's implicit library/ is not added to it.
-		host, rest, hasPath := strings.Cut(prefix, "/")
-		if host == "index.docker.io" {
-			host = "docker.io"
+		pHost, pPath, hasPath := strings.Cut(prefix, "/")
+		if pHost == "index.docker.io" {
+			pHost = "docker.io"
 		}
-		switch {
-		case !hasPath:
-			prefix = host
-		case strings.ContainsAny(host, ".:") || host == "localhost":
-			prefix = host + "/" + rest
-		default:
-			prefix = "docker.io/" + prefix
+		if hasPath && !strings.ContainsAny(pHost, ".:") && pHost != "localhost" {
+			pHost, pPath = "docker.io", prefix
 		}
-		if ref == prefix || strings.HasPrefix(ref, prefix+"/") ||
-			strings.HasPrefix(ref, prefix+":") || strings.HasPrefix(ref, prefix+"@") {
+		if host != pHost {
+			continue
+		}
+		if pPath == "" || repo == pPath || strings.HasPrefix(repo, pPath+"/") ||
+			strings.HasPrefix(repo, pPath+":") || strings.HasPrefix(repo, pPath+"@") {
 			return true
 		}
 	}
