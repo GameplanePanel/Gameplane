@@ -240,6 +240,10 @@ func (h *modUpdatesHandler) updates(w http.ResponseWriter, req *http.Request) {
 		if ref == nil || ref.ProjectID == "" || ref.Provider == "" || ref.Provider == "upload" || ref.Provider == "github" {
 			continue
 		}
+		if !validProjectID(ref.ProjectID) {
+			resp.Errors = append(resp.Errors, modUpdateError{Name: m.Name, Error: "invalid project id"})
+			continue
+		}
 		cfg, ok := declared[ref.Provider]
 		if !ok {
 			resp.Errors = append(resp.Errors, modUpdateError{Name: m.Name, Error: "provider not declared by this game"})
