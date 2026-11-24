@@ -60,11 +60,23 @@ metadata:
   annotations:
     {{- toYaml (merge (dict "helm.sh/hook-weight" "-5") $hookAnnotations) | nindent 4 }}
 rules:
-  # Scoped to CRDs only. get/create for first apply, patch for server-side
-  # apply of an existing CRD (list lets kubectl resolve the resource).
+  # Scoped to the chart's own CRDs: a leaked hook token (the SA outlives a
+  # failed hook) must not be able to rewrite another product's CRD, for
+  # example to point its conversion webhook somewhere else. create cannot
+  # be limited by name; server-side apply is a patch on the named CRD, and
+  # `kubectl wait` lists and watches by metadata.name, which resourceNames
+  # allows.
   - apiGroups: ["apiextensions.k8s.io"]
     resources: ["customresourcedefinitions"]
-    verbs: ["get", "list", "watch", "create", "patch", "update"]
+    resourceNames:
+      {{- range $path, $_ := .Files.Glob "crd-manifests/*.yaml" }}
+      {{- $crd := $.Files.Get $path | fromYaml }}
+      - {{ required (printf "%s has no metadata.name" $path) $crd.metadata.name | quote }}
+      {{- end }}
+    verbs: ["get", "list", "watch", "patch", "update"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["create"]
   {{- if $moduleSources }}
   # Server-side apply of the chart's ModuleSources (see modulesource.yaml).
   - apiGroups: ["gameplane.local"]

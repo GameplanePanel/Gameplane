@@ -1,0 +1,3 @@
+# Breaking: Operator and chart security hardening
+
+A server exposed with `Hostport` can no longer bind a port below 1024 or a port the node itself uses (Kubernetes API server, kubelet, etcd, flannel); it now shows Failed with the reason. No official module is affected; before upgrading, move any custom-module server that advertises such a port to NodePort or LoadBalancer. Restore, forget, frp and Tailscale tunnel pods no longer mount a Kubernetes API token, and the chart's CRD install hook can only change Gameplane's own CRDs. `sftp.apiURL` for a remote SFTP endpoint must now be an `https://` URL: set it to the central panel's HTTPS address before upgrading. [PR #1092](https://github.com/GameplanePanel/Gameplane/pull/1092)

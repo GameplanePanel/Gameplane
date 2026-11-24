@@ -194,6 +194,11 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 		if err := r.validateHostportArchitecture(ctx, gs, target); err != nil {
 			return effective, false, err
 		}
+		// Refuse a target that would bind a reserved node port before the
+		// rollout drains the running server.
+		if err := validateHostportPorts(gs, target); err != nil {
+			return effective, false, err
+		}
 		if op.Baseline {
 			if r.baselineNeedsDrain(op) {
 				drained, err := r.templateWorkloadDrained(ctx, gs)

@@ -435,7 +435,10 @@ func (r *RestoreReconciler) buildRestorePodSpec(
 	noPrivEsc := false
 	uid := int64(65532)
 	spec := corev1.PodSpec{
-		SecurityContext: buildBackupPodSecurityContext(tmpl, appliedFSGroup...),
+		// restic never talks to the Kubernetes API: no token in a pod that
+		// mounts the game volume read-write.
+		AutomountServiceAccountToken: ptrTo(false),
+		SecurityContext:              buildBackupPodSecurityContext(tmpl, appliedFSGroup...),
 		Containers: []corev1.Container{{
 			Name:                     "restic",
 			TerminationMessagePolicy: corev1.TerminationMessageFallbackToLogsOnError,

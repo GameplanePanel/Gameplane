@@ -285,8 +285,14 @@ func (r *GameServerReconciler) reconcileTunnel(
 		// ServiceAccountName: only playit needs the grant to patch status with
 		// the assigned address. Other providers (frp, tailscale) use static
 		// addresses configured beforehand, so they run as default.
+		// The others get no API token at all, and a switch away from playit
+		// drops its ServiceAccount from the pod template.
 		if tunnel.Provider == "playit" {
 			dep.Spec.Template.Spec.ServiceAccountName = tunnelServiceAccountName(gs)
+			dep.Spec.Template.Spec.AutomountServiceAccountToken = nil
+		} else {
+			dep.Spec.Template.Spec.ServiceAccountName = ""
+			dep.Spec.Template.Spec.AutomountServiceAccountToken = ptrTo(false)
 		}
 
 		// Tunnel image selection and environment per provider.
