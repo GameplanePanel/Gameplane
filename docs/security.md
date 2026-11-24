@@ -787,7 +787,31 @@ second internet-facing listener, so it gets the same treatment as the dashboard:
   never starts the game. Enabling SFTP grants the operator `pods: create, delete`
   in game namespaces so it can run that file-only pod.
 - **Revocation and disable** end open sessions within 60 seconds and refuse new
-  logins (FR-007, SC-006).
+  logins (FR-007, SC-006). The SFTP pod fails closed: when it cannot confirm a
+  session with the API for 2 minutes (for example, the API is down), it closes
+  the connection, and a file request the API answers with 401 closes it at once.
+  The API also re-checks every running SFTP upload or download against its
+  session every 5 seconds, on SQLite as well as PostgreSQL, so a transfer stops
+  when its session is revoked or expires.
+- **API hop.** The SFTP pod refuses an `http` API URL unless it is started with
+  `--allow-insecure-api`. The chart sets that only in local mode, where the pod
+  talks to the API Service over the cluster's pod network and its
+  NetworkPolicy limits egress to the API pods. Remote mode needs an `https`
+  `sftp.apiURL` (the chart refuses anything else), with the certificate checked
+  against the system roots or `sftp.apiCASecret`. The pod never follows a
+  redirect from the API, so it never re-sends a password, key or token to
+  another address.
+- **Exposed listener.** Each connection may hold at most 2 session channels,
+  and a channel that does not start SFTP within 10 seconds is closed.
+  Connections still logging in are capped at 64 in total and at
+  `sftp.maxPreAuthPerIP` (default 8) per source IP, so one address cannot
+  starve everyone else.
+- **Metrics.** `/metrics` has no authentication. The SFTP pod binds it to
+  loopback by default. The chart serves it on the pod address only when
+  `serviceMonitors.enabled` is true, through the separate in-cluster
+  `gameplane-sftp-metrics` Service and a NetworkPolicy rule for
+  `serviceMonitors.scrapeNamespaceSelector`. The public `gameplane-sftp`
+  Service carries only SSH.
 - **Transfers.** Uploads are capped by `files.maxUploadSize` and the volume's
   free space. Idle sessions close after `sftp.idleTimeout`.
 
