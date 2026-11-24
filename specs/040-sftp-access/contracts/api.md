@@ -11,7 +11,7 @@ Request: `{"username": "alice" | "alice+survival" | "alice+mods/survival", "pass
 Response 200: `{"sessionToken": "gpsftp_…", "expiresAt": "…", "user": "alice", "target": null | {"namespace": "mods", "server": "survival"}}`.
 Response 401: generic. Response 429: rate limited (same limiter keys as `/auth/login`: username and source address).
 
-The API splits `username` at the last `+` (R4). The part before it is a panel username or, when no panel username matches, a display name that exactly one account has (so SSO users need not type their email address). A target login also asks the file-access check (research R8) whether the user may list the target; failure is the same 401.
+The API splits `username` at the last `+` (R4). The part before it is matched, in order, against chosen SFTP usernames, panel usernames, and display names that are their account's default SFTP username (FR-005a), so SSO users need not type their email address. A target login also asks the file-access check (research R8) whether the user may list the target; failure is the same 401.
 
 ### `POST /sftp/v1/sessions/check`
 
@@ -36,7 +36,8 @@ Only these routes accept a session token (guard like `MCPTokenGuard`); `cluster`
 
 | Route | Permission | Purpose |
 |---|---|---|
-| `GET /users/me/sftp` | signed in | address, port, host key fingerprint, username, keys, password state |
+| `GET /users/me/sftp` | signed in | address, port, host key fingerprint, username (panel), `loginName` (the SFTP username, FR-005a), `customLoginName` (chosen or default), keys, password state |
+| `PUT /users/me/sftp/login-name` | signed in | `{loginName}` sets the SFTP username, `""` returns to the default → `{loginName, customLoginName}`; 400 `server.sftp.login_name_invalid`, 409 `server.sftp.login_name_taken` |
 | `POST /users/me/sftp/keys` | signed in | add key `{name, publicKey}` |
 | `DELETE /users/me/sftp/keys/{id}` | signed in | remove key, revokes sessions using it |
 | `POST /users/me/sftp/password` | signed in | generate or regenerate `{length: 20..40}` → `{password}` shown once |

@@ -1,3 +1,3 @@
-# SFTP login by display name
+# SFTP username: display name by default, changeable in Settings
 
-SSO users no longer have to type their email address to log in over SFTP: the display name works too, for example `sftp -P 2222 alice@sftp.example.com` or `alice+survival@sftp.example.com`. It works when no other account has the same display name and no account uses it as its username; otherwise use the panel username. [PR #1089](https://github.com/GameplanePanel/Gameplane/pull/1089)
+SSO users no longer have to type their email address to log in over SFTP. Each user now has an SFTP username, shown under **Settings, SFTP**: by default it is the display name, for example `sftp -P 2222 alice@sftp.example.com` or `alice+survival@sftp.example.com`, unless another account already uses that name or it has a space, `/` or `+`, in which case it is the panel username. Users can choose another SFTP username on that page or reset it to the default; the panel username keeps working too. Adds the database column `users.sftp_username` (migration 027). [PR #1089](https://github.com/GameplanePanel/Gameplane/pull/1089)

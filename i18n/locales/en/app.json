@@ -1199,6 +1199,14 @@
     "defaultMessage": "sftp login failed",
     "description": "API error from the SFTP login (sftp_login.go:login) for every refusal cause; the body is identical whatever failed."
   },
+  "server.sftp.login_name_invalid": {
+    "defaultMessage": "SFTP username must be 1 to 64 characters without spaces, \"/\" or \"+\"",
+    "description": "API error when a chosen SFTP username is empty, too long or has a space, control character, slash or plus sign (sftp.go:writeSFTPErr)."
+  },
+  "server.sftp.login_name_taken": {
+    "defaultMessage": "this SFTP username is already used by another account",
+    "description": "API error when a chosen SFTP username is another account's username, SFTP username or display name (sftp.go:writeSFTPErr)."
+  },
   "server.sftp.password_length_invalid": {
     "defaultMessage": "length must be 20 to 40",
     "description": "API error when a generated SFTP password length is outside 20 to 40 (sftp.go:writeSFTPErr)."

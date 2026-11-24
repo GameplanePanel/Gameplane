@@ -206,39 +206,3 @@ func (s *SessionStore) SFTPUserByName(ctx context.Context, username string) (*Us
 	u.sessionEpoch = ep
 	return &u, ep, nil
 }
-
-// ResolveSFTPLoginName maps the name typed at the SFTP login to a panel username. A panel username
-// always wins. Otherwise the name may be a display name, so an SSO user does not have to type their
-// email address; it resolves only when exactly one account has that display name, because display
-// names are not unique. An unknown or ambiguous name comes back unchanged, and the lookup that follows
-// refuses it like any other unknown user. The credential is still checked against the resolved account.
-func (s *SessionStore) ResolveSFTPLoginName(ctx context.Context, name string) (string, error) {
-	var found string
-	err := s.db.DB.QueryRowContext(ctx, `SELECT username FROM users WHERE username = ?`, name).Scan(&found)
-	if err == nil {
-		return found, nil
-	}
-	if !errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("resolve sftp login name: %w", err)
-	}
-	rows, err := s.db.DB.QueryContext(ctx, `SELECT username FROM users WHERE display_name = ? LIMIT 2`, name)
-	if err != nil {
-		return "", fmt.Errorf("resolve sftp login name: display name: %w", err)
-	}
-	defer func() { _ = rows.Close() }()
-	var matches []string
-	for rows.Next() {
-		var u string
-		if err := rows.Scan(&u); err != nil {
-			return "", fmt.Errorf("resolve sftp login name: scan: %w", err)
-		}
-		matches = append(matches, u)
-	}
-	if err := rows.Err(); err != nil {
-		return "", fmt.Errorf("resolve sftp login name: rows: %w", err)
-	}
-	if len(matches) == 1 {
-		return matches[0], nil
-	}
-	return name, nil
-}

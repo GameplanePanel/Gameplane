@@ -49,6 +49,7 @@ func mountSFTPRoutes(r chi.Router, sessions *auth.SessionStore, store *db.Store)
 	r.Get("/me/sftp", h.getSelf)
 	r.Post("/me/sftp/keys", h.addKey)
 	r.Delete("/me/sftp/keys/{id}", h.deleteKey)
+	r.Put("/me/sftp/login-name", h.setLoginName)
 	r.Post("/me/sftp/password", h.generatePassword)
 	r.Delete("/me/sftp/password", h.revokePassword)
 	// Admin view and revoke of another user's SFTP credentials (users:manage in rbac.go).
@@ -97,6 +98,10 @@ func writeSFTPErr(w http.ResponseWriter, req *http.Request, err error) {
 		httperr.WriteMessage(w, req, messages.New("server.sftp.key_limit_reached", nil))
 	case errors.Is(err, auth.ErrSFTPNotFound):
 		httperr.WriteMessage(w, req, messages.New("server.sftp.key_not_found", nil))
+	case errors.Is(err, auth.ErrSFTPLoginNameInvalid):
+		httperr.WriteMessage(w, req, messages.New("server.sftp.login_name_invalid", nil))
+	case errors.Is(err, auth.ErrSFTPLoginNameTaken):
+		httperr.WriteMessage(w, req, messages.New("server.sftp.login_name_taken", nil))
 	case errors.Is(err, auth.ErrSFTPPasswordLen):
 		httperr.WriteMessage(w, req, messages.New("server.sftp.password_length_invalid", nil))
 	default:
@@ -143,11 +148,18 @@ func (h *sftpSelfHandler) getSelf(w http.ResponseWriter, req *http.Request) {
 			endpoint = ep
 		}
 	}
+	loginName, custom, err := h.sessions.SFTPLoginName(ctx, uid)
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
 	writeJSON(w, map[string]any{
-		"username": user.Username,
-		"endpoint": endpoint,
-		"keys":     keys,
-		"password": password,
+		"username":        user.Username,
+		"loginName":       loginName,
+		"customLoginName": custom,
+		"endpoint":        endpoint,
+		"keys":            keys,
+		"password":        password,
 	})
 }
 
@@ -171,6 +183,36 @@ func (h *sftpSelfHandler) addKey(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	writeJSONCreated(w, key)
+}
+
+// setLoginName sets the SFTP username the caller chose; an empty username goes back to the default
+// (the display name when no other account holds it, otherwise the panel username).
+func (h *sftpSelfHandler) setLoginName(w http.ResponseWriter, req *http.Request) {
+	if refuseNonSession(w, req) {
+		return
+	}
+	uid, ok := callerID(w, req)
+	if !ok {
+		return
+	}
+	var body struct {
+		LoginName string `json:"loginName"`
+	}
+	if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+		httperr.WriteMessage(w, req, messages.New("server.common.invalid_json", nil))
+		return
+	}
+	ctx := req.Context()
+	if err := h.sessions.SetSFTPLoginName(ctx, uid, strings.TrimSpace(body.LoginName)); err != nil {
+		writeSFTPErr(w, req, err)
+		return
+	}
+	name, custom, err := h.sessions.SFTPLoginName(ctx, uid)
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	writeJSON(w, map[string]any{"loginName": name, "customLoginName": custom})
 }
 
 // deleteKey removes one of the caller's keys and revokes the sessions that used it.
