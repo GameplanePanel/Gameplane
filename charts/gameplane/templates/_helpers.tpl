@@ -312,3 +312,19 @@ applies the chart's ModuleSources), otherwise empty.
 true
 {{- end -}}
 {{- end -}}
+
+{{/*
+gameplane.auditWebhookAuthRef returns "name/key" of the Secret holding the
+audit webhook Authorization value, or "" when none applies. An explicit
+api.audit.webhook.authSecretRef wins; otherwise, when the bundled syslog bridge
+is the auto-wired sink, the chart-generated gameplane-audit-syslog-bridge-token
+Secret is used so the bridge never runs without inbound authentication.
+*/}}
+{{- define "gameplane.auditWebhookAuthRef" -}}
+{{- $w := .Values.api.audit.webhook -}}
+{{- if $w.authSecretRef.name -}}
+{{- printf "%s/%s" $w.authSecretRef.name $w.authSecretRef.key -}}
+{{- else if and $w.syslogBridge.enabled (not $w.url) -}}
+gameplane-audit-syslog-bridge-token/token
+{{- end -}}
+{{- end -}}
