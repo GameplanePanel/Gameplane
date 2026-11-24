@@ -1100,8 +1100,10 @@ Anyone can therefore post reports. Defences:
   body cap, and every string matched against a pattern or a fixed list, so
   hostile text can't create unbounded categories or reach the dashboard
 - a per-source daily limit on accepted reports (`INGEST_SOURCE_DAILY_LIMIT`,
-  default `20`, tolerant of shared NAT) and a rate limit on the public
-  summary, both held in memory only
+  default `20`, tolerant of shared NAT), a per-source request rate on
+  `/ingest` that also counts refused and malformed reports
+  (`INGEST_SOURCE_PER_MINUTE`, default `60`), and a rate limit on the public
+  summary, all held in memory only
 - optional proof-of-work (`INGEST_POW`, off by default; see below), which
   raises the cost of bulk reports in proportion to the request rate
 - only daily aggregates and expiring activity records are stored; raw
@@ -1131,6 +1133,14 @@ costs the receiver one HMAC and one hash, and it answers `428`
 (`pow_required` or `pow_invalid`) or, when its used-challenge set (1,000,000
 entries) is full, `503 pow_busy`. Challenge requests have their own
 per-source limit.
+
+New installs pay separately, whether or not `INGEST_POW` is on: the first
+report of an install ID the receiver has never seen needs a solved challenge
+of at least `INGEST_CLAIM_POW_BITS` (default 20, about a second of CPU). It
+is refused `428 pow_claim` first, and the install's automatic retry fetches a
+claim-grade challenge for its source and resends. Known installs never solve
+anything for it, so fabricating installs in bulk costs CPU per install while
+real installs pay once.
 
 What it stops: cheap bulk fabrication. The work a flood must do grows
 faster than its rate, while an install sending one report a day pays

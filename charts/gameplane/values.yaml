@@ -492,11 +492,18 @@ api:
       # challenges a minute, rises with the request rate up to maxBits, and
       # falls one bit every 5 minutes. Installs refuse challenges above 26
       # bits, so maxBits may not exceed 26.
+      #
+      # claimBits applies even while enabled is false: the first report of
+      # an install ID the receiver has never seen must carry a solved
+      # challenge of at least this many bits (about a second of CPU at 20),
+      # so creating installs in bulk is costly. Known installs never solve
+      # anything for it. 0 turns it off; at most 26.
       ingestPow:
         enabled: false
         targetPerMinute: 60
         minBits: 0
         maxBits: 22
+        claimBits: 20
 
   oidc:
     enabled: false

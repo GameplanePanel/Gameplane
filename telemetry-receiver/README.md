@@ -125,6 +125,7 @@ and all counters; the durable figures live in the SQLite store.
 | `PUBLIC_SUMMARY` | `false` | `true` enables `GET /v1/summary`. |
 | `TRUSTED_PROXY_CIDRS` | *(empty)* | Comma-separated CIDRs whose `X-Forwarded-For` is trusted for the source address. |
 | `INGEST_SOURCE_DAILY_LIMIT` | `20` | Accepted reports per source per UTC day. `0` means unlimited. |
+| `INGEST_SOURCE_PER_MINUTE` | `60` | `/ingest` requests per source per minute, refused and malformed ones included. `0` means unlimited. |
 | `RETENTION_DAYS` | `730` | Daily aggregate retention. Minimum `365`. |
 | `ACTIVITY_EXPIRY_DAYS` | `90` | Activity record expiry. Minimum `31`. |
 | `ID_PEPPER` | *(empty)* | HMAC pepper for install IDs, from a Secret. Empty means one is generated and kept in the database. |
@@ -132,6 +133,7 @@ and all counters; the durable figures live in the SQLite store.
 | `INGEST_POW_TARGET_PER_MIN` | `60` | Normal challenge rate; no work is required at or below it. Must be at least 1. |
 | `INGEST_POW_MIN_BITS` | `0` | Lowest difficulty issued. |
 | `INGEST_POW_MAX_BITS` | `22` | Highest difficulty issued. At least `INGEST_POW_MIN_BITS` and at most 26. |
+| `INGEST_CLAIM_POW_BITS` | `20` | Proof-of-work bits the first report of a new install ID must carry, even with `INGEST_POW` off. `0` turns it off; at most 26. |
 
 A value below a minimum, an unparsable number or a malformed
 `TRUSTED_PROXY_CIDRS` entry stops the receiver at start with an error.

@@ -66,6 +66,9 @@ const (
 	refusePoWRequired = "pow_required"
 	refusePoWInvalid  = "pow_invalid"
 	refusePoWBusy     = "pow_busy"
+	// refusePoWClaim refuses the first report of a new install ID that does
+	// not carry a solution of at least INGEST_CLAIM_POW_BITS.
+	refusePoWClaim = "pow_claim"
 )
 
 // powVerdict is the outcome of powState.check.
@@ -191,9 +194,14 @@ func (p *powState) mac(payload []byte) []byte {
 
 // issue creates a challenge at now: its token, its difficulty and its expiry.
 func (p *powState) issue(now time.Time) (token string, bits int, expires time.Time) {
+	return p.issueAtLeast(now, 0)
+}
+
+// issueAtLeast is issue with a difficulty of at least floor bits.
+func (p *powState) issueAtLeast(now time.Time, floor int) (token string, bits int, expires time.Time) {
 	p.mu.Lock()
 	r := p.recordLocked(now)
-	bits = p.difficultyLocked(now, r, true)
+	bits = max(p.difficultyLocked(now, r, true), min(floor, telemetryschema.MaxPoWBits))
 	p.mu.Unlock()
 
 	issued := max(now.Unix(), 0)
@@ -233,28 +241,36 @@ func (p *powState) parseToken(token string) ([]byte, bool) {
 // happens to the report afterwards. When the used set is full it returns
 // powBusy and marks nothing.
 func (p *powState) check(header string, now time.Time) powVerdict {
+	v, _ := p.checkBits(header, now)
+	return v
+}
+
+// checkBits is check that also returns, for an accepted solution, the
+// difficulty its token states.
+func (p *powState) checkBits(header string, now time.Time) (powVerdict, int) {
 	if header == "" {
-		return powMissing
+		return powMissing, 0
 	}
 	token, nonce, err := telemetryschema.ParsePoW(header)
 	if err != nil {
-		return powInvalid
+		return powInvalid, 0
 	}
 	payload, ok := p.parseToken(token)
 	if !ok {
-		return powInvalid
+		return powInvalid, 0
 	}
 	nowSec := now.Unix()
 	if nowSec < 0 {
-		return powInvalid
+		return powInvalid, 0
 	}
 	issued := binary.BigEndian.Uint64(payload[1:9])
 	expires := issued + powTTLSeconds
 	if uint64(nowSec) > expires {
-		return powInvalid
+		return powInvalid, 0
 	}
-	if !telemetryschema.PoWOK(token, nonce, int(payload[9])) {
-		return powInvalid
+	bits := int(payload[9])
+	if !telemetryschema.PoWOK(token, nonce, bits) {
+		return powInvalid, 0
 	}
 	var id [powIDSize]byte
 	copy(id[:], payload[10:])
@@ -263,13 +279,13 @@ func (p *powState) check(header string, now time.Time) powVerdict {
 	defer p.mu.Unlock()
 	p.pruneLocked(now)
 	if _, dup := p.used[id]; dup {
-		return powInvalid
+		return powInvalid, 0
 	}
 	if len(p.used) >= powUsedCap {
-		return powBusy
+		return powBusy, 0
 	}
 	p.used[id] = expires
-	return powAccepted
+	return powAccepted, bits
 }
 
 // pruneLocked drops expired entries of the used set, at most once a minute.
@@ -292,8 +308,9 @@ func (p *powState) pruneLocked(now time.Time) {
 }
 
 // initPoW sets up proof-of-work: the two metrics always, and the state and
-// the challenge limiter only when INGEST_POW is on. With it off, s.pow stays
-// nil and /ingest and /v1/challenge behave as before.
+// the challenge limiter when INGEST_POW is on or INGEST_CLAIM_POW_BITS is
+// above 0. With both off, s.pow stays nil and /ingest and /v1/challenge
+// behave as before.
 func (s *server) initPoW() {
 	s.powChallenges = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "gameplane_telemetry_pow_challenges_total",
@@ -308,11 +325,19 @@ func (s *server) initPoW() {
 		}
 		return float64(s.pow.currentBits(s.now()))
 	}))
-	if !s.cfg.ingestPoW {
+	if !s.cfg.ingestPoW && s.cfg.claimPoWBits <= 0 {
 		return
 	}
 	s.pow = newPoW(s.cfg)
 	s.powLimiter = newBucketLimiter(powChallengePerMinute, powChallengeBurst)
+	if s.cfg.claimPoWBits > 0 {
+		s.claims = newClaimMarks()
+		s.refused.WithLabelValues(refusePoWClaim)
+	}
+	if !s.cfg.ingestPoW {
+		s.rateLimited.WithLabelValues(routeChallenge)
+		return
+	}
 	for _, reason := range []string{refusePoWRequired, refusePoWInvalid, refusePoWBusy} {
 		s.refused.WithLabelValues(reason)
 	}
@@ -321,14 +346,16 @@ func (s *server) initPoW() {
 
 // requirePoW enforces proof-of-work on /ingest. It returns true when the
 // request may go on (proof-of-work is off, or the solution verified) and has
-// answered the request itself when it returns false.
-func (s *server) requirePoW(w http.ResponseWriter, req *http.Request) bool {
-	if s.pow == nil {
-		return true
+// answered the request itself when it returns false. bits is the difficulty
+// of the verified solution, or -1 when none was verified.
+func (s *server) requirePoW(w http.ResponseWriter, req *http.Request) (ok bool, bits int) {
+	if s.pow == nil || !s.cfg.ingestPoW {
+		return true, -1
 	}
-	switch s.pow.check(req.Header.Get(telemetryschema.PoWHeader), s.now()) {
+	verdict, bits := s.pow.checkBits(req.Header.Get(telemetryschema.PoWHeader), s.now())
+	switch verdict {
 	case powAccepted:
-		return true
+		return true, bits
 	case powMissing:
 		s.refusePoW(w, refusePoWRequired, http.StatusPreconditionRequired)
 	case powBusy:
@@ -337,7 +364,7 @@ func (s *server) requirePoW(w http.ResponseWriter, req *http.Request) bool {
 	default:
 		s.refusePoW(w, refusePoWInvalid, http.StatusPreconditionRequired)
 	}
-	return false
+	return false, -1
 }
 
 // refusePoW answers a refused report with a fixed JSON body and counts it. A
@@ -356,20 +383,31 @@ type challengeReply struct {
 	ExpiresAt string `json:"expiresAt"`
 }
 
-// challenge serves GET /v1/challenge: 404 when proof-of-work is off, 429
-// past the per-source bucket, otherwise a new challenge.
+// challenge serves GET /v1/challenge: 404 when proof-of-work is off and the
+// source has no pending new-install claim, 429 past the per-source bucket,
+// otherwise a new challenge. A source with a pending claim gets at least
+// INGEST_CLAIM_POW_BITS.
 func (s *server) challenge(w http.ResponseWriter, r *http.Request) {
 	if s.pow == nil {
 		http.NotFound(w, r)
 		return
 	}
 	now := s.now()
-	if !s.powLimiter.allow(sourceIP(r, s.cfg.trustedProxyCIDRs), now) {
+	src := sourceIP(r, s.cfg.trustedProxyCIDRs)
+	floor := 0
+	if s.claims != nil && s.claims.pending(src, now) {
+		floor = s.cfg.claimPoWBits
+	}
+	if !s.cfg.ingestPoW && floor == 0 {
+		http.NotFound(w, r)
+		return
+	}
+	if !s.powLimiter.allow(src, now) {
 		s.rateLimited.WithLabelValues(routeChallenge).Inc()
 		http.Error(w, "rate limit exceeded", http.StatusTooManyRequests)
 		return
 	}
-	token, bits, expires := s.pow.issue(now)
+	token, bits, expires := s.pow.issueAtLeast(now, floor)
 	s.powChallenges.Inc()
 	h := w.Header()
 	h.Set("Content-Type", "application/json")
