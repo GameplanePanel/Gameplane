@@ -343,11 +343,11 @@ api:
       # above — automatically points the API's audit webhook at it, so each
       # audit event is forwarded to your syslog/SIEM collector. Off by default.
       #
-      # Auth: the bridge Service is a ClusterIP other pods can reach. Set
-      # `authSecretRef` above and the SAME token guards both the API→bridge call
-      # and the bridge's inbound check, so only the API can inject records —
-      # strongly recommended. Without it the bridge accepts unauthenticated POSTs
-      # (rely on NetworkPolicies to restrict who can reach :8514).
+      # Auth: the bridge Service is a ClusterIP other pods can reach, so the
+      # API→bridge call and the bridge's inbound check always share a token and
+      # only the API can inject records. Set `authSecretRef` above to supply
+      # your own; otherwise the chart generates one in the Secret
+      # gameplane-audit-syslog-bridge-token (kept across upgrades).
       #
       # Setting webhook.url explicitly disables the auto-wiring, so don't enable
       # the bridge and set webhook.url at the same time (the bridge would run

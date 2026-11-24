@@ -561,6 +561,9 @@ a slow or down sink never blocks or fails a request.
   `syslogBridge.syslog.addr` to your collector `host:port` (required when
   enabled), and optionally `network` (`tcp`/`udp`), `tls`, `facility`, and
   `severity`. Setting `webhook.url` explicitly overrides the auto-wiring.
+  The API and the bridge always share a token: the one in `authSecretRef`,
+  or, when that is unset, one the chart generates in the Secret
+  `gameplane-audit-syslog-bridge-token` (kept across upgrades).
 
   ```sh
   helm upgrade ... \

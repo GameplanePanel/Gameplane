@@ -480,12 +480,13 @@ spec:
                   name: {{ .Values.api.oidc.clientSecretRef.name }}
                   key:  {{ .Values.api.oidc.clientSecretRef.key }}
             {{- end }}
-            {{- if .Values.api.audit.webhook.authSecretRef.name }}
+            {{- with include "gameplane.auditWebhookAuthRef" . }}
+            {{- $ref := splitList "/" . }}
             - name: GAMEPLANE_AUDIT_WEBHOOK_AUTH
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.api.audit.webhook.authSecretRef.name }}
-                  key:  {{ .Values.api.audit.webhook.authSecretRef.key }}
+                  name: {{ index $ref 0 }}
+                  key:  {{ index $ref 1 }}
             {{- end }}
             {{- if .Values.api.audit.s3.credentialsSecretRef.name }}
             - name: GAMEPLANE_AUDIT_S3_ACCESS_KEY
