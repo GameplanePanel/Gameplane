@@ -94,11 +94,14 @@ func TestTrimBackups_AnyPositiveRuleEnablesRetention(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			s := scrapeScheme(t)
 			cl := fake.NewClientBuilder().WithScheme(s).
-				WithObjects(retentionBackupWithSnapshotFinalizer("newest", 2026), retentionBackupWithSnapshotFinalizer("oldest", 2024)).Build()
+				WithObjects(retentionServer(), retentionBackupWithSnapshotFinalizer("newest", 2026), retentionBackupWithSnapshotFinalizer("oldest", 2024)).Build()
 			r := &BackupScheduleReconciler{Client: cl, Scheme: s}
 			sched := &gameplanev1alpha1.BackupSchedule{
-				ObjectMeta: metav1.ObjectMeta{Name: "sched", Namespace: "ns"},
-				Spec:       gameplanev1alpha1.BackupScheduleSpec{Retention: &tc.retention},
+				ObjectMeta: metav1.ObjectMeta{Name: "sched", Namespace: "ns", UID: retentionScheduleUID},
+				Spec: gameplanev1alpha1.BackupScheduleSpec{
+					ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "srv"},
+					Retention: &tc.retention,
+				},
 			}
 
 			if err := r.trimBackups(context.Background(), sched); err != nil {
@@ -131,9 +134,31 @@ func (c *retentionListCountingClient) List(ctx context.Context, list client.Obje
 	return c.Client.List(ctx, list, opts...)
 }
 
-// retentionBackupWithSnapshotFinalizer creates a completed backup for ns/sched.
-// The finalizer keeps deletion observable through DeletionTimestamp, and distinct
-// completion years put fixtures in separate buckets for every time-based rule.
+// Identities of the schedule ns/sched and its GameServer ns/srv. Retention
+// only prunes Backups whose spec.origin carries both (#960).
+const (
+	retentionScheduleUID = "sched-uid"
+	retentionServerUID   = "srv-uid"
+)
+
+// retentionServer is the live GameServer ns/srv the schedule fixtures target.
+func retentionServer() *gameplanev1alpha1.GameServer {
+	return &gameplanev1alpha1.GameServer{ObjectMeta: metav1.ObjectMeta{
+		Name: "srv", Namespace: "ns", UID: retentionServerUID,
+	}}
+}
+
+// retentionOrigin is the spec.origin the schedule ns/sched stamps when it fires.
+func retentionOrigin() *gameplanev1alpha1.BackupOrigin {
+	return &gameplanev1alpha1.BackupOrigin{
+		ScheduleName: "sched", ScheduleUID: retentionScheduleUID, ServerUID: retentionServerUID,
+	}
+}
+
+// retentionBackupWithSnapshotFinalizer creates a completed, restorable backup
+// that ns/sched fired for ns/srv. The finalizer keeps deletion observable
+// through DeletionTimestamp, and distinct completion years put fixtures in
+// separate buckets for every time-based rule.
 func retentionBackupWithSnapshotFinalizer(name string, year int) *gameplanev1alpha1.Backup {
 	ct := metav1.NewTime(time.Date(year, time.June, 15, 12, 0, 0, 0, time.UTC))
 	return &gameplanev1alpha1.Backup{
@@ -143,9 +168,14 @@ func retentionBackupWithSnapshotFinalizer(name string, year int) *gameplanev1alp
 			Labels:     map[string]string{"gameplane.local/backup-schedule": "sched"},
 			Finalizers: []string{gameplanev1alpha1.BackupSnapshotFinalizer},
 		},
+		Spec: gameplanev1alpha1.BackupSpec{
+			ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "srv"},
+			Origin:    retentionOrigin(),
+		},
 		Status: gameplanev1alpha1.BackupStatus{
 			Phase:          gameplanev1alpha1.BackupPhaseSucceeded,
 			CompletionTime: &ct,
+			SnapshotID:     "snap-" + name,
 		},
 	}
 }

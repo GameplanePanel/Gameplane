@@ -3,7 +3,7 @@ import { Button, Table } from "@heroui/react";
 import { formatRelative } from "@/lib/utils";
 import { BackupSize } from "@/components/backups/BackupSize";
 import type { Backup } from "@/types";
-import { PhaseChip } from "@/components/ui/PhaseChip";
+import { PhaseChip, backupAwaitingSnapshot } from "@/components/ui/PhaseChip";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
 interface Props {
@@ -30,7 +30,7 @@ export function BackupRow({ backup, showServer, onSelect, onRestore, target, per
         {showServer && backup.spec.serverRef.name}
       </Table.Cell>
       <Table.Cell>
-        <PhaseChip phase={backup.status?.phase} />
+        <PhaseChip phase={backup.status?.phase} awaitingSnapshot={backupAwaitingSnapshot(backup.status)} />
       </Table.Cell>
       <Table.Cell className="font-mono"><BackupSize backup={backup} /></Table.Cell>
       <Table.Cell>

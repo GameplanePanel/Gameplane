@@ -344,6 +344,27 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 		return ctrl.Result{}, err
 	}
+	// A scheduled Backup records the UID of the server its schedule fired for.
+	// If that server was replaced by a new one under the same name before the
+	// capture started, fail instead of capturing the replacement's data under
+	// the predecessor's provenance (#960). A cached mismatch is confirmed
+	// against the API server so a watch lag cannot fail a valid Backup.
+	if o := b.Spec.Origin; o != nil && o.ServerUID != "" && string(gs.UID) != o.ServerUID {
+		if err := r.backupAPIReader().Get(ctx, types.NamespacedName{
+			Namespace: b.Namespace, Name: b.Spec.ServerRef.Name,
+		}, &gs); err != nil {
+			if apierrors.IsNotFound(err) {
+				return r.fail(ctx, &b,
+					fmt.Sprintf("GameServer %q not found in namespace %s", b.Spec.ServerRef.Name, b.Namespace))
+			}
+			return ctrl.Result{}, fmt.Errorf("get server %s: %w", b.Spec.ServerRef.Name, err)
+		}
+		if string(gs.UID) != o.ServerUID {
+			return r.fail(ctx, &b, fmt.Sprintf(
+				"GameServer %q was replaced after schedule %q fired this backup; not capturing the new server",
+				b.Spec.ServerRef.Name, o.ScheduleName))
+		}
+	}
 
 	// Volume-snapshot backups take a CSI snapshot of the data PVC rather
 	// than running restic, so they branch off here — before the restic

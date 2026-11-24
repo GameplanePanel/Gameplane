@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -128,8 +129,8 @@ func TestSchedule_InvalidCronDoesNotPanic(t *testing.T) {
 }
 
 // TestSchedule_RetentionTrimsSucceededBackups — Pre-create labelled
-// succeeded Backups and confirm KeepLast=2 trims down to 2 keeping
-// the newest.
+// succeeded Backups the schedule fired (spec.origin) and confirm KeepLast=2
+// trims down to 2 keeping the newest.
 func TestSchedule_RetentionTrimsSucceededBackups(t *testing.T) {
 	ns := newNamespace(t)
 	startMgr(t, ns, withScheduleReconciler())
@@ -138,11 +139,20 @@ func TestSchedule_RetentionTrimsSucceededBackups(t *testing.T) {
 		t.Fatalf("create secret: %v", err)
 	}
 
+	// Schedule with KeepLast=2 — trim runs every Reconcile. We use a
+	// daily-midnight cron AND pre-set LastScheduleTime to "now" so the
+	// scheduler is dormant during the test (otherwise an extra Backup
+	// would appear in the namespace and skew the count).
+	sched := buildBackupSchedule(ns, "smp-sched", "smp", "repo", "0 0 * * *",
+		&gameplanev1alpha1.BackupRetention{KeepLast: 2})
+	origin := createScheduleWithServer(t, sched)
+
 	// 5 succeeded backups, oldest first → newest last.
 	for i := 0; i < 5; i++ {
 		name := "smp-sched-bk-" + []string{"a", "b", "c", "d", "e"}[i]
 		b := buildBackup(ns, name, "smp", "repo")
 		b.Labels = map[string]string{"gameplane.local/backup-schedule": "smp-sched"}
+		b.Spec.Origin = origin
 		if err := k8sClient.Create(context.Background(), b); err != nil {
 			t.Fatalf("create backup %d: %v", i, err)
 		}
@@ -150,22 +160,14 @@ func TestSchedule_RetentionTrimsSucceededBackups(t *testing.T) {
 		now := metav1.NewTime(time.Now().Add(time.Duration(i) * time.Second))
 		b.Status.Phase = gameplanev1alpha1.BackupPhaseSucceeded
 		b.Status.CompletionTime = &now
+		b.Status.SnapshotID = "snap-" + name
 		size := resource.MustParse("1Mi")
 		b.Status.Size = &size
 		if err := k8sClient.Status().Update(context.Background(), b); err != nil {
 			t.Fatalf("status update %d: %v", i, err)
 		}
 	}
-
-	// Schedule with KeepLast=2 — trim runs every Reconcile. We use a
-	// daily-midnight cron AND pre-set LastScheduleTime to "now" so the
-	// scheduler is dormant during the test (otherwise an extra Backup
-	// would appear in the namespace and skew the count).
-	sched := buildBackupSchedule(ns, "smp-sched", "smp", "repo", "0 0 * * *",
-		&gameplanev1alpha1.BackupRetention{KeepLast: 2})
-	if err := k8sClient.Create(context.Background(), sched); err != nil {
-		t.Fatalf("create schedule: %v", err)
-	}
+	// Also triggers the reconcile that trims the Backups created above.
 	freezeSchedule(t, ns, sched.Name)
 
 	eventually(t, func() (bool, string) {
@@ -197,9 +199,14 @@ func TestSchedule_DoesNotTrimRunningBackups(t *testing.T) {
 		t.Fatalf("create secret: %v", err)
 	}
 
+	sched := buildBackupSchedule(ns, "smp-sched", "smp", "repo", "0 0 * * *",
+		&gameplanev1alpha1.BackupRetention{KeepLast: 1})
+	origin := createScheduleWithServer(t, sched)
+
 	// One Running, three Succeeded.
 	running := buildBackup(ns, "smp-sched-running", "smp", "repo")
 	running.Labels = map[string]string{"gameplane.local/backup-schedule": "smp-sched"}
+	running.Spec.Origin = origin
 	if err := k8sClient.Create(context.Background(), running); err != nil {
 		t.Fatalf("create running backup: %v", err)
 	}
@@ -212,22 +219,19 @@ func TestSchedule_DoesNotTrimRunningBackups(t *testing.T) {
 		name := "smp-sched-old-" + []string{"a", "b", "c"}[i]
 		b := buildBackup(ns, name, "smp", "repo")
 		b.Labels = map[string]string{"gameplane.local/backup-schedule": "smp-sched"}
+		b.Spec.Origin = origin
 		if err := k8sClient.Create(context.Background(), b); err != nil {
 			t.Fatalf("create old %d: %v", i, err)
 		}
 		now := metav1.NewTime(time.Now().Add(time.Duration(i) * time.Second))
 		b.Status.Phase = gameplanev1alpha1.BackupPhaseSucceeded
 		b.Status.CompletionTime = &now
+		b.Status.SnapshotID = "snap-" + name
 		if err := k8sClient.Status().Update(context.Background(), b); err != nil {
 			t.Fatalf("status update %d: %v", i, err)
 		}
 	}
-
-	sched := buildBackupSchedule(ns, "smp-sched", "smp", "repo", "0 0 * * *",
-		&gameplanev1alpha1.BackupRetention{KeepLast: 1})
-	if err := k8sClient.Create(context.Background(), sched); err != nil {
-		t.Fatalf("create schedule: %v", err)
-	}
+	// Also triggers the reconcile that trims the Backups created above.
 	freezeSchedule(t, ns, sched.Name)
 
 	eventually(t, func() (bool, string) {
@@ -263,11 +267,28 @@ func TestSchedule_DoesNotTrimBackupReferencedByActiveRestore(t *testing.T) {
 		t.Fatalf("create secret: %v", err)
 	}
 
+	// KeepLast=1 — without pinning, would delete -old and -mid.
+	sched := buildBackupSchedule(ns, "smp-sched", "smp", "repo", "0 0 * * *",
+		&gameplanev1alpha1.BackupRetention{KeepLast: 1})
+	origin := createScheduleWithServer(t, sched)
+
+	// Active Restore pins the OLDEST backup. It exists before the Backups so
+	// no retention pass can run while the pin is missing.
+	rs := buildRestore(ns, "rs-active", "smp-sched-old", "smp")
+	if err := k8sClient.Create(context.Background(), rs); err != nil {
+		t.Fatalf("create restore: %v", err)
+	}
+	rs.Status.Phase = gameplanev1alpha1.RestorePhaseRunning
+	if err := k8sClient.Status().Update(context.Background(), rs); err != nil {
+		t.Fatalf("status update restore: %v", err)
+	}
+
 	// 3 succeeded backups, oldest first.
 	names := []string{"smp-sched-old", "smp-sched-mid", "smp-sched-new"}
 	for i, n := range names {
 		b := buildBackup(ns, n, "smp", "repo")
 		b.Labels = map[string]string{"gameplane.local/backup-schedule": "smp-sched"}
+		b.Spec.Origin = origin
 		if err := k8sClient.Create(context.Background(), b); err != nil {
 			t.Fatalf("create %s: %v", n, err)
 		}
@@ -280,22 +301,7 @@ func TestSchedule_DoesNotTrimBackupReferencedByActiveRestore(t *testing.T) {
 		}
 	}
 
-	// Active Restore pins the OLDEST backup.
-	rs := buildRestore(ns, "rs-active", "smp-sched-old", "smp")
-	if err := k8sClient.Create(context.Background(), rs); err != nil {
-		t.Fatalf("create restore: %v", err)
-	}
-	rs.Status.Phase = gameplanev1alpha1.RestorePhaseRunning
-	if err := k8sClient.Status().Update(context.Background(), rs); err != nil {
-		t.Fatalf("status update restore: %v", err)
-	}
-
-	// KeepLast=1 — without pinning, would delete -old and -mid.
-	sched := buildBackupSchedule(ns, "smp-sched", "smp", "repo", "0 0 * * *",
-		&gameplanev1alpha1.BackupRetention{KeepLast: 1})
-	if err := k8sClient.Create(context.Background(), sched); err != nil {
-		t.Fatalf("create schedule: %v", err)
-	}
+	// Also triggers the reconcile that trims the Backups created above.
 	freezeSchedule(t, ns, sched.Name)
 
 	eventually(t, func() (bool, string) {
@@ -452,8 +458,16 @@ func TestSchedule_ReplaceDeletesInFlight(t *testing.T) {
 	if err := k8sClient.Create(context.Background(), buildResticRepoSecret(ns, "repo")); err != nil {
 		t.Fatalf("create secret: %v", err)
 	}
+	// Suspended while the in-flight Backup it fired is set up, so no cron tick
+	// can fire before that Backup exists.
+	sched := buildBackupSchedule(ns, "smp-sched", "smp", "repo", "* * * * *", nil)
+	sched.Spec.ConcurrencyPolicy = "Replace"
+	sched.Spec.Suspend = true
+	origin := createScheduleWithServer(t, sched)
+
 	running := buildBackup(ns, "old-inflight", "smp", "repo")
 	running.Labels = map[string]string{"gameplane.local/backup-schedule": "smp-sched"}
+	running.Spec.Origin = origin
 	if err := k8sClient.Create(context.Background(), running); err != nil {
 		t.Fatalf("create running backup: %v", err)
 	}
@@ -462,13 +476,14 @@ func TestSchedule_ReplaceDeletesInFlight(t *testing.T) {
 		t.Fatalf("status update running: %v", err)
 	}
 
-	sched := buildBackupSchedule(ns, "smp-sched", "smp", "repo", "* * * * *", nil)
-	sched.Spec.ConcurrencyPolicy = "Replace"
-	if err := k8sClient.Create(context.Background(), sched); err != nil {
-		t.Fatalf("create schedule: %v", err)
+	// Resume, and pin LastScheduleTime so the next occurrence is overdue (a new
+	// schedule no longer fires on its first reconcile).
+	sched = getSchedule(t, ns, "smp-sched")
+	sched.Spec.Suspend = false
+	if err := k8sClient.Update(context.Background(), sched); err != nil {
+		t.Fatalf("resume schedule: %v", err)
 	}
-	// A new schedule no longer fires on its first reconcile; pin
-	// LastScheduleTime so the next occurrence is overdue.
+	sched = getSchedule(t, ns, "smp-sched")
 	fiveMinAgo := metav1.NewTime(time.Now().Add(-5 * time.Minute))
 	sched.Status.LastScheduleTime = &fiveMinAgo
 	if err := k8sClient.Status().Update(context.Background(), sched); err != nil {
@@ -557,13 +572,12 @@ func TestSchedule_LastSuccessfulTimeAdvancesAndNeverRewinds(t *testing.T) {
 	// Daily-midnight cron, frozen dormant so the scheduler itself doesn't
 	// fire an extra Backup that would confuse "newest".
 	sched := buildBackupSchedule(ns, "smp-sched", "smp", "repo", "0 0 * * *", nil)
-	if err := k8sClient.Create(context.Background(), sched); err != nil {
-		t.Fatalf("create schedule: %v", err)
-	}
+	origin := createScheduleWithServer(t, sched)
 	freezeSchedule(t, ns, sched.Name)
 
 	older := buildBackup(ns, "smp-sched-older", "smp", "repo")
 	older.Labels = map[string]string{"gameplane.local/backup-schedule": "smp-sched"}
+	older.Spec.Origin = origin
 	if err := k8sClient.Create(context.Background(), older); err != nil {
 		t.Fatalf("create older backup: %v", err)
 	}
@@ -573,18 +587,21 @@ func TestSchedule_LastSuccessfulTimeAdvancesAndNeverRewinds(t *testing.T) {
 	t1 := metav1.NewTime(time.Now().Add(-time.Hour).Truncate(time.Second))
 	older.Status.Phase = gameplanev1alpha1.BackupPhaseSucceeded
 	older.Status.CompletionTime = &t1
+	older.Status.SnapshotID = "snap-older"
 	if err := k8sClient.Status().Update(context.Background(), older); err != nil {
 		t.Fatalf("status update older backup: %v", err)
 	}
 
 	newer := buildBackup(ns, "smp-sched-newer", "smp", "repo")
 	newer.Labels = map[string]string{"gameplane.local/backup-schedule": "smp-sched"}
+	newer.Spec.Origin = origin
 	if err := k8sClient.Create(context.Background(), newer); err != nil {
 		t.Fatalf("create newer backup: %v", err)
 	}
 	t2 := metav1.NewTime(time.Now().Truncate(time.Second))
 	newer.Status.Phase = gameplanev1alpha1.BackupPhaseSucceeded
 	newer.Status.CompletionTime = &t2
+	newer.Status.SnapshotID = "snap-newer"
 	if err := k8sClient.Status().Update(context.Background(), newer); err != nil {
 		t.Fatalf("status update newer backup: %v", err)
 	}
@@ -677,7 +694,60 @@ func TestSchedule_DeletePreservesBackups(t *testing.T) {
 	})
 }
 
+// TestBackupOrigin_Immutable — spec.origin is the provenance retention prunes
+// by (#960). The apiserver must refuse changing, removing or adding it after
+// the Backup is created.
+func TestBackupOrigin_Immutable(t *testing.T) {
+	ns := newNamespace(t)
+	ctx := context.Background()
+	origin := &gameplanev1alpha1.BackupOrigin{ScheduleName: "smp-sched", ScheduleUID: "sched-uid", ServerUID: "srv-uid"}
+
+	stamped := buildBackup(ns, "stamped", "smp", "repo")
+	stamped.Spec.Origin = origin
+	if err := k8sClient.Create(ctx, stamped); err != nil {
+		t.Fatalf("create backup with origin: %v", err)
+	}
+	changed := stamped.DeepCopy()
+	changed.Spec.Origin = &gameplanev1alpha1.BackupOrigin{ScheduleName: "smp-sched", ScheduleUID: "other-uid", ServerUID: "srv-uid"}
+	if err := k8sClient.Update(ctx, changed); !apierrors.IsInvalid(err) {
+		t.Errorf("changing spec.origin: err = %v, want an Invalid refusal", err)
+	}
+	removed := stamped.DeepCopy()
+	removed.Spec.Origin = nil
+	if err := k8sClient.Update(ctx, removed); !apierrors.IsInvalid(err) {
+		t.Errorf("removing spec.origin: err = %v, want an Invalid refusal", err)
+	}
+
+	manual := buildBackup(ns, "manual", "smp", "repo")
+	if err := k8sClient.Create(ctx, manual); err != nil {
+		t.Fatalf("create backup without origin: %v", err)
+	}
+	manual.Spec.Origin = origin
+	if err := k8sClient.Update(ctx, manual); !apierrors.IsInvalid(err) {
+		t.Errorf("adding spec.origin after creation: err = %v, want an Invalid refusal", err)
+	}
+}
+
 // ---------- helpers used only by this file ----------
+
+// createScheduleWithServer creates the GameServer sched targets and then the
+// schedule, and returns the spec.origin the schedule stamps on Backups it
+// fires. Retention and Replace only act on Backups carrying it (#960).
+func createScheduleWithServer(t *testing.T, sched *gameplanev1alpha1.BackupSchedule) *gameplanev1alpha1.BackupOrigin {
+	t.Helper()
+	gs := buildGameServer(sched.Namespace, sched.Spec.ServerRef.Name, "scheduled-tmpl")
+	if err := k8sClient.Create(context.Background(), gs); err != nil {
+		t.Fatalf("create game server: %v", err)
+	}
+	if err := k8sClient.Create(context.Background(), sched); err != nil {
+		t.Fatalf("create schedule: %v", err)
+	}
+	return &gameplanev1alpha1.BackupOrigin{
+		ScheduleName: sched.Name,
+		ScheduleUID:  string(sched.UID),
+		ServerUID:    string(gs.UID),
+	}
+}
 
 func listBackupsForSchedule(t *testing.T, ns, schedName string) []gameplanev1alpha1.Backup {
 	t.Helper()

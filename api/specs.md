@@ -152,7 +152,7 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - `/servers/{name}:capture-file` — GET: download completed PCAPNG file from the capture sidecar; query param `id={captureId}` (proxied to sidecar over mTLS; 409 if still running)
 - `/templates` — GET, POST: list and create GameTemplate CRDs
 - `/templates/{name}` — GET, PUT, DELETE: manage GameTemplate CRDs (cluster-scoped)
-- `/backups` — GET, POST: list and create Backup CRDs
+- `/backups` — GET, POST: list and create Backup CRDs. POST drops any client-supplied `spec.origin`: only the operator's BackupSchedule controller records a Backup's provenance, which retention prunes by (#960).
 - `/backups/{name}` — GET, PUT, DELETE: manage Backup CRDs (namespaced, cluster-dispatch)
 - `/schedules` — GET, POST: list and create BackupSchedule CRDs
 - `/schedules/{name}` — GET, PUT, DELETE: manage BackupSchedule CRDs (namespaced, cluster-dispatch). DELETE accepts the optional query parameters `expectedUID` and `expectedResourceVersion` together. Kubernetes checks both against the live schedule and returns 409 if either changed.

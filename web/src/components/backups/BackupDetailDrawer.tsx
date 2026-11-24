@@ -7,7 +7,7 @@ import { RotateCcw, Trash2 } from "lucide-react";
 import { formatRelative } from "@/lib/utils";
 import { BackupSize } from "@/components/backups/BackupSize";
 import type { Backup } from "@/types";
-import { PhaseChip } from "@/components/ui/PhaseChip";
+import { PhaseChip, backupAwaitingSnapshot } from "@/components/ui/PhaseChip";
 import { ErrorBanner } from "./ErrorBanner";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { backupReadOptions, isAuthorizationError, useBackupAccessKey } from "@/lib/backupReadOptions";
@@ -82,7 +82,7 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
               {backup && (
                 <>
                   <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.phase", defaultMessage: "Phase", description: "Backup details drawer: field label above the backup's current phase, shown as a status chip" })}>
-                    <PhaseChip phase={backup.status?.phase} />
+                    <PhaseChip phase={backup.status?.phase} awaitingSnapshot={backupAwaitingSnapshot(backup.status)} />
                   </Field>
                   <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.server", defaultMessage: "Server", description: "Backup details drawer: field label above the name of the server the backup belongs to" })}>{backup.spec.serverRef.name}</Field>
                   <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.consistency", defaultMessage: "Achieved consistency", description: "Backup details: actual consistency reported by the controller, independent of successful copying" })}>

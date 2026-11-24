@@ -245,6 +245,12 @@ func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource, auditor 
 			stampOwner(obj, req)
 			stripRedactedConfig(obj)
 		}
+		// spec.origin is the operator's proof that a BackupSchedule generated
+		// the Backup; retention prunes by it. Panel users only create manual
+		// Backups, so a forged origin is dropped rather than trusted.
+		if gvr.Resource == "backups" {
+			unstructured.RemoveNestedField(obj.Object, "spec", "origin")
+		}
 		var created *unstructured.Unstructured
 		if cluster(gvr) {
 			created, err = k.Dynamic.Resource(gvr).Create(req.Context(), obj, metav1.CreateOptions{})
