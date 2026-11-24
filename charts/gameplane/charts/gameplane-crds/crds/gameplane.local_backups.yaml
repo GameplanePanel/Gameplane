@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 2a303fe8ad20395595340a9f4d5a7ae2d2d8b809f14c7cb4563701d470226942
+    gameplane.local/crd-bundle-sha256: c5608982f8b8b5619ef0c0bc446995ecd231bf92d3c2dc5615bad2579107e906
     controller-gen.kubebuilder.io/version: v0.22.0
   name: backups.gameplane.local
 spec:
@@ -37,6 +37,8 @@ spec:
           Backup represents a one-shot backup of a GameServer's data volume.
           Recurring backups are expressed as BackupSchedules, which create
           Backup objects over time.
+          spec.origin is set only at creation: an update may not add, change or remove
+          it, including by removing the whole spec.
         properties:
           apiVersion:
             description: |-
@@ -67,7 +69,8 @@ spec:
                   schedule and server, so a schedule or server recreated under the same
                   name can never prune or cancel its predecessor's Backups. Absent on
                   manual Backups and on scheduled Backups created before this field
-                  existed; those are never pruned automatically.
+                  existed; those are never pruned automatically. Immutability is enforced
+                  on the Backup root, so dropping the whole spec cannot bypass it.
                 properties:
                   scheduleName:
                     description: ScheduleName is the BackupSchedule's name when it
@@ -92,9 +95,6 @@ spec:
                 - scheduleName
                 - scheduleUID
                 type: object
-                x-kubernetes-validations:
-                - message: origin is immutable
-                  rule: self == oldSelf
               powerPolicy:
                 description: PowerPolicy preserves power by default; stop-copy-restart
                   temporarily stops under lifecycle ownership.
@@ -181,8 +181,6 @@ spec:
               rule: self.strategy != 'volume-snapshot' || ((!has(self.powerPolicy)
                 || self.powerPolicy == 'preserve') && (!has(self.volumePolicy) ||
                 self.volumePolicy == 'primary-only'))
-            - message: origin can only be set when the Backup is created
-              rule: has(self.origin) == has(oldSelf.origin)
           status:
             description: BackupStatus is the observed state of a Backup.
             properties:
@@ -392,6 +390,11 @@ spec:
                 type: string
             type: object
         type: object
+        x-kubernetes-validations:
+        - message: spec.origin can only be set when the Backup is created and is immutable
+          rule: (has(oldSelf.spec) && has(oldSelf.spec.origin)) == (has(self.spec)
+            && has(self.spec.origin)) && (!has(oldSelf.spec) || !has(oldSelf.spec.origin)
+            || self.spec.origin == oldSelf.spec.origin)
     served: true
     storage: true
     subresources:

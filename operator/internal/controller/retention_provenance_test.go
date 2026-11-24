@@ -2,9 +2,11 @@ package controller
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
+	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -343,5 +345,34 @@ func TestUpdateLastSuccessfulTime_IgnoresPredecessor(t *testing.T) {
 	}
 	if sched.Status.LastSuccessfulTime != nil {
 		t.Errorf("lastSuccessfulTime = %v, want unset for a schedule that never succeeded", sched.Status.LastSuccessfulTime)
+	}
+}
+
+// #960: a Backup a schedule fired for one server must not capture a
+// replacement server that took the same name before the capture started.
+func TestBackupReconcile_FailsWhenOriginServerReplaced(t *testing.T) {
+	b := provBackup("arena-auto-20261124-030000", "sched-uid", "old-server-uid", "repo", "", "", 0)
+	b.Finalizers = nil
+	r := newScrapeReconcilerWithObjects(t, b, nil, provServerObj("new-server-uid"))
+	req := ctrl.Request{NamespacedName: types.NamespacedName{Namespace: provNS, Name: b.Name}}
+	if _, err := r.Reconcile(context.Background(), req); err != nil {
+		t.Fatalf("reconcile backup: %v", err)
+	}
+	var got gameplanev1alpha1.Backup
+	if err := r.Get(context.Background(), req.NamespacedName, &got); err != nil {
+		t.Fatalf("get backup: %v", err)
+	}
+	if got.Status.Phase != gameplanev1alpha1.BackupPhaseFailed {
+		t.Errorf("phase = %q, want Failed for a Backup whose server was replaced", got.Status.Phase)
+	}
+	if !strings.Contains(got.Status.Message, "was replaced") {
+		t.Errorf("message = %q, want it to say the server was replaced", got.Status.Message)
+	}
+	var jobs batchv1.JobList
+	if err := r.List(context.Background(), &jobs, client.InNamespace(provNS)); err != nil {
+		t.Fatalf("list jobs: %v", err)
+	}
+	if len(jobs.Items) != 0 {
+		t.Errorf("created %d Jobs, want none for the replacement server", len(jobs.Items))
 	}
 }

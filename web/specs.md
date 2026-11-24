@@ -410,6 +410,7 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
    - Per-server backup list (snapshots created via the /backups page or on-demand)
    - Users with schedule write access can edit or delete standalone schedules here. The **Managed by server settings** action opens the selected server’s **Settings → Scheduled backups**, where users with server write access can edit its inline backup policy.
    - Table columns: backup name, phase (Pending/Succeeded/Failed), size, completion time, actions
+   - A Succeeded backup without `status.snapshotID` shows the amber **Awaiting snapshot ID** phase chip (`PhaseChip` `awaitingSnapshot`, from `backupAwaitingSnapshot`) instead of green Succeeded, here, in the Backups index rows, the backup detail drawer and the Dashboard's recent backups. It is not a recovery point yet: Restore stays disabled until the ID is recorded (#961).
    - Open backup detail drawer, trigger restore dialog, delete backup
    - Uses HeroUI Table, Button, Modal (restore trigger), ui/ PhaseChip
 

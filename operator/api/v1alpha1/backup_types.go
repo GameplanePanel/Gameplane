@@ -36,7 +36,6 @@ const BackupSnapshotFinalizer = "gameplane.local/backup-snapshot-finalizer"
 // BackupSpec is the desired state of a one-shot backup.
 // +kubebuilder:validation:XValidation:rule="self.strategy == 'volume-snapshot' || has(self.repoRef)",message="repoRef is required for the restic-snapshot strategy"
 // +kubebuilder:validation:XValidation:rule="self.strategy != 'volume-snapshot' || ((!has(self.powerPolicy) || self.powerPolicy == 'preserve') && (!has(self.volumePolicy) || self.volumePolicy == 'primary-only'))",message="stopped and all-data policies require restic-snapshot"
-// +kubebuilder:validation:XValidation:rule="has(self.origin) == has(oldSelf.origin)",message="origin can only be set when the Backup is created"
 type BackupSpec struct {
 	// Origin records which BackupSchedule generated this Backup and which
 	// GameServer it captured, by UID. The schedule controller sets it when it
@@ -45,8 +44,8 @@ type BackupSpec struct {
 	// schedule and server, so a schedule or server recreated under the same
 	// name can never prune or cancel its predecessor's Backups. Absent on
 	// manual Backups and on scheduled Backups created before this field
-	// existed; those are never pruned automatically.
-	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="origin is immutable"
+	// existed; those are never pruned automatically. Immutability is enforced
+	// on the Backup root, so dropping the whole spec cannot bypass it.
 	// +optional
 	Origin *BackupOrigin `json:"origin,omitempty"`
 
@@ -257,6 +256,9 @@ type BackupVolumeCoverage struct {
 // Backup represents a one-shot backup of a GameServer's data volume.
 // Recurring backups are expressed as BackupSchedules, which create
 // Backup objects over time.
+// spec.origin is set only at creation: an update may not add, change or remove
+// it, including by removing the whole spec.
+// +kubebuilder:validation:XValidation:rule="(has(oldSelf.spec) && has(oldSelf.spec.origin)) == (has(self.spec) && has(self.spec.origin)) && (!has(oldSelf.spec) || !has(oldSelf.spec.origin) || self.spec.origin == oldSelf.spec.origin)",message="spec.origin can only be set when the Backup is created and is immutable"
 type Backup struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
