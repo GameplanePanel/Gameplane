@@ -690,17 +690,26 @@
                           },
                           "children": [
                             {
-                              "id": "1:2614",
                               "name": "Phase",
-                              "type": "TEXT",
+                              "type": "INSTANCE",
                               "x": 12,
-                              "y": 15.5,
-                              "width": 67,
-                              "height": 17,
-                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
-                              "text": "Succeeded",
-                              "font": ["Geist", 400, 13],
-                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                              "y": 14.5,
+                              "width": 137,
+                              "height": 19,
+                              "component": "Chip/Soft/Warning/MD",
+                              "componentId": "1:3907",
+                              "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
+                              "cornerRadius": 16,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 2,
+                                "padding": [2, 8, 2, 8],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "warning/soft"},
+                              "texts": ["Awaiting snapshot ID"]
                             }
                           ]
                         },
