@@ -389,7 +389,7 @@
     "name": "Screen/Admin Settings",
     "width": 1440,
     "height": 900,
-    "hash": "4d96da5f9ce171df3d542920c76ea51f5acfb0fbe0e6c926b789a2812a2a0e43"
+    "hash": "da29a55acc00aff2a9317d2ffc27b7c5bf001e4fa9c91fbe03b99d4b528796de"
   },
   {
     "file": "uMiwd",
@@ -397,7 +397,7 @@
     "name": "Screen/Admin Settings — Authentication",
     "width": 1440,
     "height": 1636,
-    "hash": "6d97b0a5afa9e3efc01b3a5e9a388a0a119e0d58b4e2eb2fe82379f2a046f076"
+    "hash": "450e2ba8a23c6142eb2d828915f63186b4d53689fd8d41cb4e34f6c17a43f244"
   },
   {
     "file": "RC3Kf",
@@ -405,7 +405,7 @@
     "name": "Legacy/Admin Settings — Backup destinations — Moved",
     "width": 1440,
     "height": 900,
-    "hash": "54c8f50e2f5db5338a424a62c80b9e7798e21cff23beba3c524b3b15f400840e"
+    "hash": "9302dfa80459717c66d1ad29683dbdcacf69b23715adcd09334e26ae293246f0"
   },
   {
     "file": "g5mEpx",
@@ -413,7 +413,7 @@
     "name": "Screen/Admin Settings — Module sources",
     "width": 1440,
     "height": 900,
-    "hash": "921366061d5f8512d49a5a5757e0d972e84fa78cb9261ab820400c591bd8679a"
+    "hash": "367d244f4f811f0e1abaa531a38d934aa26d369eed3119472ff4a4466e98ec75"
   },
   {
     "file": "n6Xlo",
@@ -421,7 +421,7 @@
     "name": "Screen/Admin Settings — Notifications",
     "width": 1440,
     "height": 900,
-    "hash": "1dcd74a3416f57c0de14562e4caf93d8c87042034655f1d69f9d8a5ffc572517"
+    "hash": "bc8e0e173bae95ede7702b0a1ffc872275b1a69bf94e03727a38f82086a66630"
   },
   {
     "file": "uoxQW",
@@ -429,7 +429,7 @@
     "name": "Screen/Admin Settings — Telemetry",
     "width": 1440,
     "height": 900,
-    "hash": "aa77a8015498470ad3bc57ee27bc14c61eb48137a94e5f96d0cb4ded40b6e4c9"
+    "hash": "b14e95d30dfe1ebbe252b927434197db228322ca7974ead1420a2247eb5726d6"
   },
   {
     "file": "M2sA4u",
@@ -437,7 +437,7 @@
     "name": "Screen/Admin Settings — Updates",
     "width": 1440,
     "height": 900,
-    "hash": "660d42de42dfaa7f0ef5fbddf75dea88350420beedb4b0add3766eec9f4ff536"
+    "hash": "c390e2aa4b025bb31c142a441f3f7836fb9bde24be83658c739d87d7598969ef"
   },
   {
     "file": "zM0VF",
@@ -445,7 +445,7 @@
     "name": "Screen/Admin Settings — About",
     "width": 1440,
     "height": 900,
-    "hash": "ff0ded5df75df53ddb27a1131378f313140ccdd3709a186ec70166aa4087b556"
+    "hash": "c73c05a3f13c09064d333d2b0020cefb4a9a838c4bf91c2510fa64e59505f9bc"
   },
   {
     "file": "tooKB",
@@ -469,7 +469,7 @@
     "name": "Screen/Admin Settings — Mod registries",
     "width": 1440,
     "height": 900,
-    "hash": "e0b15e9dfcfccdf339bbbfcf626d3a30df3e5042d3d4dff2d34e9484ee2e1572"
+    "hash": "00644d99478ebad860c75e38e33aa4a9b80aa7794a00f92020b85e1ca8d9db7c"
   },
   {
     "file": "i4L0M",
@@ -477,7 +477,7 @@
     "name": "Screen/Admin Settings — Mod registries (Key saved)",
     "width": 1440,
     "height": 900,
-    "hash": "e98effaf8373bf6b4534ffa0e350f071d7f13462775033631d9fa752df24c50a"
+    "hash": "e798cfd147d5f836dc8aad9dd3f66712f597e361a1695de2a018d60bb35a26c5"
   },
   {
     "file": "KhYNc",
@@ -645,7 +645,7 @@
     "name": "Screen/Admin Settings — Authentication (No OIDC mappings)",
     "width": 1440,
     "height": 1463,
-    "hash": "a6cec8d0a0256df5fb2782a19b2c460f236d23ac872ea79924baf3e9daa541f8"
+    "hash": "2c48d929c0b3aa19effd2bddb0449eed8fde739ff76d4bcd16fd236d6ebcfd40"
   },
   {
     "file": "dxdEi",
@@ -661,7 +661,7 @@
     "name": "Screen/Admin Settings — Authentication (Save rejected)",
     "width": 1440,
     "height": 1660,
-    "hash": "183edffbe8d5c781fe5d69c2c8990293b8813d6dc00b47f73769c64902a47faa"
+    "hash": "4e6b2e07f98d77209d4684544778b8e36b59beed2a3224c989f9dc8227ee1feb"
   },
   {
     "file": "zqzr4",
@@ -669,7 +669,7 @@
     "name": "Screen/Admin Settings — Authentication (Admin mapping warning)",
     "width": 1440,
     "height": 2488,
-    "hash": "6b5e65b2bd6036efdbb1d6e22d1193de0fc01ef8ea353a65b61a8050f4025376"
+    "hash": "86211e40b889c7089f7b00bb4619d8a776eb8c59e29628b99e35f807b72078c5"
   },
   {
     "file": "o4LH8W",
@@ -861,7 +861,7 @@
     "name": "Screen/Theme Settings",
     "width": 1440,
     "height": 2344,
-    "hash": "5a8c3da1de337292b20a970d8cdfbe6dac1ef5090710252c09ba95def64c5b0e"
+    "hash": "79d8df8ed3b0e6bf35ac98f132d7a1488c321c5225158330f1ce32a5e5c717e2"
   },
   {
     "file": "T1wkiT",
@@ -869,7 +869,7 @@
     "name": "Screen/Theme Settings — Warnings",
     "width": 1440,
     "height": 2490,
-    "hash": "4cc418809058bd0dab82bd4f8cd914374885aa08ca7be010f0bff921a3dc4187"
+    "hash": "fce8d727ee471526a839fc9eca832b203ef5cc9dc39860f979005cd734da3809"
   },
   {
     "file": "lhKzN",
@@ -1125,7 +1125,7 @@
     "name": "Screen/Admin Settings — Telemetry (default)",
     "width": 1440,
     "height": 1031,
-    "hash": "983c24084daf69c924b97136d9cc549376321c2915a32c9bd5f803ea8df1dc68"
+    "hash": "68f1bcd716bfef3f978dca2a11526861a35378e7b9f0ef00207aec9a1df1325a"
   },
   {
     "file": "GR1G9",
@@ -1141,7 +1141,7 @@
     "name": "Screen/Admin Settings — Telemetry (custom)",
     "width": 1440,
     "height": 1032,
-    "hash": "5742d2be11b84120eac440aa82c86ce4a21e87534e159f54bec7233061ad8111"
+    "hash": "15862b83ac104170b038d222cc013c2777b26e016c46ae80d19455934230841f"
   },
   {
     "file": "cDiNb",
@@ -1149,7 +1149,7 @@
     "name": "Screen/Admin Settings — Telemetry (bundled)",
     "width": 1440,
     "height": 777,
-    "hash": "5b9b1080947cc8cf6397b87839feece99522a3ff48770aa167be96225a93b2c9"
+    "hash": "4a30376f87876b49fd6079b3fe8347dbeda719cf3693f4f2a6d1184be25e78f6"
   },
   {
     "file": "DBQyF",
@@ -1157,7 +1157,7 @@
     "name": "Screen/Admin Settings — Telemetry (disabled)",
     "width": 1440,
     "height": 641,
-    "hash": "0755ab58b28ec0aa9218e068197c655d6739a864adfb048a483d361d7e5b0b30"
+    "hash": "06f2a6fb4d6e3000aff6f88e24cb4903739042eb06227a8af09097f89001df50"
   },
   {
     "file": "K5XinZ",
@@ -1165,7 +1165,7 @@
     "name": "Screen/Admin Settings — Telemetry (none)",
     "width": 1440,
     "height": 605,
-    "hash": "e36caf051efd7a1451305dcc96cd746925bffc1347defaf53a167e3179e6e608"
+    "hash": "667670dfc13cf8022de8bd7eeb322d6bfd236b778f4294a42b6522ad21e0c326"
   },
   {
     "file": "yrxK2",
@@ -1173,7 +1173,7 @@
     "name": "Screen/Admin Settings — Telemetry (Reset ID confirm)",
     "width": 1440,
     "height": 1031,
-    "hash": "341584e4d065cd2d675dedc7d16e6009e01cca74773777749fd2c552ec4b4ba5"
+    "hash": "f414360406f1c3f2ea0d6298f910502403999b1916e25c9cb8e604fb1f1b01f8"
   },
   {
     "file": "n2qdi",
@@ -1245,7 +1245,7 @@
     "name": "Legacy/Standalone — Backup destinations — Moved",
     "width": 1440,
     "height": 900,
-    "hash": "b0eaf8c646e53a99d586f84d966c3fe2c1ceb8b1d48ac3fff27bdf56e75c73f1"
+    "hash": "3350183226326505794d6839f036e6d4d54610612e28f70dc65fad7a2bcdacb3"
   },
   {
     "file": "l64bd",
@@ -1253,7 +1253,7 @@
     "name": "Screen/Standalone — Settings · Module sources",
     "width": 1440,
     "height": 900,
-    "hash": "5ba23292e5ad092964b6f08826bfda2dae233d2c4141a4ef62772440cf131b8a"
+    "hash": "9d7385ef0137d18cf11933a63e6df345469e981f045fdca5037db1a80f7a0450"
   },
   {
     "file": "Uzzje",
@@ -1261,7 +1261,7 @@
     "name": "Screen/Standalone — Settings · Updates",
     "width": 1440,
     "height": 900,
-    "hash": "d7a802fcaca1c470abe0e5c8de7783096c0a099741f900acb7a57d8f35108adb"
+    "hash": "1f168ec7794d86d54ccbdcd9c2eae37762b6c3b51e983f228c66414367a709ec"
   },
   {
     "file": "FOVMf",
@@ -1269,7 +1269,7 @@
     "name": "Screen/Standalone — Settings · About",
     "width": 1440,
     "height": 900,
-    "hash": "162fe82f600431df1a38975e85f07a000bc380eda98b85f2e1fa501ac6f1606b"
+    "hash": "96f452340ae03f2fe6bb87fe81ace0ae48a78a7f60e0ec396a70bb1519eb67b4"
   },
   {
     "file": "r139UP",
@@ -1357,7 +1357,7 @@
     "name": "Screen/Mobile — Theme Settings · Language",
     "width": 390,
     "height": 972,
-    "hash": "242c26ffabe60e2b0bbf0cbd1bd60f4af9a126b75cf7c4d16db809025cf1fb31"
+    "hash": "0964e0a470e8d6143631d15045f7568aeeacef90cb82805acb7666bdd779848d"
   },
   {
     "file": "SUcad",
@@ -1365,7 +1365,7 @@
     "name": "Screen/Admin Settings — Notifications (Add sink)",
     "width": 1440,
     "height": 965,
-    "hash": "75ce384b22d094f1db2edbbd5fae0c477a73fb47f901ea1a0253f36e3c0aee44"
+    "hash": "dd9e6b5c100a27f234d2351652d56a78a7647cb931a9a2116d9d91915b149ff4"
   },
   {
     "file": "NqaaU",
@@ -1485,7 +1485,7 @@
     "name": "Screen/Admin Settings — Authentication (Role rules)",
     "width": 1440,
     "height": 2600,
-    "hash": "3c1d48c091baf3d10b3955705b05f1eef52f7f8109dbe8abcc81418bded6c884"
+    "hash": "4e8ff553c83eb35bbcf342e51a762bc5472c69417eb7317b2c06e153dc247dc2"
   },
   {
     "file": "mrF6f",
@@ -1605,7 +1605,7 @@
     "name": "Screen/Admin Settings — Mod registries (Share CurseForge key)",
     "width": 1440,
     "height": 900,
-    "hash": "406de5bed2e1ce5368472060d5e5c7df3dd74e16e4d4dcd2318835f8138b2ee1"
+    "hash": "188f4d133784b5ae66f8cd57b6e51bc2117927f87118796cca44ce98292f3e3a"
   },
   {
     "file": "1274632774-4260",
@@ -1613,7 +1613,7 @@
     "name": "Screen/Admin Settings — Mod registries (Key from startup flag)",
     "width": 1440,
     "height": 900,
-    "hash": "343f3b02d895d17d15a4bf28ee68de69c4f4409c112a30ba5d32b96a90e501fe"
+    "hash": "4f9e97112916d19c4d68ab2948cc71fb47b8fc9cf75c93d45ca507c763aebaea"
   },
   {
     "file": "1494270493-26",
@@ -1637,7 +1637,7 @@
     "name": "Screen/MCP Tokens",
     "width": 1440,
     "height": 900,
-    "hash": "74286833fee78823e0511dd7c304b0e0470ca0478cb2c07546674fca97890347"
+    "hash": "e932c8b73ae370b1d99018690f8adf609250138e186575c3fc7b016f80d00e6a"
   },
   {
     "file": "2044649516-579",
@@ -1645,7 +1645,7 @@
     "name": "Screen/MCP Tokens — Empty",
     "width": 1440,
     "height": 900,
-    "hash": "ae827583059502c35251e96a5f4328e566dfa9f53e0d2106664ec03e6b5f7f8c"
+    "hash": "5169cf7488ab2129ffd5503ce317aeebc2b6bf24c689ea8d7814bc180790d62e"
   },
   {
     "file": "2044649516-1099",
@@ -1653,7 +1653,7 @@
     "name": "Screen/MCP Tokens — Create",
     "width": 1440,
     "height": 900,
-    "hash": "c9c87eb87a1ace9a02a5764882a109185d4de8d8b30319418af5bf35fc34de47"
+    "hash": "0f4f4c7b14134aba783c88e1ddf11823bdb6871592627d60a6c0f3aebb2d9954"
   },
   {
     "file": "2044649516-1687",
@@ -1661,7 +1661,7 @@
     "name": "Screen/MCP Tokens — Created",
     "width": 1440,
     "height": 900,
-    "hash": "471e2b504e953ed0440a14a94646ea207a903c0c4260bbc52c85b77098ddc3f7"
+    "hash": "8840089fd98db87e6b04db5b455254b5868cbe42f9d24e9eaa0ea70bcdd01e14"
   },
   {
     "file": "2044649516-2282",
@@ -1669,7 +1669,7 @@
     "name": "Screen/MCP Tokens — Revoke",
     "width": 1440,
     "height": 900,
-    "hash": "8629f5ee76d6c6a1a2e23593f40d84869681108793cb48bd6824220cb5e7a37d"
+    "hash": "baca216ca6ef72e4fdf76fc9ade803914c28c046e2aa0fe4e3c681e704647e76"
   },
   {
     "file": "2044649516-2862",
@@ -1837,7 +1837,7 @@
     "name": "Screen/Settings — SFTP",
     "width": 1440,
     "height": 1080,
-    "hash": "706ae1c978c816f697b0c514df81c54c9df06879c4cebebd73e1d44578156fa6"
+    "hash": "5fe2fa00268dd5ad79f8dbf07c36a62231f26634b886cf62513d43aac3e552d7"
   },
   {
     "file": "1-46381",
@@ -1845,7 +1845,7 @@
     "name": "Screen/Settings — SFTP (Light)",
     "width": 1440,
     "height": 1080,
-    "hash": "85bd462c3446d782fd2fc66521beb2793a4493fbb70f0fb5d806b25a3fc1217d"
+    "hash": "4786b935d0575f3468f843e3524ea71cf96d0ce82c6d05884fc3f74bec6d3136"
   },
   {
     "file": "1-46382",
@@ -1853,7 +1853,7 @@
     "name": "Screen/Settings — SFTP (Not enabled)",
     "width": 1440,
     "height": 1080,
-    "hash": "92ccd2459648f77524a80d5b1565b4b3a16cfca7faa22feaf7bb4f0239f24cbe"
+    "hash": "b259b9ac01f584442a4cc9530f7c88ae9b2ab6cd01178a1e329e790d07fafd13"
   },
   {
     "file": "1-46383",
@@ -1861,7 +1861,7 @@
     "name": "Screen/Settings — SFTP (No password)",
     "width": 1440,
     "height": 1080,
-    "hash": "43644daec320e3a7a0599ab7dd5b53899ec2fe12bf4dea5f2f24928f3b3dd848"
+    "hash": "00d0a8c5eabdad894e8adc091dc1e23c1b163a7479ae89d990542bebd73329a2"
   },
   {
     "file": "1-46384",
@@ -1917,7 +1917,7 @@
     "name": "Screen/Settings — SFTP (Non-admin)",
     "width": 1440,
     "height": 1080,
-    "hash": "7f12e4521f03e33f8fa7a07091b4c163ae728e25f475932a4618dd132d71307a"
+    "hash": "3889934cc1c63f5c69b4db4b2a90ba07215925fef21527ff2dfe5caa153a5a7f"
   },
   {
     "file": "1-46390",
