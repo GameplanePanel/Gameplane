@@ -72,10 +72,10 @@ const (
 	// defaultIngestSourcePerMinute is the per-source request budget of
 	// /ingest, counting every request, refused ones included.
 	defaultIngestSourcePerMinute = 60
-	defaultRetentionDays          = 730
-	defaultActivityExpiryDays     = 90
-	minRetentionDays              = 365
-	minActivityExpiryDays         = 31
+	defaultRetentionDays         = 730
+	defaultActivityExpiryDays    = 90
+	minRetentionDays             = 365
+	minActivityExpiryDays        = 31
 	// minDashboardTokenLen is the shortest DASHBOARD_TOKEN run accepts
 	// (spec 022 FR-041, research R8).
 	minDashboardTokenLen = 32
@@ -103,8 +103,8 @@ type config struct {
 	// ingestSourcePerMinute is the per-source request rate of /ingest,
 	// counting every request whatever its outcome; 0 means unlimited.
 	ingestSourcePerMinute int
-	retentionDays          int
-	activityExpiryDays     int
+	retentionDays         int
+	activityExpiryDays    int
 	// idPepper is the HMAC pepper for install IDs; empty means the store
 	// generates one and keeps it in meta.
 	idPepper string
