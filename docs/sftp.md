@@ -34,6 +34,13 @@ Other values:
 - `sftp.port` (default `2222`): the port the SFTP server listens on.
 - `sftp.idleTimeout` (default `15m`): an idle SFTP session is closed after this.
 - `sftp.maxSessionsPerUser` (default `4`) and `sftp.maxTransfersPerUser` (default `8`).
+- `sftp.maxPreAuthPerIP` (default `8`): connections one address may have open
+  while logging in; more are closed at once. Raise it if many users reach the
+  pod from one address, for example behind a load balancer that hides client
+  addresses.
+- Metrics: with `serviceMonitors.enabled=true` the chart adds a
+  `gameplane-sftp-metrics` Service (port 9102, in-cluster only) and a
+  ServiceMonitor. Without it the SFTP pod serves no metrics outside the pod.
 - `files.maxUploadSize` (default `20Gi`): the largest single file one upload can
   send, through SFTP and the dashboard. It accepts Kubernetes quantities
   (`Ki`, `Mi`, `Gi`, `Ti`, `K`, `M`, `G`, `T`) or a plain byte count. Uploads
@@ -136,6 +143,13 @@ created through SSO is usually named by its email address, for example
 A username that itself contains `+` cannot be used over SFTP, because `+`
 starts the server part.
 
+Your SFTP username, shown under **Settings, SFTP**, is your display name by
+default, so SSO users do not have to type their email address: `alice` and
+`alice+survival` work. If another account already has that name, or it has a
+space, `/` or `+`, your SFTP username is your panel username instead. You can
+choose another SFTP username on the same page, or reset it to the default. Your
+panel username always keeps working too.
+
 Permissions:
 
 - Reading needs `servers:read` on the server, or the usual ownership or
@@ -183,8 +197,11 @@ drawer:
 
 The remote endpoint sends each login and file operation to the central API, and
 the API reaches the files through the remote gateway. The remote cluster must
-be able to reach the central API over HTTPS. If it cannot, logins fail, and the
-SFTP pod logs a clear message about the API.
+be able to reach the central API over HTTPS. `sftp.apiURL` must start with
+`https://`; the chart refuses an `http://` address, and the SFTP pod does not
+follow redirects. If the API cannot be reached, logins fail, and the SFTP pod
+logs a clear message about the API. Open sessions are closed after about 2
+minutes without a successful check with the API.
 
 ## Stopped and sleeping servers
 
@@ -239,8 +256,9 @@ folders are read-only over SFTP.
 check that the `gameplane-files` pod in the games namespace is running.
 
 **The session closes on its own.** It was idle for longer than
-`sftp.idleTimeout`, the key or password was revoked, or the server pod could
-not be reached. The SFTP pod's logs show which.
+`sftp.idleTimeout`, the key or password was revoked, the SFTP pod could not
+confirm the session with the API for 2 minutes, or the server pod could not be
+reached. The SFTP pod's logs show which.
 
 Logs: `kubectl -n gameplane logs deploy/gameplane-sftp`. Audit entries for SFTP
 file changes show `source: sftp` in the audit log.

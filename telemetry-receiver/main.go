@@ -46,6 +46,11 @@ const (
 	readHeaderTimeout = 10 * time.Second
 	readTimeout       = 15 * time.Second
 	idleTimeout       = 120 * time.Second
+	// maxHeaderBytes bounds the request headers on both listeners. The
+	// largest legitimate headers (signature, proof-of-work, session cookie)
+	// are a few hundred bytes; net/http's 1 MiB default lets each
+	// connection make the receiver buffer far more than any report needs.
+	maxHeaderBytes = 16 << 10
 )
 
 // Route label values of gameplane_telemetry_rate_limited_total.
@@ -55,8 +60,9 @@ const (
 	routeSummary = "summary"
 )
 
-// maxVersionLabels bounds how many different valid version labels are
-// retained; telemetryschema.VersionRE limits each label's syntax.
+// maxVersionLabels bounds how many different valid version labels hold a
+// label at a time (versionlabel.go); telemetryschema.VersionRE limits each
+// label's syntax.
 const maxVersionLabels = 128
 
 // Configuration defaults and the enforced minimums for the two retention
@@ -64,10 +70,13 @@ const maxVersionLabels = 128
 const (
 	defaultDashboardListen        = ":8081"
 	defaultIngestSourceDailyLimit = 20
-	defaultRetentionDays          = 730
-	defaultActivityExpiryDays     = 90
-	minRetentionDays              = 365
-	minActivityExpiryDays         = 31
+	// defaultIngestSourcePerMinute is the per-source request budget of
+	// /ingest, counting every request, refused ones included.
+	defaultIngestSourcePerMinute = 60
+	defaultRetentionDays         = 730
+	defaultActivityExpiryDays    = 90
+	minRetentionDays             = 365
+	minActivityExpiryDays        = 31
 	// minDashboardTokenLen is the shortest DASHBOARD_TOKEN run accepts
 	// (spec 022 FR-041, research R8).
 	minDashboardTokenLen = 32
@@ -92,8 +101,11 @@ type config struct {
 	// ingestSourceDailyLimit is the accepted reports per source per UTC day;
 	// 0 means unlimited.
 	ingestSourceDailyLimit int
-	retentionDays          int
-	activityExpiryDays     int
+	// ingestSourcePerMinute is the per-source request rate of /ingest,
+	// counting every request whatever its outcome; 0 means unlimited.
+	ingestSourcePerMinute int
+	retentionDays         int
+	activityExpiryDays    int
 	// idPepper is the HMAC pepper for install IDs; empty means the store
 	// generates one and keeps it in meta.
 	idPepper string
@@ -104,6 +116,9 @@ type config struct {
 	powTargetPerMin int
 	powMinBits      int
 	powMaxBits      int
+	// claimPoWBits is the proof-of-work difficulty the first report of a new
+	// install ID must carry (claim.go); 0 turns the check off.
+	claimPoWBits int
 
 	// loadErrs collects environment values that could not be parsed, so that
 	// validate can report them as startup errors.
@@ -124,11 +139,13 @@ func loadConfig() config {
 		ingestPoW:       strings.EqualFold(strings.TrimSpace(envOr("INGEST_POW", "")), "true"),
 	}
 	cfg.ingestSourceDailyLimit = cfg.envInt("INGEST_SOURCE_DAILY_LIMIT", defaultIngestSourceDailyLimit)
+	cfg.ingestSourcePerMinute = cfg.envInt("INGEST_SOURCE_PER_MINUTE", defaultIngestSourcePerMinute)
 	cfg.retentionDays = cfg.envInt("RETENTION_DAYS", defaultRetentionDays)
 	cfg.activityExpiryDays = cfg.envInt("ACTIVITY_EXPIRY_DAYS", defaultActivityExpiryDays)
 	cfg.powTargetPerMin = cfg.envInt("INGEST_POW_TARGET_PER_MIN", defaultPoWTargetPerMin)
 	cfg.powMinBits = cfg.envInt("INGEST_POW_MIN_BITS", defaultPoWMinBits)
 	cfg.powMaxBits = cfg.envInt("INGEST_POW_MAX_BITS", defaultPoWMaxBits)
+	cfg.claimPoWBits = cfg.envInt("INGEST_CLAIM_POW_BITS", defaultClaimPoWBits)
 	for _, raw := range strings.Split(envOr("TRUSTED_PROXY_CIDRS", ""), ",") {
 		raw = strings.TrimSpace(raw)
 		if raw == "" {
@@ -174,6 +191,9 @@ func (c config) validate() error {
 	if c.ingestSourceDailyLimit < 0 {
 		errs = append(errs, fmt.Errorf("INGEST_SOURCE_DAILY_LIMIT must not be negative, got %d", c.ingestSourceDailyLimit))
 	}
+	if c.ingestSourcePerMinute < 0 {
+		errs = append(errs, fmt.Errorf("INGEST_SOURCE_PER_MINUTE must not be negative, got %d", c.ingestSourcePerMinute))
+	}
 	if c.powTargetPerMin < 1 {
 		errs = append(errs, fmt.Errorf("INGEST_POW_TARGET_PER_MIN must be at least 1, got %d", c.powTargetPerMin))
 	}
@@ -183,6 +203,10 @@ func (c config) validate() error {
 	if c.powMaxBits < c.powMinBits || c.powMaxBits > telemetryschema.MaxPoWBits {
 		errs = append(errs, fmt.Errorf("INGEST_POW_MAX_BITS must be between INGEST_POW_MIN_BITS (%d) and %d, got %d",
 			c.powMinBits, telemetryschema.MaxPoWBits, c.powMaxBits))
+	}
+	if c.claimPoWBits < 0 || c.claimPoWBits > telemetryschema.MaxPoWBits {
+		errs = append(errs, fmt.Errorf("INGEST_CLAIM_POW_BITS must be between 0 and %d, got %d",
+			telemetryschema.MaxPoWBits, c.claimPoWBits))
 	}
 	return errors.Join(errs...)
 }
@@ -243,12 +267,15 @@ type server struct {
 	store *store
 
 	versionMu sync.Mutex
-	versions  map[string]struct{}
+	versions  versionBook
 
 	// now is the clock for day bucketing and limiter windows; tests replace it.
 	now func() time.Time
 	// daily is the per-source accepted-reports-per-UTC-day counter (T062).
 	daily *dailyLimiter
+	// ingestLimiter is the per-source request bucket of /ingest; nil when
+	// INGEST_SOURCE_PER_MINUTE is 0.
+	ingestLimiter *bucketLimiter
 	// summaryLimiter and summaryCache serve GET /v1/summary (T079).
 	summaryLimiter *bucketLimiter
 	summaries      summaryCache
@@ -270,6 +297,9 @@ type server struct {
 	pow           *powState
 	powLimiter    *bucketLimiter
 	powChallenges prometheus.Counter
+	// claims marks sources with a pending new-install claim; nil unless
+	// INGEST_CLAIM_POW_BITS is above 0.
+	claims *claimMarks
 }
 
 // newServer builds a server backed by a private in-memory store, whatever
@@ -294,7 +324,7 @@ func newServerWithStore(cfg config, st *store) *server {
 		cfg:            cfg,
 		reg:            reg,
 		store:          st,
-		versions:       make(map[string]struct{}),
+		versions:       newVersionBook(),
 		now:            time.Now,
 		daily:          newDailyLimiter(cfg.ingestSourceDailyLimit),
 		summaryLimiter: newBucketLimiter(summaryPerMinute, summaryBurst),
@@ -331,6 +361,9 @@ func newServerWithStore(cfg config, st *store) *server {
 			Help: "Extended reports refused by the signature, window, claim or replay checks, by reason.",
 		}, []string{"reason"}),
 	}
+	if cfg.ingestSourcePerMinute > 0 {
+		s.ingestLimiter = newBucketLimiter(cfg.ingestSourcePerMinute, cfg.ingestSourcePerMinute)
+	}
 	reg.MustRegister(s.reports, s.servers, s.templates, s.rateLimited, s.duplicates, s.extReports, s.refused)
 	s.initPoW()
 	for _, reason := range []string{refuseBadSignature, refuseStale, refuseIDClaimed, refuseReplay} {
@@ -362,6 +395,7 @@ func newHTTPServer(addr string, h http.Handler) *http.Server {
 		ReadHeaderTimeout: readHeaderTimeout,
 		ReadTimeout:       readTimeout,
 		IdleTimeout:       idleTimeout,
+		MaxHeaderBytes:    maxHeaderBytes,
 	}
 }
 

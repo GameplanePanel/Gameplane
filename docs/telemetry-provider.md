@@ -94,6 +94,7 @@ Notes:
 | `PUBLIC_SUMMARY` | `false` | Enables `GET /v1/summary`. |
 | `TRUSTED_PROXY_CIDRS` | *(empty)* | Comma-separated CIDRs whose `X-Forwarded-For` is trusted. |
 | `INGEST_SOURCE_DAILY_LIMIT` | `20` | Accepted reports per source per UTC day. `0` means unlimited. |
+| `INGEST_SOURCE_PER_MINUTE` | `60` | `/ingest` requests per source per minute, refused and malformed ones included. `0` means unlimited. |
 | `RETENTION_DAYS` | `730` | Daily aggregate retention. Minimum `365`. |
 | `ACTIVITY_EXPIRY_DAYS` | `90` | Activity record expiry. Minimum `31`. |
 | `ID_PEPPER` | *(empty)* | HMAC pepper for install IDs, from a Secret. Empty means one is generated and kept in the database. |
@@ -101,6 +102,7 @@ Notes:
 | `INGEST_POW_TARGET_PER_MIN` | `60` | Normal challenge rate: no work is required at or below it. Must be at least `1`. |
 | `INGEST_POW_MIN_BITS` | `0` | Lowest difficulty issued. Must not be negative. |
 | `INGEST_POW_MAX_BITS` | `22` | Highest difficulty issued. At least `INGEST_POW_MIN_BITS` and at most `26`. |
+| `INGEST_CLAIM_POW_BITS` | `20` | Proof-of-work bits the first report of a new install ID must carry, even with `INGEST_POW` off. `0` turns it off; at most `26`. |
 
 A value below a minimum, a malformed `TRUSTED_PROXY_CIDRS` entry, an
 unparsable number, a `DASHBOARD_TOKEN` shorter than 32 characters or an
@@ -610,6 +612,7 @@ alongside it:
 | `gameplane_telemetry_refused_total{reason="pow_required"}` | Reports with no solution: older installs, scripts, or a flood that skips the challenge. |
 | `gameplane_telemetry_refused_total{reason="pow_invalid"}` | Bad, expired, reused or under-difficulty solutions. A burst right after a restart is normal. |
 | `gameplane_telemetry_refused_total{reason="pow_busy"}` | The used-challenge set (1,000,000 entries) is full; reports get `503` with `Retry-After: 60`. Not seen in normal use. |
+| `gameplane_telemetry_refused_total{reason="pow_claim"}` | First reports of new install IDs without enough work (`INGEST_CLAIM_POW_BITS`). Each real new install causes one, then succeeds on its automatic retry; a steady stream means someone is creating installs. |
 | `gameplane_telemetry_rate_limited_total{route="challenge"}` | One source requested challenges faster than 10 a minute. |
 
 Under attack, respond from the provider side with no install upgrade: lower

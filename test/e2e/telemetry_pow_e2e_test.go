@@ -17,6 +17,11 @@ import (
 // Helpers for the proof-of-work subtests of TestTelemetryLifecycle (spec 022
 // S10, T108).
 
+// claimPoWBits is the receivers' default INGEST_CLAIM_POW_BITS (the chart's
+// api.telemetry.receiver.ingestPow.claimBits), the difficulty of the
+// challenge a source gets after a new-install claim was refused.
+const claimPoWBits = 20
+
 // metricPoWChallenges counts the challenges a receiver issued.
 const metricPoWChallenges = "gameplane_telemetry_pow_challenges_total"
 
@@ -85,4 +90,33 @@ func (c *telemetryTestClient) postPoW(ctx context.Context, t *testing.T, body []
 	}
 	_ = json.Unmarshal(raw, &refusal) // a 204 has no body
 	return resp.StatusCode, refusal.Error
+}
+
+// postClaim sends the first report of a new install ID the way the API
+// reporter does (FR-040, new-install proof-of-work): the first attempt, with
+// pow when not empty, must be refused 428 pow_claim; it then fetches a new
+// challenge, which the receiver issues at the claim difficulty for this
+// source, solves it, resends once and returns that answer.
+func (c *telemetryTestClient) postClaim(ctx context.Context, t *testing.T, body []byte, signature, pow string) (status int, code string) {
+	t.Helper()
+	if status, code := c.postPoW(ctx, t, body, signature, pow); status != http.StatusPreconditionRequired || code != "pow_claim" {
+		t.Fatalf("first report of a new install ID = %d %q, want 428 pow_claim", status, code)
+	}
+	token, bits := c.challenge(ctx, t)
+	if bits < claimPoWBits {
+		t.Fatalf("challenge after a pow_claim refusal has %d bits, want at least %d (INGEST_CLAIM_POW_BITS)", bits, claimPoWBits)
+	}
+	nonce, err := telemetryschema.SolvePoW(ctx, token, bits)
+	if err != nil {
+		t.Fatalf("solve a %d-bit claim challenge: %v", bits, err)
+	}
+	return c.postPoW(ctx, t, body, signature, telemetryschema.FormatPoW(token, nonce))
+}
+
+// sendClaim signs rep, whose install ID is new to the receiver, and sends it
+// with postClaim.
+func (c *telemetryTestClient) sendClaim(ctx context.Context, t *testing.T, rep telemetryschema.Report) (status int, code string) {
+	t.Helper()
+	body, sig := c.sign(t, rep)
+	return c.postClaim(ctx, t, body, sig, "")
 }

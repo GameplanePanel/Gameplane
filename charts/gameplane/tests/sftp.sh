@@ -15,6 +15,14 @@ render "$scratch/lb.yaml" --set sftp.enabled=true --set sftp.serviceType=LoadBal
 render "$scratch/remote.yaml" --set api.enabled=false --set sftp.enabled=true \
   --set sftp.apiURL=https://panel.example.com --set sftp.serviceTokenSecret=panel-sftp-token
 render "$scratch/hostkey.yaml" --set sftp.enabled=true --set sftp.hostKeySecret=panel-host-key
+render "$scratch/metrics.yaml" --set sftp.enabled=true --set serviceMonitors.enabled=true \
+  --set serviceMonitors.scrapeNamespaceSelector.matchLabels.name=monitoring
+# Remote mode must refuse a plain-HTTP central API URL.
+if helm template gameplane charts/gameplane --namespace gameplane-system --set api.enabled=false --set sftp.enabled=true \
+  --set sftp.apiURL=http://panel.example.com --set sftp.serviceTokenSecret=panel-sftp-token > /dev/null 2>&1; then
+  echo 'sftp.apiURL=http:// rendered, want a failure' >&2
+  exit 1
+fi
 python3 - "$scratch" <<'PY'
 import pathlib,sys,yaml
 root=pathlib.Path(sys.argv[1])
@@ -117,5 +125,29 @@ env=api_env_of(hostkey)
 assert env['GAMEPLANE_SFTP_HOST_KEY_SECRET']=='panel-host-key', env
 check_host_key_role(hostkey, 'panel-host-key')
 assert find(hostkey,'Secret','gameplane-sftp-host-key') is None, 'custom hostKeySecret must not render the chart host key'
+# 7. Transport and metrics hardening: only local mode may use plain HTTP to the API (pod network),
+#    /metrics is off unless a ServiceMonitor scrapes it, and the public Service never carries it.
+env=env_of(local)
+assert env['GAMEPLANE_SFTP_ALLOW_INSECURE_API']=='true', env
+assert env['GAMEPLANE_SFTP_METRICS_ADDR']=='', env
+assert env['GAMEPLANE_SFTP_MAX_PREAUTH_PER_IP']=='8', env
+dep=find(local,'Deployment','gameplane-sftp')
+assert [p['name'] for p in dep['spec']['template']['spec']['containers'][0]['ports']]==['ssh'], dep['spec']['template']['spec']['containers'][0]['ports']
+assert find(local,'Service','gameplane-sftp-metrics') is None, 'metrics Service rendered without serviceMonitors'
+assert len(np_local:=find(local,'NetworkPolicy','gameplane-sftp')['spec']['ingress'])==1, np_local
+assert 'GAMEPLANE_SFTP_ALLOW_INSECURE_API' not in env_of(remote), 'remote mode must not allow plain HTTP'
+
+metrics=docs('metrics.yaml')
+env=env_of(metrics)
+assert env['GAMEPLANE_SFTP_METRICS_ADDR']==':9102', env
+svc=find(metrics,'Service','gameplane-sftp')
+assert [p['name'] for p in svc['spec']['ports']]==['ssh'], svc['spec']['ports']
+msvc=find(metrics,'Service','gameplane-sftp-metrics')
+assert msvc is not None and msvc['spec']['type']=='ClusterIP', msvc
+assert msvc['spec']['ports']==[{'name':'metrics','port':9102,'targetPort':'metrics'}], msvc['spec']['ports']
+sm=find(metrics,'ServiceMonitor','gameplane-sftp')
+assert sm is not None and sm['spec']['selector']['matchLabels']=={'app.kubernetes.io/name':'gameplane-sftp-metrics'}, sm
+ingress=find(metrics,'NetworkPolicy','gameplane-sftp')['spec']['ingress']
+assert ingress[1]=={'from':[{'namespaceSelector':{'matchLabels':{'name':'monitoring'}}}],'ports':[{'protocol':'TCP','port':9102}]}, ingress
 print('sftp chart checks ok')
 PY

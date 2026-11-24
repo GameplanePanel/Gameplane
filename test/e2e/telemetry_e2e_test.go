@@ -298,7 +298,7 @@ func TestTelemetryLifecycle(t *testing.T) {
 		id := newTestInstallID(t)
 		sentAt := time.Now()
 		body, sig := tc.sign(t, tc.report(t, id, "e2e-signed", 4, sentAt))
-		if status, code := tc.post(ctx, t, body, sig); status != http.StatusNoContent {
+		if status, code := tc.postClaim(ctx, t, body, sig, ""); status != http.StatusNoContent {
 			t.Fatalf("the test client's own signed report = %d %q, want 204", status, code)
 		}
 		accepted := rx.get(ctx, t, metricReports, `version="e2e-signed"`)
@@ -349,7 +349,7 @@ func TestTelemetryLifecycle(t *testing.T) {
 		// one interval away, which leaves time to claim the new ID first.
 		reportsMore(t)
 		b := resetInstallID(ctx, t, cli)
-		if status, code := tc.send(ctx, t, tc.report(t, b, "e2e-claim", 1, time.Now())); status != http.StatusNoContent {
+		if status, code := tc.sendClaim(ctx, t, tc.report(t, b, "e2e-claim", 1, time.Now())); status != http.StatusNoContent {
 			t.Fatalf("the test client's claim on the new ID = %d %q, want 204", status, code)
 		}
 		refusedBase := rx.get(ctx, t, metricRefused, `reason="id_claimed"`)
@@ -447,7 +447,11 @@ func TestTelemetryLifecycle(t *testing.T) {
 		now := time.Now()
 		extBase, dupBase := rx.get(ctx, t, metricExtended, ""), rx.get(ctx, t, metricDuplicates, "")
 		for i, sentAt := range []time.Time{now.Add(-2 * time.Minute), now.Add(-time.Minute)} {
-			if status, code := tc.send(ctx, t, tc.report(t, id, "e2e-once", 2, sentAt)); status != http.StatusNoContent {
+			send := tc.send
+			if i == 0 {
+				send = tc.sendClaim // the first report claims the new ID
+			}
+			if status, code := send(ctx, t, tc.report(t, id, "e2e-once", 2, sentAt)); status != http.StatusNoContent {
 				t.Fatalf("report %d from one ID = %d %q, want 204 (a same-day duplicate is accepted)", i+1, status, code)
 			}
 		}
@@ -554,8 +558,10 @@ func TestTelemetryLifecycle(t *testing.T) {
 	})
 
 	t.Run("pow_refuses_missing_and_invalid", func(t *testing.T) {
+		// INGEST_CLAIM_POW_BITS=8 matches the minimum, so the one solved
+		// challenge below also covers the claim of the new install ID.
 		name := deployTelemetryReceiver(ctx, t, "powrefuse", receiverImage, true,
-			"INGEST_POW=true", "INGEST_POW_MIN_BITS=8", "INGEST_POW_TARGET_PER_MIN=60")
+			"INGEST_POW=true", "INGEST_POW_MIN_BITS=8", "INGEST_POW_TARGET_PER_MIN=60", "INGEST_CLAIM_POW_BITS=8")
 		ingestPort, stopIngest := detachedPortForward(ctx, t, "gameplane-system", "svc/"+name, 8080)
 		defer stopIngest()
 		metricsPort, stopMetrics := detachedPortForward(ctx, t, "gameplane-system", "svc/"+name, 8081)

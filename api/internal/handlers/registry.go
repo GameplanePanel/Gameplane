@@ -181,7 +181,12 @@ func (h *registryHandler) versions(w http.ResponseWriter, req *http.Request) {
 		h.writeResolveErr(w, req, err)
 		return
 	}
-	res, err := p.Versions(req.Context(), chi.URLParam(req, "project"), registry.Filter{
+	project := chi.URLParam(req, "project")
+	if !validProjectID(project) {
+		httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("invalid project id"))
+		return
+	}
+	res, err := p.Versions(req.Context(), project, registry.Filter{
 		Loader:      loader,
 		GameVersion: gameVersion,
 		ProjectType: req.URL.Query().Get("type"),
@@ -206,7 +211,12 @@ func (h *registryHandler) modpackDeps(w http.ResponseWriter, req *http.Request) 
 		h.writeResolveErr(w, req, err)
 		return
 	}
-	files, err := p.ModpackDeps(req.Context(), chi.URLParam(req, "project"))
+	project := chi.URLParam(req, "project")
+	if !validProjectID(project) {
+		httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("invalid project id"))
+		return
+	}
+	files, err := p.ModpackDeps(req.Context(), project)
 	if err != nil {
 		httperr.WriteCode(w, req, http.StatusBadGateway, fmt.Errorf("resolve modpack: %w", err))
 		return
@@ -562,6 +572,12 @@ func setEnvVars(gs *unstructured.Unstructured, apply []envKV) {
 		}
 	}
 	_ = unstructured.SetNestedSlice(gs.Object, out, "spec", "env")
+}
+
+// validProjectID rejects the dot segments "." and "..", which url.PathEscape
+// leaves as they are and which would walk up a provider's API path.
+func validProjectID(id string) bool {
+	return id != "" && id != "." && id != ".."
 }
 
 // decodeBody reads a small JSON request body into v.

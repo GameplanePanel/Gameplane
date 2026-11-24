@@ -33,9 +33,11 @@ const laptopKey = {
 
 const passwordSet = { length: 32, createdAt: "2026-10-03T10:00:00Z", lastUsedAt: null };
 
-function selfBody(over: Partial<{ endpoint: unknown; keys: unknown[]; password: unknown }> = {}) {
+function selfBody(over: Partial<{ loginName: string; customLoginName: boolean; endpoint: unknown; keys: unknown[]; password: unknown }> = {}) {
   return {
     username: "alice",
+    loginName: "alice",
+    customLoginName: false,
     endpoint,
     keys: [laptopKey],
     password: passwordSet,
@@ -154,5 +156,80 @@ describe("ProfileSftpPage", () => {
     const dialog = await screen.findByRole("alertdialog");
     await userEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
     await waitFor(() => expect(removedId).toBe("7"));
+  });
+
+  it("shows the SFTP username row with the Default tag and builds the forms from loginName", async () => {
+    useSelf(selfBody({ loginName: "Alice Smith".replace(" ", "_") }));
+    renderWithQuery(<ProfileSftpPage />);
+    expect(await screen.findByText("Default")).toBeInTheDocument();
+    expect(screen.getAllByText("Alice_Smith").length).toBeGreaterThan(0);
+    expect(screen.getByText("Alice_Smith+<server>")).toBeInTheDocument();
+    expect(screen.getByText("Alice_Smith+mods/<server>")).toBeInTheDocument();
+    expect(screen.getByText(/Your panel username \(alice\) always works too\./)).toBeInTheDocument();
+  });
+
+  it("shows the Custom tag when the user chose the username", async () => {
+    useSelf(selfBody({ loginName: "ally", customLoginName: true }));
+    renderWithQuery(<ProfileSftpPage />);
+    expect(await screen.findByText("Custom")).toBeInTheDocument();
+  });
+
+  it("saves a new SFTP username from the Change dialog", async () => {
+    useSelf(selfBody());
+    let sent: unknown;
+    server.use(
+      http.put("/users/me/sftp/login-name", async ({ request }) => {
+        sent = await request.json();
+        return HttpResponse.json({ loginName: "ally", customLoginName: true });
+      }),
+    );
+    renderWithQuery(<ProfileSftpPage />);
+    await userEvent.click(await screen.findByRole("button", { name: "Change" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Change SFTP username")).toBeInTheDocument();
+    const input = within(dialog).getByLabelText("SFTP username");
+    expect(input).toHaveValue("alice");
+    await userEvent.clear(input);
+    await userEvent.type(input, "ally");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(sent).toEqual({ loginName: "ally" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("sends an empty name when Reset to default is pressed", async () => {
+    useSelf(selfBody({ loginName: "ally", customLoginName: true }));
+    let sent: unknown;
+    server.use(
+      http.put("/users/me/sftp/login-name", async ({ request }) => {
+        sent = await request.json();
+        return HttpResponse.json({ loginName: "alice", customLoginName: false });
+      }),
+    );
+    renderWithQuery(<ProfileSftpPage />);
+    await userEvent.click(await screen.findByRole("button", { name: "Change" }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Reset to default" }));
+    await waitFor(() => expect(sent).toEqual({ loginName: "" }));
+  });
+
+  it("shows a taken-name refusal under the input", async () => {
+    useSelf(selfBody());
+    server.use(
+      http.put("/users/me/sftp/login-name", () =>
+        HttpResponse.json(
+          { detail: "That SFTP username is taken." },
+          { status: 409, headers: { "Content-Type": "application/problem+json" } },
+        ),
+      ),
+    );
+    renderWithQuery(<ProfileSftpPage />);
+    await userEvent.click(await screen.findByRole("button", { name: "Change" }));
+    const dialog = await screen.findByRole("dialog");
+    const input = within(dialog).getByLabelText("SFTP username");
+    await userEvent.clear(input);
+    await userEvent.type(input, "bob");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("That SFTP username is taken.");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 });

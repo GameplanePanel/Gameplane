@@ -70,6 +70,12 @@ Migration `025_sftp_cluster_endpoints.sql`. The SFTP endpoint of each registered
 
 Removing a cluster registration leaves its row behind; it is harmless and is replaced if the cluster is registered again.
 
+## users (changed)
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| sftp_username | TEXT NULL, unique index | the SFTP username the user chose (FR-005a); NULL means the default (display name when no other account holds it, else the panel username). Migration `027_sftp_login_name.sql`. |
+
 ## audit_events (changed)
 
 Add `source TEXT` (NULL for dashboard requests, `sftp` for SFTP session requests).
