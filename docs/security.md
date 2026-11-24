@@ -1110,6 +1110,14 @@ costs the receiver one HMAC and one hash, and it answers `428`
 entries) is full, `503 pow_busy`. Challenge requests have their own
 per-source limit.
 
+New installs pay separately, whether or not `INGEST_POW` is on: the first
+report of an install ID the receiver has never seen needs a solved challenge
+of at least `INGEST_CLAIM_POW_BITS` (default 20, about a second of CPU). It
+is refused `428 pow_claim` first, and the install's automatic retry fetches a
+claim-grade challenge for its source and resends. Known installs never solve
+anything for it, so fabricating installs in bulk costs CPU per install while
+real installs pay once.
+
 What it stops: cheap bulk fabrication. The work a flood must do grows
 faster than its rate, while an install sending one report a day pays
 nothing under normal load and a few seconds during a flood. It also

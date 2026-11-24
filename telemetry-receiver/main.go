@@ -60,8 +60,9 @@ const (
 	routeSummary = "summary"
 )
 
-// maxVersionLabels bounds how many different valid version labels are
-// retained; telemetryschema.VersionRE limits each label's syntax.
+// maxVersionLabels bounds how many different valid version labels hold a
+// label at a time (versionlabel.go); telemetryschema.VersionRE limits each
+// label's syntax.
 const maxVersionLabels = 128
 
 // Configuration defaults and the enforced minimums for the two retention
@@ -115,6 +116,9 @@ type config struct {
 	powTargetPerMin int
 	powMinBits      int
 	powMaxBits      int
+	// claimPoWBits is the proof-of-work difficulty the first report of a new
+	// install ID must carry (claim.go); 0 turns the check off.
+	claimPoWBits int
 
 	// loadErrs collects environment values that could not be parsed, so that
 	// validate can report them as startup errors.
@@ -141,6 +145,7 @@ func loadConfig() config {
 	cfg.powTargetPerMin = cfg.envInt("INGEST_POW_TARGET_PER_MIN", defaultPoWTargetPerMin)
 	cfg.powMinBits = cfg.envInt("INGEST_POW_MIN_BITS", defaultPoWMinBits)
 	cfg.powMaxBits = cfg.envInt("INGEST_POW_MAX_BITS", defaultPoWMaxBits)
+	cfg.claimPoWBits = cfg.envInt("INGEST_CLAIM_POW_BITS", defaultClaimPoWBits)
 	for _, raw := range strings.Split(envOr("TRUSTED_PROXY_CIDRS", ""), ",") {
 		raw = strings.TrimSpace(raw)
 		if raw == "" {
@@ -198,6 +203,10 @@ func (c config) validate() error {
 	if c.powMaxBits < c.powMinBits || c.powMaxBits > telemetryschema.MaxPoWBits {
 		errs = append(errs, fmt.Errorf("INGEST_POW_MAX_BITS must be between INGEST_POW_MIN_BITS (%d) and %d, got %d",
 			c.powMinBits, telemetryschema.MaxPoWBits, c.powMaxBits))
+	}
+	if c.claimPoWBits < 0 || c.claimPoWBits > telemetryschema.MaxPoWBits {
+		errs = append(errs, fmt.Errorf("INGEST_CLAIM_POW_BITS must be between 0 and %d, got %d",
+			telemetryschema.MaxPoWBits, c.claimPoWBits))
 	}
 	return errors.Join(errs...)
 }
@@ -258,7 +267,7 @@ type server struct {
 	store *store
 
 	versionMu sync.Mutex
-	versions  map[string]struct{}
+	versions  versionBook
 
 	// now is the clock for day bucketing and limiter windows; tests replace it.
 	now func() time.Time
@@ -288,6 +297,9 @@ type server struct {
 	pow           *powState
 	powLimiter    *bucketLimiter
 	powChallenges prometheus.Counter
+	// claims marks sources with a pending new-install claim; nil unless
+	// INGEST_CLAIM_POW_BITS is above 0.
+	claims *claimMarks
 }
 
 // newServer builds a server backed by a private in-memory store, whatever
@@ -312,7 +324,7 @@ func newServerWithStore(cfg config, st *store) *server {
 		cfg:            cfg,
 		reg:            reg,
 		store:          st,
-		versions:       make(map[string]struct{}),
+		versions:       newVersionBook(),
 		now:            time.Now,
 		daily:          newDailyLimiter(cfg.ingestSourceDailyLimit),
 		summaryLimiter: newBucketLimiter(summaryPerMinute, summaryBurst),

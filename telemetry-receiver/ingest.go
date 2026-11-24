@@ -48,7 +48,8 @@ func (s *server) ingest(w http.ResponseWriter, req *http.Request) {
 	}
 	// Proof-of-work comes after AUTH_TOKEN and before the body is read, so a
 	// refused report costs one HMAC and one hash (spec 022 R21).
-	if !s.requirePoW(w, req) {
+	powOK, powBits := s.requirePoW(w, req)
+	if !powOK {
 		return
 	}
 	// Read the whole body first so the size limit applies to all of it, not
@@ -75,7 +76,7 @@ func (s *server) ingest(w http.ResponseWriter, req *http.Request) {
 	// A report whose ext part was dropped by Decode (bad install ID) comes
 	// back with Ext == nil and is counted as basic.
 	if rep.Ext != nil {
-		s.ingestExtended(w, req, body, rep)
+		s.ingestExtended(w, req, body, rep, powBits)
 		return
 	}
 	p := payload{Version: rep.Version, Servers: rep.Servers, Templates: rep.Templates}
@@ -96,32 +97,10 @@ func (s *server) ingest(w http.ResponseWriter, req *http.Request) {
 
 	slog.Info("telemetry report",
 		"version", version, "servers", p.Servers, "templates", p.Templates)
-	s.reports.WithLabelValues(version).Inc()
+	s.countReport(version)
 	s.servers.Observe(float64(p.Servers))
 	s.templates.Observe(float64(p.Templates))
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// versionLabel retains the first 128 valid versions for this process.
-// Overflow reports still count, but share one label. Never evict entries:
-// CounterVec would otherwise retain every old label and keep growing.
-func (s *server) versionLabel(version string) string {
-	if !telemetryschema.VersionRE.MatchString(version) || version == "invalid" {
-		return "invalid"
-	}
-	if version == "other" {
-		return "other"
-	}
-	s.versionMu.Lock()
-	defer s.versionMu.Unlock()
-	if _, ok := s.versions[version]; ok {
-		return version
-	}
-	if len(s.versions) >= maxVersionLabels {
-		return "other"
-	}
-	s.versions[version] = struct{}{}
-	return version
 }
 
 // recordBasic writes one accepted basic report into the aggregates for day

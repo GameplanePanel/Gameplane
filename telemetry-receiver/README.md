@@ -133,6 +133,7 @@ and all counters; the durable figures live in the SQLite store.
 | `INGEST_POW_TARGET_PER_MIN` | `60` | Normal challenge rate; no work is required at or below it. Must be at least 1. |
 | `INGEST_POW_MIN_BITS` | `0` | Lowest difficulty issued. |
 | `INGEST_POW_MAX_BITS` | `22` | Highest difficulty issued. At least `INGEST_POW_MIN_BITS` and at most 26. |
+| `INGEST_CLAIM_POW_BITS` | `20` | Proof-of-work bits the first report of a new install ID must carry, even with `INGEST_POW` off. `0` turns it off; at most 26. |
 
 A value below a minimum, an unparsable number or a malformed
 `TRUSTED_PROXY_CIDRS` entry stops the receiver at start with an error.

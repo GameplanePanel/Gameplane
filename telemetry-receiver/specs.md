@@ -20,7 +20,7 @@ Optional collector for the usage telemetry that Gameplane installs report daily.
 - **Per-source limits**: `/ingest` requests per source per minute, refused ones included (`INGEST_SOURCE_PER_MINUTE`), accepted reports per source per UTC day (`INGEST_SOURCE_DAILY_LIMIT`), login attempts, summary reads and challenge requests, all held in memory; source addresses come from the TCP peer, or from `X-Forwarded-For` only when the peer is inside `TRUSTED_PROXY_CIDRS`
 - **Dashboard**: server-rendered HTML with inline SVG charts and no JavaScript, behind one operator token; the same view model is served as JSON at `/api/v1/views`. Every range ends on today (UTC), which is still in progress
 - **Public summary (optional)**: `GET /v1/summary` returns five counts when `PUBLIC_SUMMARY=true`
-- **Version sanitization**: invalid syntax is bucketed as `"invalid"`. Retain at most 128 distinct strings matching `^[A-Za-z0-9][A-Za-z0-9._+-]{0,31}$` per process for the Prometheus label; additional versions share `"other"`. The two bucket names are reserved, for at most 130 series. Retained labels are never evicted; restart resets the budget with the counters.
+- **Version sanitization**: invalid syntax is bucketed as `"invalid"`. At most 128 distinct strings matching `^[A-Za-z0-9][A-Za-z0-9._+-]{0,31}$` hold a label at a time; once all 128 are taken, a new version is counted under `"other"` and waits in a pending set (at most 1,024 versions, least reported dropped first) until it has more reports than the least reported label, which it then replaces (that label's series is deleted). Junk versions reported once or twice therefore cannot lock real releases out. The two bucket names are reserved, for at most 130 series. Restart resets the budget with the counters.
 - **Metrics**: Prometheus series on the dashboard listener only, behind the token
 - **Lifecycle**: an hourly job finalizes completed UTC days, expires activity records and deletes daily aggregates older than `RETENTION_DAYS`
 - **Structured logging**: logs each accepted report via `log/slog` with version/servers/templates fields (and `extended`); source addresses are never logged
@@ -64,12 +64,12 @@ The full contract is `specs/done_022-default-telemetry-dashboard/contracts/recei
 
 | Route | Method | Success response | Failures |
 |-------|--------|------------------|----------|
-| `/ingest` | POST | `204 No Content` (also for a same-day duplicate extended report, which only counts in `duplicates`) | `400` structural error; `401` missing/wrong Authorization (when `AUTH_TOKEN` set); `403` `bad_signature`, `stale` or `replay`; `409` `id_claimed`; `413` body >16 KiB; `428` `pow_required` or `pow_invalid`; `429` per-source daily limit; `503` `pow_busy` with `Retry-After: 60` |
+| `/ingest` | POST | `204 No Content` (also for a same-day duplicate extended report, which only counts in `duplicates`) | `400` structural error; `401` missing/wrong Authorization (when `AUTH_TOKEN` set); `403` `bad_signature`, `stale` or `replay`; `409` `id_claimed`; `413` body >16 KiB; `428` `pow_required`, `pow_invalid` or `pow_claim`; `429` per-source request budget or daily limit; `503` `pow_busy` with `Retry-After: 60` |
 | `/v1/summary` | GET | `200` JSON with exactly `asOf`, `reportsLatestDay`, `reports30d`, `reportsTotal`, `activeInstalls30d` | `404` unless `PUBLIC_SUMMARY=true`; `429` per-source rate limit |
 | `/v1/challenge` | GET | `200` JSON `{challenge, bits, expiresAt}`, `Cache-Control: no-store` | `404` unless `INGEST_POW=true`; `429` (10 per minute, burst 5 per source) |
 | `/healthz` | GET | `200 OK`, body `"ok"` | Never errors |
 
-`/ingest` runs its checks in this order: per-source request budget (`429` with `Retry-After: 60`), `AUTH_TOKEN`, proof-of-work, body read, decode, extended identity checks, per-source daily limit, store. A refused report changes no stored data. Every other path, including `/metrics`, answers `404`.
+`/ingest` runs its checks in this order: per-source request budget (`429` with `Retry-After: 60`), `AUTH_TOKEN`, proof-of-work, body read, decode, extended identity checks, new-install proof-of-work (`pow_claim`), per-source daily limit, store. A refused report changes no stored data. Every other path, including `/metrics`, answers `404`.
 
 ### Dashboard listener (`DASHBOARD_LISTEN_ADDR`)
 
@@ -104,6 +104,7 @@ The session cookie is `gp_telemetry_session` (`HttpOnly; Secure; SameSite=Strict
 | `INGEST_POW_TARGET_PER_MIN` | `60` | Normal challenge rate: at or below it no work is required. Must be at least 1 |
 | `INGEST_POW_MIN_BITS` | `0` | Lowest difficulty issued. Must not be negative |
 | `INGEST_POW_MAX_BITS` | `22` | Highest difficulty issued. At least `INGEST_POW_MIN_BITS` and at most 26 (the hardest challenge an install solves) |
+| `INGEST_CLAIM_POW_BITS` | `20` | Difficulty the first report of a new install ID must carry, even with `INGEST_POW` off; `0` turns it off; at most 26 |
 
 An unparsable or out-of-range value stops the receiver at start with an `invalid configuration` error.
 
@@ -114,6 +115,8 @@ Challenges are stateless: `base64url(payload) "." base64url(mac)`, where the pay
 Difficulty: with `r` challenges issued in the trailing 60 seconds (counting the new one) and `T = INGEST_POW_TARGET_PER_MIN`, the target is `0` when `r <= T`, otherwise `min(MAX, ceil(2*log2(r/T)))`. The issued difficulty is `max(MIN, target, peak - floor((now - peakAt) / 5 min))`, so it rises on the next challenge and falls one bit per five minutes.
 
 Verification (before the body is read): header present and well formed, MAC valid, not expired, enough leading zero bits as stated in the token, not already used. A missing header is `428 pow_required`; any other failure is `428 pow_invalid`. A verified solution is marked used at once, whatever happens to the report. The used set is in memory, pruned when entries expire, and capped at 1,000,000; when full, `/ingest` answers `503 pow_busy` with `Retry-After: 60`. A restart invalidates outstanding challenges.
+
+New-install claims (`INGEST_CLAIM_POW_BITS`, default 20, on even when `INGEST_POW` is off): an extended report whose install ID has no activity record must carry a verified solution of at least that many bits. Otherwise it is refused `428 pow_claim`, nothing is stored, and its source prefix is marked in memory for 15 minutes (at most 100,000 marks). While marked, `/v1/challenge` serves that source (even with `INGEST_POW` off, where it is otherwise `404`) with at least the claim difficulty; the reporter's existing 428 retry fetches it, solves it and resends. An accepted claim clears the mark. Known installs never solve anything for it.
 
 ### Prometheus metrics (dashboard listener, Bearer token)
 
@@ -138,7 +141,7 @@ All series are in memory and reset on restart; the durable figures are the aggre
 - **Extended reports must be signed**: a report with `ext` and a missing or invalid signature is refused (`403 bad_signature`) before any write, and an install ID is bound to the first valid key that claims it.
 - **Refusal invariant (dashboard)**: an unauthenticated dashboard response never contains a figure, a date other than page chrome, a version, category or module name, or anything that varies with whether data exists. A wrong token gets the same "Invalid credentials" login page whether or not the receiver is empty.
 - **No token, no dashboard**: the dashboard listener is not started unless `DASHBOARD_TOKEN` is set, and a token shorter than 32 characters stops startup.
-- **Version label bounded**: malformed strings become `version="invalid"`; after 128 distinct valid versions, new versions become `version="other"`. Concurrent requests share the same budget, and all accepted reports remain counted.
+- **Version label bounded**: malformed strings become `version="invalid"`; at most 128 valid versions hold a label at a time, and a version waiting for a slot counts as `version="other"` until it outranks the least reported label. Concurrent requests share the same budget, an increment for a label evicted in the meantime counts as `other`, and all accepted reports remain counted.
 - **Refused reports change nothing**: signature, window, claim, replay and proof-of-work refusals write no data; a proof-of-work refusal costs one HMAC and one hash.
 - **Single writer**: SQLite writes are serialized by one mutex; run one replica per database.
 - **Graceful shutdown**: catches SIGINT/SIGTERM and shuts both listeners down with a 5s context timeout; the lifecycle job stops before the store closes.
