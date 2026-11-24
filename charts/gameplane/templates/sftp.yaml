@@ -17,6 +17,10 @@ sftp.serviceTokenSecret must hold the token created there.
 {{- if and (not $local) (not $sftp.serviceTokenSecret) }}
 {{- fail "sftp.apiURL is set (remote mode): sftp.serviceTokenSecret must name a Secret with the service token (key token) created in the central panel" }}
 {{- end }}
+{{- /* Remote mode sends every SFTP user's password and the service token to the central panel. */}}
+{{- if and (not $local) (ne (urlParse $sftp.apiURL).scheme "https") }}
+{{- fail (printf "sftp.apiURL must be an https:// URL: the SFTP pod sends user passwords and its service token there (got %q)" $sftp.apiURL) }}
+{{- end }}
 {{- if not (has $sftp.serviceType (list "ClusterIP" "NodePort" "LoadBalancer")) }}
 {{- fail (printf "sftp.serviceType must be ClusterIP, NodePort or LoadBalancer (got %q)" $sftp.serviceType) }}
 {{- end }}

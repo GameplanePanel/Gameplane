@@ -826,7 +826,7 @@ sftp:
   loadBalancerIP: ""
   # Address shown to users in the profile (host or host:port). Empty = unknown.
   publicAddress: ""
-  # Remote clusters: central API URL, optional CA bundle Secret (key ca.crt) and an existing Secret
+  # Remote clusters: central API URL (https:// only), optional CA bundle Secret (key ca.crt) and an existing Secret
   # with key `token` holding the service token created in the central panel.
   apiURL: ""
   apiCASecret: ""
