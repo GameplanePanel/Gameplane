@@ -572,6 +572,10 @@ export interface SftpEndpoint {
 // GET /users/me/sftp — the caller's username, endpoint, keys and password metadata.
 export interface SftpSelf {
   username: string;
+  /** The SFTP username to type: the user's choice, else the default. */
+  loginName: string;
+  /** true when the user chose loginName, false when it is the default. */
+  customLoginName: boolean;
   endpoint: SftpEndpoint | null;
   keys: SftpKey[];
   password: SftpPasswordInfo | null;
@@ -612,6 +616,14 @@ export const generateSftpPassword = (length: SftpPasswordLength) =>
 // DELETE /users/me/sftp/password — 204.
 export const revokeSftpPassword = () =>
   api<void>("/users/me/sftp/password", { method: "DELETE" });
+
+// PUT /users/me/sftp/login-name — "" resets to the default. Refusals are
+// server.sftp.login_name_invalid (400) and server.sftp.login_name_taken (409).
+export const setSftpLoginName = (loginName: string) =>
+  api<{ loginName: string; customLoginName: boolean }>("/users/me/sftp/login-name", {
+    method: "PUT",
+    body: { loginName },
+  });
 
 // GET /users/{id}/sftp (users:manage)
 export const getUserSftp = (userId: number) =>

@@ -174,7 +174,7 @@
 - [X] T054 Changelog `changelog/unreleased/<PR>-sftp-access.md` in the chart PR per `changelog/unreleased/README.md` (new Helm values `sftp.*`, `files.maxUploadSize`, `operator.filesIdleTimeout`).
 - [X] T057 SFTP username (FR-005a, valgul 2026-11-24): migration `027_sftp_login_name.sql` (`users.sftp_username`), `api/internal/auth/sftp_login_name.go` (`SFTPLoginName`, `SetSFTPLoginName`, `ResolveSFTPLoginName`), `loginName`/`customLoginName` on `GET /users/me/sftp`, `PUT /users/me/sftp/login-name`, login resolution in `sftp_login.go`; tests in `api/internal/handlers/sftp_login_display_name_test.go`.
 - [X] T058 Design the SFTP username field (show, change, reset to default, invalid and taken errors) on `Screen/Settings — SFTP` in `design.fig` and export (core rule 1).
-- [ ] T059 Build T058 in `web/src/routes/ProfileSftp.tsx` with `api.setSFTPLoginName` in `web/src/lib/api.ts`; the username forms show `loginName`; tests in `ProfileSftp.test.tsx`.
+- [X] T059 Build T058 in `web/src/routes/ProfileSftp.tsx` with `api.setSFTPLoginName` in `web/src/lib/api.ts`; the username forms show `loginName`; tests in `ProfileSftp.test.tsx`.
 - [ ] T055 Run every scenario in `specs/040-sftp-access/quickstart.md` on a dev cluster and record results in the chart PR.
 - [X] T056 `POST /sftp/v1/sessions/end` in `api/internal/handlers/sftp_login.go` (`end`) and `EndSFTPSessions` in `api/internal/auth/sftp_revoke.go`, per contracts/api.md: lets the SFTP server revoke a session it refused after login (session cap, failed SSH handshake); same service-token auth and cluster binding as `sessions/check`; unit tests in `api/internal/handlers/sftp_end_test.go`.
 

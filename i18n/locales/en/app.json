@@ -4207,6 +4207,10 @@
     "defaultMessage": "Cancel",
     "description": "SFTP dialogs: button that closes the dialog without changes; keep it short"
   },
+  "web.components.sftp.change_sftp_username": {
+    "defaultMessage": "Change SFTP username",
+    "description": "SFTP change-username dialog: heading and the title of the dialog"
+  },
   "web.components.sftp.characters": {
     "defaultMessage": "{count} characters",
     "description": "SFTP shown-once dialog: password length; {count} is a number"
@@ -4379,6 +4383,14 @@
     "defaultMessage": "{count} characters",
     "description": "SFTP generate dialog: the chosen password length; {count} is a number"
   },
+  "web.components.sftp.login_name_failed": {
+    "defaultMessage": "Could not change the SFTP username.",
+    "description": "SFTP change-username dialog: fallback error when the server gives no message"
+  },
+  "web.components.sftp.login_name_hint": {
+    "defaultMessage": "Up to 64 characters, no spaces, / or +.",
+    "description": "SFTP change-username dialog: hint under the username field listing the rules"
+  },
   "web.components.sftp.name": {
     "defaultMessage": "Name",
     "description": "SFTP add-key dialog: label above the key name field"
@@ -4402,6 +4414,18 @@
   "web.components.sftp.replaces_your_current_password": {
     "defaultMessage": "Replaces your current password.",
     "description": "SFTP generate dialog: note that the new password replaces the existing one"
+  },
+  "web.components.sftp.reset_to_default": {
+    "defaultMessage": "Reset to default",
+    "description": "SFTP change-username dialog: button that restores the default username; keep it short"
+  },
+  "web.components.sftp.save": {
+    "defaultMessage": "Save",
+    "description": "SFTP change-username dialog: submit button label; keep it short"
+  },
+  "web.components.sftp.sftp_username": {
+    "defaultMessage": "SFTP username",
+    "description": "SFTP change-username dialog: label above the username field"
   },
   "web.components.sftp.you_will_not_see_this_again": {
     "defaultMessage": "You will not see this again. Store it in a password manager before you close this dialog.",
@@ -8603,6 +8627,10 @@
     "defaultMessage": "Add key",
     "description": "SFTP page: button that opens the add SSH key dialog; keep it short"
   },
+  "web.routes.profile_sftp.change": {
+    "defaultMessage": "Change",
+    "description": "SFTP page: button that opens the change SFTP username dialog; keep it short"
+  },
   "web.routes.profile_sftp.copy": {
     "defaultMessage": "Copy",
     "description": "SFTP page: button that copies a value; keep it short"
@@ -8727,6 +8755,10 @@
     "defaultMessage": "SFTP password",
     "description": "SFTP page: heading of the password card"
   },
+  "web.routes.profile_sftp.sftp_username": {
+    "defaultMessage": "SFTP username",
+    "description": "SFTP page: label of the row that shows the username to type in an SFTP client"
+  },
   "web.routes.profile_sftp.ssh_keys": {
     "defaultMessage": "SSH keys",
     "description": "SFTP page: heading of the SSH keys card"
@@ -8742,6 +8774,18 @@
   "web.routes.profile_sftp.username_all_servers": {
     "defaultMessage": "Lists every server you can read, one folder each",
     "description": "SFTP page: explains the plain username form"
+  },
+  "web.routes.profile_sftp.username_custom": {
+    "defaultMessage": "Custom",
+    "description": "SFTP page: small tag beside the SFTP username when the user chose it"
+  },
+  "web.routes.profile_sftp.username_default": {
+    "defaultMessage": "Default",
+    "description": "SFTP page: small tag beside the SFTP username when it is the default"
+  },
+  "web.routes.profile_sftp.username_help": {
+    "defaultMessage": "Defaults to your display name. Your panel username ({username}) always works too.",
+    "description": "SFTP page: explains the default SFTP username; {username} is the panel username"
   },
   "web.routes.profile_sftp.username_namespace": {
     "defaultMessage": "Opens a server in another namespace (mods)",
