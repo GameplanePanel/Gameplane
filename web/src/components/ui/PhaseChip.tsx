@@ -64,6 +64,7 @@ const phaseMessages = defineMessages({
   Failed: { id: "web.components.ui.phase_chip.failed", defaultMessage: "Failed", description: "Phase badge: label for a resource whose last operation failed" },
   Succeeded: { id: "web.components.ui.phase_chip.succeeded", defaultMessage: "Succeeded", description: "Phase badge: label for a backup or restore that finished successfully" },
   Asleep: { id: "web.components.ui.phase_chip.asleep", defaultMessage: "Asleep", description: "Phase badge: label for a suspended server that is asleep (derived display state)" },
+  AwaitingSnapshot: { id: "web.components.ui.phase_chip.awaiting_snapshot", defaultMessage: "Awaiting snapshot ID", description: "Phase badge: label for a backup whose copy finished but whose snapshot ID is not recorded yet, so it cannot be restored yet (derived display state)" },
 });
 
 function phaseLabel(intl: IntlShape, value: string): string {
@@ -73,16 +74,20 @@ function phaseLabel(intl: IntlShape, value: string): string {
 }
 
 // PhaseChip renders a server/backup/restore phase badge.
-export function PhaseChip({ phase, asleep, size = "sm", className }: {
+// awaitingSnapshot overlays a Succeeded backup that has no snapshot ID yet
+// (see backupAwaitingSnapshot): it is not a restore point, so it shows the
+// in-transition warning color instead of success.
+export function PhaseChip({ phase, asleep, awaitingSnapshot, size = "sm", className }: {
   phase?: string;
   asleep?: boolean;
+  awaitingSnapshot?: boolean;
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {
   const intl = useOptionalIntl();
   const p = phase ?? "Pending";
-  const label = phaseLabel(intl, asleep ? "Asleep" : p);
-  const color = phaseColorMap[p] ?? "default";
+  const label = phaseLabel(intl, asleep ? "Asleep" : awaitingSnapshot ? "AwaitingSnapshot" : p);
+  const color = awaitingSnapshot ? "warning" : phaseColorMap[p] ?? "default";
 
   return (
     <HeroChip
@@ -92,10 +97,18 @@ export function PhaseChip({ phase, asleep, size = "sm", className }: {
       data-phase={p}
       data-color={color}
       data-asleep={asleep}
+      data-awaiting-snapshot={awaitingSnapshot}
       data-size={size}
       className={className}
     >
       {label}
     </HeroChip>
   );
+}
+
+// backupAwaitingSnapshot reports whether a backup finished (Succeeded) but has
+// no snapshot ID recorded yet. Restore refuses such a backup, and the operator
+// does not count it toward retention until the ID arrives.
+export function backupAwaitingSnapshot(status?: { phase?: string; snapshotID?: string }): boolean {
+  return status?.phase === "Succeeded" && !status.snapshotID;
 }

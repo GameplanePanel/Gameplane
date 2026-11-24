@@ -4979,6 +4979,10 @@
     "defaultMessage": "Asleep",
     "description": "Phase badge: label for a suspended server that is asleep (derived display state)"
   },
+  "web.components.ui.phase_chip.awaiting_snapshot": {
+    "defaultMessage": "Awaiting snapshot ID",
+    "description": "Phase badge: label for a backup whose copy finished but whose snapshot ID is not recorded yet, so it cannot be restored yet (derived display state)"
+  },
   "web.components.ui.phase_chip.failed": {
     "defaultMessage": "Failed",
     "description": "Phase badge: label for a resource whose last operation failed"

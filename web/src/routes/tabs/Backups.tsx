@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, CalendarClock, Clock, HardDrive } from "lucide-react";
 import { Button, Table } from "@heroui/react";
 import { StatCard } from "@/components/ui/StatCard";
-import { PhaseChip } from "@/components/ui/PhaseChip";
+import { PhaseChip, backupAwaitingSnapshot } from "@/components/ui/PhaseChip";
 
 import { APIError } from "@/lib/api";
 import { useBackupDestinations } from "@/lib/destinations";
@@ -311,7 +311,7 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
                     >
                       <Table.Cell className="font-mono">{b.metadata.name}</Table.Cell>
                       <Table.Cell>
-                        <PhaseChip phase={b.status?.phase} />
+                        <PhaseChip phase={b.status?.phase} awaitingSnapshot={backupAwaitingSnapshot(b.status)} />
                       </Table.Cell>
                       <Table.Cell className="font-mono"><BackupSize backup={b} /></Table.Cell>
                       <Table.Cell className="font-mono text-foreground/60">

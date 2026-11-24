@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { PhaseChip, Chip } from "./PhaseChip";
+import { PhaseChip, Chip, backupAwaitingSnapshot } from "./PhaseChip";
 
 describe("PhaseChip", () => {
   // Test 1: Basic phase rendering
@@ -157,5 +157,25 @@ describe("Chip (generic wrapper)", () => {
     expect(chip).not.toBeNull();
     expect(chip).toHaveAttribute("data-color", "default");
     expect(chip).toHaveAttribute("data-size", "sm");
+  });
+
+  // A Succeeded backup without a snapshot ID is not a restore point yet (#961).
+  it("shows a warning Awaiting snapshot ID chip for a backup without its snapshot ID", () => {
+    render(<PhaseChip phase="Succeeded" awaitingSnapshot={true} />);
+    expect(screen.queryByText("Succeeded")).toBeNull();
+    const chip = screen.getByText("Awaiting snapshot ID").closest('[data-slot="chip"]');
+    expect(chip).not.toBeNull();
+    expect(chip).toHaveAttribute("data-color", "warning");
+    expect(chip).toHaveAttribute("data-phase", "Succeeded");
+    expect(chip).toHaveAttribute("data-awaiting-snapshot", "true");
+  });
+
+  it("backupAwaitingSnapshot is true only for a Succeeded backup without a snapshot ID", () => {
+    expect(backupAwaitingSnapshot({ phase: "Succeeded" })).toBe(true);
+    expect(backupAwaitingSnapshot({ phase: "Succeeded", snapshotID: "" })).toBe(true);
+    expect(backupAwaitingSnapshot({ phase: "Succeeded", snapshotID: "abc123" })).toBe(false);
+    expect(backupAwaitingSnapshot({ phase: "Running" })).toBe(false);
+    expect(backupAwaitingSnapshot({ phase: "Failed" })).toBe(false);
+    expect(backupAwaitingSnapshot(undefined)).toBe(false);
   });
 });
