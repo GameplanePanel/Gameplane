@@ -494,4 +494,12 @@ describe("BackupsPage", () => {
     renderWithQuery(<BackupsPage />);
     expect(await screen.findByText("No clusters available.")).toBeInTheDocument();
   });
+
+  it("shows a loading line on the Destinations tab until the clusters are known", async () => {
+    server.use(http.get("/fleet/:kind", () => new Promise<Response>(() => undefined)));
+    await navigateTestSearch({ search: () => ({ tab: "destinations" }) });
+    renderWithQuery(<BackupsPage />);
+    expect(await screen.findByText("Loading clusters…")).toBeInTheDocument();
+    expect(screen.queryByText("No clusters available.")).not.toBeInTheDocument();
+  });
 });

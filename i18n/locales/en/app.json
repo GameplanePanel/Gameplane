@@ -6983,6 +6983,10 @@
     "defaultMessage": "Loading backups…",
     "description": "Backups: loading text on the backups tab while backup data is fetched"
   },
+  "web.routes.backups.loading_clusters_for_destinations": {
+    "defaultMessage": "Loading clusters…",
+    "description": "Backups: destinations tab text shown while the list of clusters is fetched"
+  },
   "web.routes.backups.loading_restores": {
     "defaultMessage": "Loading restores…",
     "description": "Backups: loading text on the restores tab while restore data is fetched"

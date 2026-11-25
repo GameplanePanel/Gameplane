@@ -109,7 +109,7 @@ export function BackupsPage() {
       {tab === "backups" && <BackupsTabPanel location={location} onLocationChange={setLocation} locations={locations} />}
       {tab === "schedules" && <SchedulesTabPanel location={location} onLocationChange={setLocation} locations={locations} />}
       {tab === "restores" && <RestoresTabPanel location={location} onLocationChange={setLocation} locations={locations} />}
-      {tab === "destinations" && <DestinationsTabPanel location={location} locations={locations} />}
+      {tab === "destinations" && <DestinationsTabPanel location={location} locations={locations} loading={serverScopes === undefined && backupScopes.every((query) => query.isPending)} />}
     </div>
   );
 }
@@ -119,9 +119,12 @@ type LocationFilterProps = { location: string; onLocationChange: (location: stri
 // One destinations card per cluster the fleet queries reached, or only the
 // cluster picked in the shared cluster filter. Destinations stay per cluster
 // (Clusters → cluster → Configuration); this tab is a shortcut to them.
-function DestinationsTabPanel({ location, locations }: { location: string; locations: string[] }) {
+function DestinationsTabPanel({ location, locations, loading }: { location: string; locations: string[]; loading: boolean }) {
   const intl = useOptionalIntl();
   const clusters = location ? [location] : [...new Set(locations)].sort((a, b) => a.localeCompare(b));
+  if (clusters.length === 0 && loading) {
+    return <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.backups.loading_clusters_for_destinations", defaultMessage: "Loading clusters…", description: "Backups: destinations tab text shown while the list of clusters is fetched" })}</p>;
+  }
   if (clusters.length === 0) {
     return <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.backups.no_clusters_for_destinations", defaultMessage: "No clusters available.", description: "Backups: destinations tab text shown when no cluster could be listed" })}</p>;
   }
