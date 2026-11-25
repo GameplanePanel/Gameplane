@@ -175,9 +175,15 @@ behaviour.
   installs and version pins (needs Gameplane 0.5.0), a new Minecraft Proxy
   module, a Valheim player count read from the Steam query, and palworld 1.4.0
   with risky-setting markers and an ownership check for security overrides. An
-  installed module keeps its current version until you upgrade it. The
-  chart's default OCI catalog (`defaultModuleSource.oci.modules`) now lists
-  `minecraft-proxy` (PRs #1064, #1107).
+  installed module keeps its current version until you upgrade it (PR #1064).
+- **Every official module in the default catalog:** the chart's default OCI
+  catalog (`defaultModuleSource.oci.modules`) now lists all 30 official
+  modules. Before, it left out 14 published ones, so a default install could
+  not see ark-survival-evolved, arma-reforger, beammp, euro-truck-simulator-2,
+  farming-simulator-25, fivem, left-4-dead-2, minecraft-proxy,
+  mount-and-blade-2-bannerlord, nuclear-option, squad, team-fortress-2,
+  the-isle or tmodloader. They appear on the Modules page after the upgrade.
+  Telemetry counts them as official games instead of custom ones (PR #1107).
 
 ### Changed
 
