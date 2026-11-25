@@ -107,6 +107,9 @@ up|install)
     #   - web off: the suite drives the API directly; beta.5 published no web
     #     image at all, so leaving it on would fail the install outright.
     #   - ingress off: nothing here goes through an ingress controller.
+    #   - podSecurity.enforceRestricted off: the seeded busybox game runs as
+    #     root, as in every other e2e install (e2e.sh, and the upgrade step in
+    #     upgrade_e2e_test.go). Releases from v0.4.0 on default it to true.
     # Note what is NOT overridden: image.registry/image.tag. The old release
     # must pull its own published GHCR images, or this tests nothing.
     helm install gameplane "${CHART_REF}" \
@@ -115,6 +118,7 @@ up|install)
         --namespace gameplane-system --create-namespace \
         --set "ingress.enabled=false" \
         --set "web.enabled=false" \
+        --set "podSecurity.enforceRestricted=false" \
         --set "api.resources.limits.memory=1Gi" \
         --set "operator.leaderElect=false" \
         --set "defaultModuleSource.enabled=false" \
