@@ -10,7 +10,7 @@
 - **Blocker**: C2S_CONNECT field offsets unknown; challenge exchange already decoded, sv_lan 1 removes the Steam gate
 - **Blocker Class**: documentation
 
-**Status:** pre-v1 (v0.4.3)  
+**Status:** pre-v1 (v0.5.0)  
 **Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/garrys-mod`  
 **Dependencies:** stdlib only (Go 1.25+); tested against ceifa/garrysmod:debian; shared protocol families `a2s`, `source`
 
