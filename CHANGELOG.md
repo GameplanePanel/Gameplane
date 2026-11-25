@@ -175,7 +175,9 @@ behaviour.
   installs and version pins (needs Gameplane 0.5.0), a new Minecraft Proxy
   module, a Valheim player count read from the Steam query, and palworld 1.4.0
   with risky-setting markers and an ownership check for security overrides. An
-  installed module keeps its current version until you upgrade it (PR #1064).
+  installed module keeps its current version until you upgrade it. The
+  chart's default OCI catalog (`defaultModuleSource.oci.modules`) now lists
+  `minecraft-proxy` (PRs #1064, #1107).
 
 ### Changed
 

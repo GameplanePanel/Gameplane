@@ -983,6 +983,7 @@ defaultModuleSource:
       - factorio
       - garrys-mod
       - minecraft-java
+      - minecraft-proxy
       - palworld
       - project-zomboid
       - rust
