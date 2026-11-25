@@ -471,7 +471,8 @@ func verifyUpgradeMigration(ctx context.Context, t *testing.T, upgradeArgs []str
 	const sourceNS = "gameplane-system"
 	core := envInstance.K8s.CoreV1()
 	create := metav1.CreateOptions{}
-	if _, err := core.Namespaces().Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: credentialsNS}}, create); err != nil {
+	// Releases from v0.4.0 on already create the credentials namespace.
+	if _, err := core.Namespaces().Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: credentialsNS}}, create); err != nil && !apierrors.IsAlreadyExists(err) {
 		t.Fatal(err)
 	}
 	immutable := true
