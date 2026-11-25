@@ -30,13 +30,13 @@ REPO="$(cd "${HERE}/../.." && pwd)"
 # chart": a regression test that silently changes what it tests is not a
 # regression test.
 #
-# 0.3.0 is the last published release — its chart and operator/api/agent
+# 0.4.3 is the last published release — its chart and operator/api/agent
 # images exist on GHCR — so this is the genuine upgrade path that users take
 # to the next release.
-FROM_VERSION="${GAMEPLANE_UPGRADE_FROM:-0.3.0}"
-# Releases up to v0.3.0 were published before the repo moved to the
-# GameplanePanel org, so they live under the original owner on GHCR.
-FROM_REGISTRY="ghcr.io/valgulnecron"
+FROM_VERSION="${GAMEPLANE_UPGRADE_FROM:-0.4.3}"
+# Releases from v0.4.0 on are published under the GameplanePanel org on GHCR
+# (v0.3.0 and older stay under the original ghcr.io/valgulnecron owner).
+FROM_REGISTRY="ghcr.io/gameplanepanel"
 CHART_REF="oci://$FROM_REGISTRY/charts/gameplane"
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing: $1" >&2; exit 1; }; }

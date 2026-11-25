@@ -774,11 +774,11 @@ func verifyDeferredStartupUpgrade(t *testing.T, ns, gs, tmpl string) {
 // upgradeFromChartRef and defaultUpgradeFromVersion mirror CHART_REF and
 // FROM_VERSION in deploy/kind/upgrade.sh: the published chart the upgrade
 // cluster was installed from. CI sets GAMEPLANE_UPGRADE_FROM for both.
-// Releases up to v0.3.0 predate the GameplanePanel org move and stay
-// under the original GHCR owner.
+// Releases from v0.4.0 on are published under the GameplanePanel GHCR org;
+// v0.3.0 and older stay under the original ghcr.io/valgulnecron owner.
 const (
-	upgradeFromChartRef       = "oci://ghcr.io/valgulnecron/charts/gameplane"
-	defaultUpgradeFromVersion = "0.3.0"
+	upgradeFromChartRef       = "oci://ghcr.io/gameplanepanel/charts/gameplane"
+	defaultUpgradeFromVersion = "0.4.3"
 )
 
 // crdApplyHookEvents returns the helm.sh/hook annotation Helm stored for the
