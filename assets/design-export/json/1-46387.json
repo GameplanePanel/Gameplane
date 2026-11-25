@@ -4,7 +4,7 @@
   "name": "Gameplane/Dialog/SFTP password (Shown once)",
   "type": "FRAME",
   "x": 8600,
-  "y": 82663,
+  "y": 84213,
   "width": 480,
   "height": 420,
   "fills": [{"type": "SOLID", "color": "#1C1A20"}],

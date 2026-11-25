@@ -460,4 +460,46 @@ describe("BackupsPage", () => {
     await userEvent.click(confirmBtn);
     await waitFor(() => expect(deleteHandler).toHaveBeenCalled());
   });
+
+  it("lists each cluster's backup destinations on the Destinations tab", async () => {
+    const requested: string[] = [];
+    server.use(
+      http.get("/backup-destinations", ({ request }) => {
+        requested.push(new URL(request.url).searchParams.get("namespace") ?? "");
+        return HttpResponse.json({ items: [{ name: "nightly-backups", url: "s3:s3.example.com/gameplane", hasPassword: true }] });
+      }),
+    );
+    renderWithQuery(<BackupsPage />);
+    const tab = screen.getByRole("tab", { name: /Destinations/i });
+    await userEvent.click(tab);
+    await waitFor(() => expect(tab).toHaveAttribute("aria-selected", "true"));
+    expect(await screen.findByRole("region", { name: "local" })).toBeInTheDocument();
+    expect(await screen.findByText("nightly-backups")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Add destination/i })).toBeInTheDocument();
+    expect(requested).toContain("gameplane-games");
+  });
+
+  it("shows only the cluster picked in the cluster filter on the Destinations tab", async () => {
+    server.use(http.get("/backup-destinations", () => HttpResponse.json({ items: [] })));
+    await navigateTestSearch({ search: () => ({ tab: "destinations", cluster: "east" }) });
+    renderWithQuery(<BackupsPage />);
+    expect(await screen.findByRole("region", { name: "east" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "local" })).not.toBeInTheDocument();
+    expect(await screen.findByText(/No backup destinations configured/i)).toBeInTheDocument();
+  });
+
+  it("says no clusters are available when the fleet lists none", async () => {
+    server.use(http.get("/fleet/:kind", () => HttpResponse.json({ items: [], partial: false, issues: [], totalReturned: 0, scopes: [] })));
+    await navigateTestSearch({ search: () => ({ tab: "destinations" }) });
+    renderWithQuery(<BackupsPage />);
+    expect(await screen.findByText("No clusters available.")).toBeInTheDocument();
+  });
+
+  it("shows a loading line on the Destinations tab until the clusters are known", async () => {
+    server.use(http.get("/fleet/:kind", () => new Promise<Response>(() => undefined)));
+    await navigateTestSearch({ search: () => ({ tab: "destinations" }) });
+    renderWithQuery(<BackupsPage />);
+    expect(await screen.findByText("Loading clusters…")).toBeInTheDocument();
+    expect(screen.queryByText("No clusters available.")).not.toBeInTheDocument();
+  });
 });

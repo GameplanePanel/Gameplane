@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Authentication (No OIDC mappings)",
   "type": "FRAME",
   "x": 1640,
-  "y": 84143,
+  "y": 85693,
   "width": 1440,
   "height": 1463,
   "fills": [{"type": "SOLID", "color": "#121114"}],

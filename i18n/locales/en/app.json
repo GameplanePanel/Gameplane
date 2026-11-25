@@ -6983,6 +6983,10 @@
     "defaultMessage": "Loading backups…",
     "description": "Backups: loading text on the backups tab while backup data is fetched"
   },
+  "web.routes.backups.loading_clusters_for_destinations": {
+    "defaultMessage": "Loading clusters…",
+    "description": "Backups: destinations tab text shown while the list of clusters is fetched"
+  },
   "web.routes.backups.loading_restores": {
     "defaultMessage": "Loading restores…",
     "description": "Backups: loading text on the restores tab while restore data is fetched"
@@ -7022,6 +7026,10 @@
   "web.routes.backups.no_backups_yet": {
     "defaultMessage": "No backups yet. Use \"Back up now\" to create the first one.",
     "description": "Backups: empty state when no backups exist; quoted text is the Back up now button label"
+  },
+  "web.routes.backups.no_clusters_for_destinations": {
+    "defaultMessage": "No clusters available.",
+    "description": "Backups: destinations tab text shown when no cluster could be listed"
   },
   "web.routes.backups.no_restore_data_available": {
     "defaultMessage": "No restore data available.",
@@ -7114,6 +7122,10 @@
   "web.routes.backups.tab_backups": {
     "defaultMessage": "Backups",
     "description": "Backups: label of the backups tab"
+  },
+  "web.routes.backups.tab_destinations": {
+    "defaultMessage": "Destinations",
+    "description": "Backups: label of the tab listing each cluster's backup destinations (restic repositories); keep it short"
   },
   "web.routes.backups.tab_restores": {
     "defaultMessage": "Restores",
