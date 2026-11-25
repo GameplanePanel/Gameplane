@@ -241,38 +241,13 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	//
 	// The previous release had no telemetry choice saved for this install, so
 	// the upgrade must not turn reporting on or show the notice (spec 022 US1
-	// scenario 5): migration 015 seeds consent_source "legacy".
-	resp, body, err := client.Get("/admin/telemetry/notice")
-	if err != nil || resp.StatusCode != 200 {
-		t.Fatalf("GET /admin/telemetry/notice after upgrade: %v status %d body %s", err, resp.StatusCode, body)
-	}
-	resp.Body.Close()
-	var notice struct {
-		Pending bool `json:"pending"`
-	}
-	if err := json.Unmarshal(body, &notice); err != nil {
-		t.Fatalf("decode notice: %v\n%s", err, body)
-	}
-	if notice.Pending {
-		t.Errorf("telemetry notice is pending after an upgrade; want pending:false, body=%s", body)
-	}
-	resp, body, err = client.Get("/admin/config")
-	if err != nil || resp.StatusCode != 200 {
-		t.Fatalf("GET /admin/config after upgrade: %v status %d body %s", err, resp.StatusCode, body)
-	}
-	resp.Body.Close()
-	var cfgAll struct {
-		Telemetry *struct {
-			SendMetrics bool `json:"sendMetrics"`
-		} `json:"telemetry"`
-	}
-	if err := json.Unmarshal(body, &cfgAll); err != nil {
-		t.Fatalf("decode config: %v\n%s", err, body)
-	}
-	// Absent (nothing was ever saved) or sendMetrics false. The upgrade may add
-	// "extended":false next to a saved value, so only sendMetrics is compared.
-	if cfgAll.Telemetry != nil && cfgAll.Telemetry.SendMetrics {
-		t.Errorf("telemetry sendMetrics is true after an upgrade with no saved choice; body=%s", body)
+	// scenario 5): migration 015 seeds consent_source "legacy". Migration 015
+	// shipped in v0.4.0, so only a pre-v0.4.0 baseline predates telemetry;
+	// CI keeps one upgrade job on v0.3.0 for this check.
+	if from := upgradeFromVersion(); isPre040Release(from) {
+		verifyLegacyTelemetryUpgrade(t, client)
+	} else {
+		t.Logf("skipping the pre-telemetry upgrade checks: %s already ships migration 015", from)
 	}
 
 	checkNativeRBACUpgrade(t, ns, gs, tmpl, legacyReadBinding)
@@ -463,6 +438,17 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	enableAPI := append(upgradeArgs, "--set", "api.credentialsNamespace="+nextNS)
 	migrationDryRun(ctx, t, enableAPI, "operator kubeconfig", "Migrate Secret "+credentialsNS+"/"+kubeconfig.Name)
 	if _, err := core.Secrets(nextNS).Create(ctx, kubeconfig, create); err != nil {
+		t.Fatal(err)
+	}
+	// verifyUpgradeMigration leaves this upload behind only for a pre-v0.4.0
+	// baseline; recreate the same fixture in the release namespace otherwise.
+	upload := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "module-upload-e2e-migration", Labels: map[string]string{
+			"gameplane.local/module-upload": "true", "gameplane.local/module-name": "e2e-migration",
+		}},
+		Data: map[string]string{"module.yaml": "apiVersion: gameplane.local/module/v1\nname: e2e-migration\nversion: 1.0.0\ngame: busybox\n"},
+	}
+	if _, err := core.ConfigMaps("gameplane-system").Create(ctx, upload, create); err != nil && !apierrors.IsAlreadyExists(err) {
 		t.Fatal(err)
 	}
 	migrationDryRun(ctx, t, enableAPI, "operator upload", "Migrate module ConfigMap gameplane-system/module-upload-e2e-migration")
@@ -868,4 +854,42 @@ func liveCRDStamp(ctx context.Context, t *testing.T, crdName string) string {
 		t.Fatalf("get CRD %s: %v", crdName, err)
 	}
 	return crd.GetAnnotations()[crdBundleStampAnnotation]
+}
+
+// verifyLegacyTelemetryUpgrade checks that an upgrade from a release with no
+// telemetry state neither shows the notice nor turns reporting on.
+func verifyLegacyTelemetryUpgrade(t *testing.T, client *APIClient) {
+	t.Helper()
+	resp, body, err := client.Get("/admin/telemetry/notice")
+	if err != nil || resp.StatusCode != 200 {
+		t.Fatalf("GET /admin/telemetry/notice after upgrade: %v status %d body %s", err, resp.StatusCode, body)
+	}
+	resp.Body.Close()
+	var notice struct {
+		Pending bool `json:"pending"`
+	}
+	if err := json.Unmarshal(body, &notice); err != nil {
+		t.Fatalf("decode notice: %v\n%s", err, body)
+	}
+	if notice.Pending {
+		t.Errorf("telemetry notice is pending after an upgrade; want pending:false, body=%s", body)
+	}
+	resp, body, err = client.Get("/admin/config")
+	if err != nil || resp.StatusCode != 200 {
+		t.Fatalf("GET /admin/config after upgrade: %v status %d body %s", err, resp.StatusCode, body)
+	}
+	resp.Body.Close()
+	var cfgAll struct {
+		Telemetry *struct {
+			SendMetrics bool `json:"sendMetrics"`
+		} `json:"telemetry"`
+	}
+	if err := json.Unmarshal(body, &cfgAll); err != nil {
+		t.Fatalf("decode config: %v\n%s", err, body)
+	}
+	// Absent (nothing was ever saved) or sendMetrics false. The upgrade may add
+	// "extended":false next to a saved value, so only sendMetrics is compared.
+	if cfgAll.Telemetry != nil && cfgAll.Telemetry.SendMetrics {
+		t.Errorf("telemetry sendMetrics is true after an upgrade with no saved choice; body=%s", body)
+	}
 }
