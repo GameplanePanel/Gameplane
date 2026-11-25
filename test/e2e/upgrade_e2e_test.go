@@ -176,7 +176,14 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		"--set", "defaultModuleSource.enabled=false",
 		"--wait", "--timeout", "6m",
 	}
-	verifyUpgradeMigration(ctx, t, upgradeArgs)
+	// Only a pre-v0.4.0 release keeps API credentials and module uploads in
+	// the release namespace, so only that baseline has anything to migrate.
+	// CI keeps one upgrade job on v0.3.0 for these checks.
+	if from := upgradeFromVersion(); isPre040Release(from) {
+		verifyUpgradeMigration(ctx, t, upgradeArgs)
+	} else {
+		t.Logf("skipping the credentials-namespace migration checks: %s already keeps API credentials in %s", from, credentialsNS)
+	}
 	upgrade := exec.CommandContext(ctx, "helm", upgradeArgs...)
 	upgrade.Env = append(os.Environ(), "KUBECONFIG="+os.Getenv("KUBECONFIG"))
 	if out, err := upgrade.CombinedOutput(); err != nil {
@@ -335,10 +342,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	// stale. A `kubectl replace` here would instead hand .spec.versions to a
 	// "kubectl-replace" manager no real flow produces, and Helm 4's crds/
 	// apply would then conflict with it on reinstall.
-	fromVersion := os.Getenv("GAMEPLANE_UPGRADE_FROM")
-	if fromVersion == "" {
-		fromVersion = defaultUpgradeFromVersion
-	}
+	fromVersion := upgradeFromVersion()
 	upgradeFromChartRef := upgradeFromChartRefFor(fromVersion)
 	showCRDs := exec.CommandContext(ctx, "helm", "show", "crds", upgradeFromChartRef, "--version", fromVersion)
 	showCRDs.Env = append(os.Environ(), "KUBECONFIG="+os.Getenv("KUBECONFIG"))
@@ -782,12 +786,31 @@ const defaultUpgradeFromVersion = "0.4.3"
 // Releases from v0.4.0 on are published under the GameplanePanel GHCR org;
 // v0.3.0 and older stay under the original ghcr.io/valgulnecron owner.
 func upgradeFromChartRefFor(version string) string {
-	for _, old := range []string{"0.0.", "0.1.", "0.2.", "0.3."} {
-		if strings.HasPrefix(version, old) {
-			return "oci://ghcr.io/valgulnecron/charts/gameplane"
-		}
+	if isPre040Release(version) {
+		return "oci://ghcr.io/valgulnecron/charts/gameplane"
 	}
 	return "oci://ghcr.io/gameplanepanel/charts/gameplane"
+}
+
+// upgradeFromVersion is the published release the upgrade cluster was
+// installed from.
+func upgradeFromVersion() string {
+	if v := os.Getenv("GAMEPLANE_UPGRADE_FROM"); v != "" {
+		return v
+	}
+	return defaultUpgradeFromVersion
+}
+
+// isPre040Release reports whether version predates v0.4.0, the first release
+// that keeps API credentials in a dedicated namespace and publishes under
+// the GameplanePanel GHCR org.
+func isPre040Release(version string) bool {
+	for _, old := range []string{"0.0.", "0.1.", "0.2.", "0.3."} {
+		if strings.HasPrefix(version, old) {
+			return true
+		}
+	}
+	return false
 }
 
 // crdApplyHookEvents returns the helm.sh/hook annotation Helm stored for the
