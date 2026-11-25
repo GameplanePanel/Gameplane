@@ -74,6 +74,7 @@ gp-module/
 │   ├── preview/
 │   │   ├── preview.go            # Manifest simulator and env merger
 │   │   ├── memory.go             # autoFromMemoryLimit calculator
+│   │   ├── security.go           # Security preview: resolved defaults, ownership policy, risky settings
 │   │   └── preview_test.go       # Preview unit tests
 │   └── packager/
 │       ├── packager.go           # OCI bundle packager, size checker and locale layers

@@ -302,7 +302,7 @@ The `make dev-up` target:
    `kind-registry:5000`),
 2. loads every locally-built image (operator, api, web, agent, and every
    optional component's image),
-3. pushes every directory under `modules/` (29 games at last count — see
+3. pushes every directory under `modules/` (30 module directories at last count, 29 games plus the Minecraft Proxy module — see
    `modules/` for the current list) to the local registry as an OCI module
    bundle,
 4. installs the Helm chart from `charts/gameplane/` with a default

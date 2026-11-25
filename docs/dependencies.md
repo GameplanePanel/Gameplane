@@ -5,7 +5,7 @@ dependencies and why each one is there. It covers all 12 Go modules that
 share `go.work` (`netguard`, `gameaction`, `gameproto`, `telemetryschema`,
 `i18n`, `operator`, `api`, `agent`, `telemetry-receiver` [optional], `sentinel` [optional],
 `gp-module`, `test/e2e`), the split component submodules `mcp-server` [optional],
-`audit-syslog-bridge` [optional], `tunnel` [optional] and `capture-sidecar` [optional]
+`audit-syslog-bridge` [optional], `tunnel` [optional], `capture-sidecar` [optional] and `sftp` [optional]
 (each the `GameplanePanel/<repo>` submodule, which keeps its own `go.mod` outside `go.work`), the
 `web/` npm package, and the build/CI toolchain that isn't a code dependency
 but is invoked by `make`/GitHub Actions.
@@ -50,8 +50,8 @@ were added and verified on **2026-09-26**.
 | `tunnel/` (submodule) | Go | 1 (`tailscale.com`) | Relay client supervisor for frp/Tailscale/playit |
 | `gp-module/` | Go | 2 | Module authoring CLI: scaffold, offline validate, dry-run preview, OCI package |
 | `mcp-server/` (submodule) | Go | 5 | Standalone, strictly read-only MCP server for AI-assisted cluster diagnostics |
-| `test/e2e/` | Go | 6 | kind + Helm + real-component end-to-end suite |
-| `web/` | TypeScript/React | 24 runtime + 36 dev | Dashboard: routing, data fetching, UI primitives, console/file editors, tests |
+| `test/e2e/` | Go | 10 | kind + Helm + real-component end-to-end suite |
+| `web/` | TypeScript/React | 26 runtime + 36 dev | Dashboard: routing, data fetching, UI primitives, console/file editors, tests |
 
 ## Shared Go modules
 
@@ -153,7 +153,7 @@ BackupSchedule, Restore, Module, and ModuleSource. Direct deps from
 
 | Dependency | Version | Why | Status |
 |---|---|---|---|
-| `sigs.k8s.io/controller-runtime` | v0.25.2 | Core reconciler framework — every controller in `internal/controller/*` embeds `client.Client`; `cmd/main.go` builds the manager via `ctrl.NewManager` | direct-runtime | <!-- doc-versions: dependency -->
+| `sigs.k8s.io/controller-runtime` | v0.25.3 | Core reconciler framework — every controller in `internal/controller/*` embeds `client.Client`; `cmd/main.go` builds the manager via `ctrl.NewManager` | direct-runtime | <!-- doc-versions: dependency -->
 | `k8s.io/api` | v0.37.2 | Core/apps/batch typed API objects used across `api/v1alpha1/*_types.go` and controllers to build Pod/PVC/Job/Service/RBAC objects | direct-runtime | <!-- doc-versions: dependency -->
 | `k8s.io/apimachinery` | v0.37.2 | `metav1.ObjectMeta`, `runtime.Scheme`, `types.NamespacedName`, etc. — pervasive across CRD types and controllers | direct-runtime | <!-- doc-versions: dependency -->
 | `k8s.io/client-go` | v0.37.2 | `internal/controller/cluster_controller.go`, `gameserver_stop_attach.go` (pod exec/attach via `kubernetes.Clientset`), `cmd/main.go` scheme/clientset setup | direct-runtime | <!-- doc-versions: dependency -->
@@ -196,7 +196,7 @@ chi-based REST + WebSocket gateway. Direct deps from `api/go.mod`
 | `golang.org/x/oauth2` | v0.38.0 | `internal/auth/oidc.go` — `oauth2.Config` drives the OIDC authorization-code exchange | direct-runtime | <!-- doc-versions: dependency -->
 | `golang.org/x/crypto` | v0.59.0 | `internal/auth/password.go` — `argon2.IDKey` hashes/verifies local-login passwords (argon2id), plus a constant-time dummy-verify path to avoid a user-enumeration timing leak | direct-runtime | <!-- doc-versions: dependency -->
 | `k8s.io/api`, `k8s.io/apimachinery`, `k8s.io/client-go` | v0.37.2 | `internal/kube/*.go` (client wrapper, kubeconfig loading, watches, exec streaming), `internal/handlers/*.go`, `internal/notify/sinks.go`, `internal/rbac/rbac.go` — reading/writing CRDs and core objects | direct-runtime | <!-- doc-versions: dependency -->
-| `sigs.k8s.io/controller-runtime` | v0.25.2 | `cmd/main.go` — only `ctrl.GetConfig()` is used, to load the kubeconfig/in-cluster `*rest.Config` at startup; not the manager/reconciler machinery (that's the operator's job — see rule "the operator is authoritative"). `envtest.Environment` in `internal/handlers/suite_envtest_test.go` is test-only | direct-runtime (minimal) | <!-- doc-versions: dependency -->
+| `sigs.k8s.io/controller-runtime` | v0.25.3 | `cmd/main.go` — only `ctrl.GetConfig()` is used, to load the kubeconfig/in-cluster `*rest.Config` at startup; not the manager/reconciler machinery (that's the operator's job — see rule "the operator is authoritative"). `envtest.Environment` in `internal/handlers/suite_envtest_test.go` is test-only | direct-runtime (minimal) | <!-- doc-versions: dependency -->
 | `sigs.k8s.io/yaml` | v1.6.0 | `internal/handlers/module_upload.go` — parses `module.yaml` metadata and `template.yaml` from uploaded module bundles | direct-runtime |
 | `github.com/minio/minio-go/v7` | v7.4.1 | `internal/audit/s3.go` — S3-compatible client (`minio.New`, `PutObject`) backing the S3 audit-log sink | direct-runtime |
 | `github.com/prometheus/client_golang` | v1.25.0 | `cmd/metrics.go` (`promhttp` handler at `/metrics` on the separate metrics listener); `promauto` counters in `internal/notify/notify.go`, `internal/audit/s3.go`, `internal/audit/audit.go` | direct-runtime |
@@ -279,7 +279,7 @@ diagnostics. Direct deps from `mcp-server/go.mod`:
 | `k8s.io/client-go` | v0.37.2 | `internal/kube/client.go` — `kubernetes.NewForConfig`/`dynamic.NewForConfig` build the typed and dynamic clientsets, kept as unexported fields on `Client` so no exported method can reach a mutating verb | <!-- doc-versions: dependency -->
 | `k8s.io/api` | v0.37.2 | `internal/kube/client.go` — `corev1` types for the typed Pod/Event reads (`ListPods`, `GetPod`, `ListEvents`, `PodLogs`) | <!-- doc-versions: dependency -->
 | `k8s.io/apimachinery` | v0.37.2 | `internal/kube/client.go` — `unstructured.Unstructured(List)`, `runtime.Scheme`, `schema.GroupVersionResource` back the dynamic-client reads of 7 of Gameplane's 9 CRDs (not Cluster or NetworkCapture) (redeclared GVK/GVR locally rather than importing the operator module's generated types, to stay standalone) | <!-- doc-versions: dependency -->
-| `sigs.k8s.io/controller-runtime` | v0.25.2 | `main.go` — only `ctrl.GetConfig()`, to load the kubeconfig (in-cluster, falling back to `KUBECONFIG`/`~/.kube/config`) that builds the `kube.Client` above | <!-- doc-versions: dependency -->
+| `sigs.k8s.io/controller-runtime` | v0.25.3 | `main.go` — only `ctrl.GetConfig()`, to load the kubeconfig (in-cluster, falling back to `KUBECONFIG`/`~/.kube/config`) that builds the `kube.Client` above | <!-- doc-versions: dependency -->
 
 The read-only guarantee has two layers: the handler boundary (only
 List/Get-shaped methods are exported from `internal/kube`, and
@@ -360,15 +360,15 @@ React 19 + TypeScript strict + Vite dashboard (`web/package.json` version
 
 **Routing / data fetching**
 - `@tanstack/react-router` `^1.170.46` — file-based route tree; `createRouter`/`RouterProvider` in `src/main.tsx`, tree built in `src/router/tree.tsx`, `Link`/`useNavigate` used across `src/routes/*.tsx`.
-- `@tanstack/react-query` `^5.107.1` — server-state cache; `QueryClient`/`QueryClientProvider` in `src/main.tsx`, `useQuery`/`useMutation` used pervasively across routes and `src/lib/` — the dominant data-fetching layer.
+- `@tanstack/react-query` `^5.108.1` — server-state cache; `QueryClient`/`QueryClientProvider` in `src/main.tsx`, `useQuery`/`useMutation` used pervasively across routes and `src/lib/` — the dominant data-fetching layer.
 - `@tanstack/react-virtual` `^3.14.26` — `useVirtualizer` in `src/routes/tabs/Logs.tsx`, virtualizes the log-line list.
 - `@tanstack/router-devtools` (dev) — **no import found anywhere in `src/`**. Installed but apparently unused; flag as a candidate for removal or an intentionally-deferred addition.
 
 **UI primitives (HeroUI v3)**
 - `@heroui/react` `3.2.7` — foundational component library (Button, Input, Select, Modal, Table, etc.); composed and themed in `src/components/ui/` (Gameplane's composition layer over HeroUI).
 - `@heroui/styles` `3.2.7` — companion style package with semantic token infrastructure for light/dark modes and brand customization; `@heroui/styles` is imported in `src/styles/globals.css` for global theme setup.
-- `clsx` `^2.1.1` + `tailwind-merge` `^3.7.0` — combined into the `cn()` helper in `src/lib/utils.ts`, used app-wide for conditional/merged Tailwind classes and with HeroUI's theme tokens.
-- `lucide-react` `^1.73.0` — icon set, imported in roughly 83 files (`AppLayout`, `Dashboard`, `Login`, dialogs, etc.).
+- `clsx` `^2.1.1` + `tailwind-merge` `^3.7.1` — combined into the `cn()` helper in `src/lib/utils.ts`, used app-wide for conditional/merged Tailwind classes and with HeroUI's theme tokens.
+- `lucide-react` `^1.76.0` — icon set, imported in roughly 83 files (`AppLayout`, `Dashboard`, `Login`, dialogs, etc.).
 - `react-aria` — peer dependency of HeroUI, providing accessibility primitives (via `react-aria-components`) used by HeroUI atoms.
 
 **Editors / terminals**
@@ -376,25 +376,25 @@ React 19 + TypeScript strict + Vite dashboard (`web/package.json` version
 - `@xterm/xterm` `^6.0.0` + `@xterm/addon-fit` `^0.11.0` — `Terminal`/`FitAddon` in `src/routes/tabs/useConsoleTerminal.ts`, driving the live server console (`Console.tsx`); also chunked separately in `vite.config.ts`. <!-- doc-versions: dependency -->
 
 **Styling / build**
-- `tailwindcss` `^4.3.3`, `autoprefixer` `^10.6.2`, `postcss` `^8.5.32` (dev) — `postcss.config.js` wires Tailwind + autoprefixer; there is no `tailwind.config.ts`; design tokens live in `src/styles/globals.css`, which imports `@heroui/styles`.
+- `tailwindcss` `^4.3.3`, `autoprefixer` `^10.7.0`, `postcss` `^8.5.33` (dev) — `postcss.config.js` wires Tailwind + autoprefixer; there is no `tailwind.config.ts`; design tokens live in `src/styles/globals.css`, which imports `@heroui/styles`.
 - `vite` `^8.3.8`, `@vitejs/plugin-react` `^6.3.0` (dev) — `vite.config.ts` drives the dev server (with the API/WS proxy to the in-cluster API used by `make web-dev`), production build, and is the engine behind `vitest.config.ts`.
 - `typescript` `^7.0.2` (dev) provides the native `tsc` used for the dashboard build and Playwright type checks. The i18n migration script reads TSX syntax with Babel.
 - Opening a JavaScript or TypeScript file starts Microsoft's TypeScript language server in a WebAssembly worker. The browser package is pinned to `7.1.0-dev.20261030.1`, the version Microsoft tested in Playground v2. The worker checks the open file against TypeScript's standard library in browser memory. [Microsoft's Playground implementation](https://github.com/microsoft/TypeScript-Website/pull/3653)
 - On plain HTTP, the editor sends changes to the worker with ordinary browser messages. Autocomplete and type checking require WebAssembly JavaScript Promise Integration (Chrome and Edge 137+, Firefox 153+, or Safari 27+). A secure, cross-origin-isolated page can also use shared memory, including on older browsers. With neither capability, users can still edit, highlight, and save files. [Browser support](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/JavaScript_interface/Suspending#browser_compatibility)
 
 **Lint** (dev, all wired directly in `eslint.config.js`)
-- `eslint` `^10.14.0` and `@eslint/js` `^10.0.1` check JavaScript. Babel parses TypeScript and JSX for `eslint-plugin-react-hooks` and `eslint-plugin-formatjs`.
+- `eslint` `^10.15.0` and `@eslint/js` `^10.0.1` check JavaScript. Babel parses TypeScript and JSX for `eslint-plugin-react-hooks` and `eslint-plugin-formatjs`.
 - `oxlint` and `oxlint-tsgolint` check React and TypeScript code, including unhandled promises. Run both linters with `npm run lint` in `web/`. [Oxlint configuration](../web/.oxlintrc.json)
 
 **Testing — unit tier (Vitest)**
-- `vitest` `^5.0.0`, `@vitest/coverage-v8` `^5.1.0` (dev) — `vitest.config.ts` (jsdom environment, coverage thresholds), run via `npm test`/`test:cover`.
-- `jsdom` `^31.0.0` (dev) — the test environment itself.
-- `@testing-library/react` `^16.3.3`, `@testing-library/user-event` `^14.6.10`, `@testing-library/jest-dom` `^7.0.1`, `@testing-library/dom` `^10.4.2` (dev) — `render`/`screen`, interaction simulation, and DOM matchers used across the co-located `*.test.tsx` files.
-- `msw` `^3.0.5` — dual role: unit-test request mocking (`src/test/server.ts`/`handlers.ts`, used via `setupServer` in most `*.test.tsx` files) **and** browser-mode mocking for Playwright's mock tier (`src/test/browser-msw.ts` uses `msw/browser`'s `setupWorker`, loaded by `main.tsx` when `VITE_E2E_MOCK` is set).
+- `vitest` `^5.0.0`, `@vitest/coverage-v8` `^5.1.1` (dev) — `vitest.config.ts` (jsdom environment, coverage thresholds), run via `npm test`/`test:cover`.
+- `jsdom` `^31.0.1` (dev) — the test environment itself.
+- `@testing-library/react` `^16.3.3`, `@testing-library/user-event` `^14.6.13`, `@testing-library/jest-dom` `^8.0.0`, `@testing-library/dom` `^10.4.2` (dev) — `render`/`screen`, interaction simulation, and DOM matchers used across the co-located `*.test.tsx` files.
+- `msw` `^3.0.7` — dual role: unit-test request mocking (`src/test/server.ts`/`handlers.ts`, used via `setupServer` in most `*.test.tsx` files) **and** browser-mode mocking for Playwright's mock tier (`src/test/browser-msw.ts` uses `msw/browser`'s `setupWorker`, loaded by `main.tsx` when `VITE_E2E_MOCK` is set).
 - `vitest-websocket-mock` `^0.8.0` (dev) — `src/test/ws.ts`, mocks the WebSocket used by `src/lib/ws.ts`/console streaming in unit tests. <!-- doc-versions: dependency -->
 
 **Testing — e2e tier (Playwright)**
-- `@playwright/test` `^1.65.0` (dev) — `playwright.config.ts` defines mock vs. live run modes (`GAMEPLANE_E2E_TARGET`), driven by `make test-web-e2e-mock`/`test-web-e2e-live`. Live mode hits a real kind cluster via a `kubectl port-forward` globalSetup; mock mode reuses the same `msw` handlers as the unit tier.
+- `@playwright/test` `^1.65.1` (dev) — `playwright.config.ts` defines mock vs. live run modes (`GAMEPLANE_E2E_TARGET`), driven by `make test-web-e2e-mock`/`test-web-e2e-live`. Live mode hits a real kind cluster via a `kubectl port-forward` globalSetup; mock mode reuses the same `msw` handlers as the unit tier.
 
 **Types**
 - `@types/react` `^19.3.0`, `@types/react-dom` `^19.3.0`, `@types/node` `^26.6.6` (dev) — type definitions consumed implicitly by TypeScript, no direct import.
@@ -430,7 +430,7 @@ These aren't code dependencies of any component; they're invoked by
 - **`github.com/wadey/gocovmerge@v0.0.0-20160331181800-b5bfa59ec0ad`** — pinned in `Makefile`'s `GOCOVMERGE_PKG`, merges each module's `unit.out` + `envtest.out` coverage profiles before the threshold gate. <!-- doc-versions: dependency -->
 - **`sigs.k8s.io/controller-runtime/tools/setup-envtest@release-0.24`** — installed by `make envtest-bin`; downloads the K8s 1.36.2 envtest binaries (`kube-apiserver`, `etcd`) that back `operator`'s and `api`'s `-tags=envtest` integration tests.
 - **`golangci-lint` v2.14.0** — pinned in `.github/workflows/ci.yaml`, `.devcontainer/versions.toml` (`golangci_lint`, installed by `.devcontainer/setup.sh`), and the exact-version guard in `test/e2e/lint-gate-verify.sh`. Its `golang.org/x/tools v0.50.0` importer supports the export-data version 5 emitted by Go 1.27.3; v2.13.2's importer does not. CI uses the published binary and the devcontainer builds the same release from source. The CI `lint` matrix gates every selected workspace module with `.golangci.yml`, using `envtest` tags for operator/API and `e2e` tags for test/e2e. Update the verifier's valid fixtures with the pin; unsupported or unpinned versions must still fail. Tests and general lint run only in CI under repository policy. <!-- doc-versions: dependency -->
-- **`oras` CLI ≥ 1.2.0** (pinned `1.2.0` in `.devcontainer/versions.toml`; `oras-project/setup-oras@v2.0.3` action in `release.yaml`) — `modules/build.sh` pushes each `modules/<name>/` directory as an OCI module bundle (`make modules-push`); this is a *different* thing from `operator`'s `oras.land/oras-go/v2` **library** dependency, which is the operator's own pull-side client, not the CLI.
+- **`oras` CLI ≥ 1.2.0** (pinned `1.2.0` in `.devcontainer/versions.toml`; `oras-project/setup-oras@v2.0.4` action in `release.yaml`) — `modules/build.sh` pushes each `modules/<name>/` directory as an OCI module bundle (`make modules-push`); this is a *different* thing from `operator`'s `oras.land/oras-go/v2` **library** dependency, which is the operator's own pull-side client, not the CLI.
 - **`cosign` CLI v3.1.2** (`sigstore/cosign-installer@v4.1.3`) — used in `publish-edge.yaml`/`release.yaml` to sign published container images, the Helm chart, and module bundles against `COSIGN_PRIVATE_KEY`, recording each signature in the public Rekor transparency log, and to round-trip-verify against the derived public key before publishing. Signatures use the classic format (`--new-bundle-format=false --use-signing-config=false`), which is what keeps them readable by the operator's `sigstore/cosign/v3` library; cosign's newer Rekor v2 flow additionally requires an RFC3161 timestamp authority that keyed signing cannot satisfy. `modules/build.sh` gates the same behaviour behind its own `--tlog-upload` flag so local and air-gapped authoring stays offline. Distinct from `operator`'s `sigstore/cosign/v3` **library** dependency, which only ever *verifies* (never signs) at reconcile time.
 - **`kind`** v0.32.0 (pinned in `.devcontainer/versions.toml`) / `helm/kind-action@v1.15.2` (`install_only: true` in CI) — spins up the ephemeral clusters for `make dev-up`, `make test-e2e`, and every `e2e-*` CI job. <!-- doc-versions: dependency -->
 - **`helm`** (`azure/setup-helm@v5.1.0` in CI; `helm` 4.3.1 pinned in `.devcontainer/versions.toml` and installed by the full dev container profile) — chart lint (`helm lint`), chart render sanity-check, `helm template`, and `helm upgrade --install` in `deploy/kind/*.sh`/`Makefile`'s `dev-install`.

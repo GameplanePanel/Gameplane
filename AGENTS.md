@@ -31,8 +31,8 @@ operator/            controller-runtime operator
   internal/controller/  reconcilers + envtest suites
   cmd/main.go        entrypoint;  config/{crd,rbac}/ GENERATED
 api/                 REST + WebSocket gateway (chi); cmd/main.go: `serve`, `gateway`, `bootstrap-admin`, `rotate-panel-key`
-  internal/{handlers,auth,db,kube,notify,rbac,ws}/
-agent/               in-pod sidecar; internal/{auth,console,files,heartbeat,logs,players,rcon,quiesce}/
+  internal/{audit,auth,controlplane,db,gateway,gatewayprotocol,handlers,httperr,kube,kubeconfig,messages,notify,rbac,registry,scope,steam,telemetry,ws}/
+agent/               in-pod sidecar; internal/{a2s,actions,auth,caps,console,files,heartbeat,httpjson,lifecycle,logs,metrics,mods,players,quiesce,rcon,status,target,usage}/
 audit-syslog-bridge/ SUBMODULE GameplanePanel/audit-syslog-bridge (RFC 5424 HTTP→syslog forwarder; own go.mod, not in go.work; image still built here)
 telemetry-receiver/  usage telemetry ingest
 sentinel/            wake-on-connect proxy for sleeping pods
@@ -40,7 +40,7 @@ capture-sidecar/     SUBMODULE GameplanePanel/capture-sidecar (AF_PACKET BPF cap
 mcp-server/          SUBMODULE GameplanePanel/mcp (read-only MCP server; own go.mod, not in go.work; image still built here)
 sftp/                SUBMODULE GameplanePanel/sftp (SFTP endpoint for game server files, spec 040; own go.mod, not in go.work; image still built here)
 tunnel/              SUBMODULE GameplanePanel/tunnel (relay client supervisor: frp, Tailscale, playit; own go.mod, not in go.work; image still built here)
-web/                 React 19 + strict TS + Vite dashboard; src/{routes,components,lib,router,styles,test}/
+web/                 React 19 + strict TS + Vite dashboard; src/{__tests__,api,components,lib,pages,router,routes,styles,test}/ (plus main.tsx and types.ts)
 modules/             SUBMODULE GameplanePanel/module (OCI game templates)
 website/             SUBMODULE GameplanePanel/website (Astro docs/marketing; has its own CLAUDE.md and AGENTS.md)
 charts/gameplane/    Helm chart (crd-manifests/, hooks)

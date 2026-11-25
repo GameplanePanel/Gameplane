@@ -882,7 +882,7 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 | k8s.io/api | v0.37.2 | Kubernetes core types (Pod, StatefulSet, Service, Job, etc.). |
 | k8s.io/apimachinery | v0.37.2 | Kubernetes API machinery (metav1, runtime.Scheme, etc.). |
 | k8s.io/client-go | v0.37.2 | Kubernetes client (for exec, logs, discovery). |
-| sigs.k8s.io/controller-runtime | v0.25.2 | Reconciler framework (Manager, Builder, Reconciler interface). |
+| sigs.k8s.io/controller-runtime | v0.25.3 | Reconciler framework (Manager, Builder, Reconciler interface). |
 | github.com/GameplanePanel/gameplane/netguard | local | SSRF dial guard (permissive policy for module fetches from private registries). |
 | github.com/go-git/go-git/v5 | v5.19.3 | Git operations (clone, fetch) for ModuleSources. |
 | github.com/go-git/go-billy/v5 | v5.9.2 | VCS filesystem abstraction for go-git. |

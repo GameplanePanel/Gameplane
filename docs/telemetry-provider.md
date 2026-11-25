@@ -17,7 +17,7 @@ project's data-handling statement is at
 
 | Listener | Variable (default) | Serves | Exposure |
 |---|---|---|---|
-| Public | `LISTEN_ADDR` (`:8080`) | `POST /ingest`, `GET /v1/summary` (only when `PUBLIC_SUMMARY=true`), `GET /v1/challenge` (only when `INGEST_POW=true`), `GET /healthz` | Public internet, behind TLS |
+| Public | `LISTEN_ADDR` (`:8080`) | `POST /ingest`, `GET /v1/summary` (only when `PUBLIC_SUMMARY=true`), `GET /v1/challenge` (when `INGEST_POW=true`, or while a new-install claim is pending for the source), `GET /healthz` | Public internet, behind TLS |
 | Dashboard | `DASHBOARD_LISTEN_ADDR` (`:8081`) | login page, dashboard, `/api/v1/views`, `/metrics`, static assets | Private network only |
 
 The dashboard listener starts only when `DASHBOARD_TOKEN` is set. The
@@ -654,7 +654,7 @@ a Bearer token. Existing series keep their names; new ones:
 `summary`, `challenge`),
 `gameplane_telemetry_extended_reports_total`,
 `gameplane_telemetry_refused_total{reason}` (`bad_signature`, `stale`,
-`id_claimed`, `replay`, `pow_required`, `pow_invalid`, `pow_busy`),
+`id_claimed`, `replay`, `pow_required`, `pow_invalid`, `pow_busy`, `pow_claim`),
 `gameplane_telemetry_pow_challenges_total` and the gauge
 `gameplane_telemetry_pow_bits`. The two proof-of-work series are always
 exported; `pow_bits` is `0` while `INGEST_POW` is off.

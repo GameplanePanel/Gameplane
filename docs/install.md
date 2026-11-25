@@ -31,9 +31,9 @@ The chart's `appVersion` pins matching component images under
 `ghcr.io/gameplanepanel/gameplane/<name>:<version>`, so no image overrides are
 needed for a released version. A default install pulls four of them:
 `operator`, `api`, `web`, and `agent` (the last is pulled per-GameServer, on
-demand). The remaining eight — `audit-syslog-bridge`, `telemetry-receiver`,
+demand). The remaining nine — `audit-syslog-bridge`, `telemetry-receiver`,
 `sentinel`, `tunnel-frp`, `tunnel-tailscale`, `tunnel-playit`, `mcp-server`,
-and `capture-sidecar` — are only pulled when the optional component they
+`capture-sidecar`, and `sftp` — are only pulled when the optional component they
 belong to is enabled (and, for `sentinel` and `capture-sidecar`, only for
 GameServers that opt in). See each component's values block for its enable
 flag.
@@ -307,10 +307,11 @@ Top-level knobs (see `values.yaml` for the full list):
       a dashboard override survives future `helm upgrade`s that change the Helm
       value. Per-role precedence: dashboard override (if present) > Helm seed. No
       admin account or `bootstrap-admin` run needed for OIDC-only installs.
-    - `defaultRole` — Helm-only (no dashboard override in v1). Default role when a
+    - `defaultRole` — Seeded from Helm; an admin can also override it from the dashboard. Default role when a
       user's IdP groups don't match any `roleMappings` entry (default `""`).
-      Accepted values: `""` (treat as `"viewer"`), `"viewer"`, `"operator"`,
-      `"admin"`, or `"deny"` (reject login). Meaningful only when role mappings
+      Accepted values: `""` (treat as `"viewer"`), `"deny"` (reject login), or the
+      name of any role, built-in or custom (checked at sign-in; a missing role
+      refuses the login). Meaningful only when role mappings
       are configured. Example: `--set api.oidc.defaultRole=viewer`
   **Backward compatibility**: Group-based mapping is active whenever at least
   one `roleMappings` list is non-empty or an admin has set a mapping override
@@ -1065,7 +1066,7 @@ and roll out the new agent before relying on per-server readings.
 
 ### What upgrades are tested
 
-CI runs an end-to-end upgrade on every PR (`e2e upgrade`, on both amd64 and
+CI runs an end-to-end upgrade on PRs whose changes select the upgrade suite (`e2e upgrade`, on both amd64 and
 arm64): it installs the **previous release's published chart and published
 GHCR images** into a fresh cluster, seeds a running GameServer with data on
 its PVC and an admin user in the database, then upgrades to the chart under
