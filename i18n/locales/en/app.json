@@ -7023,6 +7023,10 @@
     "defaultMessage": "No backups yet. Use \"Back up now\" to create the first one.",
     "description": "Backups: empty state when no backups exist; quoted text is the Back up now button label"
   },
+  "web.routes.backups.no_clusters_for_destinations": {
+    "defaultMessage": "No clusters available.",
+    "description": "Backups: destinations tab text shown when no cluster could be listed"
+  },
   "web.routes.backups.no_restore_data_available": {
     "defaultMessage": "No restore data available.",
     "description": "Backups: restores empty state when the list could not be loaded"
@@ -7114,6 +7118,10 @@
   "web.routes.backups.tab_backups": {
     "defaultMessage": "Backups",
     "description": "Backups: label of the backups tab"
+  },
+  "web.routes.backups.tab_destinations": {
+    "defaultMessage": "Destinations",
+    "description": "Backups: label of the tab listing each cluster's backup destinations (restic repositories); keep it short"
   },
   "web.routes.backups.tab_restores": {
     "defaultMessage": "Restores",
