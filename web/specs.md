@@ -1,6 +1,6 @@
 # web — Specification
 
-**Status:** pre-v1 (v0.4.3)  
+**Status:** pre-v1 (v0.5.0)  
 **Module / package:** @gameplane/web  
 **Build:** Vite 8.3 + React 19.3 + TypeScript 7.0 (strict)
 
@@ -799,7 +799,7 @@ vitest.config.ts            # Coverage gates (lines 92 / functions 76 / branches
 playwright.config.ts        # Mock + live test modes, serial execution (login state is shared)
 eslint.config.js            # JavaScript, React Hooks and FormatJS rules
 .oxlintrc.json              # React and TypeScript rules, including type-aware promise checks
-package.json                # @gameplane/web v0.4.3; dev: vite, npm scripts for build/test/lint
+package.json                # @gameplane/web v0.5.0; dev: vite, npm scripts for build/test/lint
 ```
 
 ## SSO Role Rules and Role Source (spec 034) — pending dashboard build

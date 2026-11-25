@@ -1,3 +1,0 @@
-# Dashboard security hardening
-
-The dashboard now bundles its fonts instead of loading them from Google Fonts, so no page (the login page included) contacts a third-party host and the Content-Security-Policy no longer allows one. The dashboard's nginx no longer shows its version in headers or error pages, production images no longer ship the test mock service worker, and the file editor (Monaco 0.58.0) bundles a DOMPurify release with recent advisories fixed and no longer loads remote images in hovers. No action is needed when upgrading. [PR #1091](https://github.com/GameplanePanel/Gameplane/pull/1091)

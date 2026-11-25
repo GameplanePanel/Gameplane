@@ -353,7 +353,7 @@ package a game module before publishing it. Direct deps from
 ### web
 
 React 19 + TypeScript strict + Vite dashboard (`web/package.json` version
-`0.4.3`, matching the repo version):
+`0.5.0`, matching the repo version):
 
 **Framework / core**
 - `react` `^19.3.1`, `react-dom` `^19.3.1` — base UI framework, rendered via `createRoot` in `src/main.tsx`, used throughout every component.

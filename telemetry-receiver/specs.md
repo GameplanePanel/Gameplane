@@ -1,6 +1,6 @@
 # telemetry-receiver — Specification
 
-**Status:** pre-v1 (v0.4.3)  
+**Status:** pre-v1 (v0.5.0)  
 **Module / package:** github.com/GameplanePanel/gameplane/telemetry-receiver  
 **Go version:** 1.27
 

@@ -176,7 +176,14 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		"--set", "defaultModuleSource.enabled=false",
 		"--wait", "--timeout", "6m",
 	}
-	verifyUpgradeMigration(ctx, t, upgradeArgs)
+	// Only a pre-v0.4.0 release keeps API credentials and module uploads in
+	// the release namespace, so only that baseline has anything to migrate.
+	// CI keeps one upgrade job on v0.3.0 for these checks.
+	if from := upgradeFromVersion(); isPre040Release(from) {
+		verifyUpgradeMigration(ctx, t, upgradeArgs)
+	} else {
+		t.Logf("skipping the credentials-namespace migration checks: %s already keeps API credentials in %s", from, credentialsNS)
+	}
 	upgrade := exec.CommandContext(ctx, "helm", upgradeArgs...)
 	upgrade.Env = append(os.Environ(), "KUBECONFIG="+os.Getenv("KUBECONFIG"))
 	if out, err := upgrade.CombinedOutput(); err != nil {
@@ -234,38 +241,13 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	//
 	// The previous release had no telemetry choice saved for this install, so
 	// the upgrade must not turn reporting on or show the notice (spec 022 US1
-	// scenario 5): migration 015 seeds consent_source "legacy".
-	resp, body, err := client.Get("/admin/telemetry/notice")
-	if err != nil || resp.StatusCode != 200 {
-		t.Fatalf("GET /admin/telemetry/notice after upgrade: %v status %d body %s", err, resp.StatusCode, body)
-	}
-	resp.Body.Close()
-	var notice struct {
-		Pending bool `json:"pending"`
-	}
-	if err := json.Unmarshal(body, &notice); err != nil {
-		t.Fatalf("decode notice: %v\n%s", err, body)
-	}
-	if notice.Pending {
-		t.Errorf("telemetry notice is pending after an upgrade; want pending:false, body=%s", body)
-	}
-	resp, body, err = client.Get("/admin/config")
-	if err != nil || resp.StatusCode != 200 {
-		t.Fatalf("GET /admin/config after upgrade: %v status %d body %s", err, resp.StatusCode, body)
-	}
-	resp.Body.Close()
-	var cfgAll struct {
-		Telemetry *struct {
-			SendMetrics bool `json:"sendMetrics"`
-		} `json:"telemetry"`
-	}
-	if err := json.Unmarshal(body, &cfgAll); err != nil {
-		t.Fatalf("decode config: %v\n%s", err, body)
-	}
-	// Absent (nothing was ever saved) or sendMetrics false. The upgrade may add
-	// "extended":false next to a saved value, so only sendMetrics is compared.
-	if cfgAll.Telemetry != nil && cfgAll.Telemetry.SendMetrics {
-		t.Errorf("telemetry sendMetrics is true after an upgrade with no saved choice; body=%s", body)
+	// scenario 5): migration 015 seeds consent_source "legacy". Migration 015
+	// shipped in v0.4.0, so only a pre-v0.4.0 baseline predates telemetry;
+	// CI keeps one upgrade job on v0.3.0 for this check.
+	if from := upgradeFromVersion(); isPre040Release(from) {
+		verifyLegacyTelemetryUpgrade(t, client)
+	} else {
+		t.Logf("skipping the pre-telemetry upgrade checks: %s already ships migration 015", from)
 	}
 
 	checkNativeRBACUpgrade(t, ns, gs, tmpl, legacyReadBinding)
@@ -335,10 +317,8 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	// stale. A `kubectl replace` here would instead hand .spec.versions to a
 	// "kubectl-replace" manager no real flow produces, and Helm 4's crds/
 	// apply would then conflict with it on reinstall.
-	fromVersion := os.Getenv("GAMEPLANE_UPGRADE_FROM")
-	if fromVersion == "" {
-		fromVersion = defaultUpgradeFromVersion
-	}
+	fromVersion := upgradeFromVersion()
+	upgradeFromChartRef := upgradeFromChartRefFor(fromVersion)
 	showCRDs := exec.CommandContext(ctx, "helm", "show", "crds", upgradeFromChartRef, "--version", fromVersion)
 	showCRDs.Env = append(os.Environ(), "KUBECONFIG="+os.Getenv("KUBECONFIG"))
 	oldCRDs, err := showCRDs.Output()
@@ -460,6 +440,17 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	if _, err := core.Secrets(nextNS).Create(ctx, kubeconfig, create); err != nil {
 		t.Fatal(err)
 	}
+	// verifyUpgradeMigration leaves this upload behind only for a pre-v0.4.0
+	// baseline; recreate the same fixture in the release namespace otherwise.
+	upload := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "module-upload-e2e-migration", Labels: map[string]string{
+			"gameplane.local/module-upload": "true", "gameplane.local/module-name": "e2e-migration",
+		}},
+		Data: map[string]string{"module.yaml": "apiVersion: gameplane.local/module/v1\nname: e2e-migration\nversion: 1.0.0\ngame: busybox\n"},
+	}
+	if _, err := core.ConfigMaps("gameplane-system").Create(ctx, upload, create); err != nil && !apierrors.IsAlreadyExists(err) {
+		t.Fatal(err)
+	}
 	migrationDryRun(ctx, t, enableAPI, "operator upload", "Migrate module ConfigMap gameplane-system/module-upload-e2e-migration")
 }
 
@@ -470,7 +461,8 @@ func verifyUpgradeMigration(ctx context.Context, t *testing.T, upgradeArgs []str
 	const sourceNS = "gameplane-system"
 	core := envInstance.K8s.CoreV1()
 	create := metav1.CreateOptions{}
-	if _, err := core.Namespaces().Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: credentialsNS}}, create); err != nil {
+	// Releases from v0.4.0 on already create the credentials namespace.
+	if _, err := core.Namespaces().Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: credentialsNS}}, create); err != nil && !apierrors.IsAlreadyExists(err) {
 		t.Fatal(err)
 	}
 	immutable := true
@@ -771,15 +763,41 @@ func verifyDeferredStartupUpgrade(t *testing.T, ns, gs, tmpl string) {
 	}
 }
 
-// upgradeFromChartRef and defaultUpgradeFromVersion mirror CHART_REF and
-// FROM_VERSION in deploy/kind/upgrade.sh: the published chart the upgrade
-// cluster was installed from. CI sets GAMEPLANE_UPGRADE_FROM for both.
-// Releases up to v0.3.0 predate the GameplanePanel org move and stay
-// under the original GHCR owner.
-const (
-	upgradeFromChartRef       = "oci://ghcr.io/valgulnecron/charts/gameplane"
-	defaultUpgradeFromVersion = "0.3.0"
-)
+// defaultUpgradeFromVersion mirrors FROM_VERSION in deploy/kind/upgrade.sh:
+// the published chart the upgrade cluster was installed from. CI sets
+// GAMEPLANE_UPGRADE_FROM for both.
+const defaultUpgradeFromVersion = "0.4.3"
+
+// upgradeFromChartRefFor mirrors CHART_REF in deploy/kind/upgrade.sh.
+// Releases from v0.4.0 on are published under the GameplanePanel GHCR org;
+// v0.3.0 and older stay under the original ghcr.io/valgulnecron owner.
+func upgradeFromChartRefFor(version string) string {
+	if isPre040Release(version) {
+		return "oci://ghcr.io/valgulnecron/charts/gameplane"
+	}
+	return "oci://ghcr.io/gameplanepanel/charts/gameplane"
+}
+
+// upgradeFromVersion is the published release the upgrade cluster was
+// installed from.
+func upgradeFromVersion() string {
+	if v := os.Getenv("GAMEPLANE_UPGRADE_FROM"); v != "" {
+		return v
+	}
+	return defaultUpgradeFromVersion
+}
+
+// isPre040Release reports whether version predates v0.4.0, the first release
+// that keeps API credentials in a dedicated namespace and publishes under
+// the GameplanePanel GHCR org.
+func isPre040Release(version string) bool {
+	for _, old := range []string{"0.0.", "0.1.", "0.2.", "0.3."} {
+		if strings.HasPrefix(version, old) {
+			return true
+		}
+	}
+	return false
+}
 
 // crdApplyHookEvents returns the helm.sh/hook annotation Helm stored for the
 // release's crds.autoApply Job, i.e. which lifecycle events that release
@@ -836,4 +854,42 @@ func liveCRDStamp(ctx context.Context, t *testing.T, crdName string) string {
 		t.Fatalf("get CRD %s: %v", crdName, err)
 	}
 	return crd.GetAnnotations()[crdBundleStampAnnotation]
+}
+
+// verifyLegacyTelemetryUpgrade checks that an upgrade from a release with no
+// telemetry state neither shows the notice nor turns reporting on.
+func verifyLegacyTelemetryUpgrade(t *testing.T, client *APIClient) {
+	t.Helper()
+	resp, body, err := client.Get("/admin/telemetry/notice")
+	if err != nil || resp.StatusCode != 200 {
+		t.Fatalf("GET /admin/telemetry/notice after upgrade: %v status %d body %s", err, resp.StatusCode, body)
+	}
+	resp.Body.Close()
+	var notice struct {
+		Pending bool `json:"pending"`
+	}
+	if err := json.Unmarshal(body, &notice); err != nil {
+		t.Fatalf("decode notice: %v\n%s", err, body)
+	}
+	if notice.Pending {
+		t.Errorf("telemetry notice is pending after an upgrade; want pending:false, body=%s", body)
+	}
+	resp, body, err = client.Get("/admin/config")
+	if err != nil || resp.StatusCode != 200 {
+		t.Fatalf("GET /admin/config after upgrade: %v status %d body %s", err, resp.StatusCode, body)
+	}
+	resp.Body.Close()
+	var cfgAll struct {
+		Telemetry *struct {
+			SendMetrics bool `json:"sendMetrics"`
+		} `json:"telemetry"`
+	}
+	if err := json.Unmarshal(body, &cfgAll); err != nil {
+		t.Fatalf("decode config: %v\n%s", err, body)
+	}
+	// Absent (nothing was ever saved) or sendMetrics false. The upgrade may add
+	// "extended":false next to a saved value, so only sendMetrics is compared.
+	if cfgAll.Telemetry != nil && cfgAll.Telemetry.SendMetrics {
+		t.Errorf("telemetry sendMetrics is true after an upgrade with no saved choice; body=%s", body)
+	}
 }
