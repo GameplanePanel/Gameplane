@@ -20,15 +20,17 @@ describe("getServerTemplate", () => {
   });
 
   it("falls back to the server-scoped template when the catalog refuses", async () => {
+    let namespace: string | null = null;
     server.use(
       http.get("/templates/:name", () => HttpResponse.json({ detail: "forbidden" }, { status: 403 })),
       http.get("/servers/alpha/template", ({ request }) => {
-        expect(new URL(request.url).searchParams.get("namespace")).toBe("gameplane-games");
+        namespace = new URL(request.url).searchParams.get("namespace");
         return HttpResponse.json(makeTemplate({ metadata: { name: "scoped" } }));
       }),
     );
     const tmpl = await getServerTemplate(client(), "alpha", "gameplane-games", "valheim");
     expect(tmpl.metadata.name).toBe("scoped");
+    expect(namespace).toBe("gameplane-games");
   });
 
   it("passes other errors through", async () => {
