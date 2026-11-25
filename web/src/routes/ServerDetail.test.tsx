@@ -415,6 +415,29 @@ describe("ServerDetailPage dynamic tabs", () => {
     await waitFor(() => expect(screen.getByText("mods-tab")).toBeInTheDocument());
   });
 
+  it("shows the Mods tab to a collaborator who cannot read the template catalog", async () => {
+    // A collaborator without templates:read gets 403 from the catalog; the
+    // server-scoped template read still gives the tabs their template (#1063).
+    server.use(
+      http.get("/servers/alpha", () => HttpResponse.json(makeServer())),
+      http.get("/servers/alpha/access", () => HttpResponse.json({
+        target: { cluster: "local", namespace: "gameplane-games", name: "alpha" },
+        canWrite: false, canControl: true, canConsole: true, canDelete: false, isOwner: false, isCollaborator: true,
+        permissions: [],
+      })),
+      http.get("/templates/:name", () => HttpResponse.json({ detail: "forbidden" }, { status: 403 })),
+      http.get("/servers/alpha/template", () =>
+        HttpResponse.json(
+          makeTemplate({ spec: { capabilities: { mods: { path: "mods" } } } }),
+        ),
+      ),
+    );
+    renderWithQuery(<ServerDetailPage />);
+    const modsTab = await screen.findByRole("tab", { name: "Mods" });
+    await userEvent.click(modsTab);
+    await waitFor(() => expect(screen.getByText("mods-tab")).toBeInTheDocument());
+  });
+
   it("keeps the Logs tab available even when the template logs only to stdout", async () => {
     server.use(
       http.get("/servers/alpha", () => HttpResponse.json(makeServer())),
