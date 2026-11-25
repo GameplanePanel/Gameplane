@@ -289,6 +289,7 @@ spec:
       provider: playit
       credentialsSecretRef:
         name: minecraft-playit-tunnel-auth
+      playit: {}
 ```
 
 The `credentialsSecretRef.name` is the name that the dashboard or API write after you provide the credential.
@@ -468,8 +469,10 @@ If you want to avoid reconnects on wake, consider:
    provider-specific relay ports:
    - **frp:** the frp server's `ServerAddr:ServerPort` (default TCP 7000).
    - **tailscale:** the control plane on TCP 443 and DERP relays on UDP 41641.
-   - **playit:** an unrestricted egress rule (all ports, all protocols, any
-     destination), in addition to the DNS/advertised-ports rule every
+   - **playit:** an egress rule for all ports and protocols, limited to public
+     addresses (private and link-local ranges stay closed through
+     `networkPolicies.tunnelEgress.exceptCIDRs`), in addition to the
+     DNS/advertised-ports rule every
      provider gets. playit does not publish a fixed set of relay endpoints
      or ports, so a per-port allow list can't be expressed the way it can
      for frp and tailscale.

@@ -422,11 +422,11 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
 
 ### Modpacks tab (spec 035, planned)
 
-Status: the API and CRD side has landed; the web work (specs/035-curseforge-modpacks tasks, not yet implemented) has not. Contracts: `specs/035-curseforge-modpacks/contracts/ui-modpacks-tab.md` and `api-modpack.md`; designs are in `design.pen`.
+Status: the API and CRD side has landed, and the first web surfaces exist: `web/src/components/modpack-active-card.tsx`, `modpack-confirm-dialog.tsx`, `modpack-missing-files.tsx` and `modpack-version-picker.tsx`, all used by `web/src/routes/tabs/Modpacks.tsx`. Contracts: `specs/035-curseforge-modpacks/contracts/ui-modpacks-tab.md` and `api-modpack.md`; designs are in `design.fig`.
 
 - **Types and client (planned):** `web/src/types.ts` gains `ModpackDecl` fields `versionEnv`, `apiKeyEnv`, `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile`, the provider fields `modpacksOnly` and `ftb`, and the `GET /servers/{name}/modpack` view (`active`, `phase`, `message`, `backupName`, `keyShared`, `missingFiles`, `missingFilesUnknown`, `downloadsPath`, `backupAvailable`). `Servers.installModpack` moves from `{ ref }` to `{ provider, project, version, title, versionName, backupFirst }`; new `Servers.modpack`, `Servers.removeModpack(name, backupFirst)` and an admin `Registries.curseforgeShare` get/put. The install call returns 202; the tab polls the GET view until `phase` is `Applied`.
 - **Surfaces (planned):** registry switch (Modrinth, CurseForge, FTB; CurseForge hidden when `modpacksBlockedReason` is set); version picker for the server's Minecraft version and loader with newest preselected and release/beta badges; confirmation dialog with "Back up first" and a downgrade warning; Active modpack card (title, registry, version or "Not pinned", phase, Change version, Remove, "Retry remove" after a failed removal backup); missing-files notice with links and the `downloads/` upload instructions, or a start-the-server note when `missingFilesUnknown`; admin Mod registries "Share the CurseForge key with game servers" switch, disabled with a reason when only the startup flag supplies the key.
-- Mods tab hides providers with `modsBrowse=false`. Until these land, the existing Modpacks tab (`Modpacks.tsx`) is unchanged.
+- Mods tab hides providers with `modsBrowse=false`. The Modpacks tab (`Modpacks.tsx`) already uses the active card, version picker, confirmation dialog and missing-files notice.
 
 ### Settings Sub-Sections (T101–T111)
 
@@ -1032,13 +1032,13 @@ Visible tab set depends on server template + active version:
 1. **Overview** — GameServer status, phase, uptime, restart count; live metrics from RCON (if available); recent pod events
 2. **Events** — Kubernetes events: image pulls, scheduling, crash-loop, agent startup
 3. **Console** — Interactive RCON/WebSocket terminal (hidden if template has no console, or consoleMode=none)
-4. **Logs** — Live pod stdout OR configured game log file (agent-provided via mTLS; see gameplane.local/logPath annotation)
+4. **Logs** — Live pod stdout OR configured game log file (agent-provided via mTLS; the path comes from the GameTemplate `spec.logPath` field)
 5. **Files** — Browser and editor for server data files (config, save games, logs)
 6. **Mods** — List/install/remove mods; browse by registry provider (Modrinth, CurseForge, etc.) if template declares one
 7. **Modpacks** — Install modpacks (only if template + active version supports loader with modpack capability)
 8. **Players** — Online player snapshot, configured operator identities, ban list, whitelist, kick/ban/unban actions
 9. **Backups** — Per-server backup list, schedule management, restore trigger; reads backup repository URL from Secret `key: "repo"`
-10. **Capture** — a `CaptureWidget` component driving start/stop of packet captures and a table of past captures for this server, gated on the `captures:manage` permission. Sits between the Backups and Settings tabs per `assets/design-export/json` node `O08uaD`/`b4eaUf` (start-capture modal) and `m5kOm4` (capture list). `CaptureWidget.tsx` with `Captures` client namespace (`web/src/lib/api.ts:207-261`) and router/tab wiring (`web/src/routes/ServerDetail.tsx:387`) are implemented in `web/src`.
+10. **Capture** — a `CaptureWidget` component driving start/stop of packet captures and a table of past captures for this server, gated on the `captures:manage` permission. Sits between the Backups and Settings tabs per `assets/design-export/json` node `O08uaD`/`b4eaUf` (start-capture modal) and `m5kOm4` (capture list). `CaptureWidget.tsx` with `Captures` client namespace (`web/src/lib/api.ts:207-261`) and router/tab wiring (`web/src/routes/ServerDetail.tsx:392`) are implemented in `web/src`.
 11. **Settings** — Grouped form with sub-sections (below); changes are draft-until-save; conflict detection on reload
 
 On narrow screens, server actions wrap and the detail tab strip scrolls inside its navigation container. Selecting a tab keeps that tab visible without horizontally scrolling the page or moving the panel controls off-screen.
@@ -1278,12 +1278,12 @@ openEventStream(opts: EventStreamOptions)
 - `react@19.3.1` — React library
 - `react-dom@19.3.1` — DOM renderer
 - `@tanstack/react-router@1.170.46` — file-based routing (via tree.tsx)
-- `@tanstack/react-query@5.107.1` — data fetching, caching, invalidation
+- `@tanstack/react-query@5.108.1` — data fetching, caching, invalidation
 - `@tanstack/react-virtual@3.14.26` — virtualized lists for large tables
 - `@heroui/react@3.2.7` — component library (Button, Card, Modal, Table, Tabs, etc.); underlies every atom in `web/src/components/ui/`
 - `@heroui/styles` — HeroUI's semantic token / theme layer, mapped to Gameplane brand tokens (see `specs/done_014-heroui-web-rebuild/contracts/theme-tokens.md`)
 - `clsx@2.1.1` — conditional classNames
-- `tailwind-merge@3.7.0` — Tailwind class conflict resolution
+- `tailwind-merge@3.7.1` — Tailwind class conflict resolution
 - `tailwindcss@^4.3.3` — utility-first CSS framework
 - `lucide-react@^1.73.0` — SVG icon library
 - `@monaco-editor/react@^4.7.0` — code editor (lazy-loaded, file/config edit tabs)
@@ -1295,10 +1295,10 @@ openEventStream(opts: EventStreamOptions)
 - `vite@^8.3.8` — build + dev server
 - `@vitejs/plugin-react@^6.3.0` — React JSX transform + fast refresh
 - `vitest@^5.0.0` — unit test runner (Jest-like API, Vite-integrated)
-- `@vitest/coverage-v8@5.1.0` — V8 coverage reporter
+- `@vitest/coverage-v8@5.1.1` — V8 coverage reporter
 - `@testing-library/react@16.3.3` — component test utilities
-- `@testing-library/jest-dom@7.0.1` — DOM matchers
-- `@testing-library/user-event@14.6.10` — user interaction simulation
+- `@testing-library/jest-dom@8.0.0` — DOM matchers
+- `@testing-library/user-event@14.6.13` — user interaction simulation
 - `msw@^3.0.5` — Mock Service Worker for request interception (e2e mock mode)
 - `vitest-websocket-mock@0.8.0` — WebSocket mock for unit tests
 - `@playwright/test@^1.65.0` — browser e2e testing (mock + live modes)
@@ -1307,7 +1307,7 @@ openEventStream(opts: EventStreamOptions)
 - `eslint-plugin-react-hooks@7.1.1` — React Hooks and compiler diagnostics
 - `oxlint` and `oxlint-tsgolint` — React rules and type-aware TypeScript linting
 - `tailwindcss@^4.3.3` + `postcss@^8.5.32` + `autoprefixer@^10.6.2` — CSS processing
-- `@tanstack/router-devtools@1.167.3` — TanStack Router dev tools (optional, for debugging)
+- `@tanstack/router-devtools@1.167.4` — TanStack Router dev tools (optional, for debugging)
 
 ## Security considerations
 

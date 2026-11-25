@@ -39,11 +39,14 @@ telemetry-receiver/
 ├── main.go             # config (loadConfig, validate), server wiring, both listeners, graceful shutdown
 ├── ingest.go           # POST /ingest: auth, proof-of-work gate, body read, basic reports
 ├── ingest_ext.go       # extended reports: signature, window, claim, replay, activity records
+├── claim.go            # new-install proof-of-work claims (pow_claim) and their source marks
 ├── pow.go              # proof-of-work: challenges, difficulty, verification, GET /v1/challenge
 ├── store.go            # SQLite schema, meta, write transactions, retention and lifecycle job
 ├── ratelimit.go        # per-source limiters, source-address derivation
 ├── summary.go          # GET /v1/summary and its snapshot cache
 ├── dashboard.go        # dashboard listener: login, sessions, views JSON, metrics, static files
+├── versionlabel.go     # version label budget (at most 128 labels, bounded pending set)
+├── versionorder.go     # semver ordering of version changes between reports
 ├── views.go            # dashboard view model (BuildViews)
 ├── charts.go, charts_ext.go  # inline SVG chart rendering
 ├── web/                # embedded HTML templates and static CSS/icon
@@ -66,7 +69,7 @@ The full contract is `specs/done_022-default-telemetry-dashboard/contracts/recei
 |-------|--------|------------------|----------|
 | `/ingest` | POST | `204 No Content` (also for a same-day duplicate extended report, which only counts in `duplicates`) | `400` structural error; `401` missing/wrong Authorization (when `AUTH_TOKEN` set); `403` `bad_signature`, `stale` or `replay`; `409` `id_claimed`; `413` body >16 KiB; `428` `pow_required`, `pow_invalid` or `pow_claim`; `429` per-source request budget or daily limit; `503` `pow_busy` with `Retry-After: 60` |
 | `/v1/summary` | GET | `200` JSON with exactly `asOf`, `reportsLatestDay`, `reports30d`, `reportsTotal`, `activeInstalls30d` | `404` unless `PUBLIC_SUMMARY=true`; `429` per-source rate limit |
-| `/v1/challenge` | GET | `200` JSON `{challenge, bits, expiresAt}`, `Cache-Control: no-store` | `404` unless `INGEST_POW=true`; `429` (10 per minute, burst 5 per source) |
+| `/v1/challenge` | GET | `200` JSON `{challenge, bits, expiresAt}`, `Cache-Control: no-store` | `404` unless `INGEST_POW=true` or a new-install claim is pending for the source; `429` (10 per minute, burst 5 per source) |
 | `/healthz` | GET | `200 OK`, body `"ok"` | Never errors |
 
 `/ingest` runs its checks in this order: per-source request budget (`429` with `Retry-After: 60`), `AUTH_TOKEN`, proof-of-work, body read, decode, extended identity checks, new-install proof-of-work (`pow_claim`), per-source daily limit, store. A refused report changes no stored data. Every other path, including `/metrics`, answers `404`.
@@ -127,7 +130,7 @@ gameplane_telemetry_templates_bucket{le="…"}            # histogram (same buck
 gameplane_telemetry_duplicates_total                    # same-day repeat extended reports
 gameplane_telemetry_extended_reports_total              # extended reports counted in the aggregates
 gameplane_telemetry_rate_limited_total{route}           # route: ingest, login, summary, challenge
-gameplane_telemetry_refused_total{reason}               # bad_signature, stale, id_claimed, replay, pow_required, pow_invalid, pow_busy
+gameplane_telemetry_refused_total{reason}               # bad_signature, stale, id_claimed, replay, pow_required, pow_invalid, pow_busy, pow_claim
 gameplane_telemetry_pow_challenges_total                # challenges issued
 gameplane_telemetry_pow_bits                            # gauge: difficulty a challenge issued now would carry (0 when proof-of-work is off)
 ```
