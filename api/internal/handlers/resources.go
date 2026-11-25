@@ -74,9 +74,15 @@ func mountOne(r chi.Router, reg *kube.Registry, store *db.Store, auditor *audit.
 
 // Effective templates can differ from the catalog while a server's rollout
 // is pending. Resolve the snapshot through its authorized server identity.
+//
+// The caller needs templates:read on the cluster, or must own or collaborate
+// on this server: owners and collaborators manage the server's mods, modpacks
+// and console, and the dashboard needs its template to show those tabs
+// (#1063). The grant covers only the template of a server they hold.
 func effectiveTemplateHandler(reg *kube.Registry) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		if !auth.UserFromContext(req.Context()).Can("templates:read", false, scope.RequestedCluster(req), "") {
+		u := auth.UserFromContext(req.Context())
+		if u == nil {
 			httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 			return
 		}
@@ -91,6 +97,12 @@ func effectiveTemplateHandler(reg *kube.Registry) http.HandlerFunc {
 		server, ok := authorizedServer(w, req, k, ns, chi.URLParam(req, "name"))
 		if !ok {
 			return
+		}
+		if cl := scope.RequestedCluster(req); !u.Can("templates:read", false, cl, "") {
+			if access := serverFleetAccess(u, cl, ns, server); !access.IsOwner && !access.IsCollaborator {
+				httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
+				return
+			}
 		}
 		tmpl, err := k.EffectiveGameTemplate(req.Context(), server)
 		if err != nil {

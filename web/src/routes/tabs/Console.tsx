@@ -6,6 +6,7 @@ import { ErrorCard } from "@/components/ui/ErrorCard";
 import { useResourceTarget, useResourceClient, resourceKey } from "@/lib/resourceTarget";
 import { createRequestClient } from "@/lib/api";
 import { resolveConsoleMode } from "@/lib/capabilities";
+import { getServerTemplate } from "@/lib/serverTemplate";
 
 import { ConsoleShell } from "./ConsoleShell";
 import { LogHistory } from "./LogHistory";
@@ -23,7 +24,7 @@ export function ConsoleTab({ name, ns }: { name: string; ns?: string }) {
   const templateName = gs?.spec.templateRef.name;
   const { data: tmpl } = useQuery({
     queryKey: resourceKey(target, "template", templateName),
-    queryFn: ({ signal }) => client.withSignal(signal).Templates.get(templateName!),
+    queryFn: ({ signal }) => getServerTemplate(client.withSignal(signal), name, ns, templateName!),
     enabled: !!templateName,
   });
   const mode = resolveConsoleMode(tmpl);
