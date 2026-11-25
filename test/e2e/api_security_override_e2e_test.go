@@ -128,14 +128,26 @@ func TestAPI_SecurityOverride_PermissionAndRootRule(t *testing.T) {
 	})
 
 	// expect runs one API call, closes its response, checks the status and
-	// returns the body.
+	// returns the body. A 409 "conflict, retry" means the GameServer's
+	// resourceVersion moved between reading it and the PUT (the operator
+	// writes status after each update), so the call is repeated with a fresh
+	// body, as a real client would. Any other status is checked at once.
 	expect := func(what string, want int, do func() (*http.Response, []byte, error)) []byte {
 		t.Helper()
-		r, b, err := do()
-		if err != nil {
-			t.Fatalf("%s: %v", what, err)
+		var r *http.Response
+		var b []byte
+		var err error
+		for attempt := 0; attempt < 5; attempt++ {
+			r, b, err = do()
+			if err != nil {
+				t.Fatalf("%s: %v", what, err)
+			}
+			_ = r.Body.Close()
+			if r.StatusCode != http.StatusConflict || want == http.StatusConflict {
+				break
+			}
+			time.Sleep(time.Second)
 		}
-		_ = r.Body.Close()
 		if r.StatusCode != want {
 			t.Fatalf("%s: status=%d want=%d body=%s", what, r.StatusCode, want, b)
 		}
