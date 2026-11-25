@@ -34,9 +34,12 @@ REPO="$(cd "${HERE}/../.." && pwd)"
 # images exist on GHCR — so this is the genuine upgrade path that users take
 # to the next release.
 FROM_VERSION="${GAMEPLANE_UPGRADE_FROM:-0.4.3}"
-# Releases from v0.4.0 on are published under the GameplanePanel org on GHCR
-# (v0.3.0 and older stay under the original ghcr.io/valgulnecron owner).
-FROM_REGISTRY="ghcr.io/gameplanepanel"
+# Releases from v0.4.0 on are published under the GameplanePanel org on GHCR;
+# v0.3.0 and older stay under the original ghcr.io/valgulnecron owner.
+case "$FROM_VERSION" in
+0.[0-3].*) FROM_REGISTRY="ghcr.io/valgulnecron" ;;
+*) FROM_REGISTRY="ghcr.io/gameplanepanel" ;;
+esac
 CHART_REF="oci://$FROM_REGISTRY/charts/gameplane"
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing: $1" >&2; exit 1; }; }

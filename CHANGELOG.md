@@ -81,9 +81,12 @@ behaviour.
   `defaultModuleSource.type: git`; the default `oci` source is unaffected. A
   git source serves one version per module, so these modules change version:
   minecraft-java 2.13.0, palworld 1.4.0 and valheim 2.4.0 (minecraft-proxy
-  1.0.0 is new). Before upgrading the chart on a git-source install, repin each
-  installed Module of these games to the new version, or it goes `Failed` with
-  `VersionUnavailable`.
+  1.0.0 is new). The source only serves the version at its ref, so after the
+  chart upgrade an installed Module of these games shows `Failed` with
+  `VersionUnavailable` until you repin it to the new version, which clears it.
+  Repinning first does not help, because the old ref does not serve the new
+  version. Repin right after `helm upgrade`, or move to the `oci` source,
+  which keeps every published version.
 - **Modpack API answers 202:** `POST /servers/{name}/modpack` now answers
   `202 Accepted` with the modpack view (phase `Pending`) instead of
   `200 {"ok":true}`, and `409` while a previous change is still in progress.
@@ -93,8 +96,9 @@ behaviour.
 - **Server names Kubernetes cannot use are refused:** creating or cloning a
   server whose name starts with a digit (such as `7d2d`) or is longer than 57
   characters is refused. An existing server with such a name now shows Failed
-  with the reason; delete it and create it again with a name that starts with
-  a letter (PR #1082).
+  with the reason. Such a server never got a pod, so it never ran a game;
+  delete it and create it again with a name that starts with a letter. If you
+  uploaded files to it, deleting it also deletes its volumes (PR #1082).
 - **Run `helm upgrade` on every cluster** so each one gets its new security
   settings for per-server security overrides (PR #977). The API adds the
   `users.sftp_username` column (migration 027) on startup.

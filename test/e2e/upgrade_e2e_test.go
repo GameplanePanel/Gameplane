@@ -339,6 +339,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	if fromVersion == "" {
 		fromVersion = defaultUpgradeFromVersion
 	}
+	upgradeFromChartRef := upgradeFromChartRefFor(fromVersion)
 	showCRDs := exec.CommandContext(ctx, "helm", "show", "crds", upgradeFromChartRef, "--version", fromVersion)
 	showCRDs.Env = append(os.Environ(), "KUBECONFIG="+os.Getenv("KUBECONFIG"))
 	oldCRDs, err := showCRDs.Output()
@@ -771,15 +772,22 @@ func verifyDeferredStartupUpgrade(t *testing.T, ns, gs, tmpl string) {
 	}
 }
 
-// upgradeFromChartRef and defaultUpgradeFromVersion mirror CHART_REF and
-// FROM_VERSION in deploy/kind/upgrade.sh: the published chart the upgrade
-// cluster was installed from. CI sets GAMEPLANE_UPGRADE_FROM for both.
+// defaultUpgradeFromVersion mirrors FROM_VERSION in deploy/kind/upgrade.sh:
+// the published chart the upgrade cluster was installed from. CI sets
+// GAMEPLANE_UPGRADE_FROM for both.
+const defaultUpgradeFromVersion = "0.4.3"
+
+// upgradeFromChartRefFor mirrors CHART_REF in deploy/kind/upgrade.sh.
 // Releases from v0.4.0 on are published under the GameplanePanel GHCR org;
 // v0.3.0 and older stay under the original ghcr.io/valgulnecron owner.
-const (
-	upgradeFromChartRef       = "oci://ghcr.io/gameplanepanel/charts/gameplane"
-	defaultUpgradeFromVersion = "0.4.3"
-)
+func upgradeFromChartRefFor(version string) string {
+	for _, old := range []string{"0.0.", "0.1.", "0.2.", "0.3."} {
+		if strings.HasPrefix(version, old) {
+			return "oci://ghcr.io/valgulnecron/charts/gameplane"
+		}
+	}
+	return "oci://ghcr.io/gameplanepanel/charts/gameplane"
+}
 
 // crdApplyHookEvents returns the helm.sh/hook annotation Helm stored for the
 // release's crds.autoApply Job, i.e. which lifecycle events that release
