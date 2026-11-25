@@ -10,6 +10,238 @@ Changes that are not released yet live in
 They are folded into this file when a version is released; see
 [`docs/contributing.md`](docs/contributing.md#changelog-entries).
 
+## [0.5.0] — 2026-11-25
+
+A pre-v1 minor release with every change merged since v0.4.3: SFTP access to
+game server files, CurseForge and FTB modpacks with pinned versions, personal
+MCP tokens, SSO group role rules, per-server security overrides, backup
+schedule and destination management from more places, and a security review
+of every component. Read the upgrade notes below first; six of them change
+behaviour.
+
+### Upgrade Notes
+
+- **Breaking: the chart installs its CRDs and ModuleSources from hooks:** the
+  packaged chart no longer bundles the `gameplane-crds` subchart, which makes
+  it small enough for a k3s `HelmChart`'s `chartContent`. The
+  `crds.autoApply` hook now installs the CRDs on every install as well as
+  every upgrade, so air-gapped clusters must mirror `crds.autoApply.image`. A
+  second hook applies the default and upload ModuleSources with
+  `helm.sh/resource-policy: keep`: they survive the upgrade, but
+  `helm uninstall` no longer removes them, and turning
+  `defaultModuleSource.enabled` off no longer deletes the existing one. If you
+  set `crds.autoApply.enabled=false`, install the CRDs first from the
+  `gameplane-crds` chart. See
+  [Helm CRD caveat](https://github.com/GameplanePanel/Gameplane/blob/v0.5.0/docs/install.md#helm-crd-caveat)
+  (PR #1087).
+- **Breaking: operator and chart security hardening:** a server exposed with
+  `Hostport` can no longer bind a port below 1024 or a port the node itself
+  uses (Kubernetes API server, kubelet, etcd, flannel); it shows Failed with
+  the reason. No official module is affected; before upgrading, move any
+  custom-module server that advertises such a port to NodePort or
+  LoadBalancer. Restore, forget, frp and Tailscale tunnel pods no longer mount
+  a Kubernetes API token, and the CRD install hook can only change
+  Gameplane's own CRDs. A remote SFTP endpoint's `sftp.apiURL` must now be an
+  `https://` URL (PRs #1092, #1093).
+- **Breaking: tunnel relays dial public addresses only; wake proxies are
+  isolated per server:** outside `networkPolicies.tenantIsolation`, a tunnel
+  relay reaches its provider (frp, Tailscale, playit) on public addresses
+  only, and its advertised ports on its own game server only. A frp server set
+  by IP address keeps working; before upgrading, add a LAN frp server reached
+  by hostname to `networkPolicies.tunnelEgress.allowCIDRs` (for example
+  `192.168.1.20/32`). A template can no longer advertise TCP 8090, 9090 or
+  9091 (the agent and capture ports), and `spec.serviceAccountName` can no
+  longer name another component's or another server's ServiceAccount, or a
+  Helm-managed one. Every server whose template advertises a port now gets
+  per-server wake proxy isolation by default (what `sentinelIsolation: true`
+  used to opt into). Running game servers take this at their next start, so
+  the upgrade restarts no game; wake proxies and playit tunnel pods restart
+  once (PR #1098).
+- **Breaking: backup retention only prunes its own, restorable backups:** a
+  schedule now prunes only backups it can prove it created for the server
+  that exists now, and ignores a finished backup that has no snapshot ID yet
+  (shown as "Awaiting snapshot ID"). Backups made before this upgrade are no
+  longer pruned automatically; see
+  [Scheduled backup retention and provenance](https://github.com/GameplanePanel/Gameplane/blob/v0.5.0/docs/operator-operations.md#scheduled-backup-retention-and-provenance)
+  to check and retire them. Roll back the operator only together with its
+  CRDs: an older operator cannot update scheduled Backups under the new Backup
+  CRD. Fixes #960 and #961 (PR #1102).
+- **Breaking: the MCP server no longer reads every namespace:** the
+  break-glass MCP server (`mcpServer.enabled`) loses its cluster-wide
+  ClusterRole for Pods, Events and pod logs; the chart removes the old
+  `<release>-mcp-server-read` ClusterRole and ClusterRoleBinding on upgrade.
+  Break-glass reads now cover the release namespace and the managed game
+  namespaces only. Use a personal MCP token for per-user reads across
+  clusters. See
+  [mcp-server](https://github.com/GameplanePanel/Gameplane/blob/v0.5.0/docs/security.md#mcp-server-optional)
+  (PR #1046).
+- **Breaking: default git module source moves to the v0.5.0 module tag:** the
+  chart's `defaultModuleSource.git.ref` now points at the module repository's
+  `v0.5.0` tag instead of `v0.4.1`. This only affects installs that set
+  `defaultModuleSource.type: git`; the default `oci` source is unaffected. A
+  git source serves one version per module, so these modules change version:
+  minecraft-java 2.13.0, palworld 1.4.0 and valheim 2.4.0 (minecraft-proxy
+  1.0.0 is new). Before upgrading the chart on a git-source install, repin each
+  installed Module of these games to the new version, or it goes `Failed` with
+  `VersionUnavailable`.
+- **Modpack API answers 202:** `POST /servers/{name}/modpack` now answers
+  `202 Accepted` with the modpack view (phase `Pending`) instead of
+  `200 {"ok":true}`, and `409` while a previous change is still in progress.
+  Servers already running an unpinned Modrinth pack are pinned to their
+  installed version at the next quiet moment (no players online), with one
+  restart (PR #1055).
+- **Server names Kubernetes cannot use are refused:** creating or cloning a
+  server whose name starts with a digit (such as `7d2d`) or is longer than 57
+  characters is refused. An existing server with such a name now shows Failed
+  with the reason; delete it and create it again with a name that starts with
+  a letter (PR #1082).
+- **Run `helm upgrade` on every cluster** so each one gets its new security
+  settings for per-server security overrides (PR #977). The API adds the
+  `users.sftp_username` column (migration 027) on startup.
+
+### Added
+
+- **SFTP access to game server files:** an optional component, off by
+  default. Set `sftp.enabled=true` (and `sftp.serviceType`,
+  `sftp.publicAddress` for outside access) to browse, upload and download
+  server files with FileZilla, WinSCP or `sftp`. Every login and file change
+  goes through the API as the signed-in user, so Files tab permissions and the
+  audit log (source `sftp`) apply. Users add SSH keys or generate an SFTP
+  password under **Settings, SFTP**, where they also see and can change their
+  SFTP username (the display name by default, the panel username when that is
+  taken or unusable; a panel username always wins at login). SSO accounts can
+  log in, and an unregistered SSH key falls back to the password prompt.
+  Admins can revoke credentials in Users, and remote clusters get their own
+  endpoint under Clusters. Uploads from SFTP and the Files tab now stream and
+  are capped by `files.maxUploadSize` (default `20Gi`), and
+  `operator.filesIdleTimeout` (default `10m`) sets how long a file-only pod
+  stays up for a stopped server. See
+  [SFTP access](https://github.com/GameplanePanel/Gameplane/blob/v0.5.0/docs/sftp.md)
+  (PRs #1074, #1086, #1089, #1096).
+- **CurseForge and FTB modpacks with pinned versions:** the Modpacks tab can
+  install, pin and remove modpacks from Modrinth, CurseForge and Feed The
+  Beast, each pinned to a chosen version so a restart never upgrades a pack by
+  surprise. The operator applies the pack recorded in the new
+  `GameServer.spec.modpack` field, with an optional backup first; removing a
+  pack empties the mods folder and keeps the world. Files CurseForge blocks
+  from automatic download are listed with links and the `downloads/` path to
+  upload them to. Admins can share the CurseForge key with servers on images
+  without a built-in key under **Admin settings, Mod registries**; see
+  [the residual risk](https://github.com/GameplanePanel/Gameplane/blob/v0.5.0/docs/security.md#sharing-the-curseforge-key-with-game-servers).
+  Module authors get new template fields and the `ftb` provider (PR #1055).
+- **Personal MCP tokens:** every signed-in user can create, copy and revoke
+  personal MCP tokens under **Settings, MCP tokens** (also in the user menu),
+  for a read-only MCP client. A token lasts 7, 30, 90 or 365 days, is shown
+  once with a ready-to-paste client configuration, and never grants more than
+  its owner's permissions. Admins see and revoke a user's tokens from Users &
+  RBAC. The API adds `/users/me/mcp-tokens` and read routes for pods, events
+  and pod logs (`/pods`, `/pods/{name}`, `/kube-events`,
+  `/servers/{name}/pods`, `/servers/{name}/logs/pod/tail`) (PRs #1045,
+  #1067).
+- **SSO group role rules:** an SSO provider maps IdP groups to roles with an
+  ordered list of rules (`api.oidc.roleRules`), and a rule can name any role,
+  including custom roles. The first matching rule wins. The old
+  `roleMappings` keys keep working but cannot be combined with `roleRules` on
+  the same provider. A role changed by hand on the Users page is now kept at
+  sign-in, and an admin can return a user to SSO control. Existing users keep
+  their roles: SSO-linked users start as SSO-managed, all others as set by
+  hand. Each SSO sign-in writes an audit event with the matched rule
+  (PR #1040).
+- **Per-server security overrides with module defaults:** modules can set the
+  run-as user, run-as group, filesystem group and volume ownership check for
+  their game, and a server owner with the new `servers:security` permission
+  can override each one in the create-server wizard and the server's Settings.
+  Overrides apply on the next restart. Root overrides are off by default and
+  allowed per cluster under **Clusters, cluster, Configuration, Security**. The
+  volume ownership check now defaults to "only when wrong", which starts
+  servers with large volumes faster (PR #977).
+- **Default player hostname per template:** the Helm value
+  `operator.templateHostnames` assigns a default hostname to NodePort and
+  LoadBalancer servers of a given template; a hostname set on a server wins.
+  See
+  [A hostname as the server's address](https://github.com/GameplanePanel/Gameplane/blob/v0.5.0/docs/networking.md#a-hostname-as-the-servers-address)
+  (PR #1061).
+- **Backup schedules and destinations from more places:** a server's
+  **Backups** tab can edit and delete its schedules, and **Managed by server
+  settings** opens the settings behind its automatic schedule. The Backups
+  page has a new Destinations tab listing each cluster's destinations, filtered
+  by the cluster filter. **Settings, Scheduled backups** and the **Back up
+  now** dialog link to the server's cluster and namespace destinations
+  (PRs #1060, #1062, #1105).
+- **Change wake access on an existing share link:** server owners can turn
+  wake access on or off in **Settings, Share links**; the change applies to
+  everyone who already has the URL (PR #1059).
+- **Module updates:** minecraft-java 2.13.0 with CurseForge and FTB modpack
+  installs and version pins (needs Gameplane 0.5.0), a new Minecraft Proxy
+  module, a Valheim player count read from the Steam query, and palworld 1.4.0
+  with risky-setting markers and an ownership check for security overrides. An
+  installed module keeps its current version until you upgrade it (PR #1064).
+
+### Changed
+
+- **Server collaborators see the Mods and Modpacks tabs:** a server's owner
+  and collaborators no longer need the cluster-wide `templates:read`
+  permission to see the Mods, Modpacks and Console tabs of the servers they
+  work on (PR #1103).
+- **Cluster View nodes opens the Nodes tab:** on a cluster's Overview tab,
+  **View nodes** opens that cluster's Nodes tab instead of the fleet-wide Nodes
+  page (PR #1104).
+- **French translation updated** from Weblate (PR #1069).
+
+### Fixed
+
+- **Kubernetes rejections show on the server:** when Kubernetes rejects a
+  resource the operator creates for a server, the reason now shows on the
+  server instead of only in the operator log (PR #1082).
+- **MCP server keeps the unavailable-cluster warning:** `list_events` across
+  clusters with more than 100 events still names the clusters it could not
+  read, after the truncation notice (PR #1081).
+- **Selected settings section is pink again** in both themes, like the main
+  sidebar (PR #1100).
+
+### Security
+
+- **API fixes:** backup destination URLs no longer show an embedded restic
+  password to read-only users, transferring a server revokes its share links,
+  mod registry API keys are no longer sent along when a provider redirects to
+  another host, and webhook and telemetry URLs no longer appear in API logs
+  (PR #1094).
+- **Dashboard hardening:** fonts are bundled instead of loaded from Google
+  Fonts, so no page contacts a third-party host and the Content-Security-Policy
+  no longer allows one. nginx no longer shows its version, production images
+  no longer ship the test mock service worker, and the file editor (Monaco
+  0.58.0) bundles a fixed DOMPurify and no longer loads remote images in
+  hovers (PR #1091).
+- **SFTP endpoint hardening:** the endpoint never follows API redirects,
+  closes connections whose session the API has not confirmed for 2 minutes,
+  stops transfers when their session is revoked (SQLite installs too), caps
+  channels per connection and logins in progress per source IP
+  (`sftp.maxPreAuthPerIP`, default 8), and serves its metrics only when
+  `serviceMonitors.enabled` is set, on a separate in-cluster
+  `gameplane-sftp-metrics` Service (PR #1093).
+- **Optional components:** network capture rejects filters that use
+  `portrange`, `less`, `greater`, `broadcast` or `multicast`, or that keep every
+  packet, and creates capture files owner-only. The MCP server no longer
+  follows HTTP redirects, caps per-user logs at 256 KiB, and refuses to start
+  when `GAMEPLANE_MCP_TOKEN` is set without `GAMEPLANE_PANEL_URL`. The tunnel
+  validates frp port numbers and recreates its secret files privately, and the
+  audit syslog bridge replaces control characters in forwarded events
+  (PR #1095).
+- **Audit syslog bridge always requires a token:** with
+  `api.audit.webhook.syslogBridge.enabled=true` and no
+  `api.audit.webhook.authSecretRef`, the chart generates a token in the Secret
+  `gameplane-audit-syslog-bridge-token` (kept across upgrades) for both the API
+  and the bridge. The bridge image refuses to start without `AUTH_HEADER`
+  unless `ALLOW_UNAUTHENTICATED=true`. Tailscale tunnels cap the forwarding
+  sessions one tailnet peer can hold to a quarter of the budget (PR #1099).
+- **Telemetry receiver resists report spam:** per-source `/ingest` rate limit
+  (`INGEST_SOURCE_PER_MINUTE`, default `60`), about a second of proof-of-work
+  for a new install ID's first report (`INGEST_CLAIM_POW_BITS`, Helm
+  `api.telemetry.receiver.ingestPow.claimBits`, default `20`; installs from
+  v0.4.0 on solve it automatically), junk version strings can no longer fill
+  the version labels, request headers are capped at 16 KiB, and the
+  `AUTH_TOKEN` check no longer reveals the token's length (PR #1090).
+
 ## [0.4.3] — 2026-11-21
 
 A pre-v1 patch release that publishes [0.4.2](#042--2026-11-20). The v0.4.2 tag
@@ -1780,6 +2012,7 @@ testing. Not yet recommended for unattended production workloads — see
   runner (retry + longer readiness window), eliminating a cascade of flaky
   API e2e failures.
 
+[0.5.0]: https://github.com/GameplanePanel/gameplane/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/GameplanePanel/gameplane/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/GameplanePanel/gameplane/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/GameplanePanel/gameplane/compare/v0.4.0...v0.4.1
