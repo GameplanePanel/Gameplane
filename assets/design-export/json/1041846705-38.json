@@ -3,7 +3,7 @@
   "name": "Gameplane/Dialog/Change SFTP username (Taken)",
   "type": "FRAME",
   "x": 10820,
-  "y": 82663,
+  "y": 84213,
   "width": 480,
   "height": 203,
   "fills": [{"type": "SOLID", "color": "#1C1A20"}],
