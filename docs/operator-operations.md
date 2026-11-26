@@ -322,8 +322,8 @@ restic backup out of Gameplane as one file, and restore a server from a file.
 Restic stays the only store: no archive is kept in the cluster, and an upload is
 written straight into the server, not saved as a backup.
 
-**Download.** Open the server's Backups tab and choose **Download** on a
-finished backup, then `.tar.gz` (the default) or `.zip`. The archive holds every
+**Download.** On the server's Backups tab or the Backups page, choose
+**Download** on a finished backup, then `.tar.gz` (the default) or `.zip`. The archive holds every
 captured volume under its own folder and a `gameplane-backup.json` manifest
 (server, namespace, template and revision, game version, capture time, restic
 snapshot ID, Gameplane version). The archive is a plain, unencrypted file and
@@ -358,7 +358,7 @@ Operator notes:
   cluster's default StorageClass. With neither, uploads are refused before the
   server stops, and the message names this value.
 - `backups.maxUploadSize` (default `20Gi`) caps an upload. Larger files are
-  refused before they are sent.
+  refused as soon as the upload starts, and nothing is stored.
 - A failure during the final copy can leave the server's data partly replaced.
   The restore then ends Failed, the server stays stopped, and the message says
   so. Check the data before starting the server again.

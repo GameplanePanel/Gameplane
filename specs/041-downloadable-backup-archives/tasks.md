@@ -69,6 +69,7 @@
 - [X] T033 [P] Update `operator/specs.md` (BackupExport, Restore upload lifecycle, 10 CRDs), `api` and `agent` `specs.md`, `CLAUDE.md` CRD count, user docs for backups (find the page via `docs/agent-architecture.md`).
 - [X] T034 [P] `changelog/unreleased/<PR>-backup-archives.md`.
 - [ ] T035 Browser smoke test via Chrome MCP at `sonnet` on a dev cluster, parallel with the diff review.
+- [ ] T037 User docs page for backup download and upload on the website (`GameplanePanel/website`, docs collection), then bump the `website` pointer; split from T033, which covered the in-repo docs (`docs/operator-operations.md`).
 - [ ] T036 valgul's quickstart walk (`quickstart.md`), then archive the folder to `specs/done_041-downloadable-backup-archives` (core rule 16).
 
 ## Dependencies
