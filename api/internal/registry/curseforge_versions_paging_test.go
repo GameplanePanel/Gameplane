@@ -89,7 +89,7 @@ func TestCurseforgeVersionsUnfilteredHardCapsAtFivePages(t *testing.T) {
 }
 
 func TestCurseforgeVersionsFilteredReadsOnePage(t *testing.T) {
-	rec := &indexRecorder{serve: func(index int) string {
+	rec := &indexRecorder{serve: func(_ int) string {
 		return cfFilePage(1, 50)
 	}}
 	srv := httptest.NewServer(rec)

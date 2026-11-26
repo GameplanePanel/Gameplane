@@ -209,16 +209,16 @@ func (h *registryHandler) versions(w http.ResponseWriter, req *http.Request) {
 		// blocks is never offered; its verdict is computed once per entry.
 		selected, _, _ := unstructured.NestedString(target.server.Object, "spec", "version")
 		prov, _ := pickProvider(target.template, req.URL.Query().Get("provider"))
-		verdicts := map[string]bool{}
-		allowed := func(entry map[string]any) bool {
-			id := entryID(entry)
-			ok, seen := verdicts[id]
-			if !seen {
-				ok = h.blockedReasonFor(req.Context(), target, prov, entry) == ""
-				verdicts[id] = ok
+		ctx := req.Context()
+		unblocked := map[string]bool{}
+		for _, e := range templateVersionEntries(target.template) {
+			if id := entryID(e); id != "" {
+				if _, seen := unblocked[id]; !seen {
+					unblocked[id] = h.blockedReasonFor(ctx, target, prov, e) == ""
+				}
 			}
-			return ok
 		}
+		allowed := func(entry map[string]any) bool { return unblocked[entryID(entry)] }
 		res = matchServerVersionsAllowed(target.template, selected, res, allowed)
 	}
 	writeJSON(w, res)
