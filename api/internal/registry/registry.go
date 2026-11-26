@@ -83,7 +83,12 @@ type Version struct {
 	ReleaseType string `json:"releaseType,omitempty"`
 	// PublishedAt is RFC 3339 UTC; empty when unknown.
 	PublishedAt string `json:"publishedAt,omitempty"`
-	Files       []File `json:"files"`
+	// ServerVersion and ServerVersionName are set only by the handler's
+	// all-loaders modpack listing (spec 035 FR-014): the template version id
+	// and displayName of the server version this pack version runs on.
+	ServerVersion     string `json:"serverVersion,omitempty"`
+	ServerVersionName string `json:"serverVersionName,omitempty"`
+	Files             []File `json:"files"`
 }
 
 // SearchQuery is a normalized search request. Loader and GameVersion are

@@ -31,6 +31,7 @@ export function ModpackConfirmDialog({
   backupDestination,
   pending,
   error,
+  serverVersionChange,
   onConfirm,
 }: {
   open: boolean;
@@ -46,6 +47,9 @@ export function ModpackConfirmDialog({
   backupDestination?: string;
   pending: boolean;
   error?: string;
+  // Set when the picked pack version makes the server switch its version:
+  // from is the server's current version name, to the one it switches to.
+  serverVersionChange?: { from: string; to: string };
   onConfirm(opts: { backupFirst: boolean }): void;
 }) {
   const intl = useOptionalIntl();
@@ -106,7 +110,11 @@ export function ModpackConfirmDialog({
         }
       })();
 
-  const backupHelp = backupAvailable && backupDestination
+  const backupHelp = backupAvailable && backupDestination && serverVersionChange
+    ? intl.formatMessage({ id: "web.components.modpack_confirm_dialog.backup_help_destination_version_change", defaultMessage: "Takes a backup to the cluster’s backup destination ({destination}). The server version changes right away; the pack is installed only after the backup succeeds.", description: "Modpack confirm dialog: help text under the back-up checkbox when the change also switches the server version; the server version changes immediately, the modpack is installed only after the backup succeeds, and the backup goes to the named cluster backup destination; {destination} is the destination name" }, { destination: backupDestination })
+    : backupAvailable && serverVersionChange
+    ? intl.formatMessage({ id: "web.components.modpack_confirm_dialog.backup_help_version_change", defaultMessage: "Takes a backup to this server's backup destination. The server version changes right away; the pack is installed only after the backup succeeds.", description: "Modpack confirm dialog: help text under the back-up checkbox when the change also switches the server version and the cluster has no named destination; the server version changes immediately, the modpack is installed only after the backup succeeds" })
+    : backupAvailable && backupDestination
     ? intl.formatMessage({ id: "web.components.modpack_confirm_dialog.backup_help_destination", defaultMessage: "Takes a backup to the cluster’s backup destination ({destination}) before the change. If the backup fails, nothing changes.", description: "Modpack confirm dialog: help text under the back-up checkbox naming the backup destination; the backup is taken first and the change is cancelled if it fails; {destination} is the destination name" }, { destination: backupDestination })
     : backupAvailable
     ? intl.formatMessage({ id: "web.components.modpack_confirm_dialog.backup_help", defaultMessage: "Takes a backup to this server's backup destination before the change. If the backup fails, nothing changes.", description: "Modpack confirm dialog: help text under the back-up checkbox explaining the backup is taken first and the change is cancelled if it fails" })
@@ -179,6 +187,24 @@ export function ModpackConfirmDialog({
                 </Checkbox>
                 <p className="text-xs text-muted">{backupHelp}</p>
               </div>
+              {serverVersionChange && (
+                <Alert status="warning" className="text-xs">
+                  <div className="flex gap-2">
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                    <div className="space-y-1">
+                      <p className="font-medium">
+                        {intl.formatMessage({ id: "web.components.modpack_confirm_dialog.server_version_warning_title", defaultMessage: "The server version changes", description: "Modpack confirm dialog: heading of the warning shown when the chosen pack version makes the server switch its version" })}
+                      </p>
+                      <p>
+                        {intl.formatMessage({ id: "web.components.modpack_confirm_dialog.server_version_warning_body", defaultMessage: "The server version changes from {from} to {to}.", description: "Modpack confirm dialog: body of the server version warning; {from} is the server's current version name, {to} the version it switches to" }, { from: serverVersionChange.from, to: serverVersionChange.to })}
+                      </p>
+                      <p>
+                        {intl.formatMessage({ id: "web.components.modpack_confirm_dialog.server_version_warning_restart", defaultMessage: "The server restarts on the new version right away, before any backup finishes.", description: "Modpack confirm dialog: sentence after the server version warning; the server switches version and restarts before the requested backup completes" })}
+                      </p>
+                    </div>
+                  </div>
+                </Alert>
+              )}
               {error && <p role="alert" className="text-sm text-danger">{error}</p>}
             </ModalBody>
             <ModalFooter>
