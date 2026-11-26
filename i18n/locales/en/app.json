@@ -9267,6 +9267,10 @@
     "defaultMessage": "of {count} total",
     "description": "Servers: sub-label on the Running card; {count} is the total number of servers"
   },
+  "web.routes.servers.overcommitted": {
+    "defaultMessage": "Overcommitted",
+    "description": "Servers: amber badge on the Storage provisioned card when provisioned storage exceeds capacity; keep it short"
+  },
   "web.routes.servers.peak_players": {
     "defaultMessage": "peak {count}",
     "description": "Servers: sub-label on the Players online card with the peak player count; {count} is the peak"
@@ -9358,6 +9362,10 @@
   "web.routes.servers.storage_provisioned": {
     "defaultMessage": "Storage provisioned",
     "description": "Servers: label of the summary card with the total provisioned storage; the line under it says whether it covers returned or all authorized inventory"
+  },
+  "web.routes.servers.unavailable": {
+    "defaultMessage": "Unavailable",
+    "description": "Servers: amber badge on a summary card whose data cannot be read; keep it short"
   },
   "web.routes.servers.vcpus": {
     "defaultMessage": "vCPUs",
