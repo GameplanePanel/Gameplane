@@ -35,6 +35,12 @@ type Config struct {
 	// FilesMaxUploadBytes caps one files/stream body. Zero selects
 	// gatewayprotocol.DefaultStreamBodyLimit.
 	FilesMaxUploadBytes int64
+	// BackupsMaxUploadBytes caps one upload restore body (spec 041). Zero
+	// selects the default of 20 GiB.
+	BackupsMaxUploadBytes int64
+	// BackupsMaxConcurrentExports caps active backup downloads per namespace
+	// (spec 041). Zero selects the default of 3.
+	BackupsMaxConcurrentExports int
 }
 
 type httpTransport = http.Transport

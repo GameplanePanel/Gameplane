@@ -168,6 +168,8 @@ spec:
             - {{ printf "--capture-default-max-duration=%d" (.Values.capture.defaultMaxDurationSeconds | int64) | quote }}
             - {{ printf "--capture-default-max-size=%d" (.Values.capture.defaultMaxSizeBytes | int64) | quote }}
             - {{ printf "--files-max-upload-bytes=%s" (include "gameplane.quantityBytes" ((.Values.files | default dict).maxUploadSize | default "20Gi")) | quote }}
+            - {{ printf "--backups-max-upload-bytes=%s" (include "gameplane.backupsQuantityBytes" ((.Values.backups | default dict).maxUploadSize | default "20Gi")) | quote }}
+            - {{ printf "--backups-max-concurrent-exports=%v" ((.Values.backups | default dict).maxConcurrentExports | default 3) | quote }}
           ports:
             - { name: mtls, containerPort: 8443 }
           # The listener requires mTLS on every request; no unauthenticated

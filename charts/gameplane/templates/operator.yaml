@@ -369,6 +369,8 @@ spec:
             {{- /* Per-upload limit for every agent (dashboard Files tab and SFTP). Falls back to 20Gi when
                    files is absent after --reuse-values from a release that predates it. */}}
             - {{ printf "--agent-max-upload-bytes=%s" (include "gameplane.quantityBytes" ((.Values.files | default dict).maxUploadSize | default "20Gi")) | quote }}
+            - {{ printf "--backup-upload-staging-storage-class=%s" ((.Values.backups | default dict).uploadStagingStorageClass | default "") | quote }}
+            - {{ printf "--backup-export-ttl=%s" ((.Values.backups | default dict).exportTTL | default "1h") | quote }}
             {{- with .Values.operator.filesIdleTimeout }}
             - --files-idle-timeout={{ . }}
             {{- end }}
