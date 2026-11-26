@@ -89,12 +89,12 @@ skills; finish with `design-export`.
 
 **Independent test**: quickstart.md step 4.
 
-- [ ] T026 [US4] Add optional `DataSize *resource.Quantity` (`json:"dataSize,omitempty"`) to `BackupStatus` in `operator/api/v1alpha1/backup_types.go` with the doc comment from `data-model.md`; run `make generate && make manifests`; commit deepcopy, `operator/config/crd`, `charts/gameplane/charts/gameplane-crds/crds/`, `charts/gameplane/crd-manifests/`
-- [ ] T027 [US4] Restic path: set `b.Status.DataSize` from `summary.TotalBytesProcessed` next to `Size` in `operator/internal/controller/backup_controller.go` (~L584)
-- [ ] T028 [US4] CSI path: when the snapshot completes (the game is still quiesced) read the GameServer `status.agent.diskUsedBytes` if the last heartbeat is ≤ 10 min old and set `DataSize` in `operator/internal/controller/backup_volumesnapshot.go` (`completeVolumeSnapshot`, helper in `backup_datasize.go`); never from `RestoreSize`
-- [ ] T029 [P] [US4] Tests: Restic dataSize assertion in `TestBackup_PopulatesSnapshotIDFromLogs` (`backup_envtest_test.go`); helper table test + CSI fresh/stale cases in new `operator/internal/controller/backup_datasize_test.go` (fake-client guard fixture)
-- [ ] T030 [P] [US4] E2E: in `TestBackup_DeleteForgetsSnapshot` (`test/e2e/backup_forget_e2e_test.go`, operator bucket; it waits for Succeeded, unlike `TestBackup_OperatorMaterializesJob`) assert `status.dataSize` equals `status.size` for a Restic backup. Kind has no CSI snapshot class, so the CSI path is covered by T029 and the quickstart walk
-- [ ] T031 [US4] Add `dataSize?: string` to the Backup status type in `web/src/types.ts` (~L784)
+- [x] T026 [US4] Add optional `DataSize *resource.Quantity` (`json:"dataSize,omitempty"`) to `BackupStatus` in `operator/api/v1alpha1/backup_types.go` with the doc comment from `data-model.md`; run `make generate && make manifests`; commit deepcopy, `operator/config/crd`, `charts/gameplane/charts/gameplane-crds/crds/`, `charts/gameplane/crd-manifests/`
+- [x] T027 [US4] Restic path: set `b.Status.DataSize` from `summary.TotalBytesProcessed` next to `Size` in `operator/internal/controller/backup_controller.go` (~L584)
+- [x] T028 [US4] CSI path: when the snapshot completes (the game is still quiesced) read the GameServer `status.agent.diskUsedBytes` if the last heartbeat is ≤ 10 min old and set `DataSize` in `operator/internal/controller/backup_volumesnapshot.go` (`completeVolumeSnapshot`, helper in `backup_datasize.go`); never from `RestoreSize`
+- [x] T029 [P] [US4] Tests: Restic dataSize assertion in `TestBackup_PopulatesSnapshotIDFromLogs` (`backup_envtest_test.go`); helper table test + CSI fresh/stale cases in new `operator/internal/controller/backup_datasize_test.go` (fake-client guard fixture)
+- [x] T030 [P] [US4] E2E: in `TestBackup_DeleteForgetsSnapshot` (`test/e2e/backup_forget_e2e_test.go`, operator bucket; it waits for Succeeded, unlike `TestBackup_OperatorMaterializesJob`) assert `status.dataSize` equals `status.size` for a Restic backup. Kind has no CSI snapshot class, so the CSI path is covered by T029 and the quickstart walk
+- [x] T031 [US4] Add `dataSize?: string` to the Backup status type in `web/src/types.ts` (~L784)
 - [ ] T032 [US4] Show `dataSize` as the main value with the "added" second line in `web/src/components/backups/BackupSize.tsx`
 - [ ] T033 [US4] Rename the card to "Total data size" and sum `dataSize` in `web/src/routes/tabs/Backups.tsx` (~L160), with coverage text when some backups lack it
 - [ ] T034 [P] [US4] Same Size display on the Backups page `web/src/routes/Backups.tsx` and `web/src/components/backups/BackupDetailDrawer.tsx`
