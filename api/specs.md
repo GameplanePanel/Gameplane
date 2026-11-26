@@ -789,7 +789,7 @@ The API is a gateway for these routes (core rule 10): it creates a `BackupExport
   - The body is streamed from the worker. A worker error after the first byte aborts the connection, so the client never sees a clean end of a truncated archive. Worker errors before the first byte are 502 `server.backup.download.failed`.
   - The BackupExport is deleted when the request ends. Download routes are exempt from the 60 s app timeout (`api/cmd/main.go`, `/backups/*:download`).
   - Remote clusters: the same steps run in the cluster gateway, which the panel forwards to with a `BackupExportTarget` (`api/internal/gatewayprotocol`).
-- **Upload** `POST /restores:upload`, permission `backups:restore` (`rbac.go`: the non-GET `restores` routes map to `backups:restore`):
+- **Upload** `POST /restores:upload`, permission `backups:restore` (`rbac.go` has an explicit `POST restores:upload` rule, because the route's first path segment keeps the verb; confirm falls under the non-GET `restores` rule):
   - 411 `server.restore.upload.length_required` without `Content-Length`; 413 `server.restore.upload.too_large` above `--backups-max-upload-bytes` (Helm `backups.maxUploadSize`, default 20Gi), refused before the body is read. `isUploadPath` exempts this route from the generic body cap.
   - 404 when the server is missing; 409 `server.restore.upload.server_busy` when a backup, restore or wipe owns the server.
   - Creates `Restore{serverRef, upload{fileName, format, declaredBytes, confirmedTemplate}}` and waits up to 120 s for `Receiving`. A Failed Restore with `NoStagingStorageClass` answers 409 `server.restore.upload.no_storage_class`.

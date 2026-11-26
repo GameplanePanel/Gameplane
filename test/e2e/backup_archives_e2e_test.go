@@ -345,9 +345,17 @@ func archiveServerUntouched(t *testing.T, ns, gs string, podUID types.UID) {
 }
 
 // archiveNoStagingClaims waits until no PVC in ns is owned by a Restore
-// that targets gs.
+// that targets gs. A refused or interrupted upload Restore is often deleted
+// by the API, so a claim whose owner no longer exists is matched by the
+// owner name too: the API names upload Restores "<server>-restore-<random>",
+// with the server name cut to 40 characters.
 func archiveNoStagingClaims(t *testing.T, ns, gs string) {
 	t.Helper()
+	prefix := gs
+	if len(prefix) > 40 {
+		prefix = prefix[:40]
+	}
+	prefix += "-restore-"
 	envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
 		restores, err := envInstance.Dyn.Resource(restoreGVR).Namespace(ns).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
@@ -368,7 +376,7 @@ func archiveNoStagingClaims(t *testing.T, ns, gs string) {
 				continue
 			}
 			for _, o := range pvc.OwnerReferences {
-				if o.Kind == "Restore" && mine[o.Name] {
+				if o.Kind == "Restore" && (mine[o.Name] || strings.HasPrefix(o.Name, prefix)) {
 					return false, "staging claim " + pvc.Name + " still present"
 				}
 			}
