@@ -62,13 +62,13 @@ func uploadMoreRemoteClient() *kube.Client {
 	return remote
 }
 
-var uploadMoreBoom = errors.New("disk gone")
+var errUploadMoreBoom = errors.New("disk gone")
 
-// uploadMoreFailingReader fails every read with uploadMoreBoom.
+// uploadMoreFailingReader fails every read with errUploadMoreBoom.
 type uploadMoreFailingReader struct{}
 
 func (uploadMoreFailingReader) Read([]byte) (int, error) {
-	return 0, uploadMoreBoom
+	return 0, errUploadMoreBoom
 }
 
 func TestRestoreUploadUnknownClusterIsRefusedWithoutAudit(t *testing.T) {
@@ -447,7 +447,7 @@ func TestUploadBodyReaderSourceErrorIsReturned(t *testing.T) {
 	src := io.MultiReader(strings.NewReader("0123"), uploadMoreFailingReader{})
 	body := &uploadBodyReader{r: src, remaining: 4}
 	got, err := io.ReadAll(body)
-	if !errors.Is(err, uploadMoreBoom) {
+	if !errors.Is(err, errUploadMoreBoom) {
 		t.Fatalf("err %v, want the source error", err)
 	}
 	if string(got) != "0123" {
