@@ -25,7 +25,7 @@
 ## Phase 2: Foundational
 
 - [X] T004 [P] CRDs: add `operator/api/v1alpha1/backupexport_types.go` and the `Restore` upload fields, phases and status per data-model.md (CEL: exactly one of `backupRef`/`upload`; immutability except `upload.confirmed` false→true); run `make generate && make manifests`; commit deepcopy, `operator/config/{crd,rbac}/`, `charts/gameplane/charts/gameplane-crds/crds/`, `charts/gameplane/crd-manifests/`.
-- [ ] T005 Design pass in `design.fig` through OpenPencil from the T003 prompt; run `hack/design/fig-export.ts`; commit `assets/design-export/` with it; get valgul's sign-off before T020 and T031.
+- [X] T005 Design pass in `design.fig` through OpenPencil from the T003 prompt; run `hack/design/fig-export.ts`; commit `assets/design-export/` with it; get valgul's sign-off before T020 and T031.
 - [X] T006 [P] Agent `archive-worker` subcommand skeleton in `agent/cmd/main.go` and `agent/internal/archive/`: mTLS server (agent CA, cert from mounted Secret), single-route mux keyed on `EXPORT_UID`/`RESTORE_UID`, idle timeout, termination-log writer.
 - [X] T007 [P] `agent/internal/archive/manifest.go`: manifest type, JSON encode/decode, `formatVersion` check, layout mapping (`volumes/<logicalName>`, legacy `data/`) per research R3.
 - [X] T008 [P] Operator shared builders `operator/internal/controller/archive_worker_pods.go`: worker Pod (agent image, restic init-copy into `emptyDir`, spec 030 security context, resource defaults from `--backup-resources`), ClusterIP Service, per-worker server cert Secret signed by the agent CA (reuse `signAgentServerCert`).
