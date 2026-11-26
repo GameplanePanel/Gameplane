@@ -42,12 +42,12 @@ skills; finish with `design-export`.
 
 ## Phase 3: Shared web rules (blocks US1–US5 React work)
 
-- [ ] T010 Add the tokens from `contracts/ui-rules.md` to `web/src/styles/globals.css` (dark + light blocks and `--color-*` mappings next to `--color-chart-stat`)
-- [ ] T011 Move the `.tabs__list.w-fit` rules onto every horizontal `.tabs__list` and set the selected radius to 12 px in `web/src/styles/globals.css`; keep the Server detail main tab bar spread full width with its pill track and pill selected tab, as the app has it today (OD-10); remove the then-redundant `w-fit` classes listed by T002
-- [ ] T012 [P] Add a shared `.range` slider style (filled track via `--fill`, WebKit + Firefox thumbs, disabled state) to `web/src/styles/globals.css`
-- [ ] T013 [P] Remove the extra outer frame around the tables listed in research.md "Audit set" (Servers, Backups, NodeInventory, CaptureWidget, ShareLinks; Users if the browser shows a double frame)
-- [ ] T014 [US2] Rework `web/src/components/ui/PhaseChip.tsx`: text-size pill with leading dot (green running/succeeded, grey stopped/pending/suspended, amber in-transition, red failed, Asleep violet per OD-9); update `web/src/components/ui/PhaseChip.test.tsx` to the spec
-- [ ] T015 [US2] Remove per-call size overrides on `PhaseChip` (e.g. `web/src/routes/Servers.tsx:627`) in all call sites: `Dashboard.tsx`, `Servers.tsx`, `ServerDetail.tsx`, `Backups.tsx`, `tabs/Backups.tsx`, `components/backups/BackupRow.tsx`, `components/backups/BackupDetailDrawer.tsx`, `components/CaptureWidget.tsx`
+- [x] T010 Add the tokens from `contracts/ui-rules.md` to `web/src/styles/globals.css` (dark + light blocks and `--color-*` mappings next to `--color-chart-stat`)
+- [x] T011 Move the `.tabs__list.w-fit` rules onto every horizontal `.tabs__list` and set the selected radius to 12 px in `web/src/styles/globals.css`; keep the Server detail main tab bar spread full width with its pill track and pill selected tab, as the app has it today (OD-10); remove the then-redundant `w-fit` classes listed by T002
+- [x] T012 [P] Add a shared `.range` slider style (filled track via `--fill`, WebKit + Firefox thumbs, disabled state) to `web/src/styles/globals.css`
+- [x] T013 [P] Remove the extra outer frame around the tables listed in research.md "Audit set" (Servers, Backups, NodeInventory, CaptureWidget, ShareLinks; Users if the browser shows a double frame)
+- [x] T014 [US2] Rework `web/src/components/ui/PhaseChip.tsx`: text-size pill with leading dot (green running/succeeded, grey stopped/pending/suspended, amber in-transition, red failed, Asleep violet per OD-9); update `web/src/components/ui/PhaseChip.test.tsx` to the spec
+- [x] T015 [US2] Remove per-call size overrides on `PhaseChip` (e.g. `web/src/routes/Servers.tsx:627`) in all call sites: `Dashboard.tsx`, `Servers.tsx`, `ServerDetail.tsx`, `Backups.tsx`, `tabs/Backups.tsx`, `components/backups/BackupRow.tsx`, `components/backups/BackupDetailDrawer.tsx`, `components/CaptureWidget.tsx`
 
 **Checkpoint**: shared rules visible app-wide; Dashboard changes only through the pill (FR-051).
 
@@ -57,11 +57,11 @@ skills; finish with `design-export`.
 
 **Independent test**: quickstart.md step 1.
 
-- [ ] T016 [US1] Extend `web/src/components/ui/StatCard.tsx` with accents `info`, `teal`, `slate` and a `warning` prop (amber badge + amber sub-text, icon colour unchanged); update `web/src/components/ui/StatCard.test.tsx`
-- [ ] T017 [US1] Set the five card accents in `web/src/routes/Servers.tsx` (Running success, Players info, vCPUs violet, Storage teal, Nodes slate) and move overcommit/unavailable states to the `warning` prop
-- [ ] T018 [US1] Make row actions full contrast with hover Start success / Stop danger / Restart foreground in `web/src/routes/Servers.tsx` (`ServerLifecycleActions` ~L522, `ActionButton` ~L653)
-- [ ] T019 [US1] Replace the hand-made Filter `div` with a real button, 12 px corners, same height as the search box in `web/src/routes/Servers.tsx` (~L300 desktop, ~L337 mobile); keep Create server a pill
-- [ ] T020 [P] [US1] Update `web/src/routes/Servers.test.tsx` (and split Servers tests touched) for card accents, warning badge, single frame, Filter as button with keyboard access
+- [x] T016 [US1] Extend `web/src/components/ui/StatCard.tsx` with accents `info`, `teal`, `slate` and a `warning` prop (amber badge + amber sub-text, icon colour unchanged); update `web/src/components/ui/StatCard.test.tsx`
+- [x] T017 [US1] Set the five card accents in `web/src/routes/Servers.tsx` (Running success, Players info, vCPUs violet, Storage teal, Nodes slate) and move overcommit/unavailable states to the `warning` prop
+- [x] T018 [US1] Make row actions full contrast with hover Start success / Stop danger / Restart foreground in `web/src/routes/Servers.tsx` (`ServerLifecycleActions` ~L522, `ActionButton` ~L653)
+- [x] T019 [US1] Replace the hand-made Filter `div` with a real button, 12 px corners, same height as the search box in `web/src/routes/Servers.tsx` (~L300 desktop, ~L337 mobile); keep Create server a pill
+- [x] T020 [P] [US1] Update `web/src/routes/Servers.test.tsx` (and split Servers tests touched) for card accents, warning badge, single frame, Filter as button with keyboard access
 
 ---
 
@@ -69,7 +69,7 @@ skills; finish with `design-export`.
 
 **Independent test**: quickstart.md step 2. Implementation is T014–T015.
 
-- [ ] T021 [P] [US2] Update tests asserting pill size/class in `web/src/routes/Dashboard.test.tsx`, `web/src/routes/Servers.test.tsx`, `web/src/routes/ServerDetail.test.tsx`, `web/src/routes/Backups.test.tsx`, `web/src/routes/tabs/Backups.test.tsx` where they break
+- [x] T021 [P] [US2] Update tests asserting pill size/class in `web/src/routes/Dashboard.test.tsx`, `web/src/routes/Servers.test.tsx`, `web/src/routes/ServerDetail.test.tsx`, `web/src/routes/Backups.test.tsx`, `web/src/routes/tabs/Backups.test.tsx` where they break
 
 ---
 
@@ -77,10 +77,10 @@ skills; finish with `design-export`.
 
 **Independent test**: quickstart.md step 3.
 
-- [ ] T022 [US3] Split the toolbar in `web/src/routes/tabs/Logs.tsx` (~L168-206) into row 1 (source switch or plain label, Download) and row 2 (search, level filter, line count)
-- [ ] T023 [US3] Restyle the search box in `web/src/routes/tabs/Logs.tsx` like the Servers search (icon, sentence-case placeholder; update the `web.routes.tabs.logs.filter` message and its description)
-- [ ] T024 [US3] Colour the level filter with count badges and replace `LEVEL_CLASS` (`Logs.tsx:35-40`) with token classes: Info info, Debug slate, Warn warning, Error danger
-- [ ] T025 [P] [US3] Update `web/src/routes/tabs/Logs.test.tsx` for the two rows, badges and level colours
+- [x] T022 [US3] Split the toolbar in `web/src/routes/tabs/Logs.tsx` (~L168-206) into row 1 (source switch or plain label, Download) and row 2 (search, level filter, line count)
+- [x] T023 [US3] Restyle the search box in `web/src/routes/tabs/Logs.tsx` like the Servers search (icon, sentence-case placeholder; update the `web.routes.tabs.logs.filter` message and its description)
+- [x] T024 [US3] Colour the level filter with count badges and replace `LEVEL_CLASS` (`Logs.tsx:35-40`) with token classes: Info info, Debug slate, Warn warning, Error danger
+- [x] T025 [P] [US3] Update `web/src/routes/tabs/Logs.test.tsx` for the two rows, badges and level colours
 
 ---
 
@@ -94,13 +94,13 @@ skills; finish with `design-export`.
 - [x] T029 [P] [US4] Tests: Restic dataSize assertion in `TestBackup_PopulatesSnapshotIDFromLogs` (`backup_envtest_test.go`); helper table test + CSI fresh/stale cases in new `operator/internal/controller/backup_datasize_test.go` (fake-client guard fixture)
 - [x] T030 [P] [US4] E2E: in `TestBackup_DeleteForgetsSnapshot` (`test/e2e/backup_forget_e2e_test.go`, operator bucket; it waits for Succeeded, unlike `TestBackup_OperatorMaterializesJob`) assert `status.dataSize` equals `status.size` for a Restic backup. Kind has no CSI snapshot class, so the CSI path is covered by T029 and the quickstart walk
 - [x] T031 [US4] Add `dataSize?: string` to the Backup status type in `web/src/types.ts` (~L784)
-- [ ] T032 [US4] Show `dataSize` as the main value with the "added" second line in `web/src/components/backups/BackupSize.tsx`
-- [ ] T033 [US4] Rename the card to "Total data size" and sum `dataSize` in `web/src/routes/tabs/Backups.tsx` (~L160), with coverage text when some backups lack it
-- [ ] T034 [P] [US4] Same Size display on the Backups page `web/src/routes/Backups.tsx` and `web/src/components/backups/BackupDetailDrawer.tsx`
-- [ ] T035 [P] [US4] Update `web/src/components/backups/BackupRow.test.tsx`, `web/src/components/backups/BackupDetailDrawer.test.tsx`, `web/src/routes/tabs/Backups.test.tsx`, `web/src/routes/Backups.test.tsx` for data size, added line and coverage text
+- [x] T032 [US4] Show `dataSize` as the main value with the "added" second line in `web/src/components/backups/BackupSize.tsx`
+- [x] T033 [US4] Rename the card to "Total data size" and sum `dataSize` in `web/src/routes/tabs/Backups.tsx` (~L160), with coverage text when some backups lack it
+- [x] T034 [P] [US4] Same Size display on the Backups page `web/src/routes/Backups.tsx` and `web/src/components/backups/BackupDetailDrawer.tsx`
+- [x] T035 [P] [US4] Update `web/src/components/backups/BackupRow.test.tsx`, `web/src/components/backups/BackupDetailDrawer.test.tsx`, `web/src/routes/tabs/Backups.test.tsx`, `web/src/routes/Backups.test.tsx` for data size, added line and coverage text
 - [ ] T036 [US4] Changelog `changelog/unreleased/<PR>-backup-data-size.md` (new status field, card renamed)
-- [ ] T037 [US4] Old backups without `dataSize`: label per OD-8 in `web/src/components/backups/BackupSize.tsx`
-- [ ] T038 [US4] Exclude them from the total and show the coverage text per OD-8 in `web/src/routes/tabs/Backups.tsx`
+- [x] T037 [US4] Old backups without `dataSize`: label per OD-8 in `web/src/components/backups/BackupSize.tsx`
+- [x] T038 [US4] Exclude them from the total and show the coverage text per OD-8 in `web/src/routes/tabs/Backups.tsx`
 
 ---
 
@@ -108,19 +108,19 @@ skills; finish with `design-export`.
 
 **Independent test**: quickstart.md step 5.
 
-- [ ] T039 [US5] Apply `.range` and set `--fill` from value/min/max in `web/src/components/ui/ResourceInput.tsx` (L189-199); widen the number box to fit five digits; drop the unit from the CPU/memory labels (`ResourceInput.tsx` messages + callers)
-- [ ] T040 [P] [US5] Apply `.range` + `--fill` to the SFTP password slider in `web/src/components/sftp/SftpDialogs.tsx` (~L201)
-- [ ] T041 [US5] Add a storage size number + unit input (MiB/GiB/TiB, exact round-trip of unconvertible values) and use it in `web/src/routes/tabs/settings/Resources.tsx` (~L218-236) and `web/src/routes/CreateServer.tsx` (storage field, validation ~L276)
-- [ ] T042 [P] [US5] Update `web/src/components/ui/ResourceInput.test.tsx`, `web/src/routes/CreateServer*.test.tsx`, `web/src/routes/tabs/settings/Resources.test.tsx` for fill variable, labels and storage round-trip (`1536Mi` stays `1536Mi`)
+- [x] T039 [US5] Apply `.range` and set `--fill` from value/min/max in `web/src/components/ui/ResourceInput.tsx` (L189-199); widen the number box to fit five digits; drop the unit from the CPU/memory labels (`ResourceInput.tsx` messages + callers)
+- [x] T040 [P] [US5] Apply `.range` + `--fill` to the SFTP password slider in `web/src/components/sftp/SftpDialogs.tsx` (~L201)
+- [x] T041 [US5] Add a storage size number + unit input (MiB/GiB/TiB, exact round-trip of unconvertible values) and use it in `web/src/routes/tabs/settings/Resources.tsx` (~L218-236) and `web/src/routes/CreateServer.tsx` (storage field, validation ~L276)
+- [x] T042 [P] [US5] Update `web/src/components/ui/ResourceInput.test.tsx`, `web/src/routes/CreateServer*.test.tsx`, `web/src/routes/tabs/settings/Resources.test.tsx` for fill variable, labels and storage round-trip (`1536Mi` stays `1536Mi`)
 
 ---
 
 ## Phase 9: Polish and cross-cutting
 
-- [ ] T043 Run `npx tsc --noEmit` in `web/` and `go build ./...` in `operator/` (compile checks only)
+- [x] T043 Run `npx tsc --noEmit` in `web/` and `go build ./...` in `operator/` (compile checks only)
 - [ ] T044 Browser smoke test at sonnet via Chrome MCP of quickstart.md steps 1–5 in dark and light, 1280 px and 390 px; screenshots to `/mnt/project-files/notes/042/`
 - [ ] T045 Changelog `changelog/unreleased/<PR>-dashboard-ui-polish.md` for the visual changes
-- [ ] T046 Fresh-agent peer review of every test diff (weakened / deleted / only replaced); sign-off card for anything weakened or deleted
+- [x] T046 Fresh-agent peer review of every test diff (weakened / deleted / only replaced); sign-off card for anything weakened or deleted
 - [ ] T047 Once all tasks are done and merged, archive with `spec-archive` (`specs/done_042-dashboard-ui-ux`)
 
 ---
