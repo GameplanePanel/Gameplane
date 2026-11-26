@@ -37,6 +37,36 @@ type Entry struct {
 // message the API has always returned.
 var entries = []Entry{
 	{
+		ID:          "backup.download.busy",
+		English:     "Too many downloads are running. Try again in a minute.",
+		Description: "API error from the backup archive download (backup_archives.go:download) when the namespace already has the maximum number of active exports (backups.maxConcurrentExports).",
+		Status:      http.StatusTooManyRequests,
+	},
+	{
+		ID:          "backup.download.failed",
+		English:     "The download could not start: {message}",
+		Description: "API error from the backup archive download (backup_archives.go:awaitExport) when the export worker reports Failed or Expired. {message} is the worker's reason.",
+		Status:      http.StatusBadGateway,
+	},
+	{
+		ID:          "backup.download.not_ready",
+		English:     "This backup has not finished yet.",
+		Description: "API error from the backup archive download (backup_archives.go:download) when the Backup is not in the Succeeded phase.",
+		Status:      http.StatusConflict,
+	},
+	{
+		ID:          "backup.download.snapshot_strategy",
+		English:     "Snapshot backups stay inside the storage system and cannot be downloaded.",
+		Description: "API error from the backup archive download (backup_archives.go:download) when the Backup uses the volume-snapshot strategy, which has no restic snapshot to export.",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "backup.download.start_timeout",
+		English:     "The download did not start in time. Try again.",
+		Description: "API error from the backup archive download (backup_archives.go:awaitExport) when the export is not Ready within the start timeout.",
+		Status:      http.StatusGatewayTimeout,
+	},
+	{
 		ID:          "server.mcp_tokens.invalid_name",
 		English:     "name must be 1 to 64 characters",
 		Description: "API error when a personal MCP token name is empty or longer than 64 characters (mcp_tokens.go:writeMCPTokenErr).",

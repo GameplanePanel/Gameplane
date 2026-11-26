@@ -119,6 +119,26 @@
     "defaultMessage": "Wiped data on",
     "description": "Audit log: action verb for wiping a game server's world data"
   },
+  "backup.download.busy": {
+    "defaultMessage": "Too many downloads are running. Try again in a minute.",
+    "description": "API error from the backup archive download (backup_archives.go:download) when the namespace already has the maximum number of active exports (backups.maxConcurrentExports)."
+  },
+  "backup.download.failed": {
+    "defaultMessage": "The download could not start: {message}",
+    "description": "API error from the backup archive download (backup_archives.go:awaitExport) when the export worker reports Failed or Expired. {message} is the worker's reason."
+  },
+  "backup.download.not_ready": {
+    "defaultMessage": "This backup has not finished yet.",
+    "description": "API error from the backup archive download (backup_archives.go:download) when the Backup is not in the Succeeded phase."
+  },
+  "backup.download.snapshot_strategy": {
+    "defaultMessage": "Snapshot backups stay inside the storage system and cannot be downloaded.",
+    "description": "API error from the backup archive download (backup_archives.go:download) when the Backup uses the volume-snapshot strategy, which has no restic snapshot to export."
+  },
+  "backup.download.start_timeout": {
+    "defaultMessage": "The download did not start in time. Try again.",
+    "description": "API error from the backup archive download (backup_archives.go:awaitExport) when the export is not Ready within the start timeout."
+  },
   "condition.addressassignment.addressinuse": {
     "defaultMessage": "The requested address ''{address}'' is already in use by GameServer ''{server}''.",
     "description": "AddressAssignment condition when another game server holds the requested address."

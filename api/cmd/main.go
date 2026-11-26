@@ -511,6 +511,13 @@ func main() {
 		}
 		handlers.MountServerCapabilities(p, reg, ws.NewCaptureGatewayClient(reg, credentialsNS), captureConfig)
 		handlers.MountCapture(p, reg, auditor, captureConfig, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)
+		handlers.MountBackupArchives(p, reg, auditor, handlers.BackupArchiveConfig{
+			GatewayNamespace:     credentialsNS,
+			MaxConcurrentExports: cfg.backupsMaxConcurrentExports,
+			AgentCABundle:        cfg.agentCABundle,
+			AgentClientCert:      cfg.agentClientCert,
+			AgentClientKey:       cfg.agentClientKey,
+		})
 		ws.MountWithPlayerNames(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, playerNames, ws.AgentGatewayOptions{
 			Namespace:      credentialsNS,
 			Files:          fileAccess,
@@ -1080,6 +1087,10 @@ func isStreamingRequest(req *http.Request) bool {
 func isLargeTransferPath(method, path string) bool {
 	if method == http.MethodGet {
 		if path == "/admin/audit/export" {
+			return true
+		}
+		// Backup archive downloads (spec 041) stream for as long as the worker takes.
+		if strings.HasPrefix(path, "/backups/") && strings.HasSuffix(path, ":download") {
 			return true
 		}
 		if !strings.HasPrefix(path, "/servers/") {
