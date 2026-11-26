@@ -212,6 +212,7 @@ export function LogsTab({
               aria-label={intl.formatMessage({ id: "web.routes.tabs.logs.filter_aria", defaultMessage: "Filter log lines", description: "Logs tab: screen-reader name of the search box that filters the log lines; not shown on screen" })}
             />
           </div>
+          <div className="max-w-full overflow-x-auto scrollbar-thin">
           <Tabs selectedKey={level} onSelectionChange={(key) => setLevel(key as "all" | LogLevel)} variant="secondary" className="w-fit" aria-label={intl.formatMessage({ id: "web.routes.tabs.logs.log_level", defaultMessage: "Log level", description: "Logs tab: accessible label of the tabs that filter log lines by level, with an All option; not shown as text" })}>
             <Tabs.List>
               {(["all", ...LEVELS] as const).map((lv) => (
@@ -224,6 +225,7 @@ export function LogsTab({
               ))}
             </Tabs.List>
           </Tabs>
+          </div>
           <span className="ml-auto text-xs text-muted">{fmt.number(filtered.length)} {intl.formatMessage({ id: "web.routes.tabs.logs.lines", defaultMessage: "lines", description: "Logs tab: word lines after the count shown beside the log; the number is how many lines remain after filtering" })}</span>
         </div>
       </div>
