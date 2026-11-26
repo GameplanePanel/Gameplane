@@ -1,4 +1,4 @@
-# Open decisions: spec 045 theme marketplace
+# Open decisions: spec 043 theme marketplace
 
 Only a decision valgul answers is written here as settled. OD-1 to OD-3 were raised on 2026-11-26 and asked as decision cards. All three are settled. No decision is open.
 
