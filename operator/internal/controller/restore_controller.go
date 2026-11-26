@@ -49,6 +49,18 @@ type RestoreReconciler struct {
 	// OperationQuiescer completes an orphaned backup's cleanup before this
 	// restore can acquire the same target. It never quiesces a restore.
 	OperationQuiescer AgentQuiescer
+	// UploadStagingStorageClass names the StorageClass of the staging volume an
+	// upload restore is received and checked on. Empty uses the cluster default
+	// class (spec 041, --backup-upload-staging-storage-class).
+	UploadStagingStorageClass string
+	// AgentImage runs the archive-worker receive and copy subcommands for upload restores.
+	AgentImage string
+	// AgentImagePullPolicy is the pull policy for AgentImage.
+	AgentImagePullPolicy corev1.PullPolicy
+	// AgentCASecretName and AgentCASecretNamespace locate the agent CA that
+	// signs the receiver's TLS certificate.
+	AgentCASecretName      string
+	AgentCASecretNamespace string
 }
 
 // apiReader returns the uncached reader for live-consistency checks,
@@ -67,6 +79,8 @@ func (r *RestoreReconciler) apiReader() client.Reader {
 // +kubebuilder:rbac:groups=gameplane.local,resources=gameservers,verbs=get;list;watch
 // +kubebuilder:rbac:groups=gameplane.local,resources=backups,verbs=get;list;watch
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch
+// Upload restores read the PersistentVolume behind each target claim to copy its node affinity.
+// +kubebuilder:rbac:groups=core,resources=persistentvolumes,verbs=get;list;watch
 
 func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var rs gameplanev1alpha1.Restore
@@ -75,7 +89,16 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	if !rs.DeletionTimestamp.IsZero() || rs.Status.Phase == gameplanev1alpha1.RestorePhaseSucceeded ||
 		rs.Status.Phase == gameplanev1alpha1.RestorePhaseFailed {
+		if rs.Spec.Upload != nil {
+			// Upload workers and the staging claim never outlive the Restore.
+			if err := r.deleteUploadResources(ctx, &rs); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 		return r.cleanupRestore(ctx, &rs)
+	}
+	if rs.Spec.Upload != nil {
+		return r.reconcileUpload(ctx, &rs)
 	}
 
 	// Pin the snapshotID at first observation so retention can't pull

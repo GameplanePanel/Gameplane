@@ -188,6 +188,15 @@ func caCertFingerprint(certPEM []byte) string {
 func signAgentServerCert(
 	caCert *x509.Certificate, caKey *rsa.PrivateKey, gs *gameplanev1alpha1.GameServer,
 ) (certPEM, keyPEM []byte, err error) {
+	return signServerCert(caCert, caKey, gs.Name+"-agent", agentDNSNames(gs), 365*24*time.Hour)
+}
+
+// signServerCert issues an RSA 2048 server certificate signed by the given
+// CA, valid from one hour ago for validFor, with the given CommonName and
+// DNS SANs. Returns PEM-encoded certificate and PKCS#1 private key.
+func signServerCert(
+	caCert *x509.Certificate, caKey *rsa.PrivateKey, commonName string, dnsNames []string, validFor time.Duration,
+) (certPEM, keyPEM []byte, err error) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, nil, err
@@ -200,12 +209,12 @@ func signAgentServerCert(
 	now := time.Now()
 	tmpl := &x509.Certificate{
 		SerialNumber: serial,
-		Subject:      pkix.Name{CommonName: gs.Name + "-agent"},
+		Subject:      pkix.Name{CommonName: commonName},
 		NotBefore:    now.Add(-1 * time.Hour),
-		NotAfter:     now.Add(365 * 24 * time.Hour),
+		NotAfter:     now.Add(validFor),
 		KeyUsage:     x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		DNSNames:     agentDNSNames(gs),
+		DNSNames:     dnsNames,
 	}
 	der, err := x509.CreateCertificate(rand.Reader, tmpl, caCert, &key.PublicKey, caKey)
 	if err != nil {

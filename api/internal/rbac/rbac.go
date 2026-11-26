@@ -348,6 +348,9 @@ var rules = []rule{
 	{method: "GET", segment: "schedules", perm: "schedules:read"},
 	{segment: "schedules", perm: "schedules:write"},
 	{method: "GET", segment: "restores", perm: "backups:read"},
+	// POST /restores:upload is a verb on the collection; firstSegment keeps the
+	// verb, so it needs its own rule (spec 041 archive upload).
+	{method: "POST", segment: "restores:upload", perm: "backups:restore"},
 	{segment: "restores", perm: "backups:restore"},
 
 	// Backup destinations are restic-repo Secrets: reads expose only the

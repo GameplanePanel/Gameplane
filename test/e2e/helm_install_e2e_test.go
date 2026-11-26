@@ -85,6 +85,7 @@ func TestHelmInstall_AllCRDsPresent(t *testing.T) {
 		"modulesources.gameplane.local",
 		"clusters.gameplane.local",
 		"networkcaptures.gameplane.local",
+		"backupexports.gameplane.local",
 	}
 	for _, name := range want {
 		ok, err := envInstance.CRDExists(ctx, name)

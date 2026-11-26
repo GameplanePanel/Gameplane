@@ -78,7 +78,7 @@ func TestVolumeSnapshotRestore_TransientErrorsRequeueNotFail(t *testing.T) {
 	restore := &gameplanev1alpha1.Restore{
 		ObjectMeta: metav1.ObjectMeta{Name: "rs", Namespace: ns, UID: "uid-restore"},
 		Spec: gameplanev1alpha1.RestoreSpec{
-			BackupRef: gameplanev1alpha1.LocalObjectRef{Name: "smp-vs"},
+			BackupRef: &gameplanev1alpha1.LocalObjectRef{Name: "smp-vs"},
 			ServerRef: gameplanev1alpha1.LocalObjectRef{Name: restoredName},
 		},
 		Status: gameplanev1alpha1.RestoreStatus{SnapshotID: "snap-1"},
@@ -346,7 +346,7 @@ func TestReconcileVolumeSnapshotRestore_PersistsCopyPlan(t *testing.T) {
 	restore := &gameplanev1alpha1.Restore{
 		ObjectMeta: metav1.ObjectMeta{Name: "rs", Namespace: ns},
 		Spec: gameplanev1alpha1.RestoreSpec{
-			BackupRef: gameplanev1alpha1.LocalObjectRef{Name: "b"},
+			BackupRef: &gameplanev1alpha1.LocalObjectRef{Name: "b"},
 			ServerRef: gameplanev1alpha1.LocalObjectRef{Name: restoredName},
 		},
 		Status: gameplanev1alpha1.RestoreStatus{SnapshotID: "snap-1"},

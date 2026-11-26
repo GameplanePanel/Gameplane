@@ -13,7 +13,7 @@ EXPECTED_CRDS = {
     "backups.gameplane.local", "backupschedules.gameplane.local",
     "restores.gameplane.local", "modules.gameplane.local",
     "modulesources.gameplane.local", "clusters.gameplane.local",
-    "networkcaptures.gameplane.local",
+    "networkcaptures.gameplane.local", "backupexports.gameplane.local",
 }
 
 

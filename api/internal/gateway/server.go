@@ -35,6 +35,12 @@ type Config struct {
 	// FilesMaxUploadBytes caps one files/stream body. Zero selects
 	// gatewayprotocol.DefaultStreamBodyLimit.
 	FilesMaxUploadBytes int64
+	// BackupsMaxUploadBytes caps one upload restore body (spec 041). Zero
+	// selects the default of 20 GiB.
+	BackupsMaxUploadBytes int64
+	// BackupsMaxConcurrentExports caps active backup downloads per namespace
+	// (spec 041). Zero selects the default of 3.
+	BackupsMaxConcurrentExports int
 }
 
 type httpTransport = http.Transport
@@ -95,6 +101,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	if target, err := gatewayprotocol.ParseCapturePath(req.URL.Path); err == nil {
 		h.serveCapture(w, req, target)
+		return
+	}
+	if target, err := gatewayprotocol.ParseBackupExportPath(req.URL.Path); err == nil {
+		h.serveBackupExport(w, req, target)
+		return
+	}
+	if target, err := gatewayprotocol.ParseRestoreUploadPath(req.URL.Path); err == nil {
+		h.serveRestoreUpload(w, req, target)
 		return
 	}
 	target, agentPath, err := gatewayprotocol.ParsePath(req.URL.Path)

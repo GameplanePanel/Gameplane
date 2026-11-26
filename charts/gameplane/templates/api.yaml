@@ -24,7 +24,7 @@ metadata:
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 rules:
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers, gametemplates, backups, backupschedules, restores, modules, modulesources, networkcaptures]
+    resources: [gameservers, gametemplates, backups, backupexports, backupschedules, restores, modules, modulesources, networkcaptures]
     verbs: [get, list, watch]
   {{- if $rbac.remoteClusters }}
   - apiGroups: ["gameplane.local"]
@@ -78,10 +78,10 @@ metadata:
   labels: {{- include "gameplane.labels" $ | nindent 4 }}
 rules:
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers, backups, backupschedules, restores, networkcaptures]
+    resources: [gameservers, backups, backupexports, backupschedules, restores, networkcaptures]
     verbs: [get, list, watch, create, update, patch, delete]
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers/status, backups/status, backupschedules/status, restores/status, networkcaptures/status]
+    resources: [gameservers/status, backups/status, backupexports/status, backupschedules/status, restores/status, networkcaptures/status]
     verbs: [get, update, patch]
   - apiGroups: ["snapshot.storage.k8s.io"]
     resources: [volumesnapshots]
@@ -361,6 +361,8 @@ spec:
             {{- end }}
             {{- /* Shared with the dashboard Files tab; also applies on standalone installs. */}}
             - {{ printf "--files-max-upload-bytes=%s" (include "gameplane.quantityBytes" ((.Values.files | default dict).maxUploadSize | default "20Gi")) | quote }}
+            - {{ printf "--backups-max-upload-bytes=%s" (include "gameplane.backupsQuantityBytes" ((.Values.backups | default dict).maxUploadSize | default "20Gi")) | quote }}
+            - {{ printf "--backups-max-concurrent-exports=%v" ((.Values.backups | default dict).maxConcurrentExports | default 3) | quote }}
             {{- if gt (int .Values.api.audit.retentionDays) 0 }}
             - --audit-retention-days={{ .Values.api.audit.retentionDays }}
             {{- end }}

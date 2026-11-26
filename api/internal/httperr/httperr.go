@@ -65,12 +65,23 @@ const (
 	// IDFilesStarting is the 503 a stopped server's file route answers while its file-only pod
 	// starts (spec 040, ws/ensure_files.go). Its text is fixed and safe to show.
 	IDFilesStarting = "server.files.starting" // "files are starting, try again in a moment"
+	// IDBackupDownloadFailed and IDBackupDownloadStartTimeout are the 502 and 504 backup
+	// download refusals, and IDRestoreUploadFailed the 502 upload refusal. Their texts are
+	// fixed and free of worker detail, which is logged instead, so the ids stay visible.
+	IDBackupDownloadFailed       = "server.backup.download.failed"        // "The download could not start. Try again."
+	IDBackupDownloadStartTimeout = "server.backup.download.start_timeout" // "The download did not start in time. Try again."
+	IDRestoreUploadFailed        = "server.restore.upload.failed"         // "The upload could not be received. Try again."
 )
 
 // keepsIDOn5xx reports whether a 5xx message keeps its own id and text. Every other 5xx
 // is masked to the generic sentence so internal detail never reaches the client.
 func keepsIDOn5xx(id string) bool {
-	return id == IDRemoteClusterNotImplemented || id == IDFilesStarting
+	switch id {
+	case IDRemoteClusterNotImplemented, IDFilesStarting,
+		IDBackupDownloadFailed, IDBackupDownloadStartTimeout, IDRestoreUploadFailed:
+		return true
+	}
+	return false
 }
 
 // GenericID is the id of the generic sentence registered for an HTTP
@@ -95,6 +106,9 @@ func KnownIDs() []string {
 		IDInternal,
 		IDRemoteClusterNotImplemented,
 		IDFilesStarting,
+		IDBackupDownloadFailed,
+		IDBackupDownloadStartTimeout,
+		IDRestoreUploadFailed,
 	}
 }
 
@@ -229,8 +243,8 @@ func WriteCode(w http.ResponseWriter, req *http.Request, status int, err error) 
 // WriteMessage writes a localizable Message. The English text is the
 // plain-text body, and a problem-document caller also gets m.ID and m.Args.
 // A nil message or a status of 0 becomes 500. For a status >=500 the body is
-// the generic http.StatusText, except for IDRemoteClusterNotImplemented and IDFilesStarting,
-// whose fixed text is safe to show.
+// the generic http.StatusText, except for the ids keepsIDOn5xx lists, whose fixed text is
+// safe to show.
 func WriteMessage(w http.ResponseWriter, r *http.Request, m *Message) {
 	if m == nil {
 		m = &Message{ID: IDInternal, Status: http.StatusInternalServerError, English: "internal error"}

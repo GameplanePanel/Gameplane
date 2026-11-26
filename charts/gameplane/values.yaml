@@ -840,6 +840,20 @@ files:
   # (agent --max-upload-bytes), the API and the gateway.
   maxUploadSize: 20Gi
 
+# Backup archives (spec 041): download any finished restic backup as .tar.gz or
+# .zip, and restore a server from an uploaded archive.
+backups:
+  # Largest archive one upload restore accepts. Kubernetes quantity or bytes.
+  maxUploadSize: 20Gi
+  # Storage class for the temporary volume an upload is unpacked and checked
+  # on before it replaces server data. Empty uses the cluster's default class;
+  # with neither, upload restores are refused before the server stops.
+  uploadStagingStorageClass: ""
+  # Downloads that may run at once per namespace; more get "busy, retry".
+  maxConcurrentExports: 3
+  # How long one download worker may live (Go duration, 1m to 24h).
+  exportTTL: 1h
+
 # SFTP endpoint for game server files (spec 040). Off by default. Every login and
 # file operation is authorised by the Gameplane API as the signed-in user.
 sftp:
