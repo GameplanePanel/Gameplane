@@ -36,7 +36,7 @@ skills; finish with `design-export`.
 - [x] T006 [P] Redesign `Screen/Server Detail — Logs` in `design.fig` per FR-020..022: row 1 source switch + Download, row 2 search + coloured level filter with count badges + line count; also the no-game-log variant
 - [x] T007 [P] Redesign `Screen/Server Detail — Backups` in `design.fig` per FR-030..033: Size column with data size and "added" second line, card "Total data size" with coverage text, old-backup row (layout per OD-8 once ruled)
 - [x] T008 [P] Redesign `Screen/Server Detail — Settings · Resources` and the `Screen/Create Server — Step 3 Configure*` screens in `design.fig` per FR-040..042
-- [ ] T009 Run `hack/design/fig-export.ts` and commit `design.fig` + `assets/design-export/` together (done, a9eee002); hand the changed screenshots to valgul for approval (SC-007, sent 2026-11-26). STOP until approved
+- [x] T009 Run `hack/design/fig-export.ts` and commit `design.fig` + `assets/design-export/` together (done, a9eee002); hand the changed screenshots to valgul for approval (SC-007, sent 2026-11-26). STOP until approved (approved by valgul 2026-11-26: "perfect", "good for me")
 
 ---
 
