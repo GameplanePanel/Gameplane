@@ -1,33 +1,33 @@
 [submodule "modules"]
 	path = modules
 	url = https://github.com/GameplanePanel/module.git
-	branch = main
+	branch = master
 [submodule "website"]
 	path = website
 	url = https://github.com/GameplanePanel/website.git
-	branch = main
+	branch = master
 [submodule "mcp-server"]
 	path = mcp-server
 	url = https://github.com/GameplanePanel/mcp.git
-	branch = main
+	branch = master
 	component = true
 [submodule "audit-syslog-bridge"]
 	path = audit-syslog-bridge
 	url = https://github.com/GameplanePanel/audit-syslog-bridge.git
-	branch = main
+	branch = master
 	component = true
 [submodule "tunnel"]
 	path = tunnel
 	url = https://github.com/GameplanePanel/tunnel.git
-	branch = main
+	branch = master
 	component = true
 [submodule "capture-sidecar"]
 	path = capture-sidecar
 	url = https://github.com/GameplanePanel/capture-sidecar.git
-	branch = main
+	branch = master
 	component = true
 [submodule "sftp"]
 	path = sftp
 	url = https://github.com/GameplanePanel/sftp.git
-	branch = main
+	branch = master
 	component = true

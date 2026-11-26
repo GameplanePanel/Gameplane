@@ -958,14 +958,14 @@ defaultModuleSource:
   git:
     url: https://github.com/GameplanePanel/module.git
     # Pinned to the module-repo tag validated against this chart's backend
-    # release, not "main": a git source only ever offers the module version
-    # present at its ref, so tracking main means a module version bump
+    # release, not "master": a git source only ever offers the module version
+    # present at its ref, so tracking master means a module version bump
     # upstream can orphan every already-installed Module CR on this cluster
     # (they stay pinned to the old version, which the ref no longer serves,
     # and go Failed/VersionUnavailable — this happened on the maintainer's
     # own cluster). Bump this ref only in lockstep with a chart release that
     # was actually tested against the matching module-repo tag. Set to
-    # "main" explicitly if you want the bleeding edge instead.
+    # "master" explicitly if you want the bleeding edge instead.
     ref: v0.5.0
     subPath: ""           # module directories live at the repo root
   oci:

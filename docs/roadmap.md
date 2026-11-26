@@ -229,7 +229,7 @@ current cluster state and *propose* fixes — strictly read-only, no writes.
 A new optional component [optional] (distroless Docker image, Helm toggle) exposing only
 `List` / `Get` / `Watch` over the Gameplane CRDs plus Pods, Events, and pod logs.
 "Propose a fix" returns suggested YAML or `kubectl` invocations as text — no
-create/update/delete/patch tool exists. See [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/main/README.md).
+create/update/delete/patch tool exists. See [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/master/README.md).
 
 #### Module signing: active for official bundles (ECDSA P-256, Rekor-logged) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
 
