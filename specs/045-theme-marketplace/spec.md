@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-26
 
-**Status**: Draft (OD-1 settled; OD-2 and OD-3 waiting on valgul, see `OPEN-DECISIONS.md`)
+**Status**: Ready for planning (OD-1 to OD-3 settled, see `OPEN-DECISIONS.md`)
 
 **Input**: User description: "add a "market place" for them something like the game module but for custom theme"
 
@@ -123,20 +123,20 @@ A theme author exports their theme from Theme settings (spec 016 export) or writ
 - **FR-005**: Users MUST be able to preview a catalog or installed theme on their own session without changing their saved theme, and leave the preview with one action.
 - **FR-006**: Every signed-in user MUST be able to install, update and remove catalog themes for their own account only (OD-1); installs never affect other users. Every install, update and removal MUST be written to the audit log with who, which theme, which version and which source.
 - **FR-007**: A user's installed themes MUST appear in that user's Theme settings next to the built-in presets and be selectable with the same behaviour as presets, including Light, Dark and System modes and the custom CSS overlay staying on top.
-- **FR-008**: A theme package MUST contain only what OD-2 allows, and every CSS it carries MUST pass the spec 016 FR-013 sanitization at validation, listing and install.
+- **FR-008**: A theme package MUST contain only light and dark color tokens, an optional CSS overlay, metadata and preview images (OD-2); fonts, scripts and other bundled files are refused. Every CSS it carries MUST pass the spec 016 FR-013 sanitization at validation, listing and install.
 - **FR-009**: Safe mode MUST suspend installed theme CSS as well as the user's own overlay.
 - **FR-010**: Installed themes MUST be versioned per user; a newer version MUST only take effect for a user when that user updates.
 - **FR-011**: When a user removes their selected theme, they MUST fall back to Modern Pink.
 - **FR-012**: Installed theme CSS MUST be isolated to the user who installed it, like custom CSS (spec 016 FR-008), and MUST never apply on unauthenticated pages, which always use Modern Pink.
 - **FR-013**: Themes MUST be identified by source plus theme name, and installed themes MUST keep working when their source is disabled or unreachable.
 - **FR-014**: System MUST provide authoring tooling to scaffold, validate offline, preview and package a theme, including turning a spec 016 theme export into a package.
-- **FR-015**: Theme packages MUST be published per OD-3, and the official theme set MUST seed from the existing example overlays where they pass validation.
+- **FR-015**: Official themes MUST be published as signed OCI artifacts from a new repository `GameplanePanel/themes` (OD-3), read through the same source kinds as modules, and the official theme set MUST seed from the existing example overlays where they pass validation.
 - **FR-016**: All catalog and theme-source screens MUST be designed in `design.fig` before any dashboard code (repo rule 1), and all new text MUST go through the language packs (spec 019).
 
 ### Key Entities
 
 - **Theme Source**: Where themes come from. Kind (registry, git, HTTP, local), location, credentials, verification settings, enabled flag, status (last refresh, last error, theme count).
-- **Theme Package**: One published version of a theme. Name, version, author, description, tags, license, changelog, light and dark previews, and the theme content allowed by OD-2; optional signature.
+- **Theme Package**: One published version of a theme. Name, version, author, description, tags, license, changelog, light and dark previews, light and dark color tokens, an optional sanitized CSS overlay (OD-2); optional signature.
 - **Catalog Entry**: A Theme Package as seen through a source, with its validation result and flags (Low contrast, Signature not verified, Invalid).
 - **Installed Theme**: A Theme Package installed by one user for their own account. User, source, name, pinned version, installed at; selectable in that user's Theme settings.
 - **User Theme Configuration** (from spec 016): gains the option to point at an Installed Theme instead of a built-in preset.
