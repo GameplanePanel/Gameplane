@@ -31,4 +31,4 @@
 
 ## Notes
 
-- OD-8 (display of backups taken before the change) must be ruled before `/speckit-plan`.
+- OD-8 (display of old backups) and OD-9 (Asleep dot colour) must be ruled before `/speckit-tasks`.
