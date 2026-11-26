@@ -125,6 +125,12 @@ func requireNoStagingClaim(t *testing.T, ns, rsName string) {
 		if apierrors.IsNotFound(err) {
 			return true, ""
 		}
+		// envtest runs no controller-manager, so the pvc-protection finalizer is
+		// never removed: a claim the operator deleted stays with a deletion
+		// timestamp. That timestamp proves the delete was issued.
+		if err == nil && !pvc.DeletionTimestamp.IsZero() {
+			return true, ""
+		}
 		return false, "staging claim still present"
 	})
 }
