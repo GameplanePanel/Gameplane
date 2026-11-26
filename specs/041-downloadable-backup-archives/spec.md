@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-25
 
-**Status**: Draft (all open decisions settled 2026-11-26, see `OPEN-DECISIONS.md`)
+**Status**: Draft (all open decisions OD-1 to OD-7 settled 2026-11-26, see `OPEN-DECISIONS.md`)
 
 **Input**: Issue [#1050](https://github.com/GameplanePanel/Gameplane/issues/1050) "Backup destination configuration page is hard to find", second half: "it seems to only allow me to add a restic backup destination, not 'normal' on-disc/on-volume backups, is that by design?", and the reporter's follow-up: "Could the feature of saving backups as archives (ideally user downloadable) be added? Ideally a user could use that same archive to restore the backup, as well." A maintainer answered that this needs architecture changes in both the panel and the operator. The first half of #1050 (where destinations are managed in the dashboard) is handled separately and is not part of this spec.
 
@@ -100,7 +100,7 @@ A user who downloaded a backup earlier, or who has a world from another host (OD
 - **FR-011**: The panel MUST check every uploaded archive before any server data changes: valid format, complete, no path escaping its volume folders (absolute paths, `..`, links pointing outside), no device files, and total unpacked size under the configured limit. A failed check MUST reject the upload with a plain reason and keep nothing.
 - **FR-012**: Uploads MUST be limited by a configurable maximum size (Helm value), refused up front when the declared size is larger, and stopped when the received size passes it.
 - **FR-013**: Restore from a Gameplane archive MUST refuse a target server of another game, refuse a manifest volume the target lacks, and warn and ask for confirmation on an older template or game version, all before the target server is stopped.
-- **FR-014**: Restore from an uploaded archive MUST suspend, fence and resume the target server the same way a restic restore does today, and MUST leave the server's data unchanged if the upload is interrupted or a check fails. Any temporary copy held while checking and writing MUST be deleted afterwards, on success and on failure.
+- **FR-014**: Restore from an uploaded archive MUST suspend, fence and resume the target server the same way a restic restore does today, and MUST leave the server's data unchanged if the upload is interrupted or a check fails. The upload MUST be unpacked and checked on a temporary volume from a storage class before anything is copied onto the server (OD-7); the temporary volume MUST be deleted when the restore ends, on success and on failure. If the final copy itself fails, the restore MUST end Failed, say that the server's data may be partly replaced, and leave the server stopped; the dashboard MUST say this risk before the restore starts. With no storage class available the upload MUST be refused before the server stops.
 - **FR-015**: Restoring a `.zip` archive MUST reset file permissions to the server's defaults, and the dashboard MUST say so before the restore starts.
 - **FR-016**: Every upload and every restore from an uploaded archive MUST be written to the audit log with user, server and original file name.
 
@@ -136,6 +136,7 @@ A user who downloaded a backup earlier, or who has a world from another host (OD
 
 - The Destinations page work from #1050 part 1 lands separately; this spec adds no destination kind.
 - Upload size limit: a new Helm value `backups.maxUploadSize`, default `20Gi`, the same default as `files.maxUploadSize`.
+- Upload staging: Helm value `backups.uploadStagingStorageClass`, empty by default (use the cluster's default storage class).
 - A downloaded archive is a plain, unencrypted file; once it leaves Gameplane, keeping it safe is the user's job.
 - Only same-namespace restores, as today; cross-namespace and cross-cluster moves go through download and upload.
 - Spec 039 (per-server access, not yet merged) lists "backup archive download" as an action with no baseline control. This spec reuses `backups:read` and `backups:restore` (OD-6); when 039 is built it decides whether download and upload get their own per-server actions. The two specs are reconciled when 039 is implemented, as for spec 040.
