@@ -47,7 +47,7 @@ function rejectionOf(error: unknown): Rejection | null {
   return null;
 }
 
-type Upload =
+type UploadState =
   | { kind: "idle" }
   | { kind: "sending"; fileName: string; loaded: number; total: number }
   | { kind: "rejected"; reason: Rejection; fileSize: number }
@@ -66,7 +66,7 @@ export function UploadBackupDialog({ serverName, target: explicitTarget, ns, onC
   const [fileError, setFileError] = useState(false);
   const [plain, setPlain] = useState(false);
   const [template, setTemplate] = useState("");
-  const [upload, setUpload] = useState<Upload>({ kind: "idle" });
+  const [upload, setUpload] = useState<UploadState>({ kind: "idle" });
   const [sendError, setSendError] = useState<unknown>(null);
   const restoreName = upload.kind === "sent" ? upload.restore : null;
 
