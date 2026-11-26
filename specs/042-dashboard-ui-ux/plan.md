@@ -24,7 +24,7 @@ controller-runtime (operator).
 **Storage**: one additive CRD status field (`Backup.status.dataSize`); no DB migration.
 
 **Testing**: Vitest + Testing Library (web, coverage floors 92/76/82/92), envtest for the
-Backup reconciler, E2E backup tests (`test/e2e/backup_e2e_test.go`, in whichever bucket runs it) for the Restic and CSI paths. CI only.
+Backup reconciler, E2E `TestBackup_OperatorMaterializesJob` (`test/e2e/backup_e2e_test.go`, operator bucket) for Restic; CSI via envtest (Kind has no snapshot class). CI only.
 
 **Target Platform**: browsers (desktop + mobile widths), Kubernetes operator.
 
@@ -42,7 +42,7 @@ sliders, 1 CRD field.
 
 | Principle | Status |
 |---|---|
-| I. E2E-tested delivery | PASS: `dataSize` asserted in the existing backup E2E tests for Restic and CSI; UI changes covered by unit tests + browser smoke test. |
+| I. E2E-tested delivery | PASS: `dataSize` asserted in E2E for Restic, envtest for CSI (Kind has no snapshot class); UI changes covered by unit tests + browser smoke test. |
 | II. Design-first | PASS: phase A is the design pass in `design.fig` + `fig-export.ts`; no React before valgul approves the export (SC-007). |
 | III. Best practice | PASS: tokens instead of raw palette classes; no lint suppressions. |
 | IV. Spec-driven | PASS with one open item: OD-8 (old backups) and OD-9 (sleep colour) must be ruled before `/speckit-tasks`. |
