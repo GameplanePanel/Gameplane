@@ -912,7 +912,10 @@ func (r *RestoreReconciler) buildUploadCopyPod(
 // ensureUploadObject creates obj owned by the Restore unless it already exists.
 func (r *RestoreReconciler) ensureUploadObject(ctx context.Context, owner *gameplanev1alpha1.Restore, obj client.Object) error {
 	key := client.ObjectKeyFromObject(obj)
-	existing := obj.DeepCopyObject().(client.Object)
+	existing, ok := obj.DeepCopyObject().(client.Object)
+	if !ok {
+		return fmt.Errorf("copy of %T is not a client.Object", obj)
+	}
 	err := r.apiReader().Get(ctx, key, existing)
 	if err == nil {
 		return nil

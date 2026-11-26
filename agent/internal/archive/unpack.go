@@ -349,13 +349,16 @@ func (x *extractor) extractAll(archivePath, format string, lay layout) error {
 func (x *extractor) entry(s entryStream, e rawEntry, dst string, lay layout) error {
 	switch e.kind {
 	case entryDir:
-		mode := e.mode & 0o777
+		// The owner always keeps rwx so the copy worker and the game server,
+		// which run as the volume owner, can still walk the tree.
+		mode := e.mode&0o777 | 0o700
 		if x.zip {
 			mode = zipDirMode
 		}
 		return x.mkdir(dst, mode)
 	case entryFile:
-		mode := e.mode & 0o777
+		// The owner always keeps read and write so the copy worker can read it.
+		mode := e.mode&0o777 | 0o600
 		if x.zip {
 			mode = zipFileMode
 		}
