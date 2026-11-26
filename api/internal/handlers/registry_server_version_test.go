@@ -330,3 +330,102 @@ func TestInstallModpack_ServerVersionSwitchChecksTargetImageKey(t *testing.T) {
 		t.Errorf("blocked install changed the server: version %q, modpack set %v", version, hasModpack)
 	}
 }
+
+// The provider can return the requested pack version with loader or game
+// version tags that do not fit the target entry; the install must still refuse.
+func TestInstallModpack_ServerVersionRejectsUnfittingVersion(t *testing.T) {
+	cases := []struct {
+		name    string
+		version registry.Version
+	}{
+		{
+			name:    "loader tag the entry does not run",
+			version: registry.Version{ID: "pack-forge", Loaders: []string{"paper"}, GameVersions: []string{"1.12.2"}},
+		},
+		{
+			name:    "no loader tag",
+			version: registry.Version{ID: "pack-forge", GameVersions: []string{"1.12.2"}},
+		},
+		{
+			name:    "game version the entry does not run",
+			version: registry.Version{ID: "pack-forge", Loaders: []string{"forge"}, GameVersions: []string{"1.7.10"}},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			k, fp := installSwitchFixture([]registry.Version{tc.version})
+			mount := mountRegistryRouter(k, fakeSet{p: fp})
+			rr := modpackReq(t, mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
+				"provider": "curseforge", "project": "pack", "version": "pack-forge",
+				"serverVersion": "1.12.2-forge",
+			})
+			if rr.Code != http.StatusBadRequest {
+				t.Fatalf("got %d %s, want 400", rr.Code, rr.Body)
+			}
+			if !strings.Contains(rr.Body.String(), "server.modpack.server_version_mismatch") {
+				t.Errorf("body %s does not carry server.modpack.server_version_mismatch", rr.Body)
+			}
+			if version, hasModpack := serverSpecVersion(t, k); version != "1.21.1-neoforge" || hasModpack {
+				t.Errorf("rejected install changed the server: version %q, modpack set %v", version, hasModpack)
+			}
+		})
+	}
+}
+
+// With key sharing off, a CurseForge template entry whose image needs the key
+// is never named by the all-loaders browse, so a pack version only that entry
+// fits is dropped, and a version that also fits an unblocked entry names that
+// entry even when the server currently runs the blocked one.
+func TestRegistryVersions_AllLoadersSkipsKeyBlockedEntries(t *testing.T) {
+	forgeOnly := registry.Version{ID: "forge-only", Loaders: []string{"forge"}, GameVersions: []string{"1.12.2"}}
+	both := registry.Version{ID: "both", Loaders: []string{"forge", "neoforge"}, GameVersions: []string{"1.12.2", "1.21.1"}}
+	cases := []struct {
+		name     string
+		selected string
+		want     []string
+		wantSrv  []string
+	}{
+		{
+			name:     "blocked forge entry is not offered for a forge-only version",
+			selected: "1.21.1-neoforge",
+			want:     []string{"both"},
+			wantSrv:  []string{"1.21.1-neoforge"},
+		},
+		{
+			name:     "blocked current entry is not preferred",
+			selected: "1.12.2-forge",
+			want:     []string{"both"},
+			wantSrv:  []string{"1.21.1-neoforge"},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			k := fakeKubeClient(
+				allLoadersTemplate("minecraft"),
+				serverWithVersion("gameplane-games", "alpha", "minecraft", tc.selected),
+			)
+			fp := &versionsProvider{versions: []registry.Version{forgeOnly, both}}
+			r := mountRegistryRouter(k, fakeSet{p: fp})
+
+			rr := do(t, r, "GET", "/servers/alpha/mods/registry/projects/p1/versions?provider=curseforge&type=modpack&allLoaders=true", nil)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("got %d %s", rr.Code, rr.Body)
+			}
+			var got []registry.Version
+			if err := json.Unmarshal(rr.Body.Bytes(), &got); err != nil {
+				t.Fatalf("decode: %v", err)
+			}
+			if len(got) != len(tc.want) {
+				t.Fatalf("kept %+v, want IDs %v", got, tc.want)
+			}
+			for i := range got {
+				if got[i].ID != tc.want[i] || got[i].ServerVersion != tc.wantSrv[i] {
+					t.Errorf("version %d = %s on %q, want %s on %q", i, got[i].ID, got[i].ServerVersion, tc.want[i], tc.wantSrv[i])
+				}
+			}
+			if strings.Contains(rr.Body.String(), "1.12.2-forge") {
+				t.Errorf("blocked entry named in body: %s", rr.Body)
+			}
+		})
+	}
+}

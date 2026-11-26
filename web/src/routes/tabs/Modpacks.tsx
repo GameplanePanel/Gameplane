@@ -121,7 +121,10 @@ export function ModpacksTab({
     : "";
   const mcLabel = [mcVersionLabel, loaderLabel].filter(Boolean).join(" · ");
   // The server's current version entry; picks that need another one switch it.
-  const currentVersionId = gv?.id;
+  // A stale spec.version matches no entry, and the server then runs the
+  // template's default entry, so that is the version the switch is measured from.
+  const currentVersion = gv ?? tmpl?.spec.versions?.find((v) => v.default) ?? tmpl?.spec.versions?.[0];
+  const currentVersionId = currentVersion?.id;
 
   const installMut = useMutation({
     mutationFn: (body: ModpackInstallBody) => Servers.installModpack(name, body, ns),
@@ -130,6 +133,7 @@ export function ModpacksTab({
       void qc.invalidateQueries({ queryKey: ["fleet"] });
       setConfirm(null);
       setBanner({ kind: "ok", text: intl.formatMessage({ id: "web.routes.tabs.modpacks.banner_set", defaultMessage: "Set modpack {title}. The server is restarting to install it.", description: "Modpacks: banner shown after a modpack is set on the server; {title} is the modpack title" }, { title: body.title ?? body.project }) });
+      void qc.invalidateQueries({ predicate: (q) => q.queryKey.includes("modpack-versions") });
       return qc.invalidateQueries({ queryKey: serverKey });
     },
   });
@@ -213,7 +217,7 @@ export function ModpacksTab({
   const switchTo = confirm ? serverVersionSwitch(confirm.version, currentVersionId) : undefined;
   const serverVersionChange =
     confirm && switchTo
-      ? { from: gv?.displayName ?? "", to: confirm.version.serverVersionName || switchTo }
+      ? { from: currentVersion?.displayName || currentVersion?.id || server?.spec.version || "", to: confirm.version.serverVersionName || switchTo }
       : undefined;
 
   return (

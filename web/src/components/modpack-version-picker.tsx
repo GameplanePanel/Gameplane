@@ -113,7 +113,7 @@ export function ModpackVersionPicker({
   }
 
   const versionsQ = useQuery({
-    queryKey: resourceKey(target, "modpack-versions", provider, project, allLoaders === true),
+    queryKey: resourceKey(target, "modpack-versions", provider, project, allLoaders === true, currentVersionId ?? ""),
     queryFn: ({ signal }) => client.withSignal(signal).Servers.modpackVersions(name, project, provider, ns, allLoaders === true),
     enabled: open,
   });

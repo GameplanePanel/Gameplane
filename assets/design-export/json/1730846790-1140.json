@@ -1566,7 +1566,7 @@
               "x": 0,
               "y": 172,
               "width": 480,
-              "height": 84,
+              "height": 102,
               "component": "Alert/Warning",
               "componentId": "1:2268",
               "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
@@ -1586,7 +1586,7 @@
               "variables": {"fills/0/color": "warning/soft", "strokes/0/color": "warning/soft-foreground"},
               "texts": [
                 "The server version changes",
-                "The server version changes from Latest · Fabric to 26.1.2 · NeoForge."
+                "The server version changes from Latest · Fabric to 26.1.2 · NeoForge. The server restarts on the new version right away, before any backup finishes."
               ]
             }
           ]

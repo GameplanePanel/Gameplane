@@ -194,6 +194,9 @@ export function ModpackConfirmDialog({
                       <p>
                         {intl.formatMessage({ id: "web.components.modpack_confirm_dialog.server_version_warning_body", defaultMessage: "The server version changes from {from} to {to}.", description: "Modpack confirm dialog: body of the server version warning; {from} is the server's current version name, {to} the version it switches to" }, { from: serverVersionChange.from, to: serverVersionChange.to })}
                       </p>
+                      <p>
+                        {intl.formatMessage({ id: "web.components.modpack_confirm_dialog.server_version_warning_restart", defaultMessage: "The server restarts on the new version right away, before any backup finishes.", description: "Modpack confirm dialog: sentence after the server version warning; the server switches version and restarts before the requested backup completes" })}
+                      </p>
                     </div>
                   </div>
                 </Alert>

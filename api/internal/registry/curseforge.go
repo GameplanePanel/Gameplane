@@ -195,27 +195,12 @@ func (m cfMod) project() Project {
 // third-party distribution carry no downloadUrl and are skipped — neither
 // the dashboard nor the pack installer can fetch them.
 func (c *Curseforge) Versions(ctx context.Context, projectID string, f Filter) ([]Version, error) {
-	params := url.Values{}
-	if f.GameVersion != "" {
-		params.Set("gameVersion", f.GameVersion)
-	}
-	if lt := cfLoaderType(f.Loader); lt != 0 {
-		params.Set("modLoaderType", strconv.Itoa(lt))
-	}
-	params.Set("pageSize", "50")
-	u := c.baseURL + "/mods/" + url.PathEscape(projectID) + "/files"
-	if enc := params.Encode(); enc != "" {
-		u += "?" + enc
-	}
-
-	var resp struct {
-		Data []cfFile `json:"data"`
-	}
-	if err := c.get(ctx, u, &resp); err != nil {
+	files, err := c.versionFiles(ctx, projectID, f)
+	if err != nil {
 		return nil, err
 	}
-	out := make([]Version, 0, len(resp.Data))
-	for _, fl := range resp.Data {
+	out := make([]Version, 0, len(files))
+	for _, fl := range files {
 		if fl.DownloadURL == "" {
 			continue
 		}
@@ -243,6 +228,54 @@ func (c *Curseforge) Versions(ctx context.Context, projectID string, f Filter) (
 		})
 	}
 	return out, nil
+}
+
+// Unfiltered browses (no loader and no game version, the "All loaders" modpack
+// list) page through the pack's files: index 0, 50, 100, ... until a page holds
+// fewer than cfVersionsPageSize files or cfVersionsMaxPages pages were read.
+// That is a hard cap of 250 files per browse. Filtered calls read one page.
+const (
+	cfVersionsPageSize = 50
+	cfVersionsMaxPages = 5
+)
+
+// versionFiles fetches the project's raw files for Versions, one page for a
+// filtered call and paged files for an unfiltered one (see cfVersionsMaxPages).
+func (c *Curseforge) versionFiles(ctx context.Context, projectID string, f Filter) ([]cfFile, error) {
+	unfiltered := f.Loader == "" && f.GameVersion == ""
+	pages := 1
+	if unfiltered {
+		pages = cfVersionsMaxPages
+	}
+	var files []cfFile
+	for page := 0; page < pages; page++ {
+		params := url.Values{}
+		if f.GameVersion != "" {
+			params.Set("gameVersion", f.GameVersion)
+		}
+		if lt := cfLoaderType(f.Loader); lt != 0 {
+			params.Set("modLoaderType", strconv.Itoa(lt))
+		}
+		params.Set("pageSize", strconv.Itoa(cfVersionsPageSize))
+		if unfiltered {
+			params.Set("index", strconv.Itoa(page*cfVersionsPageSize))
+		}
+		u := c.baseURL + "/mods/" + url.PathEscape(projectID) + "/files"
+		if enc := params.Encode(); enc != "" {
+			u += "?" + enc
+		}
+		var resp struct {
+			Data []cfFile `json:"data"`
+		}
+		if err := c.get(ctx, u, &resp); err != nil {
+			return nil, err
+		}
+		files = append(files, resp.Data...)
+		if len(resp.Data) < cfVersionsPageSize {
+			break
+		}
+	}
+	return files, nil
 }
 
 type cfFile struct {

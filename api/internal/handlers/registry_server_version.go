@@ -60,7 +60,12 @@ func (h *registryHandler) serverVersionTarget(ctx context.Context, target *modTa
 	if err != nil {
 		return nil, fmt.Errorf("mod registry versions failed: %w", err)
 	}
-	if !slices.ContainsFunc(versions, func(v registry.Version) bool { return v.ID == body.Version }) {
+	// The provider filter can let through files with no loader tag, or entries
+	// tagged with a loader the entry does not run, so the match must also check
+	// that the entry fits the version.
+	if !slices.ContainsFunc(versions, func(v registry.Version) bool {
+		return v.ID == body.Version && entryFits(entry, v)
+	}) {
 		return nil, errServerVersionMismatch
 	}
 	return entry, nil
@@ -74,15 +79,26 @@ func (h *registryHandler) serverVersionTarget(ctx context.Context, target *modTa
 // first fitting entry in template order. Versions with no fitting entry are
 // dropped.
 func matchServerVersions(tmpl *unstructured.Unstructured, selected string, versions []registry.Version) []registry.Version {
+	return matchServerVersionsAllowed(tmpl, selected, versions, nil)
+}
+
+// matchServerVersionsAllowed is matchServerVersions limited to the entries
+// allowed accepts (nil allows all). A disallowed entry is never named, and the
+// server's current entry is preferred only when it is allowed.
+func matchServerVersionsAllowed(tmpl *unstructured.Unstructured, selected string, versions []registry.Version, allowed func(map[string]any) bool) []registry.Version {
+	permitted := func(e map[string]any) bool { return allowed == nil || allowed(e) }
 	entries := templateVersionEntries(tmpl)
 	current := activeVersionEntry(tmpl, selected)
+	if current != nil && !permitted(current) {
+		current = nil
+	}
 	out := make([]registry.Version, 0, len(versions))
 	for _, v := range versions {
 		entry := current
 		if entry == nil || !entryFits(entry, v) {
 			entry = nil
 			for _, e := range entries {
-				if entryFits(e, v) {
+				if permitted(e) && entryFits(e, v) {
 					entry = e
 					break
 				}

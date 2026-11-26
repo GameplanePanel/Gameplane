@@ -205,9 +205,21 @@ func (h *registryHandler) versions(w http.ResponseWriter, req *http.Request) {
 	}
 	if allLoaders {
 		// FR-014: keep only the pack versions this server's template can run,
-		// each naming the template version it runs on.
+		// each naming the template version it runs on. An entry the key check
+		// blocks is never offered; its verdict is computed once per entry.
 		selected, _, _ := unstructured.NestedString(target.server.Object, "spec", "version")
-		res = matchServerVersions(target.template, selected, res)
+		prov, _ := pickProvider(target.template, req.URL.Query().Get("provider"))
+		verdicts := map[string]bool{}
+		allowed := func(entry map[string]any) bool {
+			id := entryID(entry)
+			ok, seen := verdicts[id]
+			if !seen {
+				ok = h.blockedReasonFor(req.Context(), target, prov, entry) == ""
+				verdicts[id] = ok
+			}
+			return ok
+		}
+		res = matchServerVersionsAllowed(target.template, selected, res, allowed)
 	}
 	writeJSON(w, res)
 }
@@ -294,8 +306,12 @@ func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Reques
 			httperr.WriteMessage(w, req, messages.New("server.modpack.server_version_mismatch", nil))
 			return
 		}
-		if err != nil {
+		if errors.Is(err, errNoRegistry) {
 			h.writeResolveErr(w, req, err)
+			return
+		}
+		if err != nil {
+			httperr.WriteCode(w, req, http.StatusBadGateway, err)
 			return
 		}
 		runEntry = entry
