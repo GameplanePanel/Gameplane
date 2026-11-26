@@ -19,6 +19,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/GameplanePanel/gameplane/agent/internal/actions"
+	"github.com/GameplanePanel/gameplane/agent/internal/archive"
 	"github.com/GameplanePanel/gameplane/agent/internal/auth"
 	"github.com/GameplanePanel/gameplane/agent/internal/caps"
 	"github.com/GameplanePanel/gameplane/agent/internal/console"
@@ -41,6 +42,9 @@ var Version = "dev"
 
 // main is the entrypoint for the Gameplane sidecar agent process.
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "archive-worker" {
+		os.Exit(archive.Main(context.Background(), os.Args[2:], os.Stderr))
+	}
 	var (
 		addr           string
 		metricsAddr    string
