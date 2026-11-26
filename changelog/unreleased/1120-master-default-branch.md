@@ -1,4 +1,4 @@
-# Module and component repositories now use master
+# Breaking: module and component repositories now use master
 
 The GameplanePanel module, website and component repositories renamed their
 default branch from `main` to `master`. If a git `ModuleSource` tracks
