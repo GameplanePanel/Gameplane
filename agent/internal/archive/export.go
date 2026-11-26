@@ -29,7 +29,10 @@ const (
 // runDump starts "restic dump" for a snapshot and streams the tar archive of
 // its root to stdout. Tests replace it with a fake.
 var runDump = func(ctx context.Context, snapshot string, stdout, stderr io.Writer) error {
-	cmd := exec.CommandContext(ctx, "/tools/restic", "dump", snapshot, "/", "--archive", "tar", "--retry-lock", "10m")
+	// The binary path is a constant; the snapshot is appended as a plain
+	// argument after the caller has rejected values that start with '-'.
+	cmd := exec.CommandContext(ctx, "/tools/restic")
+	cmd.Args = append(cmd.Args, "dump", snapshot, "/", "--archive", "tar", "--retry-lock", "10m")
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 	if err := cmd.Run(); err != nil {
@@ -315,10 +318,10 @@ func reportExport(opts Options, res exportResult, stderr io.Writer) int {
 		res.Error = res.Error[:maxTerminationErrorBytes]
 	}
 	if res.Error != "" {
-		fmt.Fprintln(stderr, "export: "+res.Error)
+		_, _ = fmt.Fprintln(stderr, "export: "+res.Error)
 	}
 	if err := WriteTermination(opts.TerminationLog, res); err != nil {
-		fmt.Fprintln(stderr, err)
+		_, _ = fmt.Fprintln(stderr, err)
 		return 1
 	}
 	if res.Error != "" {

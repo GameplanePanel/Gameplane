@@ -54,7 +54,7 @@ func newTestExporter(format string, abort func()) *exporter {
 }
 
 func exportRequest() *http.Request {
-	return httptest.NewRequest(http.MethodGet, "/export/uid", nil)
+	return httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/export/uid", nil)
 }
 
 func TestExporterServesTarGz(t *testing.T) {
@@ -177,7 +177,9 @@ func TestExporterMidStreamFailureAbortsConnection(t *testing.T) {
 	rec := httptest.NewRecorder()
 	func() {
 		defer func() {
-			if r := recover(); r != http.ErrAbortHandler {
+			if r := recover(); r == nil {
+				t.Error("no panic; want http.ErrAbortHandler")
+			} else if err, ok := r.(error); !ok || !errors.Is(err, http.ErrAbortHandler) {
 				t.Errorf("recovered %v, want http.ErrAbortHandler", r)
 			}
 		}()
@@ -229,7 +231,7 @@ func TestExporterRejectsNonGET(t *testing.T) {
 	x := newTestExporter("zip", nil)
 	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodHead} {
 		rec := httptest.NewRecorder()
-		x.ServeHTTP(rec, httptest.NewRequest(method, "/export/uid", nil))
+		x.ServeHTTP(rec, httptest.NewRequestWithContext(t.Context(), method, "/export/uid", nil))
 		if rec.Code != http.StatusMethodNotAllowed {
 			t.Errorf("%s status = %d, want 405", method, rec.Code)
 		}
@@ -293,7 +295,9 @@ func TestTailBufferKeepsLastBytes(t *testing.T) {
 	_, _ = tb.Write([]byte(strings.Repeat("a", 10000)))
 	_, _ = tb.Write([]byte("END\n"))
 	got := tb.String()
-	if len(got) != stderrTailBytes || !strings.HasSuffix(got, "END") {
+	// The kept window is stderrTailBytes long and ends in "\n", which
+	// String trims, so one byte less remains.
+	if len(got) != stderrTailBytes-1 || !strings.HasSuffix(got, "END") {
 		t.Errorf("tail length %d, suffix %q", len(got), got[max(0, len(got)-5):])
 	}
 	var empty tailBuffer
@@ -372,10 +376,20 @@ func TestRunExportTLSErrorWritesTermination(t *testing.T) {
 }
 
 func validEnv() func(string) string {
+	return envWithManifest(`{"formatVersion":1}`)
+}
+
+// validEnvWithVolumes is validEnv with the data and world volumes that
+// testManifest and fullSource describe.
+func validEnvWithVolumes() func(string) string {
+	return envWithManifest(`{"formatVersion":1,"volumes":[{"logicalName":"data","folder":"data"},{"logicalName":"world","folder":"volumes/world"}]}`)
+}
+
+func envWithManifest(manifest string) func(string) string {
 	env := map[string]string{
 		"ARCHIVE_SNAPSHOT_ID": "snap1",
 		"ARCHIVE_FORMAT":      "tar.gz",
-		"ARCHIVE_MANIFEST":    `{"formatVersion":1}`,
+		"ARCHIVE_MANIFEST":    manifest,
 	}
 	return func(key string) string { return env[key] }
 }
@@ -467,7 +481,7 @@ func writeFilePKI(t *testing.T) filePKI {
 
 // startExport runs runExport in the background and returns the address it
 // listens on and a channel with its exit code.
-func startExport(t *testing.T, ctx context.Context, opts Options, getenv func(string) string) (string, <-chan int, *bytes.Buffer) {
+func startExport(ctx context.Context, t *testing.T, opts Options, getenv func(string) string) (string, <-chan int, *bytes.Buffer) {
 	t.Helper()
 	lnCh := captureListener(t)
 
@@ -509,9 +523,13 @@ func TestRunExportEndToEnd(t *testing.T) {
 		UID: "uid", Addr: "127.0.0.1:0", Cert: pki.certFile, Key: pki.keyFile, ClientCA: pki.caFile,
 		IdleTimeout: 30 * time.Second, TerminationLog: path,
 	}
-	addr, done, stderr := startExport(t, context.Background(), opts, validEnv())
+	addr, done, stderr := startExport(context.Background(), t, opts, validEnvWithVolumes())
 
-	resp, err := exportClient(pki).Get("https://" + addr + "/export/uid")
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://"+addr+"/export/uid", nil)
+	if err != nil {
+		t.Fatalf("build request: %v", err)
+	}
+	resp, err := exportClient(pki).Do(req)
 	if err != nil {
 		t.Fatalf("GET: %v", err)
 	}
@@ -558,9 +576,13 @@ func TestRunExportDumpFailureExitsOne(t *testing.T) {
 		UID: "uid", Addr: "127.0.0.1:0", Cert: pki.certFile, Key: pki.keyFile, ClientCA: pki.caFile,
 		IdleTimeout: 30 * time.Second, TerminationLog: path,
 	}
-	addr, done, _ := startExport(t, context.Background(), opts, validEnv())
+	addr, done, _ := startExport(context.Background(), t, opts, validEnv())
 
-	resp, err := exportClient(pki).Get("https://" + addr + "/export/uid")
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://"+addr+"/export/uid", nil)
+	if err != nil {
+		t.Fatalf("build request: %v", err)
+	}
+	resp, err := exportClient(pki).Do(req)
 	if err != nil {
 		t.Fatalf("GET: %v", err)
 	}
@@ -590,7 +612,7 @@ func TestRunExportIdleTimeoutExitsOne(t *testing.T) {
 		UID: "uid", Addr: "127.0.0.1:0", Cert: pki.certFile, Key: pki.keyFile, ClientCA: pki.caFile,
 		IdleTimeout: 50 * time.Millisecond, TerminationLog: path,
 	}
-	_, done, _ := startExport(t, context.Background(), opts, validEnv())
+	_, done, _ := startExport(context.Background(), t, opts, validEnv())
 
 	select {
 	case code := <-done:

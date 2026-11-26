@@ -32,15 +32,19 @@ func Main(ctx context.Context, args []string, stderr io.Writer) int {
 	}
 	opts, err := parseFlags(args[0], args[1:])
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		_, _ = fmt.Fprintln(stderr, err)
 		writeUsage(stderr)
 		return 2
 	}
-	if opts.Mode == "export" {
+	switch opts.Mode {
+	case "export":
 		return runExport(ctx, opts, os.Getenv, stderr)
+	case "receive":
+		return runReceive(ctx, opts, os.Getenv, stderr)
+	case "copy":
+		return runCopy(opts, os.Getenv, stderr)
 	}
-	fmt.Fprintf(stderr, "%s: not implemented yet\n", opts.Mode)
-	return 3
+	return 2
 }
 
 func validMode(mode string) bool {
@@ -81,7 +85,7 @@ func parseFlags(mode string, args []string) (Options, error) {
 }
 
 func writeUsage(w io.Writer) {
-	fmt.Fprintln(w, "usage: archive-worker <export|receive|copy> --uid <server-uid> "+
+	_, _ = fmt.Fprintln(w, "usage: archive-worker <export|receive|copy> --uid <server-uid> "+
 		"[--addr :9443] [--cert FILE --key FILE --client-ca FILE] "+
 		"[--idle-timeout 10m] [--termination-log /dev/termination-log]")
 }

@@ -77,7 +77,7 @@ func Serve(ctx context.Context, cfg ServerConfig, h http.Handler) error {
 	go func() { serveErr <- srv.Serve(ln) }()
 
 	finish := func(err error) error {
-		sctx, cancel := context.WithTimeout(context.Background(), shutdownGrace)
+		sctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownGrace)
 		defer cancel()
 		if serr := srv.Shutdown(sctx); serr != nil && err == nil {
 			return fmt.Errorf("archive server: shutdown: %w", serr)

@@ -38,14 +38,24 @@ func TestMainUsageErrorsReturn2(t *testing.T) {
 }
 
 func TestMainValidModesNotImplemented(t *testing.T) {
-	for _, mode := range []string{"receive", "copy"} {
+	// Every mode is implemented now. Each one with its configuration missing
+	// must still report a run failure (exit 1) and write the termination log.
+	for _, name := range []string{
+		"ARCHIVE_SNAPSHOT_ID", "ARCHIVE_FORMAT", "ARCHIVE_MANIFEST",
+		"ARCHIVE_DECLARED_BYTES", "ARCHIVE_MAX_UNPACKED_BYTES", "ARCHIVE_STAGING_DIR",
+		"ARCHIVE_PLAIN_TEMPLATE", "ARCHIVE_COPY_VOLUMES",
+	} {
+		t.Setenv(name, "")
+	}
+	for _, mode := range []string{"export", "receive", "copy"} {
 		t.Run(mode, func(t *testing.T) {
+			term := filepath.Join(t.TempDir(), "term")
 			var buf bytes.Buffer
-			if got := Main(context.Background(), []string{mode, "--uid", "u"}, &buf); got != 3 {
-				t.Fatalf("Main exit code = %d, want 3", got)
+			if got := Main(context.Background(), []string{mode, "--uid", "u", "--termination-log", term}, &buf); got != 1 {
+				t.Fatalf("Main exit code = %d, want 1", got)
 			}
-			if want := mode + ": not implemented yet\n"; buf.String() != want {
-				t.Errorf("stderr = %q, want %q", buf.String(), want)
+			if b, err := os.ReadFile(term); err != nil || len(b) == 0 {
+				t.Errorf("termination log not written: %v", err)
 			}
 		})
 	}

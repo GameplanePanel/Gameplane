@@ -161,10 +161,21 @@ func TestTranscodeTarGzKeepsVolumesOnly(t *testing.T) {
 			t.Errorf("entry %q missing from archive; have %v", name, keys(got))
 		}
 	}
-	for _, name := range []string{"etc/secret", "dev/null", "data/fifo", "gameplane-backup.json", "abs"} {
+	for _, name := range []string{"etc/secret", "dev/null", "data/fifo", "abs"} {
 		if _, ok := got[name]; ok {
 			t.Errorf("entry %q should have been skipped", name)
 		}
+	}
+	// The source's gameplane-backup.json (body "{}") must be dropped; the
+	// only entry with that name is the manifest written first.
+	manifestHdrs := 0
+	for _, h := range hdrs {
+		if h.Name == ManifestName {
+			manifestHdrs++
+		}
+	}
+	if manifestHdrs != 1 || bodies[ManifestName] == "{}" {
+		t.Errorf("want exactly one %q entry and no source copy; got %d headers, body %q", ManifestName, manifestHdrs, bodies[ManifestName])
 	}
 	if bodies["data/a.txt"] != "hello" || bodies["volumes/world/level.dat"] != "world" {
 		t.Errorf("bodies = %v", bodies)

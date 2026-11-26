@@ -118,7 +118,7 @@ func captureListener(t *testing.T) <-chan net.Listener {
 
 // startServe runs Serve in the background and returns its result channel and
 // the address it listens on.
-func startServe(t *testing.T, ctx context.Context, cfg ServerConfig, h http.Handler) (<-chan error, string) {
+func startServe(ctx context.Context, t *testing.T, cfg ServerConfig, h http.Handler) (<-chan error, string) {
 	t.Helper()
 	lnCh := captureListener(t)
 	result := make(chan error, 1)
@@ -146,7 +146,11 @@ func await(t *testing.T, result <-chan error) error {
 }
 
 func fetch(c *http.Client, url string) (int, error) {
-	resp, err := c.Get(url)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		return 0, err
+	}
+	resp, err := c.Do(req)
 	if err != nil {
 		return 0, err
 	}
@@ -173,7 +177,7 @@ func TestServeServesOnlyExactPath(t *testing.T) {
 		UID:         "uid-1",
 		IdleTimeout: 5 * time.Second,
 	}
-	result, addr := startServe(t, ctx, cfg, h)
+	result, addr := startServe(ctx, t, cfg, h)
 	c := pki.client()
 	for _, p := range []string{"/", "/api/archive", "/api/archive/uid-2", "/api/archive/uid-1/extra", "/api/archive/uid-1/"} {
 		code, err := fetch(c, "https://"+addr+p)
@@ -204,7 +208,7 @@ func TestServeImplicitOKCountsAsSuccess(t *testing.T) {
 	cfg := ServerConfig{Addr: "127.0.0.1:0", TLS: pki.serverTLS, UID: "u", IdleTimeout: 5 * time.Second}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	result, addr := startServe(t, ctx, cfg, http.HandlerFunc(noop))
+	result, addr := startServe(ctx, t, cfg, http.HandlerFunc(noop))
 	code, err := fetch(pki.client(), "https://"+addr+"/u")
 	if err != nil {
 		t.Fatalf("GET: %v", err)
@@ -230,7 +234,7 @@ func TestServeErrorStatusKeepsServing(t *testing.T) {
 	cfg := ServerConfig{Addr: "127.0.0.1:0", TLS: pki.serverTLS, UID: "u", IdleTimeout: 5 * time.Second}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	result, addr := startServe(t, ctx, cfg, h)
+	result, addr := startServe(ctx, t, cfg, h)
 	c := pki.client()
 	code, err := fetch(c, "https://"+addr+"/u")
 	if err != nil || code != http.StatusInternalServerError {
@@ -253,7 +257,7 @@ func TestServeIdleAfterFailedRequest(t *testing.T) {
 	cfg := ServerConfig{Addr: "127.0.0.1:0", TLS: pki.serverTLS, UID: "u", IdleTimeout: 300 * time.Millisecond}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	result, addr := startServe(t, ctx, cfg, h)
+	result, addr := startServe(ctx, t, cfg, h)
 	code, err := fetch(pki.client(), "https://"+addr+"/u")
 	if err != nil || code != http.StatusInternalServerError {
 		t.Fatalf("GET = %d, %v; want 500", code, err)
@@ -268,7 +272,7 @@ func TestServeIdleTimeoutWithoutRequests(t *testing.T) {
 	cfg := ServerConfig{Addr: "127.0.0.1:0", TLS: pki.serverTLS, UID: "u", IdleTimeout: 100 * time.Millisecond}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	result, _ := startServe(t, ctx, cfg, http.HandlerFunc(noop))
+	result, _ := startServe(ctx, t, cfg, http.HandlerFunc(noop))
 	if err := await(t, result); !errors.Is(err, ErrIdleTimeout) {
 		t.Fatalf("Serve error = %v, want ErrIdleTimeout", err)
 	}
@@ -283,7 +287,7 @@ func TestServeLongRequestIsNotIdle(t *testing.T) {
 	cfg := ServerConfig{Addr: "127.0.0.1:0", TLS: pki.serverTLS, UID: "u", IdleTimeout: 100 * time.Millisecond}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	result, addr := startServe(t, ctx, cfg, h)
+	result, addr := startServe(ctx, t, cfg, h)
 	code, err := fetch(pki.client(), "https://"+addr+"/u")
 	if err != nil || code != http.StatusOK {
 		t.Fatalf("GET = %d, %v; want 200", code, err)
@@ -305,7 +309,7 @@ func TestServeConcurrentRequestGets409(t *testing.T) {
 	cfg := ServerConfig{Addr: "127.0.0.1:0", TLS: pki.serverTLS, UID: "u", IdleTimeout: 5 * time.Second}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	result, addr := startServe(t, ctx, cfg, h)
+	result, addr := startServe(ctx, t, cfg, h)
 	url := "https://" + addr + "/u"
 	c := pki.client()
 
@@ -339,7 +343,7 @@ func TestServeContextCancel(t *testing.T) {
 	pki := newTestPKI(t)
 	cfg := ServerConfig{Addr: "127.0.0.1:0", TLS: pki.serverTLS, UID: "u", IdleTimeout: time.Minute}
 	ctx, cancel := context.WithCancel(context.Background())
-	result, _ := startServe(t, ctx, cfg, http.HandlerFunc(noop))
+	result, _ := startServe(ctx, t, cfg, http.HandlerFunc(noop))
 	cancel()
 	if err := await(t, result); !errors.Is(err, context.Canceled) {
 		t.Fatalf("Serve error = %v, want context.Canceled", err)
