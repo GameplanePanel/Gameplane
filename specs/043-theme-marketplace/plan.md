@@ -4,7 +4,7 @@
 
 **Input**: Feature specification from `specs/043-theme-marketplace/spec.md`
 
-**Open decisions**: OD-1 to OD-3 are settled (each user installs for themselves; colors + sanitized CSS + previews; signed OCI from a new `GameplanePanel/themes` repo). Planning raised **OD-4** (where theme sources live and who fetches them), open and asked as a decision card; this plan follows the recommended option A and marks what changes under B. See [OPEN-DECISIONS.md](OPEN-DECISIONS.md). Tasks are not written until OD-4 is settled.
+**Open decisions**: OD-1 to OD-3 are settled (each user installs for themselves; colors + sanitized CSS + previews; signed OCI from a new `GameplanePanel/themes` repo). Planning raised **OD-4** (where theme sources live and who fetches them): settled A, panel database with fetch code shared through `bundlefetch`. No decision is open. See [OPEN-DECISIONS.md](OPEN-DECISIONS.md).
 
 ## Summary
 
@@ -39,7 +39,7 @@ Admins add theme sources to the panel (OCI, git, HTTP or local, with optional co
 | I. E2E-tested delivery | PASS (planned): bucket `themes` registered in `test/e2e/buckets.sh`, `t.Parallel()`, unique names, `ociPushMu` around pushes, ≤ 7 logins per bucket; standalone case in the `standalone` bucket. |
 | II. Design-first | PASS (planned): catalog, detail, preview banner, installed list, theme sources screens designed in `design.fig` and exported before React (R10). Design prompt for the local agent goes to `/mnt/project-files/notes/design-prompts/` with the tasks. |
 | III. Ecosystem best practice | PASS: `%w` wrapping, strict TS, no suppressions; the code move keeps lint clean without new exclusions. |
-| IV. Spec-driven + `specs.md` | PASS (planned): new `themepkg/specs.md`, `bundlefetch/specs.md`; updates to `api/specs.md`, `operator/specs.md` (modsrc now uses bundlefetch), `web/specs.md`, `gp-module/specs.md`. OD-4 must settle before tasks. |
+| IV. Spec-driven + `specs.md` | PASS (planned): new `themepkg/specs.md`, `bundlefetch/specs.md`; updates to `api/specs.md`, `operator/specs.md` (modsrc now uses bundlefetch), `web/specs.md`, `gp-module/specs.md`. |
 | V. Delegate to workflows | PASS (planned): implementation through Workflow scripts starting at haiku, reviews one tier up (rule 13). |
 | VI. CI bears the heavy lifting | PASS: local compile checks only. |
 
@@ -62,7 +62,7 @@ specs/043-theme-marketplace/
 │   ├── themes-api.md
 │   └── gp-module-theme-cli.md
 ├── checklists/requirements.md
-└── tasks.md             # /speckit-tasks, after OD-4
+└── tasks.md             # /speckit-tasks
 ```
 
 ### Source Code (repository root)
@@ -91,7 +91,7 @@ changelog/unreleased/<PR>-theme-marketplace.md
 GameplanePanel/themes          NEW repo (valgul creates): themes/<name>/, build.sh, release workflow (cosign keyless), seeded from feat/example-theme-gallery overlays
 ```
 
-**Structure Decision**: Theme marketplace lives in the API and web (panel data, OD-1 and OD-4 A); validation is a shared stdlib module so CLI and panel agree; fetch/verify is shared with module sources rather than duplicated. Under OD-4 B, `api/internal/themes/` indexing moves to an operator `ThemeSource` reconciler, `bundlefetch` is not created, and the catalog cache becomes a ConfigMap per theme; per-user tables, web and CLI stay the same.
+**Structure Decision**: Theme marketplace lives in the API and web (panel data, OD-1 and OD-4 A); validation is a shared stdlib module so CLI and panel agree; fetch/verify is shared with module sources rather than duplicated.
 
 ### Suggested PR order (stacked, one thread = one branch per PR)
 
