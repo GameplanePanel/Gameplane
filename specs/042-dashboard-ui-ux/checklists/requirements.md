@@ -14,7 +14,7 @@
 ## Requirement Completeness
 
 - [x] No [NEEDS CLARIFICATION] markers remain
-- [ ] Requirements are testable and unambiguous — FR-033 rests on OD-8, still open
+- [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
 - [x] All acceptance scenarios are defined
@@ -31,4 +31,4 @@
 
 ## Notes
 
-- OD-8 (display of old backups) and OD-9 (Asleep dot colour) must be ruled before `/speckit-tasks`.
+- All open decisions ruled 2026-11-26 (OD-8, OD-9).

@@ -11,5 +11,5 @@ All rulings are valgul's, in the spec 042 thread.
 | OD-5 | Backup "real size" | Data size measured at backup time; space used as second line where known ("yes") | 2026-11-26 |
 | OD-6 | Logs toolbar | Colour levels (Info, Debug, Warn, Error), fix the root cause of the source switch look ("add color to info, debug, etc... and fix the reason why the type of log pod / game look wrong", then "k") | 2026-11-26 |
 | OD-7 | Resources | Slider fill + wider number box + no unit in labels + Storage size as number + unit ("yes") | 2026-11-26 |
-| OD-8 | How to show backups taken before the change (no data size recorded) | **OPEN**. Proposed: label their size "volume size", leave them out of the data-size total, and say how many backups the total covers (spec FR-033) | — |
+| OD-8 | How to show backups taken before the change (no data size recorded) | Label their size "volume size", leave them out of the data-size total, total says how many backups it covers (card "Volume size, not in total"; spec FR-033) | 2026-11-26 |
 | OD-9 | Colour of the Asleep status dot | Violet, the existing `--sleep` colour, as today (card "Violet, as today"); supersedes the "blue for sleeping" of OD-3 | 2026-11-26 |

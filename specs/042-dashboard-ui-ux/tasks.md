@@ -8,8 +8,7 @@ so test tasks are included. Tests run in CI only (CLAUDE.md rule 8). Editing an 
 test to match this spec needs no sign-off but gets a fresh-agent peer review of the test
 diff; deleting or weakening one needs valgul's written sign-off.
 
-**Gates**: no React before valgul approves the design export (T009). T037, T038 wait on
-OD-8. Nothing is pushed until valgul says go.
+**Gates**: no React before valgul approves the design export (T009). Nothing is pushed until valgul says go.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -100,8 +99,8 @@ skills; finish with `design-export`.
 - [ ] T034 [P] [US4] Same Size display on the Backups page `web/src/routes/Backups.tsx` and `web/src/components/backups/BackupDetailDrawer.tsx`
 - [ ] T035 [P] [US4] Update `web/src/components/backups/BackupRow.test.tsx`, `web/src/components/backups/BackupDetailDrawer.test.tsx`, `web/src/routes/tabs/Backups.test.tsx`, `web/src/routes/Backups.test.tsx` for data size, added line and coverage text
 - [ ] T036 [US4] Changelog `changelog/unreleased/<PR>-backup-data-size.md` (new status field, card renamed)
-- [ ] T037 [US4] (waits on OD-8) Old backups without `dataSize`: label per OD-8 in `web/src/components/backups/BackupSize.tsx`
-- [ ] T038 [US4] (waits on OD-8) Exclude them from the total and show the coverage text per OD-8 in `web/src/routes/tabs/Backups.tsx`
+- [ ] T037 [US4] Old backups without `dataSize`: label per OD-8 in `web/src/components/backups/BackupSize.tsx`
+- [ ] T038 [US4] Exclude them from the total and show the coverage text per OD-8 in `web/src/routes/tabs/Backups.tsx`
 
 ---
 
@@ -131,7 +130,7 @@ skills; finish with `design-export`.
 - Phase 1 → Phase 2 (design) → **valgul approval (T009)** → Phase 3 → Phases 4–8 → Phase 9.
 - Operator part of US4 (T026–T030) has no design dependency and may start after Phase 1.
 - US1 depends on T010 (tokens) and T013; US2 is T014–T015 (+ T021); US3 depends on T010, T011; US4 web depends on T026, T031; US5 depends on T012.
-- T037–T038 wait on OD-8.
+- 
 
 ## Parallel examples
 
