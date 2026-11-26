@@ -354,10 +354,10 @@
                                       "type": "TEXT",
                                       "x": 0,
                                       "y": 0,
-                                      "width": 68,
+                                      "width": 29,
                                       "height": 18,
                                       "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
-                                      "text": "CPU cores",
+                                      "text": "CPU",
                                       "font": ["Geist", 400, 14],
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
@@ -395,12 +395,11 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
-                                      "id": "1:10609",
                                       "name": "slider",
                                       "type": "INSTANCE",
                                       "x": 0,
                                       "y": 8,
-                                      "width": 446,
+                                      "width": 430,
                                       "height": 20,
                                       "component": "Slider",
                                       "componentId": "1:1440",
@@ -418,9 +417,9 @@
                                       "id": "1:10610",
                                       "name": "Input",
                                       "type": "INSTANCE",
-                                      "x": 458,
+                                      "x": 442,
                                       "y": 0,
-                                      "width": 64,
+                                      "width": 80,
                                       "height": 36,
                                       "component": "Gameplane/Input",
                                       "componentId": "1:706",
@@ -442,7 +441,7 @@
                                         "fills/0/color": "field/background",
                                         "strokes/0/color": "field/border"
                                       },
-                                      "texts": ["2"]
+                                      "texts": ["2000"]
                                     },
                                     {
                                       "id": "1:10611",
@@ -462,7 +461,7 @@
                                         "counter": "MIN",
                                         "sizing": ["HUG", "FIXED"]
                                       },
-                                      "texts": ["cores"]
+                                      "texts": ["mCPU"]
                                     }
                                   ]
                                 }
@@ -509,10 +508,10 @@
                                       "type": "TEXT",
                                       "x": 0,
                                       "y": 0,
-                                      "width": 86,
+                                      "width": 53,
                                       "height": 18,
                                       "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
-                                      "text": "Memory (GiB)",
+                                      "text": "Memory",
                                       "font": ["Geist", 400, 14],
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
@@ -555,7 +554,7 @@
                                       "type": "INSTANCE",
                                       "x": 0,
                                       "y": 8,
-                                      "width": 446,
+                                      "width": 430,
                                       "height": 20,
                                       "component": "Slider",
                                       "componentId": "1:1440",
@@ -573,9 +572,9 @@
                                       "id": "1:10618",
                                       "name": "Input",
                                       "type": "INSTANCE",
-                                      "x": 458,
+                                      "x": 442,
                                       "y": 0,
-                                      "width": 64,
+                                      "width": 80,
                                       "height": 36,
                                       "component": "Gameplane/Input",
                                       "componentId": "1:706",
@@ -809,7 +808,7 @@
                                       "type": "INSTANCE",
                                       "x": 0,
                                       "y": 8,
-                                      "width": 446,
+                                      "width": 430,
                                       "height": 20,
                                       "component": "Slider",
                                       "componentId": "1:1440",
@@ -827,9 +826,9 @@
                                       "id": "1:10632",
                                       "name": "Input",
                                       "type": "INSTANCE",
-                                      "x": 458,
+                                      "x": 442,
                                       "y": 0,
-                                      "width": 64,
+                                      "width": 80,
                                       "height": 36,
                                       "component": "Gameplane/Input",
                                       "componentId": "1:706",
@@ -918,10 +917,10 @@
                                       "type": "TEXT",
                                       "x": 0,
                                       "y": 0,
-                                      "width": 150,
+                                      "width": 116,
                                       "height": 18,
                                       "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
-                                      "text": "Reserved memory (GiB)",
+                                      "text": "Reserved memory",
                                       "font": ["Geist", 400, 14],
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
@@ -964,7 +963,7 @@
                                       "type": "INSTANCE",
                                       "x": 0,
                                       "y": 8,
-                                      "width": 446,
+                                      "width": 430,
                                       "height": 20,
                                       "component": "Slider",
                                       "componentId": "1:1440",
@@ -982,9 +981,9 @@
                                       "id": "1:10640",
                                       "name": "Input",
                                       "type": "INSTANCE",
-                                      "x": 458,
+                                      "x": 442,
                                       "y": 0,
-                                      "width": 64,
+                                      "width": 80,
                                       "height": 36,
                                       "component": "Gameplane/Input",
                                       "componentId": "1:706",
@@ -1039,7 +1038,7 @@
                               "x": 24,
                               "y": 490,
                               "width": 860,
-                              "height": 70,
+                              "height": 54,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 16,
@@ -1057,7 +1056,7 @@
                                   "x": 0,
                                   "y": 0,
                                   "width": 200,
-                                  "height": 70,
+                                  "height": 54,
                                   "layout": {
                                     "mode": "VERTICAL",
                                     "gap": 4,
@@ -1087,44 +1086,81 @@
                                       "x": 0,
                                       "y": 22,
                                       "width": 200,
-                                      "height": 48,
+                                      "height": 32,
                                       "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-                                      "text": "K8s quantity (e.g. 10Gi, 200Gi). Resizing requires a StorageClass with allowVolumeExpansion: true.",
+                                      "text": "Resizing requires a StorageClass with allowVolumeExpansion: true.",
                                       "font": ["Geist", 400, 12],
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "1:10646",
-                                  "name": "Input",
-                                  "type": "INSTANCE",
+                                  "name": "ctrl",
+                                  "type": "FRAME",
                                   "x": 216,
                                   "y": 0,
                                   "width": 644,
                                   "height": 36,
-                                  "component": "Gameplane/Input",
-                                  "componentId": "1:706",
-                                  "fills": [{"type": "SOLID", "color": "#17151A"}],
-                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
-                                  "strokeWeight": 1,
-                                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
-                                  "cornerRadius": 12,
                                   "layout": {
                                     "mode": "HORIZONTAL",
-                                    "gap": 0,
-                                    "padding": [8, 12, 8, 12],
+                                    "gap": 12,
+                                    "padding": [0, 0, 0, 0],
                                     "primary": "MIN",
-                                    "counter": "CENTER",
+                                    "counter": "MIN",
                                     "sizing": ["FIXED", "FIXED"]
                                   },
                                   "layoutGrow": 1,
-                                  "variables": {
-                                    "cornerRadius": "radius/xl",
-                                    "fills/0/color": "field/background",
-                                    "strokes/0/color": "field/border"
-                                  },
-                                  "texts": ["20Gi"]
+                                  "clips": true,
+                                  "children": [
+                                    {
+                                      "name": "Input",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 80,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["200"]
+                                    },
+                                    {
+                                      "name": "unit",
+                                      "type": "INSTANCE",
+                                      "x": 92,
+                                      "y": 0,
+                                      "width": 110,
+                                      "height": 36,
+                                      "component": "Select/Primary",
+                                      "componentId": "1:1449",
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 4,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "texts": ["GiB"]
+                                    }
+                                  ]
                                 }
                               ]
                             },
@@ -1133,7 +1169,7 @@
                               "name": "Field StorageClass",
                               "type": "FRAME",
                               "x": 24,
-                              "y": 580,
+                              "y": 564,
                               "width": 860,
                               "height": 54,
                               "layout": {

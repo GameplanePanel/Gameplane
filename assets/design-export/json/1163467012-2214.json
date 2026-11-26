@@ -156,7 +156,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 221,
+                      "width": 249,
                       "height": 32,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -184,22 +184,21 @@
                           "name": "statusBadge",
                           "type": "INSTANCE",
                           "x": 169,
-                          "y": 7.5,
-                          "width": 52,
-                          "height": 17,
-                          "component": "Chip/Soft/Success/SM",
-                          "componentId": "1:1790",
+                          "y": 6,
+                          "width": 80,
+                          "height": 20,
+                          "component": "Status=Running",
                           "fills": [{"type": "SOLID", "color": "#17C964", "opacity": 0.15}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
-                            "padding": [2, 4, 2, 4],
-                            "primary": "MIN",
+                            "gap": 6,
+                            "padding": [2, 8, 2, 8],
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                          "variables": {"fills/0/color": "success/soft"},
                           "texts": ["Running"]
                         }
                       ]
@@ -268,7 +267,7 @@
                       "componentId": "1:1794",
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 8,
@@ -279,9 +278,12 @@
                       },
                       "variables": {
                         "itemSpacing": "spacing/2",
-                        "cornerRadius": "radius/3xl",
                         "paddingRight": "spacing/4",
                         "paddingLeft": "spacing/4",
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl",
                         "strokes/0/color": "border-2"
                       },
                       "texts": ["Restart"]
@@ -297,7 +299,7 @@
                       "componentId": "1:1794",
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 8,
@@ -308,9 +310,12 @@
                       },
                       "variables": {
                         "itemSpacing": "spacing/2",
-                        "cornerRadius": "radius/3xl",
                         "paddingRight": "spacing/4",
                         "paddingLeft": "spacing/4",
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl",
                         "strokes/0/color": "border-2"
                       },
                       "texts": ["Stop"]
@@ -326,7 +331,7 @@
                       "componentId": "1:774",
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 0,
@@ -335,7 +340,13 @@
                         "counter": "CENTER",
                         "sizing": ["FIXED", "FIXED"]
                       },
-                      "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border-2"}
+                      "variables": {
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl",
+                        "strokes/0/color": "border-2"
+                      }
                     }
                   ]
                 },
@@ -399,7 +410,7 @@
               "height": 32,
               "component": "Tab/Inactive",
               "componentId": "1:967",
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
@@ -408,7 +419,12 @@
                 "counter": "CENTER",
                 "sizing": ["HUG", "FIXED"]
               },
-              "variables": {"cornerRadius": "radius/3xl"},
+              "variables": {
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl"
+              },
               "texts": ["Backups"]
             },
             {
@@ -420,7 +436,7 @@
               "height": 32,
               "component": "Tab/Inactive",
               "componentId": "1:967",
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
@@ -429,7 +445,12 @@
                 "counter": "CENTER",
                 "sizing": ["HUG", "FIXED"]
               },
-              "variables": {"cornerRadius": "radius/3xl"},
+              "variables": {
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl"
+              },
               "texts": ["Capture"]
             },
             {
@@ -443,7 +464,7 @@
               "componentId": "1:965",
               "fills": [{"type": "SOLID", "color": "#1D1B22"}],
               "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
@@ -452,7 +473,13 @@
                 "counter": "CENTER",
                 "sizing": ["HUG", "FIXED"]
               },
-              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+              "variables": {
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl",
+                "fills/0/color": "segment"
+              },
               "texts": ["Settings"]
             }
           ]

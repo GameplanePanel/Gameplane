@@ -497,7 +497,7 @@
               "componentId": "1:1794",
               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
               "strokeWeight": 1,
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 8,
@@ -508,9 +508,12 @@
               },
               "variables": {
                 "itemSpacing": "spacing/2",
-                "cornerRadius": "radius/3xl",
                 "paddingRight": "spacing/4",
                 "paddingLeft": "spacing/4",
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl",
                 "strokes/0/color": "border-2"
               },
               "texts": ["All namespaces"]
@@ -528,7 +531,7 @@
               "componentId": "1:1794",
               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
               "strokeWeight": 1,
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 8,
@@ -539,9 +542,12 @@
               },
               "variables": {
                 "itemSpacing": "spacing/2",
-                "cornerRadius": "radius/3xl",
                 "paddingRight": "spacing/4",
                 "paddingLeft": "spacing/4",
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl",
                 "strokes/0/color": "border-2"
               },
               "texts": ["Add"]

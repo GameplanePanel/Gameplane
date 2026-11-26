@@ -1124,7 +1124,7 @@
                                   "height": 32,
                                   "component": "Tab/Inactive",
                                   "componentId": "1:967",
-                                  "cornerRadius": 24,
+                                  "cornerRadius": 12,
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 0,
@@ -1133,7 +1133,12 @@
                                     "counter": "CENTER",
                                     "sizing": ["HUG", "FIXED"]
                                   },
-                                  "variables": {"cornerRadius": "radius/3xl"},
+                                  "variables": {
+                                    "topLeftRadius": "radius/xl",
+                                    "topRightRadius": "radius/xl",
+                                    "bottomLeftRadius": "radius/xl",
+                                    "bottomRightRadius": "radius/xl"
+                                  },
                                   "texts": ["Light"]
                                 },
                                 {
@@ -1148,7 +1153,7 @@
                                   "componentId": "1:965",
                                   "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
                                   "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
-                                  "cornerRadius": 24,
+                                  "cornerRadius": 12,
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 0,
@@ -1157,7 +1162,13 @@
                                     "counter": "CENTER",
                                     "sizing": ["HUG", "FIXED"]
                                   },
-                                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                                  "variables": {
+                                    "topLeftRadius": "radius/xl",
+                                    "topRightRadius": "radius/xl",
+                                    "bottomLeftRadius": "radius/xl",
+                                    "bottomRightRadius": "radius/xl",
+                                    "fills/0/color": "segment"
+                                  },
                                   "texts": ["Dark"]
                                 },
                                 {
@@ -1170,7 +1181,7 @@
                                   "height": 32,
                                   "component": "Tab/Inactive",
                                   "componentId": "1:967",
-                                  "cornerRadius": 24,
+                                  "cornerRadius": 12,
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 0,
@@ -1179,7 +1190,12 @@
                                     "counter": "CENTER",
                                     "sizing": ["HUG", "FIXED"]
                                   },
-                                  "variables": {"cornerRadius": "radius/3xl"},
+                                  "variables": {
+                                    "topLeftRadius": "radius/xl",
+                                    "topRightRadius": "radius/xl",
+                                    "bottomLeftRadius": "radius/xl",
+                                    "bottomRightRadius": "radius/xl"
+                                  },
                                   "texts": ["System"]
                                 }
                               ]

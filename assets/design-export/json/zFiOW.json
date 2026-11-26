@@ -240,7 +240,7 @@
               "x": 24,
               "y": 101,
               "width": 1132,
-              "height": 115,
+              "height": 156,
               "component": "Gameplane/Servers Stats Row",
               "componentId": "1:6090",
               "layout": {
@@ -264,7 +264,8 @@
                 "authorized inventory cores",
                 "STORAGE PROVISIONED",
                 "77 GB",
-                "of 86 GB",
+                "Overcommitted",
+                "of 1.7 TiB system storage",
                 "NODES READY",
                 "3",
                 "nodes ready"
@@ -275,7 +276,7 @@
               "name": "Controls Row",
               "type": "INSTANCE",
               "x": 24,
-              "y": 240,
+              "y": 281,
               "width": 1132,
               "height": 40,
               "component": "Gameplane/Servers Controls Row",
@@ -296,7 +297,7 @@
               "name": "Servers Table",
               "type": "FRAME",
               "x": 24,
-              "y": 304,
+              "y": 345,
               "width": 1132,
               "height": 618,
               "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
@@ -766,25 +767,24 @@
                       "children": [
                         {
                           "id": "1:6145",
-                          "name": "Chip/Soft/Success/MD",
+                          "name": "Status=Running",
                           "type": "INSTANCE",
                           "x": 16,
                           "y": 12,
-                          "width": 67,
+                          "width": 80,
                           "height": 20,
-                          "component": "Chip/Soft/Success/MD",
-                          "componentId": "1:2868",
+                          "component": "Status=Running",
                           "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
+                            "gap": 6,
                             "padding": [2, 8, 2, 8],
-                            "primary": "MIN",
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                          "variables": {"fills/0/color": "success/soft"},
                           "texts": ["Running"]
                         }
                       ]
@@ -970,8 +970,9 @@
                                   "y": 2,
                                   "width": 10.67,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -1012,8 +1013,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -1054,8 +1056,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -1064,8 +1067,9 @@
                                   "y": 2,
                                   "width": 3.33,
                                   "height": 3.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -1106,8 +1110,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -1116,8 +1121,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -1126,8 +1132,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -1309,25 +1316,24 @@
                       "children": [
                         {
                           "id": "1:6173",
-                          "name": "Chip/Soft/Danger/MD",
+                          "name": "Status=Failed",
                           "type": "INSTANCE",
                           "x": 16,
                           "y": 12,
-                          "width": 60,
+                          "width": 65,
                           "height": 20,
-                          "component": "Chip/Soft/Danger/MD",
-                          "componentId": "1:2878",
+                          "component": "Status=Failed",
                           "fills": [{"type": "SOLID", "color": "#FEE2E2"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
+                            "gap": 6,
                             "padding": [2, 8, 2, 8],
-                            "primary": "MIN",
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                          "variables": {"fills/0/color": "danger/soft"},
                           "texts": ["Failed"]
                         }
                       ]
@@ -1512,8 +1518,9 @@
                                   "y": 2,
                                   "width": 10.67,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -1554,8 +1561,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -1596,8 +1604,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -1606,8 +1615,9 @@
                                   "y": 2,
                                   "width": 3.33,
                                   "height": 3.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -1648,8 +1658,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -1658,8 +1669,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -1668,8 +1680,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -1851,25 +1864,24 @@
                       "children": [
                         {
                           "id": "1:6201",
-                          "name": "Chip/Soft/Default/MD",
+                          "name": "Status=Asleep",
                           "type": "INSTANCE",
                           "x": 16,
                           "y": 12,
-                          "width": 60,
+                          "width": 71,
                           "height": 20,
-                          "component": "Chip/Soft/Default/MD",
-                          "componentId": "1:5676",
+                          "component": "Status=Asleep",
                           "fills": [{"type": "SOLID", "color": "#E8DEFD"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
+                            "gap": 6,
                             "padding": [2, 8, 2, 8],
-                            "primary": "MIN",
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "color-sleep"},
+                          "variables": {"fills/0/color": "color-sleep"},
                           "texts": ["Asleep"]
                         }
                       ]
@@ -2054,8 +2066,9 @@
                                   "y": 1.33,
                                   "width": 13.33,
                                   "height": 13.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -2097,8 +2110,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -2140,8 +2154,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -2150,8 +2165,9 @@
                                   "y": 2,
                                   "width": 3.33,
                                   "height": 3.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -2192,8 +2208,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -2202,8 +2219,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -2212,8 +2230,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -2395,25 +2414,24 @@
                       "children": [
                         {
                           "id": "1:6229",
-                          "name": "Chip/Soft/Success/MD",
+                          "name": "Status=Running",
                           "type": "INSTANCE",
                           "x": 16,
                           "y": 12,
-                          "width": 67,
+                          "width": 80,
                           "height": 20,
-                          "component": "Chip/Soft/Success/MD",
-                          "componentId": "1:2868",
+                          "component": "Status=Running",
                           "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
+                            "gap": 6,
                             "padding": [2, 8, 2, 8],
-                            "primary": "MIN",
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                          "variables": {"fills/0/color": "success/soft"},
                           "texts": ["Running"]
                         }
                       ]
@@ -2599,8 +2617,9 @@
                                   "y": 2,
                                   "width": 10.67,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -2641,8 +2660,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -2683,8 +2703,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -2693,8 +2714,9 @@
                                   "y": 2,
                                   "width": 3.33,
                                   "height": 3.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -2735,8 +2757,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -2745,8 +2768,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -2755,8 +2779,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -2938,25 +2963,24 @@
                       "children": [
                         {
                           "id": "1:6257",
-                          "name": "Chip/Soft/Success/MD",
+                          "name": "Status=Running",
                           "type": "INSTANCE",
                           "x": 16,
                           "y": 12,
-                          "width": 67,
+                          "width": 80,
                           "height": 20,
-                          "component": "Chip/Soft/Success/MD",
-                          "componentId": "1:2868",
+                          "component": "Status=Running",
                           "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
+                            "gap": 6,
                             "padding": [2, 8, 2, 8],
-                            "primary": "MIN",
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                          "variables": {"fills/0/color": "success/soft"},
                           "texts": ["Running"]
                         }
                       ]
@@ -3142,8 +3166,9 @@
                                   "y": 2,
                                   "width": 10.67,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -3184,8 +3209,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -3226,8 +3252,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -3236,8 +3263,9 @@
                                   "y": 2,
                                   "width": 3.33,
                                   "height": 3.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -3278,8 +3306,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -3288,8 +3317,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -3298,8 +3328,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -3481,25 +3512,24 @@
                       "children": [
                         {
                           "id": "1:6285",
-                          "name": "Chip/Soft/Success/MD",
+                          "name": "Status=Running",
                           "type": "INSTANCE",
                           "x": 16,
                           "y": 12,
-                          "width": 67,
+                          "width": 80,
                           "height": 20,
-                          "component": "Chip/Soft/Success/MD",
-                          "componentId": "1:2868",
+                          "component": "Status=Running",
                           "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
+                            "gap": 6,
                             "padding": [2, 8, 2, 8],
-                            "primary": "MIN",
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                          "variables": {"fills/0/color": "success/soft"},
                           "texts": ["Running"]
                         }
                       ]
@@ -3685,8 +3715,9 @@
                                   "y": 2,
                                   "width": 10.67,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -3727,8 +3758,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -3769,8 +3801,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -3779,8 +3812,9 @@
                                   "y": 2,
                                   "width": 3.33,
                                   "height": 3.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -3821,8 +3855,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -3831,8 +3866,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -3841,8 +3877,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -4026,25 +4063,24 @@
                       "children": [
                         {
                           "id": "1:6313",
-                          "name": "Chip/Soft/Success/MD",
+                          "name": "Status=Running",
                           "type": "INSTANCE",
                           "x": 16,
                           "y": 12,
-                          "width": 67,
+                          "width": 80,
                           "height": 20,
-                          "component": "Chip/Soft/Success/MD",
-                          "componentId": "1:2868",
+                          "component": "Status=Running",
                           "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
+                            "gap": 6,
                             "padding": [2, 8, 2, 8],
-                            "primary": "MIN",
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                          "variables": {"fills/0/color": "success/soft"},
                           "texts": ["Running"]
                         }
                       ]
@@ -4230,8 +4266,9 @@
                                   "y": 2,
                                   "width": 10.67,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -4272,8 +4309,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -4314,8 +4352,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -4324,8 +4363,9 @@
                                   "y": 2,
                                   "width": 3.33,
                                   "height": 3.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -4366,8 +4406,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -4376,8 +4417,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -4386,8 +4428,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -4569,25 +4612,24 @@
                       "children": [
                         {
                           "id": "1:6341",
-                          "name": "Chip/Soft/Success/MD",
+                          "name": "Status=Running",
                           "type": "INSTANCE",
                           "x": 16,
                           "y": 12,
-                          "width": 67,
+                          "width": 80,
                           "height": 20,
-                          "component": "Chip/Soft/Success/MD",
-                          "componentId": "1:2868",
+                          "component": "Status=Running",
                           "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
+                            "gap": 6,
                             "padding": [2, 8, 2, 8],
-                            "primary": "MIN",
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                          "variables": {"fills/0/color": "success/soft"},
                           "texts": ["Running"]
                         }
                       ]
@@ -4773,8 +4815,9 @@
                                   "y": 2,
                                   "width": 10.67,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -4815,8 +4858,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -4857,8 +4901,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -4867,8 +4912,9 @@
                                   "y": 2,
                                   "width": 3.33,
                                   "height": 3.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -4909,8 +4955,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -4919,8 +4966,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -4929,8 +4977,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -5112,25 +5161,24 @@
                       "children": [
                         {
                           "id": "1:6369",
-                          "name": "Chip/Soft/Danger/MD",
+                          "name": "Status=Failed",
                           "type": "INSTANCE",
                           "x": 16,
                           "y": 12,
-                          "width": 60,
+                          "width": 65,
                           "height": 20,
-                          "component": "Chip/Soft/Danger/MD",
-                          "componentId": "1:2878",
+                          "component": "Status=Failed",
                           "fills": [{"type": "SOLID", "color": "#FEE2E2"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
+                            "gap": 6,
                             "padding": [2, 8, 2, 8],
-                            "primary": "MIN",
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                          "variables": {"fills/0/color": "danger/soft"},
                           "texts": ["Failed"]
                         }
                       ]
@@ -5315,8 +5363,9 @@
                                   "y": 2,
                                   "width": 10.67,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -5357,8 +5406,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -5399,8 +5449,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -5409,8 +5460,9 @@
                                   "y": 2,
                                   "width": 3.33,
                                   "height": 3.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -5451,8 +5503,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -5461,8 +5514,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -5471,8 +5525,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -5654,25 +5709,24 @@
                       "children": [
                         {
                           "id": "1:6397",
-                          "name": "Chip/Soft/Success/MD",
+                          "name": "Status=Running",
                           "type": "INSTANCE",
                           "x": 16,
                           "y": 12,
-                          "width": 67,
+                          "width": 80,
                           "height": 20,
-                          "component": "Chip/Soft/Success/MD",
-                          "componentId": "1:2868",
+                          "component": "Status=Running",
                           "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
+                            "gap": 6,
                             "padding": [2, 8, 2, 8],
-                            "primary": "MIN",
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                          "variables": {"fills/0/color": "success/soft"},
                           "texts": ["Running"]
                         }
                       ]
@@ -5858,8 +5912,9 @@
                                   "y": 2,
                                   "width": 10.67,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -5900,8 +5955,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -5942,8 +5998,9 @@
                                   "y": 2,
                                   "width": 12,
                                   "height": 12,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -5952,8 +6009,9 @@
                                   "y": 2,
                                   "width": 3.33,
                                   "height": 3.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
@@ -5994,8 +6052,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -6004,8 +6063,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 },
                                 {
                                   "name": "path",
@@ -6014,8 +6074,9 @@
                                   "y": 7.33,
                                   "width": 1.33,
                                   "height": 1.33,
-                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
-                                  "strokeWeight": 1.33
+                                  "strokes": [{"type": "SOLID", "color": "#2A0F1E"}],
+                                  "strokeWeight": 1.33,
+                                  "variables": {"strokes/0/color": "foreground/foreground"}
                                 }
                               ]
                             }

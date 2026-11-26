@@ -247,7 +247,7 @@
               "x": 24,
               "y": 101,
               "width": 1132,
-              "height": 115,
+              "height": 156,
               "component": "Gameplane/Servers Stats Row",
               "componentId": "1:6090",
               "layout": {
@@ -271,7 +271,8 @@
                 "authorized inventory cores",
                 "STORAGE PROVISIONED",
                 "77 GB",
-                "of 86 GB",
+                "Overcommitted",
+                "of 1.7 TiB system storage",
                 "NODES READY",
                 "3",
                 "nodes ready"
@@ -282,7 +283,7 @@
               "name": "Controls Row",
               "type": "INSTANCE",
               "x": 24,
-              "y": 240,
+              "y": 281,
               "width": 1132,
               "height": 40,
               "component": "Gameplane/Servers Controls Row",
@@ -303,7 +304,7 @@
               "name": "Servers Table",
               "type": "FRAME",
               "x": 24,
-              "y": 304,
+              "y": 345,
               "width": 1132,
               "height": 232,
               "fills": [{"type": "SOLID", "color": "#17151A"}],
@@ -328,9 +329,6 @@
                   "y": 0,
                   "width": 1124,
                   "height": 36,
-                  "fills": [{"type": "SOLID", "color": "#17151A"}],
-                  "strokes": [{"type": "SOLID", "color": "#232227"}],
-                  "strokeWeight": 1,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -340,7 +338,6 @@
                     "sizing": ["FIXED", "HUG"]
                   },
                   "layoutAlignSelf": "STRETCH",
-                  "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "separator/separator"},
                   "children": [
                     {
                       "id": "1:6426",
@@ -755,9 +752,9 @@
                               "name": "Status Wrap",
                               "type": "FRAME",
                               "x": 16,
-                              "y": 23.5,
-                              "width": 64,
-                              "height": 17,
+                              "y": 22,
+                              "width": 80,
+                              "height": 20,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 6,
@@ -768,37 +765,25 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6447",
-                                  "name": "dot",
-                                  "type": "ELLIPSE",
-                                  "x": 0,
-                                  "y": 5.5,
-                                  "width": 6,
-                                  "height": 6,
-                                  "fills": [{"type": "SOLID", "color": "#21C45D"}],
-                                  "variables": {"fills/0/color": "success/success"}
-                                },
-                                {
                                   "id": "1:6448",
                                   "name": "Status Chip",
                                   "type": "INSTANCE",
-                                  "x": 12,
+                                  "x": 0,
                                   "y": 0,
-                                  "width": 52,
-                                  "height": 17,
-                                  "component": "Chip/Soft/Success/SM",
-                                  "componentId": "1:1790",
+                                  "width": 80,
+                                  "height": 20,
+                                  "component": "Status=Running",
                                   "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
-                                  "cornerRadius": 16,
+                                  "cornerRadius": 9999,
                                   "layout": {
                                     "mode": "HORIZONTAL",
-                                    "gap": 2,
-                                    "padding": [2, 4, 2, 4],
-                                    "primary": "MIN",
+                                    "gap": 6,
+                                    "padding": [2, 8, 2, 8],
+                                    "primary": "CENTER",
                                     "counter": "CENTER",
                                     "sizing": ["HUG", "HUG"]
                                   },
-                                  "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                                  "variables": {"fills/0/color": "success/soft"},
                                   "texts": ["Running"]
                                 }
                               ]
@@ -1224,9 +1209,9 @@
                               "name": "Status Wrap",
                               "type": "FRAME",
                               "x": 16,
-                              "y": 23.5,
-                              "width": 52,
-                              "height": 17,
+                              "y": 22,
+                              "width": 65,
+                              "height": 20,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 6,
@@ -1237,37 +1222,25 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6470",
-                                  "name": "dot",
-                                  "type": "ELLIPSE",
-                                  "x": 0,
-                                  "y": 5.5,
-                                  "width": 6,
-                                  "height": 6,
-                                  "fills": [{"type": "SOLID", "color": "#E0304F"}],
-                                  "variables": {"fills/0/color": "danger/danger"}
-                                },
-                                {
                                   "id": "1:6471",
                                   "name": "Status Chip",
                                   "type": "INSTANCE",
-                                  "x": 12,
+                                  "x": 0,
                                   "y": 0,
-                                  "width": 40,
-                                  "height": 17,
-                                  "component": "Chip/Soft/Danger/SM",
-                                  "componentId": "1:760",
+                                  "width": 65,
+                                  "height": 20,
+                                  "component": "Status=Failed",
                                   "fills": [{"type": "SOLID", "color": "#2E1317"}],
-                                  "cornerRadius": 16,
+                                  "cornerRadius": 9999,
                                   "layout": {
                                     "mode": "HORIZONTAL",
-                                    "gap": 2,
-                                    "padding": [2, 4, 2, 4],
-                                    "primary": "MIN",
+                                    "gap": 6,
+                                    "padding": [2, 8, 2, 8],
+                                    "primary": "CENTER",
                                     "counter": "CENTER",
                                     "sizing": ["HUG", "HUG"]
                                   },
-                                  "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                                  "variables": {"fills/0/color": "danger/soft"},
                                   "texts": ["Failed"]
                                 }
                               ]
@@ -1693,9 +1666,9 @@
                               "name": "Status Wrap",
                               "type": "FRAME",
                               "x": 16,
-                              "y": 23.5,
-                              "width": 57,
-                              "height": 17,
+                              "y": 22,
+                              "width": 71,
+                              "height": 20,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 6,
@@ -1706,48 +1679,25 @@
                               },
                               "children": [
                                 {
-                                  "id": "1:6493",
-                                  "name": "dot",
-                                  "type": "ELLIPSE",
+                                  "name": "Status Pill",
+                                  "type": "INSTANCE",
                                   "x": 0,
-                                  "y": 5.5,
-                                  "width": 6,
-                                  "height": 6,
-                                  "fills": [{"type": "SOLID", "color": "#8B5CF6"}]
-                                },
-                                {
-                                  "id": "1:6494",
-                                  "name": "Status Chip",
-                                  "type": "FRAME",
-                                  "x": 12,
                                   "y": 0,
-                                  "width": 45,
-                                  "height": 17,
-                                  "fills": [{"type": "SOLID", "color": "#8B5CF633", "opacity": 0.2}],
-                                  "cornerRadius": 16,
+                                  "width": 71,
+                                  "height": 20,
+                                  "component": "Status=Asleep",
+                                  "fills": [{"type": "SOLID", "color": "#221C33"}],
+                                  "cornerRadius": 9999,
                                   "layout": {
                                     "mode": "HORIZONTAL",
-                                    "gap": 2,
-                                    "padding": [2, 4, 2, 4],
-                                    "primary": "MIN",
+                                    "gap": 6,
+                                    "padding": [2, 8, 2, 8],
+                                    "primary": "CENTER",
                                     "counter": "CENTER",
                                     "sizing": ["HUG", "HUG"]
                                   },
-                                  "variables": {"cornerRadius": "radius/2xl"},
-                                  "children": [
-                                    {
-                                      "id": "1:6495",
-                                      "name": "Label",
-                                      "type": "TEXT",
-                                      "x": 4,
-                                      "y": 2,
-                                      "width": 37,
-                                      "height": 13,
-                                      "fills": [{"type": "SOLID", "color": "#A78BFA"}],
-                                      "text": "Asleep",
-                                      "font": ["Inter", 500, 11]
-                                    }
-                                  ]
+                                  "variables": {"fills/0/color": "color-sleep"},
+                                  "texts": ["Asleep"]
                                 }
                               ]
                             }
