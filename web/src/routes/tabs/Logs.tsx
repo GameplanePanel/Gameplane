@@ -217,8 +217,8 @@ export function LogsTab({
             <Tabs.List>
               {(["all", ...LEVELS] as const).map((lv) => (
                 <TabComponent key={lv} id={lv} className="whitespace-nowrap">
-                  <span className={lv === "all" ? undefined : LEVEL_CLASS[lv]}>{intl.formatMessage(LEVEL_TABS[lv])}</span>{" "}
-                  <span data-testid={`logs-level-count-${lv}`} className={cn("rounded-full px-1.5 py-0.5 text-[11px] font-medium leading-none", LEVEL_BADGE_CLASS[lv])}>
+                  <span className={lv === "all" ? undefined : LEVEL_CLASS[lv]}>{intl.formatMessage(LEVEL_TABS[lv])}</span>
+                  <span data-testid={`logs-level-count-${lv}`} className={cn("ml-1 rounded-full px-1.5 py-0.5 text-[11px] font-medium leading-none", LEVEL_BADGE_CLASS[lv])}>
                     {intl.formatMessage({ id: "web.routes.tabs.logs.level_count", defaultMessage: "{count}", description: "Logs: number of lines shown in the badge after a log level tab label; {count} is that count" }, { count: lv === "all" ? lines.length : counts[lv] })}
                   </span>
                 </TabComponent>
