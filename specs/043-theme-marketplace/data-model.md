@@ -53,15 +53,16 @@ A theme one user installed for their own account (OD-1, FR-006, FR-010, FR-013).
 |---|---|---|
 | `id` | integer PK | |
 | `user_id` | FK → users, cascade delete | |
-| `source_name` | text | copied, so the row survives source removal |
-| `theme_name` | text | unique with `user_id` + `source_name` |
+| `source_id` | FK → theme_sources, nullable, `ON DELETE SET NULL` | the durable source identity used for update and removal matching |
+| `source_name` | text | copied for display, so the row survives source removal |
+| `theme_name` | text | unique with `user_id` + `source_id` + `theme_name` while `source_id` is set |
 | `version`, `digest` | text | installed version |
 | `metadata` | text (JSON) | display name, author, description at install time |
 | `tokens` | text (JSON) | as in catalog |
 | `css` | text, nullable | re-sanitized at install |
 | `installed_at`, `updated_at` | text | RFC 3339 |
 
-Derived per request, not stored: `updateAvailable` (catalog entry for the same source and name is `valid` with a higher semver), `sourceRemoved` (no enabled source with that name or no catalog entry).
+Derived per request, not stored: `updateAvailable` (the catalog entry with the same `source_id` and theme name is `valid`, its source is enabled, and its semver is higher), `sourceRemoved` (`source_id` is NULL, the source is disabled, or it has no entry for this theme). Matching never uses `source_name`: a source deleted and later recreated under the same name gets a new id, so old installs stay `sourceRemoved` and never pick up updates from the new source.
 
 ## user_preferences (changed, spec 016)
 
@@ -75,7 +76,9 @@ Removing the selected theme sets `theme_type=preset`, `preset_id=pink`, `install
 ## State transitions
 
 ```text
-Catalog entry:   (indexed) -> valid | invalid | unverified ; re-index replaces it ; source deleted -> gone
+Catalog entry:   (indexed) -> valid | invalid | unverified ; re-index replaces it ;
+                 source verify settings edited -> every entry re-checked (failures -> unverified) ;
+                 source disabled -> entries kept but hidden, not installable ; source deleted -> gone
 Installed theme: (install from valid entry) -> installed -> (update from newer valid entry) -> installed@new
                  installed -> (remove) -> gone  [if selected: user falls back to Pink]
                  source disabled/removed -> installed, sourceRemoved=true (keeps working, no update)

@@ -27,9 +27,9 @@ Validation mirrors `ModuleSource` CEL rules: type-specific spec required, `verif
 | Method | Path | Body / result |
 |---|---|---|
 | GET | `/users/me/themes` | `[{id, source, name, displayName, version, modes, updateAvailable, sourceRemoved, selected}]` |
-| POST | `/users/me/themes` | `{catalogId, select?: bool}` → 201 + installed theme; 409 if already installed; 422 if entry not `valid` |
+| POST | `/users/me/themes` | `{catalogId, select?: bool}` → 201 + installed theme; 409 `already_installed`; 422 `entry_not_valid` if the entry is not `valid`; 409 `source_disabled` if its source is disabled (entries of a disabled source stay cached but are hidden from the catalog) |
 | GET | `/users/me/themes/{id}` | installed theme + `tokens`, `css` (used to render) |
-| POST | `/users/me/themes/{id}/update` | moves to the catalog's current valid version → 200; 409 if no newer version |
+| POST | `/users/me/themes/{id}/update` | moves to the newer `valid` entry with the same `source_id` and name → 200; 409 `no_update` if none; 409 `source_disabled` if the source is disabled; 409 `source_removed` if the source was deleted (matching uses the source id, never the name, see data-model.md) |
 | DELETE | `/users/me/themes/{id}` | 204; if selected, preferences fall back to Pink (FR-011) |
 
 Every route acts on the caller's own rows only; another user's id returns 404.

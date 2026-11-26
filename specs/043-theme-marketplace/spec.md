@@ -106,7 +106,7 @@ A theme author exports their theme from Theme settings (spec 016 export) or writ
 - **Theme that hides critical controls**: A theme cannot be applied on Theme settings and the theme catalog in a way the user cannot undo: safe mode renders those pages with the built-in default theme.
 - **Unauthenticated pages**: Login and public share links keep the built-in Modern Pink theme (spec 016 FR-011); installed themes never apply there.
 - **Same theme name in two sources**: Themes are identified by source plus name; the catalog shows the source next to the name.
-- **Source down during install or update**: The install fails with the source error; nothing already installed changes.
+- **Source down during install or update**: Install and update use the panel's cached, already checked copy of the theme, so a registry outage does not block them; if the theme has no valid cached copy, the install or update fails with the source's last error. Nothing already installed changes.
 - **Theme no longer in any source**: A user's installed copy keeps working and is marked "Source removed"; it can still be removed but not updated.
 - **Contrast**: A theme whose text or accent contrast falls below the minimum used for custom colors in spec 016 is flagged "Low contrast" in the catalog; forced-colors and prefers-contrast still override it.
 - **Large packages**: A package over the size limit (CSS 32 KB like user CSS, previews and whole package limits set in planning) is refused at validation and at install.

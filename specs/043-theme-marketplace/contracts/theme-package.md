@@ -11,14 +11,14 @@ One published version of one theme (OD-2). Validated by the shared `themepkg` mo
 | `previews/light.png` or `.webp` | yes if `tokens.light` | 512 KiB, ≤ 1600×1000 px | `image/png` / `image/webp` |
 | `previews/dark.png` or `.webp` | yes if `tokens.dark` | 512 KiB, ≤ 1600×1000 px | `image/png` / `image/webp` |
 
-Whole package ≤ 1.5 MiB. Any other file or layer makes the package `invalid`. OCI: artifact type `application/vnd.gameplane.theme.v1+json`, config media type `application/vnd.gameplane.theme.config.v1+json` (empty `{}`), pushed as `<source url>/<name>:<version>`, optionally cosign-signed.
+Whole package ≤ 1.5 MiB. Any other file or layer makes the package `invalid`. OCI: artifact type `application/vnd.gameplane.theme.v1+json`, config media type `application/vnd.gameplane.theme.config.v1+json` (empty `{}`), pushed as `<source url>/<name>:<version>` (the version is always a valid OCI tag because build metadata is refused, see `schema`), optionally cosign-signed.
 
 ## theme.yaml
 
 ```yaml
 apiVersion: gameplane.local/theme/v1
 name: deep-ocean            # DNS-1123 label, ≤ 63
-version: 1.2.0              # semver, no leading v
+version: 1.2.0              # semver MAJOR.MINOR.PATCH[-prerelease], no leading v, no +build metadata
 displayName: Deep Ocean     # ≤ 64
 author: Jane Doe            # ≤ 64
 description: Calm blues for long sessions.   # ≤ 280
@@ -51,7 +51,7 @@ Unknown keys are an error (strict decode).
 
 | Rule id | Check |
 |---|---|
-| `schema` | strict decode, required fields, lengths, semver, DNS-1123 name |
+| `schema` | strict decode, required fields, lengths, semver without build metadata (`+` refused, so every version is a valid OCI tag), DNS-1123 name |
 | `tokens.names` | exactly the 14 token names per present mode |
 | `tokens.format` | lowercase `#rrggbb` |
 | `css.size` | ≤ 32 KiB |
@@ -64,4 +64,4 @@ Unknown keys are an error (strict decode).
 | `files.extra` | no file or layer outside the table |
 | `size.total` | ≤ 1.5 MiB |
 
-Flag, not a failure: `lowContrast` when foreground/background < 4.5:1 or accent/surface < 3:1 in any present mode (same floors as `theme-derivation.ts`).
+Flag, not a failure: `lowContrast` when, in any present mode, a text pair is below 4.5:1 (foreground/background, accent-foreground/accent, muted/surface) or accent/surface is below 3:1 (same floors as `theme-derivation.ts`).

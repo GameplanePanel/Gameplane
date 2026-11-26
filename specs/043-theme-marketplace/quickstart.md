@@ -11,14 +11,14 @@ Manual walk for the maintainer after the implementation merges. Automated covera
 
 1. In the dashboard as the plain user, set custom colors in Settings → Theme and export the theme (spec 016).
 2. `gp-module theme from-export export.json --name qs-theme` → a `qs-theme/` folder. Add two screenshots as `previews/light.png` and `previews/dark.png`.
-3. `gp-module theme validate qs-theme` → passes. Add `@import url(https://x)` to `theme.css` and validate again → fails with `css.import`, line number. Remove it.
+3. `gp-module theme preview qs-theme` → open the local page and check both modes. `gp-module theme validate qs-theme` → passes. Add `@import url(https://x)` to `theme.css` and validate again → fails with `css.import`, line number. Remove it.
 4. `gp-module theme package qs-theme --push localhost:5001/themes/qs-theme:0.1.0`.
 
 ## 2. Add the source (US4)
 
 1. As admin, Settings → Theme sources: the `official` source is listed and enabled.
-2. Add source `qs`, type OCI, URL `localhost:5001/themes`, themes `qs-theme`, insecure, no verify. After refresh, `themeCount` is 1.
-3. Edit `qs` to require a cosign key: the catalog shows `qs-theme` as "Signature not verified" and Install is disabled. Sign it with `cosign sign --key` and refresh: it becomes installable.
+2. Add source `qs`, type OCI, URL `kind-registry:5000/themes` (the in-cluster registry name, as for `MODULE_SOURCE_URL`), themes `qs-theme`, insecure, no verify. After refresh, `themeCount` is 1.
+3. Edit `qs` to require a cosign key: the catalog shows `qs-theme` as "Signature not verified" and Install is disabled. Create a key pair with `cosign generate-key-pair` (writes `cosign.key` and `cosign.pub`), paste `cosign.pub` into the source's verify key, sign with `cosign sign --key cosign.key --allow-insecure-registry localhost:5001/themes/qs-theme:0.1.0`, and refresh: it becomes installable.
 
 ## 3. Browse, preview, install (US1, US2)
 
