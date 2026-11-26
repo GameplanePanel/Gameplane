@@ -405,6 +405,7 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
    - Modpack-capable games render a selector/browser
    - Select active pack, view pack contents, toggle mods within a pack
    - Uses HeroUI Select, Table, Button, Chip
+   - "All loaders" switch (spec 035 FR-014, env-mode registries only, off by default): search drops the server's loader and Minecraft version filters, the install picker lists every version a template version entry runs ("Runs on …"), and the confirmation warns when the install switches the server version (sent as `serverVersion`). Change version stays filtered.
 
 3. **Backups Tab** (`web/src/routes/tabs/Backups.tsx`, 290 lines)
    - Per-server backup list (snapshots created via the /backups page or on-demand)

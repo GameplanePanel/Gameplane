@@ -11,6 +11,7 @@ import {
   SelectPopover,
   ListBox,
   ListBoxItem,
+  Switch,
   Tabs,
   Tab,
 } from "@heroui/react";
@@ -81,6 +82,9 @@ export function RegistryBrowser({
   categories,
   renderItem,
   pillButtons,
+  allLoaders,
+  onAllLoadersChange,
+  hasAllLoaders,
 }: {
   name: string;
   ns?: string;
@@ -88,6 +92,12 @@ export function RegistryBrowser({
   categories?: { value: string; label: string }[];
   renderItem: (project: RegistryProject, provider: string) => ReactNode;
   pillButtons?: boolean;
+  // All loaders (modpacks only): when on, search ignores the server's loader
+  // and game version. The toggle shows only for providers hasAllLoaders accepts
+  // (env-mode registries); the caller owns the state.
+  allLoaders?: boolean;
+  onAllLoadersChange?: (on: boolean) => void;
+  hasAllLoaders?: (provider: string) => boolean;
 }) {
   const intl = useOptionalIntl();
   const target = useResourceTarget({ name, namespace: ns });
@@ -124,9 +134,13 @@ export function RegistryBrowser({
   // Fall back to the first available provider until one is picked (or if a
   // stale pick is no longer offered).
   const provider = picked && available.some((p) => p.provider === picked) ? picked : available[0]?.provider;
+  // The All loaders switch applies to modpack browsing of env-mode providers only.
+  const showAllLoaders =
+    type === "modpack" && !!provider && !!onAllLoadersChange && !!hasAllLoaders?.(provider);
+  const allLoadersOn = showAllLoaders && allLoaders === true;
 
   const q = useInfiniteQuery({
-    queryKey: resourceKey(target, "registry", type ?? "mod", provider, debounced, sort, category),
+    queryKey: resourceKey(target, "registry", type ?? "mod", provider, debounced, sort, category, allLoadersOn),
     initialPageParam: 0,
     enabled: !!provider,
     // Keep the previous results on screen while a new search/sort/category
@@ -144,6 +158,7 @@ export function RegistryBrowser({
           // A search term ranks by relevance; an empty browse uses the chosen sort.
           sort: debounced ? undefined : sort,
           category,
+          allLoaders: allLoadersOn,
           limit: PAGE,
           offset: pageParam,
         },
@@ -221,9 +236,9 @@ export function RegistryBrowser({
         </Select>
       </div>
 
-      {showChips && (
-        <div className="flex flex-wrap gap-2 modpack-categories">
-          {[{ value: "", label: intl.formatMessage({ id: "web.components.registry_browser.all_categories", defaultMessage: "All", description: "Registry browser: category chip that clears the category filter" }) }, ...(categories ?? [])].map((c) => {
+      {(showChips || showAllLoaders) && (
+        <div className="flex flex-wrap items-center gap-2 modpack-categories">
+          {showChips && [{ value: "", label: intl.formatMessage({ id: "web.components.registry_browser.all_categories", defaultMessage: "All", description: "Registry browser: category chip that clears the category filter" }) }, ...(categories ?? [])].map((c) => {
             const active = category === c.value;
             if (!chipsInteractive) {
               return (
@@ -266,6 +281,21 @@ export function RegistryBrowser({
               </Chip>
             );
           })}
+          {showAllLoaders && (
+            <Switch
+              isSelected={allLoadersOn}
+              onChange={(next: boolean) => onAllLoadersChange?.(next)}
+              aria-label={intl.formatMessage({ id: "web.components.registry_browser.all_loaders", defaultMessage: "All loaders", description: "Registry browser: switch label that lists modpack versions for every loader and game version the server can run, not only the server's own" })}
+              className="flex items-center gap-2"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+                <span className="text-xs">{intl.formatMessage({ id: "web.components.registry_browser.all_loaders", defaultMessage: "All loaders", description: "Registry browser: switch label that lists modpack versions for every loader and game version the server can run, not only the server's own" })}</span>
+              </Switch.Content>
+            </Switch>
+          )}
         </div>
       )}
 

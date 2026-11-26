@@ -2619,6 +2619,14 @@
     "defaultMessage": "Every mod in the mods folder is deleted, including ones added by hand. The world folder is not touched.",
     "description": "Modpack confirm dialog: danger warning when removing the modpack; every mod in the mods folder is deleted, including hand-added ones, and the world folder is kept"
   },
+  "web.components.modpack_confirm_dialog.server_version_warning_body": {
+    "defaultMessage": "The server version changes from {from} to {to}.",
+    "description": "Modpack confirm dialog: body of the server version warning; {from} is the server's current version name, {to} the version it switches to"
+  },
+  "web.components.modpack_confirm_dialog.server_version_warning_title": {
+    "defaultMessage": "The server version changes",
+    "description": "Modpack confirm dialog: heading of the warning shown when the chosen pack version makes the server switch its version"
+  },
   "web.components.modpack_confirm_dialog.switch_desc": {
     "defaultMessage": "{serverName} restarts on {packTitle} {versionName}.",
     "description": "Modpack confirm dialog: explains the server restarts on the chosen modpack version; {serverName}, {packTitle} and {versionName} are names"
@@ -2691,9 +2699,17 @@
     "defaultMessage": "Loading versions…",
     "description": "Modpack version picker: shown while the versions of the modpack are loading"
   },
+  "web.components.modpack_version_picker.no_runnable_versions": {
+    "defaultMessage": "This server can't run any version of this pack.",
+    "description": "Modpack version picker: empty state with All loaders on; the server's game version and loader cannot run any version of this pack"
+  },
   "web.components.modpack_version_picker.no_versions": {
     "defaultMessage": "No versions of this pack match {mcLabel}.",
     "description": "Modpack version picker: empty state when the modpack has no version for the server's game version and loader; {mcLabel} is that label"
+  },
+  "web.components.modpack_version_picker.no_versions_for_server": {
+    "defaultMessage": "No versions are available for this server.",
+    "description": "Modpack version picker: empty state with All loaders on when the server has no version of the pack to run"
   },
   "web.components.modpack_version_picker.older": {
     "defaultMessage": "Older",
@@ -2722,6 +2738,14 @@
   "web.components.modpack_version_picker.release_type_release": {
     "defaultMessage": "Release",
     "description": "Modpack version picker: chip for a stable release of the modpack version"
+  },
+  "web.components.modpack_version_picker.runs_on": {
+    "defaultMessage": "Runs on {serverVersionName}",
+    "description": "Modpack version picker: row line naming the server version the pack version needs when it differs from the server's current one; {serverVersionName} is that version's display name"
+  },
+  "web.components.modpack_version_picker.showing_all_loaders": {
+    "defaultMessage": "Showing every version this server can run, newest first.",
+    "description": "Modpack version picker: subtitle when All loaders is on; lists every pack version the server can run, whatever loader it needs, newest first"
   },
   "web.components.modpack_version_picker.showing_versions": {
     "defaultMessage": "Showing versions for {mcLabel}, newest first.",
@@ -3674,6 +3698,10 @@
   "web.components.registry_browser.all_categories": {
     "defaultMessage": "All",
     "description": "Registry browser: category chip that clears the category filter"
+  },
+  "web.components.registry_browser.all_loaders": {
+    "defaultMessage": "All loaders",
+    "description": "Registry browser: switch label that lists modpack versions for every loader and game version the server can run, not only the server's own"
   },
   "web.components.registry_browser.category_unavailable": {
     "defaultMessage": "Category filtering isn't available for {provider}.",

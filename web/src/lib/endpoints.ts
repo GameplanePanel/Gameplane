@@ -835,6 +835,8 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
         category?: string;
         limit?: number;
         offset?: number;
+        // Modpacks only: drop the server's loader and game version filter.
+        allLoaders?: boolean;
       } = {},
       ns?: string,
     ) => {
@@ -844,6 +846,7 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
       if (opts.type) p.set("type", opts.type);
       if (opts.sort) p.set("sort", opts.sort);
       if (opts.category) p.set("category", opts.category);
+      if (opts.allLoaders) p.set("allLoaders", "true");
       p.set("limit", String(opts.limit ?? 24));
       if (opts.offset) p.set("offset", String(opts.offset));
       return api<RegistryProject[]>(withNS(`/servers/${name}/mods/registry/search?${p.toString()}`, ns));
@@ -875,11 +878,14 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
     removeModpack: (name: string, backupFirst: boolean, ns?: string) =>
       api<ModpackView>(withNS(`/servers/${name}/modpack?backupFirst=${backupFirst}`, ns), { method: "DELETE" }),
     // Versions of a modpack, pre-filtered server-side to the MC version and loader (newest first).
-    modpackVersions: (name: string, project: string, provider: string, ns?: string) =>
+    // allLoaders lists every version the server could run, each with the
+    // server version entry it needs (serverVersion, serverVersionName).
+    modpackVersions: (name: string, project: string, provider: string, ns?: string, allLoaders?: boolean) =>
       api<RegistryVersion[]>(
         withNS(
           `/servers/${name}/mods/registry/projects/${encodeURIComponent(project)}/versions` +
-            `?provider=${encodeURIComponent(provider)}&type=modpack`,
+            `?provider=${encodeURIComponent(provider)}&type=modpack` +
+            (allLoaders ? "&allLoaders=true" : ""),
           ns,
         ),
       ),

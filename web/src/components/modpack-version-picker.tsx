@@ -30,6 +30,12 @@ export function isOlderThan(versions: RegistryVersion[], candidateId: string, pi
   return candidate > pinned;
 }
 
+// serverVersionSwitch returns the server version a pack version needs when it
+// differs from the one the server runs now, or undefined when it does not.
+export function serverVersionSwitch(v: RegistryVersion, currentVersionId?: string): string | undefined {
+  return v.serverVersion && v.serverVersion !== currentVersionId ? v.serverVersion : undefined;
+}
+
 // versionDetailLine is the second line of a version row: the publish date
 // (when known) followed by the loader and game version the row matches.
 function versionDetailLine(v: RegistryVersion, fmt: ReturnType<typeof useFormat>, intl: ReturnType<typeof useOptionalIntl>): string {
@@ -73,6 +79,8 @@ export function ModpackVersionPicker({
   pinnedVersionId,
   onContinue,
   confirmLabel,
+  allLoaders,
+  currentVersionId,
 }: {
   open: boolean;
   onOpenChange(o: boolean): void;
@@ -85,6 +93,11 @@ export function ModpackVersionPicker({
   pinnedVersionId?: string;
   onContinue(v: RegistryVersion, isOlder: boolean): void;
   confirmLabel?: string;
+  // Lists every version the server can run (All loaders), not only the ones
+  // matching its current loader and game version.
+  allLoaders?: boolean;
+  // The server's current version entry id; rows that need another one say so.
+  currentVersionId?: string;
 }) {
   const intl = useOptionalIntl();
   const fmt = useFormat();
@@ -100,8 +113,8 @@ export function ModpackVersionPicker({
   }
 
   const versionsQ = useQuery({
-    queryKey: resourceKey(target, "modpack-versions", provider, project),
-    queryFn: ({ signal }) => client.withSignal(signal).Servers.modpackVersions(name, project, provider, ns),
+    queryKey: resourceKey(target, "modpack-versions", provider, project, allLoaders === true),
+    queryFn: ({ signal }) => client.withSignal(signal).Servers.modpackVersions(name, project, provider, ns, allLoaders === true),
     enabled: open,
   });
 
@@ -125,7 +138,9 @@ export function ModpackVersionPicker({
             </ModalHeader>
             <ModalBody className="gap-3">
               <p className="text-sm text-muted">
-                {intl.formatMessage({ id: "web.components.modpack_version_picker.showing_versions", defaultMessage: "Showing versions for {mcLabel}, newest first.", description: "Modpack version picker: explains which Minecraft or game version and loader the listed versions match; {mcLabel} is that label" }, { mcLabel })}
+                {allLoaders
+                  ? intl.formatMessage({ id: "web.components.modpack_version_picker.showing_all_loaders", defaultMessage: "Showing every version this server can run, newest first.", description: "Modpack version picker: subtitle when All loaders is on; lists every pack version the server can run, whatever loader it needs, newest first" })
+                  : intl.formatMessage({ id: "web.components.modpack_version_picker.showing_versions", defaultMessage: "Showing versions for {mcLabel}, newest first.", description: "Modpack version picker: explains which Minecraft or game version and loader the listed versions match; {mcLabel} is that label" }, { mcLabel })}
               </p>
               {versionsQ.isPending && (
                 <p className="text-sm text-muted">
@@ -137,7 +152,17 @@ export function ModpackVersionPicker({
                   {errorTextIntl(intl, versionsQ.error, intl.formatMessage({ id: "web.components.modpack_version_picker.load_failed", defaultMessage: "Couldn't load versions.", description: "Modpack version picker: fallback error when the versions of the modpack cannot be loaded" }))}
                 </p>
               )}
-              {versionsQ.isSuccess && versions.length === 0 && (
+              {versionsQ.isSuccess && versions.length === 0 && allLoaders && (
+                <div className="space-y-1 text-sm text-muted">
+                  <p>
+                    {intl.formatMessage({ id: "web.components.modpack_version_picker.no_versions_for_server", defaultMessage: "No versions are available for this server.", description: "Modpack version picker: empty state with All loaders on when the server has no version of the pack to run" })}
+                  </p>
+                  <p>
+                    {intl.formatMessage({ id: "web.components.modpack_version_picker.no_runnable_versions", defaultMessage: "This server can't run any version of this pack.", description: "Modpack version picker: empty state with All loaders on; the server's game version and loader cannot run any version of this pack" })}
+                  </p>
+                </div>
+              )}
+              {versionsQ.isSuccess && versions.length === 0 && !allLoaders && (
                 <p className="text-sm text-muted">
                   {intl.formatMessage({ id: "web.components.modpack_version_picker.no_versions", defaultMessage: "No versions of this pack match {mcLabel}.", description: "Modpack version picker: empty state when the modpack has no version for the server's game version and loader; {mcLabel} is that label" }, { mcLabel })}
                 </p>
@@ -158,6 +183,11 @@ export function ModpackVersionPicker({
                           <span className="block truncate text-xs text-muted">
                             {versionDetailLine(v, fmt, intl)}
                           </span>
+                          {serverVersionSwitch(v, currentVersionId) && (
+                            <span className="block truncate text-xs text-muted">
+                              {intl.formatMessage({ id: "web.components.modpack_version_picker.runs_on", defaultMessage: "Runs on {serverVersionName}", description: "Modpack version picker: row line naming the server version the pack version needs when it differs from the server's current one; {serverVersionName} is that version's display name" }, { serverVersionName: v.serverVersionName || v.serverVersion || "" })}
+                            </span>
+                          )}
                         </span>
                         {v.id === pinnedVersionId && (
                           <Chip size="sm" variant="tertiary">

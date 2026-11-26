@@ -31,6 +31,7 @@ export function ModpackConfirmDialog({
   backupDestination,
   pending,
   error,
+  serverVersionChange,
   onConfirm,
 }: {
   open: boolean;
@@ -46,6 +47,9 @@ export function ModpackConfirmDialog({
   backupDestination?: string;
   pending: boolean;
   error?: string;
+  // Set when the picked pack version makes the server switch its version:
+  // from is the server's current version name, to the one it switches to.
+  serverVersionChange?: { from: string; to: string };
   onConfirm(opts: { backupFirst: boolean }): void;
 }) {
   const intl = useOptionalIntl();
@@ -179,6 +183,21 @@ export function ModpackConfirmDialog({
                 </Checkbox>
                 <p className="text-xs text-muted">{backupHelp}</p>
               </div>
+              {serverVersionChange && (
+                <Alert status="warning" className="text-xs">
+                  <div className="flex gap-2">
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                    <div className="space-y-1">
+                      <p className="font-medium">
+                        {intl.formatMessage({ id: "web.components.modpack_confirm_dialog.server_version_warning_title", defaultMessage: "The server version changes", description: "Modpack confirm dialog: heading of the warning shown when the chosen pack version makes the server switch its version" })}
+                      </p>
+                      <p>
+                        {intl.formatMessage({ id: "web.components.modpack_confirm_dialog.server_version_warning_body", defaultMessage: "The server version changes from {from} to {to}.", description: "Modpack confirm dialog: body of the server version warning; {from} is the server's current version name, {to} the version it switches to" }, { from: serverVersionChange.from, to: serverVersionChange.to })}
+                      </p>
+                    </div>
+                  </div>
+                </Alert>
+              )}
               {error && <p role="alert" className="text-sm text-danger">{error}</p>}
             </ModalBody>
             <ModalFooter>
