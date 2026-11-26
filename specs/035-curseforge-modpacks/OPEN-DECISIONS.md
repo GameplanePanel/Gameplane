@@ -140,3 +140,27 @@ would garbage-collect it, and the restic snapshot, when the server is deleted; s
 - A. Keep (no owner): the Backup carries no ownerReference, only the `gameplane.local/modpack-change` label and
   `spec.serverRef`, so it and its restic snapshot survive deleting the server, like scheduled backups.
 - B. Delete with the server: the Backup is controller-owned by the GameServer and is garbage-collected with it.
+
+## OD-12: How should modpack browse handle packs for other loaders or versions? (SETTLED: C, valgul 2026-11-26)
+
+**Ruling: option C** (valgul, 2026-11-26).
+
+Raised on 2026-11-26: on a Fabric server the FTB browse lists only the 3 Fabric packs out of FTB's 95 popular packs
+(82 Forge, 11 NeoForge), so packs such as FTB Evolution 2 (id 135, NeoForge 26.1.2 only) never show. Modrinth and
+CurseForge use the same filter.
+
+- A. List all, switch version on install: browse always shows every pack.
+- B. Keep the filter, add a hint naming how many packs need another loader.
+- C. Filtered by default, an "All loaders" toggle shows every pack; picking a version for another loader or
+  Minecraft version switches the server version on install.
+
+## OD-13: How does an "All loaders" install switch the server's version? (SETTLED: B, valgul 2026-11-26)
+
+**Ruling: option B** (valgul, 2026-11-26). Where an option below says "Recommended", that was the recommendation
+before the ruling, not the ruling.
+
+- A. The pack carries its server version (new `spec.modpack.serverVersion`): the pod runs that version while the pack
+  is active, the pre-change backup is taken first, and Remove returns the server to its own selected version. Needs a
+  CRD field and an operator change. (Recommended.)
+- B. The install also rewrites the server's selected version (`spec.version`). Smaller; with "Back up first" the pod
+  restarts on the new version as a plain loader before the backup ends, and Remove leaves the server on the new version.

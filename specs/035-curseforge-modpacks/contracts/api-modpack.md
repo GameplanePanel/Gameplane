@@ -28,6 +28,26 @@ Each versions entry also carries two optional fields (both omitted when the prov
   release type (1, 2, 3) to these; FTB passes its type through only when it is one of the three.
 - `publishedAt` (string): RFC 3339, UTC (for example `"2026-11-02T14:03:09Z"`).
 
+### `allLoaders=true` (FR-014, OD-12 C)
+
+With `type=modpack&allLoaders=true`, versions are not filtered by the server's loader and Minecraft version.
+Instead each version is matched against the template's `versions[]`: an entry matches when its `loader`
+equals one of the version's `loaders` (case-insensitive) and its `gameVersion` (non-empty; moving
+"Latest" entries never match) is one of the version's `gameVersions`. The server's current entry wins when
+it matches, else the first matching entry in template order. Versions with no match are dropped. Each kept
+version carries:
+
+- `serverVersion` (string): the matching template version id, e.g. `"26.1.2-neoforge"`.
+- `serverVersionName` (string): that entry's `displayName`, e.g. `"26.1.2 · NeoForge"`.
+
+CurseForge versions carry `loaders` derived from their `gameVersions` tags (`Forge`, `NeoForge`, `Fabric`,
+`Quilt`, lower-cased) in every mode.
+
+## GET /servers/{name}/mods/registry/search?…&type=modpack&allLoaders=true (changed)
+
+`allLoaders=true` with `type=modpack` drops the loader and Minecraft version filters from the search.
+Ignored for `type=mod`.
+
 ## GET /servers/{name}/modpack (new)
 
 ```json
@@ -75,6 +95,11 @@ Request:
 ```
 
 - `version` required (400 `server.modpack.version_required`).
+- `serverVersion` (optional, FR-014, OD-13 B): a template version id. When set and different from the
+  server's current version, the API checks the entry exists and that `version` is among the pack's
+  versions for that entry's loader and Minecraft version (400 `server.modpack.server_version_mismatch`
+  otherwise), then writes `spec.version` together with `spec.modpack` in one update. The audit row
+  records the old and new server version.
 - Same provider + project as the active pack = version change; else install. Neither
   empties the mods folder (OD-7 B); only DELETE does.
 - 409 `server.modpack.key_required` when the provider is blocked for this server (see
@@ -84,7 +109,7 @@ Request:
   (a change the operator has not picked up yet reads `Pending`).
 - 202 with the GET body (built from the server object just written, without the agent read, so
   `missingFiles` is `[]`). Its `phase` is `Pending` until the operator picks the change up.
-  Writes `spec.modpack` only; the operator applies it.
+  Writes `spec.modpack` (and `spec.version` when `serverVersion` switches it); the operator applies it.
 
 ## DELETE /servers/{name}/modpack?backupFirst=true|false (new)
 

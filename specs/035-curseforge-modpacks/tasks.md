@@ -182,6 +182,14 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 - [ ] T064 Walk quickstart.md scenarios 1–11 against the CI results and a dev cluster if valgul provides one; record results in specs/035-curseforge-modpacks/quickstart.md
 - [X] T065 Apply a CurseForge key-sharing toggle only when the server has 0 players online, is stopped or asleep, or a pack change is rolling it, reusing the OD-8 B gate (OD-10 A), in operator/internal/controller/gameserver_modpack_key.go, gameserver_modpack.go and gameserver_modpack_key_envtest_test.go
 
+
+## Phase 9: "All loaders" toggle (OD-12 C, OD-13 B, FR-014)
+
+- [ ] T066 Design the "All loaders" toggle in the Modpacks browser, the picker rows that name the server version, the no-version empty state and the confirmation's version-change line in design.fig, light, dark and mobile; export with hack/design/fig-export.ts
+- [ ] T067 Accept `allLoaders=true` on search and on modpack versions, annotate each version with `serverVersion`/`serverVersionName` and drop versions no template entry runs, populate CurseForge `loaders` from its gameVersions tags, in api/internal/handlers/registry.go, api/internal/registry/curseforge.go and tests
+- [ ] T068 Accept `serverVersion` on POST /servers/{name}/modpack: validate it against the template and the pack version, write spec.version with spec.modpack in one update, record it in the audit row, in api/internal/handlers/registry.go, registry_modpack.go and tests
+- [ ] T069 Build the toggle, picker rows, empty state and confirmation line from the T066 export in web/src/components/registry-browser.tsx, modpack-version-picker.tsx, modpack-confirm-dialog.tsx, web/src/routes/tabs/Modpacks.tsx, web/src/lib/endpoints.ts, web/src/types.ts, i18n packs and tests
+- [ ] T070 Update contracts/api-modpack.md, contracts/ui-modpacks-tab.md, api/specs.md and web/specs.md for FR-014; add the changelog/unreleased entry
 ---
 
 ## Dependencies & execution order
