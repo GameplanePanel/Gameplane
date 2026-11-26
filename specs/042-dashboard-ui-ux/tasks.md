@@ -30,13 +30,13 @@ Run with OpenPencil `master` (app, `openpencil-mcp` or `openpencil eval -w`); ne
 or edit `design.fig` with file tools. Follow the `pen-canvas-layout` and `pen-componentize`
 skills; finish with `design-export`.
 
-- [ ] T003 Add design variables in `design.fig` for the new tokens of `contracts/ui-rules.md` (players/info blue, storage teal, nodes/debug slate), dark and light values
-- [ ] T004 Update shared components in `design.fig`: tab list (size to label, no wrap, 12 px selected), status pill (text size + dot), stat card (fixed icon colour + amber warning badge), table (single frame), secondary/toolbar button and search (12 px), slider (filled track), storage number + unit field
-- [ ] T005 [P] Redesign `Screen/Servers`, `Screen/Servers (Light)`, `Screen/Servers — Cluster filters open` in `design.fig` per FR-010..013 (cards, row actions incl. hover states, toolbar)
-- [ ] T006 [P] Redesign `Screen/Server Detail — Logs` in `design.fig` per FR-020..022: row 1 source switch + Download, row 2 search + coloured level filter with count badges + line count; also the no-game-log variant
-- [ ] T007 [P] Redesign `Screen/Server Detail — Backups` in `design.fig` per FR-030..033: Size column with data size and "added" second line, card "Total data size" with coverage text, old-backup row (layout per OD-8 once ruled)
-- [ ] T008 [P] Redesign `Screen/Server Detail — Settings · Resources` and the `Screen/Create Server — Step 3 Configure*` screens in `design.fig` per FR-040..042
-- [ ] T009 Run `hack/design/fig-export.ts` and commit `design.fig` + `assets/design-export/` together; hand the changed screenshots to valgul for approval (SC-007). STOP until approved
+- [x] T003 Add design variables in `design.fig` for the new tokens of `contracts/ui-rules.md` (players/info blue, storage teal, nodes/debug slate), dark and light values
+- [x] T004 Update shared components in `design.fig`: tab list (size to label, no wrap, 12 px selected), status pill (text size + dot), stat card (fixed icon colour + amber warning badge), table (single frame), secondary/toolbar button and search (12 px), slider (filled track), storage number + unit field
+- [x] T005 [P] Redesign `Screen/Servers`, `Screen/Servers (Light)`, `Screen/Servers — Cluster filters open` in `design.fig` per FR-010..013 (cards, row actions incl. hover states, toolbar)
+- [x] T006 [P] Redesign `Screen/Server Detail — Logs` in `design.fig` per FR-020..022: row 1 source switch + Download, row 2 search + coloured level filter with count badges + line count; also the no-game-log variant
+- [x] T007 [P] Redesign `Screen/Server Detail — Backups` in `design.fig` per FR-030..033: Size column with data size and "added" second line, card "Total data size" with coverage text, old-backup row (layout per OD-8 once ruled)
+- [x] T008 [P] Redesign `Screen/Server Detail — Settings · Resources` and the `Screen/Create Server — Step 3 Configure*` screens in `design.fig` per FR-040..042
+- [ ] T009 Run `hack/design/fig-export.ts` and commit `design.fig` + `assets/design-export/` together (done, a9eee002); hand the changed screenshots to valgul for approval (SC-007, sent 2026-11-26). STOP until approved
 
 ---
 
