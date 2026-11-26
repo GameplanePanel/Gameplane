@@ -995,6 +995,8 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
       const ident = name ? { name } : { generateName: generateName ?? "restore-" };
       return api<Restore>(withNS("/restores", ns), { method: "POST", body: envelope("Restore", ident, spec) });
     },
+    remove: (name: string, ns?: string) =>
+      api<void>(withNS(`/restores/${encodeURIComponent(name)}`, ns), { method: "DELETE" }),
   };
 
   const BackupDestinations = {

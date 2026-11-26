@@ -745,7 +745,10 @@ export function uploadRestore(
     xhr.upload.onprogress = (e: ProgressEvent) => {
       if (e.lengthComputable) onProgress?.(e.loaded, e.total);
     };
+    const onAbort = () => xhr.abort();
+    const settle = () => opts.signal?.removeEventListener("abort", onAbort);
     xhr.onload = () => {
+      settle();
       const contentType = xhr.getResponseHeader("Content-Type") ?? undefined;
       if (xhr.status < 200 || xhr.status >= 300) {
         reject(new APIError(xhr.status, xhr.responseText, xhr.statusText, contentType, xhr.getResponseHeader("Retry-After")));
@@ -762,10 +765,19 @@ export function uploadRestore(
       }
       reject(new APIError(xhr.status, "unexpected upload response", xhr.statusText, contentType));
     };
-    xhr.onerror = () => reject(new Error("connection lost"));
-    xhr.ontimeout = () => reject(new Error("connection lost"));
-    xhr.onabort = () => reject(new DOMException("upload cancelled", "AbortError"));
-    opts.signal?.addEventListener("abort", () => xhr.abort(), { once: true });
+    xhr.onerror = () => {
+      settle();
+      reject(new Error("connection lost"));
+    };
+    xhr.ontimeout = () => {
+      settle();
+      reject(new Error("connection lost"));
+    };
+    xhr.onabort = () => {
+      settle();
+      reject(new DOMException("upload cancelled", "AbortError"));
+    };
+    opts.signal?.addEventListener("abort", onAbort, { once: true });
     xhr.send(file);
   });
 }

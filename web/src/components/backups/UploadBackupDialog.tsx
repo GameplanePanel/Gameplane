@@ -53,6 +53,10 @@ type UploadState =
   | { kind: "rejected"; reason: Rejection; fileSize: number }
   | { kind: "sent"; restore: string };
 
+// Phases before the user confirmed: cancelling there deletes the restore, which
+// otherwise stays pending for 30 minutes and blocks new uploads (409).
+const UNCONFIRMED_RESTORE_PHASES: ReadonlySet<string | undefined> = new Set([undefined, "Pending", "Receiving", "AwaitingConfirmation"]);
+
 const ACTIVE_RESTORE_PHASES: ReadonlySet<string | undefined> = new Set([undefined, "Pending", "Receiving", "AwaitingConfirmation", "Suspending", "Running", "Resuming"]);
 
 export function UploadBackupDialog({ serverName, target: explicitTarget, ns, onClose }: Props) {
@@ -144,6 +148,31 @@ export function UploadBackupDialog({ serverName, target: explicitTarget, ns, onC
     void qc.invalidateQueries({ queryKey: ["resource", resourceTarget.cluster, resourceTarget.namespace ?? "", "collection", "restores"] });
     onClose();
   };
+
+  // Cancelling before the user confirmed deletes the uploaded restore (a 404
+  // means it is already gone), then closes.
+  const discard = useMutation({
+    mutationFn: async (name: string) => {
+      try {
+        await resourceClient.Restores.remove(name, resourceTarget.namespace);
+      } catch (error) {
+        if (!(error instanceof APIError && error.status === 404)) throw error;
+      }
+    },
+    onSuccess: () => close(),
+  });
+  const unconfirmed = restoreName !== null && UNCONFIRMED_RESTORE_PHASES.has(restore?.status?.phase) && !(restoreError && !restore);
+  const cancel = () => {
+    if (discard.isPending) return;
+    if (unconfirmed && restoreName !== null && !confirm.isPending && !confirm.isSuccess) {
+      discard.mutate(restoreName);
+      return;
+    }
+    close();
+  };
+  const discardError = discard.isError
+    ? <p role="alert" className="text-sm text-danger">{errorTextIntl(intl, discard.error, intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.cancel_failed", defaultMessage: "The upload could not be cancelled. Try again.", description: "Upload dialog: fallback error when deleting the unconfirmed upload fails" }))}</p>
+    : null;
 
   const stepTitle = (n: number, label: string) => intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.step", defaultMessage: "Step {n} of 4 · {label}", description: "Upload dialog: subtitle naming the current step; {n} is the step number from 1 to 4 and {label} its name (File, Upload, Check or Review)" }, { n, label });
   const uploadTitle = intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.title", defaultMessage: "Upload backup", description: "Upload dialog: title of the dialog for restoring a server from an uploaded archive file" });
@@ -249,7 +278,7 @@ export function UploadBackupDialog({ serverName, target: explicitTarget, ns, onC
           text: intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.refused_hint", defaultMessage: "Nothing was written to {server} and the server was not stopped.", description: "Upload dialog: text under the refused heading; {server} is the server name" }, { server: serverLabel }),
         });
       }
-    } else if (phase === "AwaitingConfirmation") {
+    } else if (restore && phase === "AwaitingConfirmation") {
       subtitle = stepTitle(4, intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.step_review", defaultMessage: "Review", description: "Upload dialog: name of step 4, reviewing the checked archive" }));
       const manifest = uploadStatus?.manifest;
       const isPlain = uploadStatus?.kind === "plain";
@@ -281,8 +310,8 @@ export function UploadBackupDialog({ serverName, target: explicitTarget, ns, onC
               {intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.cannot_check_hint", defaultMessage: "Only the safety checks ran. The archive is written onto the primary data volume as-is.", description: "Upload dialog: warning text for a plain archive" })}
             </Note>
           )}
-          {(uploadStatus?.warnings ?? []).map((warning) => (
-            <Note key={warning} tone="warning">{warning}</Note>
+          {(uploadStatus?.warnings ?? []).map((warning, i) => (
+            <Note key={`${i}-${warning}`} tone="warning">{warning}</Note>
           ))}
           <Note tone="danger" heading={intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.replaces", defaultMessage: "This replaces all data on {server}", description: "Upload dialog: danger heading before confirming; {server} is the server name" }, { server: serverLabel })}>
             <span className="block">{intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.replaces_stop", defaultMessage: "The server stops during the restore.", description: "Upload dialog: first line of the danger note" })}</span>
@@ -291,12 +320,13 @@ export function UploadBackupDialog({ serverName, target: explicitTarget, ns, onC
           {confirm.isError && (
             <p role="alert" className="text-sm text-danger">{errorTextIntl(intl, confirm.error, intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.confirm_failed", defaultMessage: "The restore could not be confirmed.", description: "Upload dialog: fallback error when confirming fails" }))}</p>
           )}
+          {discardError}
         </div>
       );
       footer = (
         <>
-          <Button variant="ghost" onPress={close} isDisabled={confirm.isPending}>{cancelLabel}</Button>
-          <Button variant="danger" isDisabled={confirm.isPending || confirm.isSuccess} onPress={() => confirm.mutate(restore as Restore)}>
+          <Button variant="ghost" onPress={cancel} isDisabled={confirm.isPending || discard.isPending}>{cancelLabel}</Button>
+          <Button variant="danger" isDisabled={confirm.isPending || confirm.isSuccess || discard.isPending} onPress={() => confirm.mutate(restore)}>
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
             {intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.confirm", defaultMessage: "Confirm restore", description: "Upload dialog: button that confirms and starts the restore; keep it short" })}
           </Button>
@@ -322,10 +352,11 @@ export function UploadBackupDialog({ serverName, target: explicitTarget, ns, onC
           <div>
             <p className="text-base font-medium">{intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.checking", defaultMessage: "Checking archive…", description: "Upload dialog: heading while the archive is checked" })}</p>
             <p className="text-sm text-muted">{intl.formatMessage({ id: "web.components.backups.upload_backup_dialog.checking_hint", defaultMessage: "Checks format, completeness, paths, links, device files and size. Nothing is written to the server.", description: "Upload dialog: text while the archive is checked" })}</p>
+            {discardError}
           </div>
         </div>
       );
-      footer = <Button variant="ghost" onPress={close}>{cancelLabel}</Button>;
+      footer = <Button variant="ghost" onPress={cancel} isDisabled={discard.isPending}>{cancelLabel}</Button>;
     }
   } else {
     body = (
@@ -387,7 +418,7 @@ export function UploadBackupDialog({ serverName, target: explicitTarget, ns, onC
   }
 
   return (
-    <Modal isOpen onOpenChange={(o) => !o && dismissable && close()}>
+    <Modal isOpen onOpenChange={(o) => !o && dismissable && cancel()}>
       <ModalBackdrop isDismissable={dismissable} isKeyboardDismissDisabled={!dismissable}>
         <ModalContainer>
           <ModalDialog className="w-[760px] max-w-[calc(100vw-2rem)]">

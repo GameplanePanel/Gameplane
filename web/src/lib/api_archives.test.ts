@@ -89,6 +89,23 @@ describe("uploadRestore", () => {
     await expect(done).rejects.toMatchObject({ name: "AbortError" });
   });
 
+  it("removes the abort listener once the request settles", async () => {
+    const outcomes: Array<(xhr: FakeXHR) => void> = [
+      (xhr) => xhr.finish(202, JSON.stringify({ restore: "r1" })),
+      (xhr) => xhr.onerror?.(),
+      (xhr) => xhr.ontimeout?.(),
+      (xhr) => xhr.abort(),
+    ];
+    for (const [i, settle] of outcomes.entries()) {
+      const controller = new AbortController();
+      const remove = vi.spyOn(controller.signal, "removeEventListener");
+      const done = uploadRestore("local", undefined, "alpha", file, { format: "zip", signal: controller.signal });
+      settle(FakeXHR.instances[i]);
+      await done.catch(() => undefined);
+      expect(remove).toHaveBeenCalledWith("abort", expect.any(Function));
+    }
+  });
+
   it("does not start when the signal is already aborted", async () => {
     const controller = new AbortController();
     controller.abort();

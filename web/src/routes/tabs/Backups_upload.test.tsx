@@ -389,4 +389,106 @@ describe("BackupsTab upload backup", () => {
     await sendFile();
     expect(screen.getByText("Checking archive…")).toBeInTheDocument();
   });
+  describe("cancelling before the restore is confirmed", () => {
+    let deleted: string[];
+    beforeEach(() => {
+      deleted = [];
+    });
+    const deleteHandler = (status: number) =>
+      http.delete("/restores/restore-up-1", ({ request }) => {
+        deleted.push(new URL(request.url).search);
+        return status === 204 ? new HttpResponse(null, { status }) : HttpResponse.json({ error: "boom" }, { status });
+      });
+
+    it("deletes the restore while the archive is checked, then closes", async () => {
+      server.use(deleteHandler(204));
+      renderTab();
+      const { u, dialog } = await sendFile();
+      await screen.findByText("Checking archive…");
+      await u.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      expect(deleted).toEqual(["?namespace=games"]);
+    });
+
+    it("deletes the restore from the review step", async () => {
+      current = gameplaneReview;
+      server.use(deleteHandler(204));
+      renderTab();
+      const { u, dialog } = await sendFile("survival.zip");
+      await screen.findByText("Source server");
+      await u.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      expect(deleted).toHaveLength(1);
+    });
+
+    it("deletes the restore when the dialog is dismissed with Escape", async () => {
+      server.use(deleteHandler(204));
+      renderTab();
+      const { u } = await sendFile();
+      await screen.findByText("Checking archive…");
+      await u.keyboard("{Escape}");
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      expect(deleted).toHaveLength(1);
+    });
+
+    it("disables the buttons while the delete runs", async () => {
+      current = gameplaneReview;
+      server.use(http.delete("/restores/restore-up-1", async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        return new HttpResponse(null, { status: 204 });
+      }));
+      renderTab();
+      const { u, dialog } = await sendFile("survival.zip");
+      await screen.findByText("Source server");
+      await u.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+      expect(within(dialog).getByRole("button", { name: /^cancel$/i })).toBeDisabled();
+      expect(within(dialog).getByRole("button", { name: /^confirm restore$/i })).toBeDisabled();
+      // A second dismissal while the delete runs does not send another one.
+      await u.keyboard("{Escape}");
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    });
+
+    it("ignores a 404 because the restore is already gone", async () => {
+      server.use(deleteHandler(404));
+      renderTab();
+      const { u, dialog } = await sendFile();
+      await screen.findByText("Checking archive…");
+      await u.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    });
+
+    it("keeps the dialog open and shows another error, so the user can try again", async () => {
+      server.use(deleteHandler(500));
+      renderTab();
+      const { u, dialog } = await sendFile();
+      await screen.findByText("Checking archive…");
+      await u.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+      expect(await within(dialog).findByRole("alert")).toBeInTheDocument();
+      expect(within(dialog).getByRole("button", { name: /^cancel$/i })).toBeEnabled();
+    });
+
+    it("keeps the restore once it was confirmed", async () => {
+      current = gameplaneReview;
+      server.use(deleteHandler(204));
+      renderTab();
+      const { u, dialog } = await sendFile("survival.zip");
+      await screen.findByText("Source server");
+      await u.click(within(dialog).getByRole("button", { name: /^confirm restore$/i }));
+      await waitFor(() => expect(confirmed).toEqual({ generation: 4 }));
+      await u.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      expect(deleted).toEqual([]);
+    });
+
+    it("does not delete a finished restore when the dialog is dismissed", async () => {
+      current = uploadRestoreOf({ phase: "Succeeded" });
+      server.use(deleteHandler(204));
+      renderTab();
+      const { u } = await sendFile();
+      await screen.findByText(/restored/);
+      await u.keyboard("{Escape}");
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      expect(deleted).toEqual([]);
+    });
+  });
 });

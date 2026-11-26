@@ -70,7 +70,7 @@ const TRAILING_COUNT: Record<"backups" | "schedules" | "restores", MessageDescri
 });
 
 const BACKUP_PHASES = ["Pending", "Running", "Succeeded", "Failed"];
-const RESTORE_PHASES = ["Pending", "Suspending", "Running", "Resuming", "Succeeded", "Failed"];
+const RESTORE_PHASES = ["Pending", "Receiving", "AwaitingConfirmation", "Suspending", "Running", "Resuming", "Succeeded", "Failed"];
 
 export function BackupsPage() {
   const intl = useOptionalIntl();

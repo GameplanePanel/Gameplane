@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Modal,
   ModalBackdrop,
@@ -49,11 +49,17 @@ export function BackupDownloadDialog({ backup, target: explicitTarget, ns, onClo
     setPreparing(false);
   }
 
+  // Parents pass onClose inline, so keep the latest one in a ref: the hand-off
+  // timer must not restart when the parent re-renders.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
   useEffect(() => {
     if (!preparing) return;
-    const timer = setTimeout(onClose, DOWNLOAD_HANDOFF_MS);
+    const timer = setTimeout(() => onCloseRef.current(), DOWNLOAD_HANDOFF_MS);
     return () => clearTimeout(timer);
-  }, [preparing, onClose]);
+  }, [preparing]);
 
   const startDownload = () => {
     if (!backup) return;
@@ -85,6 +91,7 @@ export function BackupDownloadDialog({ backup, target: explicitTarget, ns, onClo
                 <Spinner size="lg" />
                 <p className="text-base font-medium">{intl.formatMessage({ id: "web.components.backups.backup_download_dialog.preparing", defaultMessage: "Preparing download…", description: "Download dialog: heading shown after Download was pressed while the backup worker starts" })}</p>
                 <p className="text-sm text-muted">{intl.formatMessage({ id: "web.components.backups.backup_download_dialog.preparing_hint", defaultMessage: "The backup worker can take up to about 30 seconds before bytes flow.", description: "Download dialog: explains why the download has not started yet" })}</p>
+                <p className="text-sm text-muted">{intl.formatMessage({ id: "web.components.backups.backup_download_dialog.preparing_failure_hint", defaultMessage: "If the download fails, your browser's download list shows the reason.", description: "Download dialog: tells the user where to look when the download fails, because the page cannot see the error" })}</p>
               </ModalBody>
             ) : (
               <ModalBody className="gap-4">

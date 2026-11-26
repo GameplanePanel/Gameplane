@@ -1887,6 +1887,10 @@
     "defaultMessage": "Preparing download…",
     "description": "Download dialog: heading shown after Download was pressed while the backup worker starts"
   },
+  "web.components.backups.backup_download_dialog.preparing_failure_hint": {
+    "defaultMessage": "If the download fails, your browser's download list shows the reason.",
+    "description": "Download dialog: tells the user where to look when the download fails, because the page cannot see the error"
+  },
   "web.components.backups.backup_download_dialog.preparing_hint": {
     "defaultMessage": "The backup worker can take up to about 30 seconds before bytes flow.",
     "description": "Download dialog: explains why the download has not started yet"
@@ -2190,6 +2194,10 @@
   "web.components.backups.upload_backup_dialog.cancel": {
     "defaultMessage": "Cancel",
     "description": "Upload dialog: button that closes the dialog without restoring; keep it short"
+  },
+  "web.components.backups.upload_backup_dialog.cancel_failed": {
+    "defaultMessage": "The upload could not be cancelled. Try again.",
+    "description": "Upload dialog: fallback error when deleting the unconfirmed upload fails"
   },
   "web.components.backups.upload_backup_dialog.cannot_check": {
     "defaultMessage": "Gameplane cannot check the contents",
@@ -5395,6 +5403,10 @@
     "defaultMessage": "Asleep",
     "description": "Phase badge: label for a suspended server that is asleep (derived display state)"
   },
+  "web.components.ui.phase_chip.awaiting_confirmation": {
+    "defaultMessage": "Awaiting confirmation",
+    "description": "Phase badge: label for an uploaded restore that was checked and waits for the user to confirm it"
+  },
   "web.components.ui.phase_chip.awaiting_snapshot": {
     "defaultMessage": "Awaiting snapshot ID",
     "description": "Phase badge: label for a backup whose copy finished but whose snapshot ID is not recorded yet, so it cannot be restored yet (derived display state)"
@@ -5406,6 +5418,10 @@
   "web.components.ui.phase_chip.pending": {
     "defaultMessage": "Pending",
     "description": "Phase badge: label for a resource that is waiting to start"
+  },
+  "web.components.ui.phase_chip.receiving": {
+    "defaultMessage": "Receiving",
+    "description": "Phase badge: label for a restore that is receiving an uploaded archive"
   },
   "web.components.ui.phase_chip.resuming": {
     "defaultMessage": "Resuming",
