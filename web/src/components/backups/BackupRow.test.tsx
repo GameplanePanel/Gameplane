@@ -73,6 +73,29 @@ describe("BackupRow", () => {
     else expect(screen.getByText(formatted + " added")).toBeInTheDocument();
   });
 
+  it("shows the data size as the main value with the added line", () => {
+    const backup = makeBackup({ status: { size: "200Gi", dataSize: "15032385536", bytesAdded: "13827" } });
+    render(tableWrap(<BackupRow backup={backup} showServer={false} onSelect={() => {}} onRestore={() => {}} />));
+    expect(screen.getByText("14 GB")).toBeInTheDocument();
+    expect(screen.getByText("14 KB added")).toBeInTheDocument();
+    expect(screen.queryByText("200Gi")).not.toBeInTheDocument();
+    expect(screen.queryByText("volume size")).not.toBeInTheDocument();
+  });
+
+  it("shows no added line when the space used in the store is unknown", () => {
+    const backup = makeBackup({ status: { dataSize: "1073741824" } });
+    render(tableWrap(<BackupRow backup={backup} showServer={false} onSelect={() => {}} onRestore={() => {}} />));
+    expect(screen.getByText("1.0 GB")).toBeInTheDocument();
+    expect(screen.queryByText(/ added$/)).not.toBeInTheDocument();
+  });
+
+  it("labels the size of a backup without data size as volume size", () => {
+    const backup = makeBackup({ status: { size: "200Gi" } });
+    render(tableWrap(<BackupRow backup={backup} showServer={false} onSelect={() => {}} onRestore={() => {}} />));
+    expect(screen.getByText("200Gi")).toBeInTheDocument();
+    expect(screen.getByText("volume size")).toBeInTheDocument();
+  });
+
   it("Restore button is enabled when phase=Succeeded with snapshotID", async () => {
     const onRestore = vi.fn();
     render(

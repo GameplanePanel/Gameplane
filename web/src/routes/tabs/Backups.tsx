@@ -127,7 +127,12 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
     .filter((t): t is string => Boolean(t))
     .sort();
   const nextBackupAt = nextRuns[0];
-  const totalBytes = succeeded.reduce((acc, b) => acc + parseQuantityToBytes(b.status?.size), 0);
+  // Only backups with a recorded dataSize count; older ones are left out (OD-8).
+  const withDataSize = succeeded.filter((b) => Boolean(b.status?.dataSize));
+  const totalBytes = withDataSize.reduce((acc, b) => acc + parseQuantityToBytes(b.status?.dataSize), 0);
+  const totalCoverage = totalBytes > 0 && withDataSize.length < succeeded.length
+    ? intl.formatMessage({ id: "web.routes.tabs.backups.total_size_coverage", defaultMessage: "across {covered} of {total} {total, plural, one {backup} other {backups}}", description: "Backups tab: line under the Total data size card when some successful backups have no recorded data size and are left out of the total; {covered} backups are counted out of {total} successful ones" }, { covered: String(withDataSize.length), total: String(succeeded.length) })
+    : undefined;
   const unavailable = intl.formatMessage({ id: "web.routes.tabs.backups.unavailable", defaultMessage: "Unavailable", description: "Backups: stat value shown when the backup or schedule data could not be loaded" });
   const emptyValue = intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
 
@@ -157,8 +162,9 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
           accent="violet"
         />
         <StatCard
-          label={intl.formatMessage({ id: "web.routes.tabs.backups.total_size", defaultMessage: "Total logical size", description: "Sum of the logical sizes reported by successful backups" })}
+          label={intl.formatMessage({ id: "web.routes.tabs.backups.total_size", defaultMessage: "Total data size", description: "Backups tab: stat card label for the sum of the data sizes recorded by successful backups of this server" })}
           value={backupsError ? unavailable : totalBytes ? formatBytes(totalBytes) : emptyValue}
+          sub={backupsError ? undefined : totalCoverage}
           icon={<HardDrive size={16} />}
           accent="warning"
         />

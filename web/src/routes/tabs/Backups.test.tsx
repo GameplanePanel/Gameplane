@@ -169,7 +169,7 @@ describe("BackupsTab", () => {
     expect(await screen.findByText(/Last backup/i)).toBeInTheDocument();
     expect(screen.getByText(/Next backup/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Backups/i })).toBeInTheDocument();
-    expect(screen.getByText(/Total logical size/i)).toBeInTheDocument();
+    expect(screen.getByText(/Total data size/i)).toBeInTheDocument();
   });
 
   it("shows warning when multiple schedules exist", async () => {
@@ -355,7 +355,39 @@ describe("BackupsTab", () => {
     );
     renderWithQuery(<BackupsTab name="alpha" />);
     // Total size stat should show combined size
-    expect(await screen.findByText(/Total logical size/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Total data size/i)).toBeInTheDocument();
+  });
+
+  it("sums dataSize in the total and shows no coverage text when every backup has it", async () => {
+    server.use(
+      http.get("/backups", () =>
+        HttpResponse.json({
+          items: [
+            makeBackup({ metadata: { name: "backup-1" }, spec: { serverRef: { name: "alpha" } }, status: { phase: "Succeeded", size: "200Gi", dataSize: "1073741824" } }),
+            makeBackup({ metadata: { name: "backup-2" }, spec: { serverRef: { name: "alpha" } }, status: { phase: "Succeeded", size: "200Gi", dataSize: "2147483648" } }),
+          ],
+        }),
+      ),
+    );
+    renderWithQuery(<BackupsTab name="alpha" />);
+    expect(await screen.findByText("3.0 GB")).toBeInTheDocument();
+    expect(screen.queryByText(/^across /)).not.toBeInTheDocument();
+  });
+
+  it("leaves backups without dataSize out of the total and says how many it covers", async () => {
+    server.use(
+      http.get("/backups", () =>
+        HttpResponse.json({
+          items: [
+            makeBackup({ metadata: { name: "backup-1" }, spec: { serverRef: { name: "alpha" } }, status: { phase: "Succeeded", size: "200Gi", dataSize: "1073741824" } }),
+            makeBackup({ metadata: { name: "backup-2" }, spec: { serverRef: { name: "alpha" } }, status: { phase: "Succeeded", size: "200Gi" } }),
+          ],
+        }),
+      ),
+    );
+    renderWithQuery(<BackupsTab name="alpha" />);
+    expect(await screen.findByText("across 1 of 2 backups")).toBeInTheDocument();
+    expect(screen.getByText("volume size")).toBeInTheDocument();
   });
 });
 
