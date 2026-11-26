@@ -74,8 +74,8 @@ spec:
                 description: Git configures a git-type source.
                 properties:
                   ref:
-                    default: main
-                    description: Ref is the branch or tag to index. Defaults to main.
+                    default: master
+                    description: Ref is the branch or tag to index. Defaults to master.
                     type: string
                   secretRef:
                     description: |-

@@ -107,7 +107,7 @@ func newGit(ctx context.Context, c client.Client, namespace string, spec *gamepl
 	}
 	ref := spec.Ref
 	if ref == "" {
-		ref = "main"
+		ref = "master"
 	}
 	sub := strings.Trim(spec.SubPath, "/")
 	load := func(ctx context.Context) (fs.FS, string, error) {
