@@ -230,25 +230,21 @@ func (c *Curseforge) Versions(ctx context.Context, projectID string, f Filter) (
 	return out, nil
 }
 
-// Unfiltered browses (no loader and no game version, the "All loaders" modpack
-// list) page through the pack's files: index 0, 50, 100, ... until a page holds
-// fewer than cfVersionsPageSize files or cfVersionsMaxPages pages were read.
-// That is a hard cap of 250 files per browse. Filtered calls read one page.
+// Every Versions call (filtered or unfiltered) pages through the pack's files:
+// index 0, 50, 100, ... until a page holds fewer than cfVersionsPageSize files
+// or cfVersionsMaxPages pages were read. That is a hard cap of 250 files per
+// call. Filtered calls page too, so the install check sees every file that the
+// unfiltered "All loaders" list can offer.
 const (
 	cfVersionsPageSize = 50
 	cfVersionsMaxPages = 5
 )
 
-// versionFiles fetches the project's raw files for Versions, one page for a
-// filtered call and paged files for an unfiltered one (see cfVersionsMaxPages).
+// versionFiles fetches the project's raw files for Versions, paging up to
+// cfVersionsMaxPages pages for both filtered and unfiltered calls.
 func (c *Curseforge) versionFiles(ctx context.Context, projectID string, f Filter) ([]cfFile, error) {
-	unfiltered := f.Loader == "" && f.GameVersion == ""
-	pages := 1
-	if unfiltered {
-		pages = cfVersionsMaxPages
-	}
 	var files []cfFile
-	for page := 0; page < pages; page++ {
+	for page := 0; page < cfVersionsMaxPages; page++ {
 		params := url.Values{}
 		if f.GameVersion != "" {
 			params.Set("gameVersion", f.GameVersion)
@@ -257,9 +253,7 @@ func (c *Curseforge) versionFiles(ctx context.Context, projectID string, f Filte
 			params.Set("modLoaderType", strconv.Itoa(lt))
 		}
 		params.Set("pageSize", strconv.Itoa(cfVersionsPageSize))
-		if unfiltered {
-			params.Set("index", strconv.Itoa(page*cfVersionsPageSize))
-		}
+		params.Set("index", strconv.Itoa(page*cfVersionsPageSize))
 		u := c.baseURL + "/mods/" + url.PathEscape(projectID) + "/files"
 		if enc := params.Encode(); enc != "" {
 			u += "?" + enc

@@ -134,6 +134,9 @@ export function ModpacksTab({
       setConfirm(null);
       setBanner({ kind: "ok", text: intl.formatMessage({ id: "web.routes.tabs.modpacks.banner_set", defaultMessage: "Set modpack {title}. The server is restarting to install it.", description: "Modpacks: banner shown after a modpack is set on the server; {title} is the modpack title" }, { title: body.title ?? body.project }) });
       void qc.invalidateQueries({ predicate: (q) => q.queryKey.includes("modpack-versions") });
+      if (body.serverVersion) {
+        void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "registry-providers") });
+      }
       return qc.invalidateQueries({ queryKey: serverKey });
     },
   });

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -88,17 +89,42 @@ func TestCurseforgeVersionsUnfilteredHardCapsAtFivePages(t *testing.T) {
 	}
 }
 
-func TestCurseforgeVersionsFilteredReadsOnePage(t *testing.T) {
-	rec := &indexRecorder{serve: func(_ int) string {
-		return cfFilePage(1, 50)
-	}}
-	srv := httptest.NewServer(rec)
+func TestCurseforgeVersionsFilteredPagesToo(t *testing.T) {
+	var mu sync.Mutex
+	var queries []url.Values
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		q := req.URL.Query()
+		mu.Lock()
+		queries = append(queries, q)
+		mu.Unlock()
+		if q.Get("index") == "0" {
+			_, _ = w.Write([]byte(cfFilePage(1, 50)))
+			return
+		}
+		_, _ = w.Write([]byte(cfFilePage(51, 2)))
+	}))
 	defer srv.Close()
 
-	if _, err := testCurseforgeGame(srv.URL, cfGameMinecraft).Versions(context.Background(), "925200", Filter{Loader: "neoforge", ProjectType: "modpack"}); err != nil {
+	got, err := testCurseforgeGame(srv.URL, cfGameMinecraft).Versions(context.Background(), "925200", Filter{Loader: "neoforge", ProjectType: "modpack"})
+	if err != nil {
 		t.Fatalf("Versions: %v", err)
 	}
-	if len(rec.indexes) != 1 {
-		t.Errorf("filtered requests = %d, want 1", len(rec.indexes))
+	if len(got) != 52 {
+		t.Fatalf("len = %d, want 52 (50 + 2 files over two pages)", len(got))
+	}
+	if len(queries) != 2 {
+		t.Fatalf("filtered requests = %d, want 2", len(queries))
+	}
+	wantLoader := strconv.Itoa(cfLoaderType("neoforge"))
+	for i, q := range queries {
+		if v := q.Get("modLoaderType"); v != wantLoader {
+			t.Errorf("request %d modLoaderType = %q, want %q", i, v, wantLoader)
+		}
+		if v := q.Get("pageSize"); v != strconv.Itoa(cfVersionsPageSize) {
+			t.Errorf("request %d pageSize = %q, want %d", i, v, cfVersionsPageSize)
+		}
+	}
+	if got := queries[1].Get("index"); got != strconv.Itoa(cfVersionsPageSize) {
+		t.Errorf("second request index = %q, want %d", got, cfVersionsPageSize)
 	}
 }

@@ -1557,7 +1557,7 @@
               "layoutAlignSelf": "STRETCH",
               "texts": [
                 "Back up first",
-                "Takes a backup to the cluster’s backup destination (s3-backups) before the change. If the backup fails, nothing changes."
+                "Takes a backup to the cluster’s backup destination (s3-backups). The server version changes right away; the pack is installed only after the backup succeeds."
               ]
             },
             {

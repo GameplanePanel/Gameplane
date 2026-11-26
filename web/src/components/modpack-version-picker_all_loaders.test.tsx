@@ -71,6 +71,7 @@ describe("ModpackVersionPicker All loaders", () => {
     );
     mount();
     expect(await screen.findByText(ALL_LOADERS_SUBTITLE)).toBeInTheDocument();
+    expect(await screen.findByText("Pack 1.11.0")).toBeInTheDocument();
     expect(seen).toEqual(["true"]);
   });
 
@@ -92,6 +93,7 @@ describe("ModpackVersionPicker All loaders", () => {
     mount({ allLoaders: false });
     expect(await screen.findByText(`Showing versions for ${MC}, newest first.`)).toBeInTheDocument();
     expect(screen.queryByText(ALL_LOADERS_SUBTITLE)).not.toBeInTheDocument();
+    expect(await screen.findByText("Pack 1.10.4")).toBeInTheDocument();
     expect(seen).toEqual([null]);
   });
 

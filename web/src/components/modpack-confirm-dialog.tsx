@@ -110,7 +110,11 @@ export function ModpackConfirmDialog({
         }
       })();
 
-  const backupHelp = backupAvailable && backupDestination
+  const backupHelp = backupAvailable && backupDestination && serverVersionChange
+    ? intl.formatMessage({ id: "web.components.modpack_confirm_dialog.backup_help_destination_version_change", defaultMessage: "Takes a backup to the cluster’s backup destination ({destination}). The server version changes right away; the pack is installed only after the backup succeeds.", description: "Modpack confirm dialog: help text under the back-up checkbox when the change also switches the server version; the server version changes immediately, the modpack is installed only after the backup succeeds, and the backup goes to the named cluster backup destination; {destination} is the destination name" }, { destination: backupDestination })
+    : backupAvailable && serverVersionChange
+    ? intl.formatMessage({ id: "web.components.modpack_confirm_dialog.backup_help_version_change", defaultMessage: "Takes a backup to this server's backup destination. The server version changes right away; the pack is installed only after the backup succeeds.", description: "Modpack confirm dialog: help text under the back-up checkbox when the change also switches the server version and the cluster has no named destination; the server version changes immediately, the modpack is installed only after the backup succeeds" })
+    : backupAvailable && backupDestination
     ? intl.formatMessage({ id: "web.components.modpack_confirm_dialog.backup_help_destination", defaultMessage: "Takes a backup to the cluster’s backup destination ({destination}) before the change. If the backup fails, nothing changes.", description: "Modpack confirm dialog: help text under the back-up checkbox naming the backup destination; the backup is taken first and the change is cancelled if it fails; {destination} is the destination name" }, { destination: backupDestination })
     : backupAvailable
     ? intl.formatMessage({ id: "web.components.modpack_confirm_dialog.backup_help", defaultMessage: "Takes a backup to this server's backup destination before the change. If the backup fails, nothing changes.", description: "Modpack confirm dialog: help text under the back-up checkbox explaining the backup is taken first and the change is cancelled if it fails" })
