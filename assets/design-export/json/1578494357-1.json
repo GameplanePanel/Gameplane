@@ -1,0 +1,161 @@
+{
+  "file": "1578494357-1",
+  "name": "Screen/Dialog/Backup Download",
+  "type": "FRAME",
+  "x": 4920,
+  "y": 37959,
+  "width": 760,
+  "height": 420,
+  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+  "strokeWeight": 1,
+  "cornerRadius": 16,
+  "clips": true,
+  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+  "children": [
+    {
+      "name": "Wizard Modal Header",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 760,
+      "height": 83,
+      "component": "Gameplane/Wizard Modal Header",
+      "componentId": "1:1889",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [20, 28, 20, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Download backup", "survival-nightly · mc-survival"]
+    },
+    {
+      "name": "Hint",
+      "type": "TEXT",
+      "x": 28,
+      "y": 107,
+      "width": 39,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+      "text": "Format",
+      "font": ["Geist", 400, 12],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+    },
+    {
+      "name": "Format option",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 130,
+      "width": 704,
+      "height": 48,
+      "component": "Gameplane/Format Option",
+      "texts": [".tar.gz (default)", "Keeps file permissions"]
+    },
+    {
+      "name": "Format option",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 184,
+      "width": 704,
+      "height": 48,
+      "component": "Gameplane/Format Option",
+      "texts": [".zip", "Opens everywhere. Permissions reset on restore."]
+    },
+    {
+      "name": "Hint",
+      "type": "TEXT",
+      "x": 28,
+      "y": 246,
+      "width": 80,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+      "text": "Estimated size",
+      "font": ["Geist", 400, 12],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+    },
+    {
+      "name": "Logical size",
+      "type": "TEXT",
+      "x": 200,
+      "y": 246,
+      "width": 55,
+      "height": 17,
+      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+      "text": "1.4 GiB",
+      "font": ["JetBrains Mono", 400, 13],
+      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "Notice",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 280,
+      "width": 704,
+      "height": 60,
+      "component": "Gameplane/Inline Notice/Warning",
+      "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
+      "cornerRadius": 12,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [12, 16, 12, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"fills/0/color": "warning/soft"},
+      "texts": [
+        "This archive contains every server file",
+        "It includes configs that may hold passwords. Keep it private."
+      ]
+    },
+    {
+      "name": "Wizard Modal Footer",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 352,
+      "width": 760,
+      "height": 68,
+      "component": "Gameplane/Wizard Modal Footer",
+      "componentId": "1:2019",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [16, 28, 16, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Cancel"]
+    },
+    {
+      "name": "Primary Button",
+      "type": "INSTANCE",
+      "x": 610,
+      "y": 368,
+      "width": 122,
+      "height": 36,
+      "component": "Gameplane/Button/Default",
+      "componentId": "1:306",
+      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["HUG", "HUG"]
+      },
+      "texts": ["Download"]
+    }
+  ]
+}

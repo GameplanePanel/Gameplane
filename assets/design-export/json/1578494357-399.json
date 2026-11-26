@@ -1,0 +1,200 @@
+{
+  "file": "1578494357-399",
+  "name": "Screen/Dialog/Upload Backup — Review (Gameplane archive, zip)",
+  "type": "FRAME",
+  "x": 16440,
+  "y": 37959,
+  "width": 760,
+  "height": 560,
+  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+  "strokeWeight": 1,
+  "cornerRadius": 16,
+  "clips": true,
+  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+  "children": [
+    {
+      "name": "Wizard Modal Header",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 760,
+      "height": 83,
+      "component": "Gameplane/Wizard Modal Header",
+      "componentId": "1:1889",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [20, 28, 20, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Upload backup", "Step 4 of 4 · Review"]
+    },
+    {
+      "name": "Summary row",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 107,
+      "width": 704,
+      "height": 28,
+      "component": "Gameplane/Summary Row",
+      "texts": ["Source server", "mc-survival"]
+    },
+    {
+      "name": "Summary row",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 135,
+      "width": 704,
+      "height": 28,
+      "component": "Gameplane/Summary Row",
+      "texts": ["Game", "Minecraft (Java)"]
+    },
+    {
+      "name": "Summary row",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 163,
+      "width": 704,
+      "height": 28,
+      "component": "Gameplane/Summary Row",
+      "texts": ["Game version", "1.20.6"]
+    },
+    {
+      "name": "Summary row",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 191,
+      "width": 704,
+      "height": 28,
+      "component": "Gameplane/Summary Row",
+      "texts": ["Captured at", "2026-11-25 03:00 UTC"]
+    },
+    {
+      "name": "Summary row",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 219,
+      "width": 704,
+      "height": 28,
+      "component": "Gameplane/Summary Row",
+      "texts": ["Volumes", "data"]
+    },
+    {
+      "name": "Notice",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 256,
+      "width": 704,
+      "height": 60,
+      "component": "Gameplane/Inline Notice/Warning",
+      "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
+      "cornerRadius": 12,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [12, 16, 12, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"fills/0/color": "warning/soft"},
+      "texts": ["Older game version", "Captured with 1.20.6. This server runs 1.21.4."]
+    },
+    {
+      "name": "Notice",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 326,
+      "width": 704,
+      "height": 60,
+      "component": "Gameplane/Inline Notice/Warning",
+      "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
+      "cornerRadius": 12,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [12, 16, 12, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"fills/0/color": "warning/soft"},
+      "texts": [
+        "Zip permissions reset",
+        "Zip archives reset file permissions to the server's defaults on restore."
+      ]
+    },
+    {
+      "name": "Notice",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 396,
+      "width": 704,
+      "height": 80,
+      "component": "Gameplane/Inline Notice/Danger",
+      "fills": [{"type": "SOLID", "color": "#2E1317"}],
+      "cornerRadius": 12,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [12, 16, 12, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "variables": {"fills/0/color": "danger/soft"},
+      "texts": [
+        "This replaces all data on mc-survival",
+        "The server stops during the restore.\nIf the copy fails partway, data may be partly replaced and the server stays stopped."
+      ]
+    },
+    {
+      "name": "Wizard Modal Footer",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 492,
+      "width": 760,
+      "height": 68,
+      "component": "Gameplane/Wizard Modal Footer",
+      "componentId": "1:2019",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [16, 28, 16, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Cancel"]
+    },
+    {
+      "name": "Confirm Button",
+      "type": "INSTANCE",
+      "x": 573,
+      "y": 508,
+      "width": 159,
+      "height": 36,
+      "component": "Gameplane/Button/Danger",
+      "componentId": "1:3975",
+      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["HUG", "HUG"]
+      },
+      "texts": ["Confirm restore"]
+    }
+  ]
+}
