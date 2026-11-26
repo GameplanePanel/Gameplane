@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
 	"github.com/GameplanePanel/gameplane/api/internal/registry"
 )
@@ -227,7 +229,7 @@ func TestInstallModpack_ServerVersionSwitchWritesVersionAndPack(t *testing.T) {
 	k, fp := installSwitchFixture([]registry.Version{{ID: "pack-forge", Loaders: []string{"forge"}, GameVersions: []string{"1.12.2"}}})
 	mount := mountRegistryRouter(k, fakeSet{p: fp})
 
-	rr := modpackReq(t, mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
+	rr := modpackReqAs(t, adminUser(), mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
 		"provider": "modrinth", "project": "pack", "version": "pack-forge",
 		"serverVersion": "1.12.2-forge",
 	})
@@ -296,7 +298,7 @@ func TestInstallModpack_ServerVersionRejects(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			k, fp := installSwitchFixture(tc.versions)
 			mount := mountRegistryRouter(k, fakeSet{p: fp})
-			rr := modpackReq(t, mount, http.MethodPost, "/servers/alpha/modpack", tc.body)
+			rr := modpackReqAs(t, adminUser(), mount, http.MethodPost, "/servers/alpha/modpack", tc.body)
 			if rr.Code != http.StatusBadRequest {
 				t.Fatalf("got %d %s, want 400", rr.Code, rr.Body)
 			}
@@ -320,7 +322,7 @@ func TestInstallModpack_ServerVersionSwitchChecksTargetImageKey(t *testing.T) {
 	fp := &versionsProvider{versions: []registry.Version{{ID: "pack-forge", Loaders: []string{"forge"}, GameVersions: []string{"1.12.2"}}}}
 	mount := mountRegistryRouter(k, fakeSet{p: fp})
 
-	rr := modpackReq(t, mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
+	rr := modpackReqAs(t, adminUser(), mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
 		"provider": "curseforge", "project": "pack", "version": "pack-forge", "serverVersion": "1.12.2-forge",
 	})
 	if rr.Code != http.StatusConflict {
@@ -355,7 +357,7 @@ func TestInstallModpack_ServerVersionRejectsUnfittingVersion(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			k, fp := installSwitchFixture([]registry.Version{tc.version})
 			mount := mountRegistryRouter(k, fakeSet{p: fp})
-			rr := modpackReq(t, mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
+			rr := modpackReqAs(t, adminUser(), mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
 				"provider": "curseforge", "project": "pack", "version": "pack-forge",
 				"serverVersion": "1.12.2-forge",
 			})
@@ -425,6 +427,52 @@ func TestRegistryVersions_AllLoadersSkipsKeyBlockedEntries(t *testing.T) {
 			}
 			if strings.Contains(rr.Body.String(), "1.12.2-forge") {
 				t.Errorf("blocked entry named in body: %s", rr.Body)
+			}
+		})
+	}
+}
+
+// adminUser holds every permission on every cluster and namespace.
+func adminUser() *auth.User {
+	return &auth.User{ID: 1, Username: "admin", Perms: map[string]map[string]map[string]struct{}{
+		"*": {"*": {"*": {}}},
+	}}
+}
+
+// modpackReqAs is modpackReq with u as the signed-in user.
+func modpackReqAs(t *testing.T, u *auth.User, h http.Handler, method, path string, body any) *httptest.ResponseRecorder {
+	t.Helper()
+	b, err := json.Marshal(body)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	req := httptest.NewRequestWithContext(auth.WithUser(t.Context(), u), method, path, strings.NewReader(string(b)))
+	req.Header.Set("Accept", "application/problem+json")
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	return rr
+}
+
+// FR-014 + valgul 2026-11-26: switching the server version through a pack
+// install needs servers:write; an owner or collaborator grant (here: a user
+// with only mods:manage) is refused and nothing is written.
+func TestInstallModpack_ServerVersionSwitchNeedsServersWrite(t *testing.T) {
+	k, fp := installSwitchFixture([]registry.Version{{ID: "pack-forge", Loaders: []string{"forge"}, GameVersions: []string{"1.12.2"}}})
+	mount := mountRegistryRouter(k, fakeSet{p: fp})
+	collaborator := &auth.User{ID: 2, Username: "collab", Perms: map[string]map[string]map[string]struct{}{
+		"*": {"gameplane-games": {"mods:manage": {}}},
+	}}
+	for name, u := range map[string]*auth.User{"collaborator": collaborator, "no user": nil} {
+		t.Run(name, func(t *testing.T) {
+			rr := modpackReqAs(t, u, mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
+				"provider": "modrinth", "project": "pack", "version": "pack-forge",
+				"serverVersion": "1.12.2-forge",
+			})
+			if rr.Code != http.StatusForbidden || !strings.Contains(rr.Body.String(), "server.modpack.server_version_forbidden") {
+				t.Fatalf("got %d %s, want 403 server.modpack.server_version_forbidden", rr.Code, rr.Body)
+			}
+			if version, hasModpack := serverSpecVersion(t, k); version != "1.21.1-neoforge" || hasModpack {
+				t.Errorf("spec.version = %q modpack set %v, want unchanged", version, hasModpack)
 			}
 		})
 	}

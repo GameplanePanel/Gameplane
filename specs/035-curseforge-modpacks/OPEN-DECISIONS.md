@@ -164,3 +164,15 @@ before the ruling, not the ruling.
   CRD field and an operator change. (Recommended.)
 - B. The install also rewrites the server's selected version (`spec.version`). Smaller; with "Back up first" the pod
   restarts on the new version as a plain loader before the backup ends, and Remove leaves the server on the new version.
+
+## OD-14: Who may switch the server version through a modpack install? (SETTLED: A, valgul 2026-11-26)
+
+**Ruling: option A** (valgul, 2026-11-26).
+
+Raised in the code review of PR #1114: only `PUT /servers/{name}` changed `spec.version` before, and the owner/collaborator
+fallback is refused there; `POST /servers/{name}/modpack` is a sub-resource, so that fallback allows it.
+
+- A. Only users with servers:write: owners and collaborators can still install packs for the current version, but an
+  install that switches the version needs the same right as changing it in Settings (403
+  `server.modpack.server_version_forbidden`).
+- B. Anyone who can install packs.

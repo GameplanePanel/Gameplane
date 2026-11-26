@@ -98,7 +98,7 @@ Request:
 - `serverVersion` (optional, FR-014, OD-13 B): a template version id. When set and different from the
   server's current version, the API checks the entry exists and that `version` is among the pack's
   versions for that entry's loader and Minecraft version (400 `server.modpack.server_version_mismatch`
-  otherwise), then writes `spec.version` together with `spec.modpack` in one update. The audit row
+  otherwise; 403 `server.modpack.server_version_forbidden` without servers:write in the namespace, OD-14 A), then writes `spec.version` together with `spec.modpack` in one update. The audit row
   records the old and new server version.
 - Same provider + project as the active pack = version change; else install. Neither
   empties the mods folder (OD-7 B); only DELETE does.

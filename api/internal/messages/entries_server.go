@@ -120,6 +120,12 @@ var serverEntries = []Entry{
 		Status:      http.StatusNotFound,
 	},
 	{
+		ID:          "server.modpack.server_version_forbidden",
+		English:     "changing the server version needs permission to edit the server",
+		Description: "API error from the modpack API (registry.go:installModpack) when a modpack install would switch the server version (serverVersion) and the caller lacks servers:write in the server's namespace.",
+		Status:      http.StatusForbidden,
+	},
+	{
 		ID:          "server.modpack.server_version_mismatch",
 		English:     "the chosen pack version does not run on that server version",
 		Description: "API error from the modpack API (registry.go:installModpack, registry_server_version.go:serverVersionTarget) when a modpack install names a server version (serverVersion) that is not a template version or cannot run the chosen pack version.",

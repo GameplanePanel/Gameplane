@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/GameplanePanel/gameplane/api/internal/audit"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
 	"github.com/GameplanePanel/gameplane/api/internal/messages"
@@ -301,6 +302,12 @@ func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Reques
 	runEntry := activeVersionEntry(target.template, currentID)
 	var serverSwitch string
 	if body.ServerVersion != "" && body.ServerVersion != currentID {
+		// Changing a server's version needs servers:write in its namespace,
+		// as in Settings; an owner or collaborator grant is not enough.
+		if !auth.UserFromContext(req.Context()).Can("servers:write", true, target.cluster, target.namespace) {
+			httperr.WriteMessage(w, req, messages.New("server.modpack.server_version_forbidden", nil))
+			return
+		}
 		entry, err := h.serverVersionTarget(req.Context(), target, prov, body)
 		if errors.Is(err, errServerVersionMismatch) {
 			httperr.WriteMessage(w, req, messages.New("server.modpack.server_version_mismatch", nil))
