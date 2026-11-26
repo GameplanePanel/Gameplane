@@ -52,14 +52,14 @@
 
 **Independent test**: upload a downloaded archive to an empty server of the same game and restore; refuse another game; reject unsafe archives with the server untouched.
 
-- [ ] T022 [P] [US2] `agent/internal/archive/unpack.go`: safe unpack of tar.gz and zip onto the staging root (no absolute paths, `..`, outside links, devices, hard links outside; unpacked-size cap; strip one wrapping folder for plain archives; zip permission reset); test set covering SC-005.
-- [ ] T023 [US2] Receiver in `agent/internal/archive/receive.go`: accept one `PUT`, enforce declared size, write file to staging, run T022, write summary JSON to the termination log; copy mode `agent archive-worker copy` that replaces each target volume's contents from staging; tests.
-- [ ] T024 [US2] `operator/internal/controller/restore_upload.go`: staging PVC (class from flag or default, refuse `NoStagingStorageClass`, size per R5, target node topology), receiver Pod/Service, read summary, FR-013 checks (game, volumes, version warnings), `AwaitingConfirmation` with 30 min timeout, then existing suspend/fence path, copy Pod, resume; cleanup on every terminal phase; final-copy failure message (OD-7).
-- [ ] T025 [US2] Envtest `restore_upload_envtest_test.go`: no storage class, wrong game refused before suspend, plain archive needs template, confirmation timeout, client disconnect cleanup, copy failure leaves server stopped with message, staging PVC deleted in all paths.
-- [ ] T026 [P] [US2] API upload and confirm routes per contracts/api.md in `backup_archives.go`; size limit; delete Restore on disconnect; audit; `isLargeTransferPath` for `POST /restores:upload`.
-- [ ] T027 [P] [US2] Gateway forwarding for the upload stream and confirm.
-- [ ] T028 [US2] API tests: `backups:restore` required, 411/413, busy server, disconnect cleanup, audit rows.
-- [ ] T029 [P] [US2] i18n keys for upload and restore messages.
+- [X] T022 [P] [US2] `agent/internal/archive/unpack.go`: safe unpack of tar.gz and zip onto the staging root (no absolute paths, `..`, outside links, devices, hard links outside; unpacked-size cap; strip one wrapping folder for plain archives; zip permission reset); test set covering SC-005.
+- [X] T023 [US2] Receiver in `agent/internal/archive/receive.go`: accept one `PUT`, enforce declared size, write file to staging, run T022, write summary JSON to the termination log; copy mode `agent archive-worker copy` that replaces each target volume's contents from staging; tests.
+- [X] T024 [US2] `operator/internal/controller/restore_upload.go`: staging PVC (class from flag or default, refuse `NoStagingStorageClass`, size per R5, target node topology), receiver Pod/Service, read summary, FR-013 checks (game, volumes, version warnings), `AwaitingConfirmation` with 30 min timeout, then existing suspend/fence path, copy Pod, resume; cleanup on every terminal phase; final-copy failure message (OD-7).
+- [X] T025 [US2] Envtest `restore_upload_envtest_test.go`: no storage class, wrong game refused before suspend, plain archive needs template, confirmation timeout, client disconnect cleanup, copy failure leaves server stopped with message, staging PVC deleted in all paths.
+- [X] T026 [P] [US2] API upload and confirm routes per contracts/api.md in `backup_archives.go`; size limit; delete Restore on disconnect; audit; `isLargeTransferPath` for `POST /restores:upload`.
+- [X] T027 [P] [US2] Gateway forwarding for the upload stream and confirm.
+- [X] T028 [US2] API tests: `backups:restore` required, 411/413, busy server, disconnect cleanup, audit rows.
+- [X] T029 [P] [US2] i18n keys for upload and restore messages.
 - [ ] T030 [P] [US2] `web/src/lib/api.ts` `uploadRestore` (XHR progress), `confirmRestore`; types.
 - [ ] T031 [US2] Backups tab Upload backup flow: file picker, format detect, "not a Gameplane archive" + game select, upload progress, check summary with warnings, overwrite and partial-copy risk confirmation, result; tests in new `Backups_upload.test.tsx`. Needs T005 sign-off.
 - [ ] T032 [US2] E2E in `backup_archives_e2e_test.go`: Gameplane archive restore, wrong game, plain archive, unsafe set, interrupted upload leaves server running and no staging PVC.
