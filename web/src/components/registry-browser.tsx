@@ -178,7 +178,7 @@ export function RegistryBrowser({
           onSelectionChange={(key) => setPicked(key as string)}
           aria-label={type === "modpack" ? intl.formatMessage({ id: "web.components.registry_browser.modpack_registry_aria", defaultMessage: "Modpack registry", description: "Registry browser: aria-label for the modpack registry" }) : intl.formatMessage({ id: "web.components.registry_browser.mod_registry_aria", defaultMessage: "Mod registry", description: "Registry browser: aria-label for the mod registry" })}
         >
-          <Tabs.List className="w-fit">
+          <Tabs.List>
             {available.map((p) => (
               <Tab key={p.provider} id={p.provider} className="text-xs">
                 {providerLabel(p.provider)}

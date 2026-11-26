@@ -208,7 +208,7 @@ function ClusterSystemLogs() {
       />
 
       <Tabs selectedKey={component} onSelectionChange={(key) => setComponent(key as LogComponent)} variant="secondary" aria-label={intl.formatMessage({ id: "web.routes.admin_logs.log_source", defaultMessage: "Log source", description: "Admin logs: accessible name of the tab group for choosing which component's logs to show" })}>
-        <Tabs.List className="w-fit">
+        <Tabs.List>
           {COMPONENTS.map((c) => (
             <TabComponent key={c.value} id={c.value}>{intl.formatMessage(c.label)}</TabComponent>
           ))}

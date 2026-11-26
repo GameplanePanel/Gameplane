@@ -40,6 +40,11 @@
   --sleep: oklch(54.13% 0.2466 293.01); /* #7C3AED — Asleep/sleep status color (violet) */
   --focus: var(--accent); /* input focus ring uses theme accent, per OD-16 */
   --chart-stat: oklch(60.56% 0.2189 292.72); /* #8B5CF6 — stat-card icon accent, OD-9 */
+  --stat-players: #2563EB; /* Servers Players card, Info log level (blue) */
+  --level-info: var(--stat-players);
+  --stat-storage: #0D9488; /* Servers Storage card (teal) */
+  --stat-nodes: #64748B; /* Servers Nodes card, Debug log level (slate) */
+  --level-debug: var(--stat-nodes);
   --link: oklch(54.61% 0.2152 262.88); /* #2563EB */
   --segment: oklch(100.00% 0.0000 89.88); /* #FFFFFF */
   --segment-foreground: oklch(21.67% 0.0502 347.62); /* #2A0F1E */
@@ -83,6 +88,11 @@
   --sleep: oklch(70.90% 0.1592 293.54); /* #A78BFA — Asleep/sleep status color (light violet) */
   --focus: var(--accent); /* input focus ring uses theme accent, per OD-16 */
   --chart-stat: oklch(60.56% 0.2189 292.72); /* #8B5CF6 — stat-card icon accent, OD-9 */
+  --stat-players: #3B82F6; /* Servers Players card, Info log level (blue) */
+  --level-info: var(--stat-players);
+  --stat-storage: #14B8A6; /* Servers Storage card (teal) */
+  --stat-nodes: #94A3B8; /* Servers Nodes card, Debug log level (slate) */
+  --level-debug: var(--stat-nodes);
   --link: oklch(76.21% 0.1231 256.39); /* #7DB4FF */
   --segment: oklch(22.75% 0.0137 298.37); /* #1D1B22 */
   --segment-foreground: oklch(96.68% 0.0057 308.40); /* #F5F3F7 */
@@ -243,6 +253,11 @@
   --color-sleep: var(--sleep); /* Asleep/sleep status color */
   --color-violet: hsl(258 90% 66%); /* operator role chips */
   --color-chart-stat: var(--chart-stat); /* stat-card icon accent, OD-9 — settled 2026-09-16 */
+  --color-stat-players: var(--stat-players); /* Players card (blue) */
+  --color-level-info: var(--level-info); /* Info log level (blue) */
+  --color-stat-storage: var(--stat-storage); /* Storage card (teal) */
+  --color-stat-nodes: var(--stat-nodes); /* Nodes card (slate) */
+  --color-level-debug: var(--level-debug); /* Debug log level (slate) */
 
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -523,6 +538,7 @@ input:-webkit-autofill:focus {
   border-radius: 999px;
   padding: 4px;
   width: fit-content;
+  min-width: fit-content;
 }
 
 /* Vertical tab list (Settings submenu) only: use modest radius (8px) instead
@@ -541,7 +557,7 @@ input:-webkit-autofill:focus {
 .tabs__list:where(:not([data-orientation="vertical"])) .tabs__tab[data-selected="true"] {
   background-color: var(--segment);
   color: var(--segment-foreground);
-  border-radius: 999px; /* Tab/Active (CEWo3): $radius/3xl on a 32px tab = pill */
+  border-radius: 12px; /* 042 FR-001: selected tab 12px; only the Server Detail nav bar keeps the pill (OD-10) */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); /* CEWo3 effect */
 }
 
@@ -562,14 +578,29 @@ input:-webkit-autofill:focus {
   color: var(--foreground);
 }
 
-.tabs__list.w-fit {
-  min-width: fit-content;
-}
-
-.tabs__list.w-fit .tabs__tab {
+/* 042 FR-002: every horizontal tab list sizes each tab to its label and never
+   wraps, with no per-list opt-in. The vertical Settings sub-nav is excluded. */
+.tabs__list:where(:not([data-orientation="vertical"])) .tabs__tab {
   width: auto;
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+/* Server Detail main nav bar (OD-10): keeps the app's look, a full-width pill
+   track with equal-width tabs and a pill selected tab in $segment. Must stay
+   after the generic horizontal rules above; the extra class wins on specificity. */
+.tabs__list.server-detail-tabs {
+  width: 100%;
+  min-width: 0;
+}
+.tabs__list.server-detail-tabs .tabs__tab {
+  flex: 1 1 0;
+  min-width: max-content;
+  width: auto;
+  white-space: nowrap;
+}
+.tabs__list.server-detail-tabs .tabs__tab[data-selected="true"] {
+  border-radius: 999px;
 }
 
 /* Users & RBAC section tabs (Dpb9f) only: selected tab keeps the 6px radius
@@ -605,6 +636,31 @@ input:-webkit-autofill:focus {
   border-color: var(--sleep) !important;
   background-color: color-mix(in srgb, var(--sleep) 20%, transparent) !important;
   color: var(--sleep) !important;
+}
+
+/* Status pill (042 FR-004): text size of the row, leading dot in the text
+   colour. Used by PhaseChip and by Chip with the dot prop. */
+.phase-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.125em 0.625em;
+  border-radius: 999px;
+  font-size: inherit;
+  line-height: 1.25;
+  font-weight: 500;
+}
+.phase-chip__dot {
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 999px;
+  background-color: currentColor;
+}
+/* Stopped / Pending / Suspended: neutral grey, not the pink default-soft. */
+.phase-chip[data-color="default"]:not([data-asleep="true"]) {
+  background-color: color-mix(in srgb, var(--muted) 16%, transparent);
+  color: var(--muted);
 }
 
 
@@ -688,4 +744,63 @@ input:-webkit-autofill:focus {
 .checkbox.flex-row {
   flex-direction: row;
 }
+
+/* Shared slider (FR-005): track filled with the accent from start to handle.
+   --fill is set inline as a percentage computed from (value-min)/(max-min). */
+.range {
+  --fill: 0%;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  cursor: pointer;
+  background: linear-gradient(to right, var(--accent) var(--fill), var(--border) var(--fill));
+}
+.range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+}
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: var(--background);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+}
+.range::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: var(--background);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.range:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.range:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: var(--border);
+}
+.range:disabled::-webkit-slider-thumb { border-color: var(--muted); }
+.range:disabled::-moz-range-thumb { border-color: var(--muted); }
+.range:disabled::-moz-range-progress { background: var(--muted); }
 

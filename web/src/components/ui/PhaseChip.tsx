@@ -29,22 +29,30 @@ const phaseColorMap: Record<string, PhaseColor> = {
   Failed: "danger",
 };
 
-// Generic Chip wrapper for badge use cases
-export function Chip({ color = "default", size = "sm", children, className }: {
+// Generic Chip wrapper for badge use cases. dot renders the status-pill look
+// (soft tint, leading dot, row text size) used by PhaseChip.
+export function Chip({ color = "default", size = "sm", dot = false, children, className }: {
   color?: PhaseColor;
   size?: "sm" | "md" | "lg";
+  dot?: boolean;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <HeroChip
       color={color}
+      variant={dot ? "soft" : undefined}
       size={size}
       data-color={color}
       data-size={size}
-      className={className}
+      className={dot ? ["phase-chip", className].filter(Boolean).join(" ") : className}
     >
-      {children}
+      {dot ? (
+        <>
+          <span aria-hidden="true" className="phase-chip__dot" />
+          <span>{children}</span>
+        </>
+      ) : children}
     </HeroChip>
   );
 }
@@ -77,11 +85,10 @@ function phaseLabel(intl: IntlShape, value: string): string {
 // awaitingSnapshot overlays a Succeeded backup that has no snapshot ID yet
 // (see backupAwaitingSnapshot): it is not a restore point, so it shows the
 // in-transition warning color instead of success.
-export function PhaseChip({ phase, asleep, awaitingSnapshot, size = "sm", className }: {
+export function PhaseChip({ phase, asleep, awaitingSnapshot, className }: {
   phase?: string;
   asleep?: boolean;
   awaitingSnapshot?: boolean;
-  size?: "sm" | "md" | "lg";
   className?: string;
 }) {
   const intl = useOptionalIntl();
@@ -93,15 +100,14 @@ export function PhaseChip({ phase, asleep, awaitingSnapshot, size = "sm", classN
     <HeroChip
       color={color}
       variant="soft"
-      size={size}
       data-phase={p}
       data-color={color}
       data-asleep={asleep}
       data-awaiting-snapshot={awaitingSnapshot}
-      data-size={size}
-      className={className}
+      className={["phase-chip", className].filter(Boolean).join(" ")}
     >
-      {label}
+      <span aria-hidden="true" className="phase-chip__dot" />
+      <span>{label}</span>
     </HeroChip>
   );
 }

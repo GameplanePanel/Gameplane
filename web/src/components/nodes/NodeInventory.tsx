@@ -164,8 +164,8 @@ export function NodeInventory({ clusterId = "", onClusterChange, embedded = fals
           <div className="flex justify-between gap-3 text-xs"><span>{intl.formatMessage(messages.pods)} <NodePods row={row} /></span><span>{intl.formatMessage(messages.uptime)} {nodeUptime(row, intl)}</span></div>
         </Card>)}
       </div>
-    </> : <div className="overflow-hidden rounded-lg border border-border bg-card">
-      <Table.Root className="bg-transparent"><Table.ScrollContainer><Table.Content aria-label={intl.formatMessage(messages.list)} keyboardNavigationBehavior="arrow" className="min-w-[880px]">
+    </> : <>
+      <Table.Root><Table.ScrollContainer><Table.Content aria-label={intl.formatMessage(messages.list)} keyboardNavigationBehavior="arrow" className="min-w-[880px]">
         <Table.Header>{columns.map((column) => <Table.Column id={column} key={column} isRowHeader={column === "name"}>
           <button type="button" className="inline-flex items-center gap-1 py-2 text-xs font-semibold" aria-label={intl.formatMessage(messages.sort, { column: intl.formatMessage(columnMessage[column]) })} aria-description={sortColumn === column ? intl.formatMessage(sortDirection === "ascending" ? messages.ascending : messages.descending) : undefined} onClick={() => sort(column)}>{intl.formatMessage(columnMessage[column])}{sortColumn === column ? sortDirection === "ascending" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" /> : <ArrowUpDown className="h-3 w-3 text-muted" />}</button>
         </Table.Column>)}</Table.Header>
@@ -181,7 +181,7 @@ export function NodeInventory({ clusterId = "", onClusterChange, embedded = fals
           </Table.Row>)}
         </Table.Body>
       </Table.Content></Table.ScrollContainer></Table.Root>
-    </div>}
+    </>}
     <p className="text-xs text-muted">{unknownCounts ? intl.formatMessage(messages.unavailable) : intl.formatMessage(partial ? messages.partialCount : messages.count, { count: visible.length })}</p>
   </div>;
 }
