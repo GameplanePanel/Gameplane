@@ -3,7 +3,7 @@ package modsrc
 import (
 	"testing"
 
-	"github.com/GameplanePanel/gameplane/operator/internal/oci"
+	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
 )
 
 const localesTestMetadata = "name: demo\ndisplayName: Demo\nversion: 1.0.0\n"

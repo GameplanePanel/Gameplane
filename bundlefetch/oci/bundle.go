@@ -1,8 +1,9 @@
-// Package oci wraps oras-go to pull Gameplane module bundles from any
+// Package oci wraps oras-go to pull Gameplane bundles from any
 // OCI-compliant registry. Bundles are single OCI artifacts whose layers
-// carry the module metadata + GameTemplate manifest. This package is
-// pure transport — bundle parsing and validation live in
-// internal/modsrc, which consumes the raw layers returned by Pull.
+// carry the bundle metadata and manifest. This package is pure transport —
+// bundle parsing and validation live in the caller (the operator's
+// internal/modsrc), which consumes the raw layers returned by Pull. It imports
+// nothing from Kubernetes.
 package oci
 
 import (
@@ -43,7 +44,7 @@ const (
 	LocaleLayerSuffix = ".json"
 
 	// MaxLocaleLayerSize bounds one locale layer. Pull refuses to read a
-	// larger one, so a hostile bundle cannot exhaust the operator's memory.
+	// larger one, so a hostile bundle cannot exhaust the caller's memory.
 	MaxLocaleLayerSize = 900 * 1024
 
 	// MaxLocaleTotalSize bounds all locale files of one bundle together.

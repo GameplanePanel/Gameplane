@@ -4,8 +4,11 @@ WORKDIR /src
 # netguard is an in-repo module the operator depends on via a local replace
 # (../netguard); copy it first so `go mod download` and the build resolve it.
 # i18n (module locales, spec 019) is copied ahead of the operator importing it.
+# bundlefetch (spec 043, shared OCI/cosign/fetch code) is copied after netguard,
+# which it replaces against as well.
 COPY netguard/ ./netguard/
 COPY i18n/ ./i18n/
+COPY bundlefetch/ ./bundlefetch/
 COPY operator/go.mod operator/go.sum* ./operator/
 WORKDIR /src/operator
 RUN go mod download

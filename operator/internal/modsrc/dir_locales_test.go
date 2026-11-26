@@ -6,7 +6,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/GameplanePanel/gameplane/operator/internal/oci"
+	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
 )
 
 func localesFS(frBody string) fstest.MapFS {

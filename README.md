@@ -168,6 +168,7 @@ legacy default for custom deployments. See [storage and recovery](docs/standalon
 | `netguard/` | Go | SSRF protection layer for outgoing mod downloads and OCI module fetches. |
 | `telemetryschema/` | Go | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API and `telemetry-receiver`. |
 | `themepkg/` | Go | Shared theme package validator (theme.yaml, tokens and contrast, custom CSS sanitizer, previews, size limits) used by the API and `gp-module`. |
+| `bundlefetch/` | Go | Shared OCI client, cosign verification and git/HTTP/local fetch code (no Kubernetes) used by the operator's module sources and the API's theme sources. |
 | `audit-syslog-bridge/` | Go | Submodule (`GameplanePanel/audit-syslog-bridge`): HTTP-JSON to syslog relay [optional] for audit logging infrastructure. |
 | `telemetry-receiver/` | Go | Collector [optional] for anonymous daily usage reports. |
 | `mcp-server/` | Go | Submodule (`GameplanePanel/mcp`): strictly read-only Model Context Protocol server [optional] for AI tools. |
@@ -210,6 +211,7 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 ├── netguard/             # SSRF dial-guard library
 ├── telemetryschema/      # Shared telemetry report contract (types, decoder, signing)
 ├── themepkg/             # Shared theme package validator (spec 043)
+├── bundlefetch/          # Shared bundle fetching and cosign verification (spec 043)
 ├── audit-syslog-bridge/  # Submodule: optional syslog relay for audit logs
 ├── telemetry-receiver/   # Optional anonymous usage telemetry receiver
 ├── mcp-server/           # Submodule: optional read-only MCP server (GameplanePanel/mcp)

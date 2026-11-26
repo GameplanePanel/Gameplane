@@ -35,3 +35,8 @@ Raised by planning (research.md R1). Themes are per panel user (OD-1), while mod
 - C. In the panel database, with the API using its own small OCI and cosign client. No operator change, but two copies of signature handling to keep in step.
 
 **Settled (valgul, decision card 2026-11-26):** A, "Panel database, shared fetch code". Theme sources live in the panel database and the API fetches themes; the OCI, git, HTTP and local fetch code and cosign verification move from the operator into a shared Go module `bundlefetch/` used by both module sources and theme sources.
+
+## PR-B (bundlefetch extraction): unsettled values
+
+- **B1. Coverage total for `bundlefetch`.** `bundlefetch/.testcoverage.yml` sets `total: 90` (per the goal). Only `oci` and `verify` tests move there; the new `source/` package (git, archive, local, dirs, digests) is covered only by the operator's `modsrc` tests. Options: (a) keep 90 and add `bundlefetch/source/*_test.go` under a T002 addendum; (b) set a lower total now and raise it with the T012 tests. Open: needs valgul.
+- **B5. Logger hook in `bundlefetch/verify`.** `fulcioPools` used controller-runtime's `log.FromContext`, which cannot move. It now uses `logr.FromContext(ctx)` and falls back to `slog.ErrorContext` when the context has no logger. Warning text is unchanged. Open: needs valgul if another hook is preferred.

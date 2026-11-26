@@ -5,7 +5,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/GameplanePanel/gameplane/operator/internal/oci"
+	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
 )
 
 // TestReadLocaleFilesSkipsReviewFile checks that .review.json is neither read as a locale nor reported as oversized.

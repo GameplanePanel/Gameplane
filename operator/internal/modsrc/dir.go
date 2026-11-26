@@ -2,18 +2,13 @@ package modsrc
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"io"
 	"io/fs"
-	"path"
 	"sort"
-	"strings"
 
+	"github.com/GameplanePanel/gameplane/bundlefetch/source"
 	"github.com/GameplanePanel/gameplane/i18n/pack"
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
-	"github.com/GameplanePanel/gameplane/operator/internal/oci"
 )
 
 // newFSFetcher builds a Fetcher over any filesystem-shaped source —
@@ -99,19 +94,7 @@ func (f *fsFetcher) scan(ctx context.Context) ([]dirModule, []string, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	var dirs []string
-	err = fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-		if path.Base(p) == FileMetadata {
-			dirs = append(dirs, path.Dir(p))
-		}
-		return nil
-	})
+	dirs, err := source.FindDirs(fsys, FileMetadata)
 	if err != nil {
 		return nil, nil, fmt.Errorf("scan %s: %w", f.refPrefix, err)
 	}
@@ -143,107 +126,28 @@ func (f *fsFetcher) scan(ctx context.Context) ([]dirModule, []string, error) {
 // bundleFromDir loads one module directory into a Bundle. digest, when
 // empty, is computed as a content hash over the directory.
 func bundleFromDir(fsys fs.FS, dir, digest string) (*Bundle, error) {
-	files := map[string][]byte{}
-	for _, name := range []string{FileMetadata, FileTemplate, FileReadme, FileIcon} {
-		data, err := fs.ReadFile(fsys, path.Join(dir, name))
-		if err != nil {
-			continue // FromFiles reports the required ones
-		}
-		files[name] = data
-	}
-	readLocaleFiles(fsys, dir, files)
-	if digest == "" {
-		var err error
-		if digest, err = contentDigest(fsys, dir); err != nil {
-			return nil, fmt.Errorf("hash module dir: %w", err)
-		}
+	files, digest, err := source.ReadDir(fsys, dir, digest,
+		[]string{FileMetadata, FileTemplate, FileReadme, FileIcon}, pack.ReviewFile)
+	if err != nil {
+		return nil, err
 	}
 	return FromFiles(digest, files)
 }
 
-// readLocaleFiles adds locales/<tag>.json (regular files only) to files under
-// the key "locales/<tag>.json", the same names an OCI bundle uses. A file over
-// oci.MaxLocaleLayerSize is not read: oci.OversizedLocale is stored in its
-// place so the reconciler reports the language instead of dropping it. The
-// files together are also bounded by oci.MaxLocaleTotalSize: languages are
-// counted in name order, and one that would exceed the total is recorded as
-// oversized the same way. The review file (pack.ReviewFile, translator source
-// hashes) is not a language and is skipped, so it neither becomes a locale nor
-// counts toward the size budget.
+// readLocaleFiles adds locales/<tag>.json to files (see source.ReadLocaleFiles).
+// The review file (pack.ReviewFile, translator source hashes) is not a
+// language and is skipped, so it neither becomes a locale nor counts toward the
+// size budget.
 func readLocaleFiles(fsys fs.FS, dir string, files map[string][]byte) {
-	entries, err := fs.ReadDir(fsys, path.Join(dir, "locales"))
-	if err != nil {
-		return
-	}
-	var budget oci.LocaleBudget
-	for _, e := range entries {
-		name := e.Name()
-		if !e.Type().IsRegular() || !strings.HasSuffix(name, ".json") || name == pack.ReviewFile {
-			continue
-		}
-		key := oci.LocaleLayerPrefix + name
-		info, err := e.Info()
-		if err != nil {
-			continue
-		}
-		if info.Size() > oci.MaxLocaleLayerSize || !budget.Take(info.Size()) {
-			files[key] = oci.OversizedLocale
-			continue
-		}
-		data, err := readFileCapped(fsys, path.Join(dir, key), oci.MaxLocaleLayerSize)
-		if err != nil {
-			continue
-		}
-		if len(data) > oci.MaxLocaleLayerSize {
-			// The file grew after the size check; the cap still holds.
-			files[key] = oci.OversizedLocale
-			continue
-		}
-		files[key] = data
-	}
+	source.ReadLocaleFiles(fsys, dir, files, pack.ReviewFile)
 }
 
-// readFileCapped reads at most limit+1 bytes of name, so a caller can tell a file
-// over limit apart without holding more than that in memory.
+// readFileCapped reads at most limit+1 bytes of name (see source.ReadFileCapped).
 func readFileCapped(fsys fs.FS, name string, limit int64) ([]byte, error) {
-	f, err := fsys.Open(name)
-	if err != nil {
-		return nil, fmt.Errorf("open %s: %w", name, err)
-	}
-	defer func() { _ = f.Close() }()
-	data, err := io.ReadAll(io.LimitReader(f, limit+1))
-	if err != nil {
-		return nil, fmt.Errorf("read %s: %w", name, err)
-	}
-	return data, nil
+	return source.ReadFileCapped(fsys, name, limit)
 }
 
-// contentDigest hashes every regular file under dir — relative path
-// and bytes — in the deterministic lexical order fs.WalkDir guarantees,
-// so identical content always yields the same digest regardless of
-// which source type served it.
+// contentDigest hashes every regular file under dir (see source.ContentDigest).
 func contentDigest(fsys fs.FS, dir string) (string, error) {
-	h := sha256.New()
-	err := fs.WalkDir(fsys, dir, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-		rel := p[len(dir):]
-		_, _ = io.WriteString(h, rel)
-		_, _ = h.Write([]byte{0})
-		data, err := fs.ReadFile(fsys, p)
-		if err != nil {
-			return err
-		}
-		_, _ = h.Write(data)
-		_, _ = h.Write([]byte{0})
-		return nil
-	})
-	if err != nil {
-		return "", err
-	}
-	return "sha256:" + hex.EncodeToString(h.Sum(nil)), nil
+	return source.ContentDigest(fsys, dir)
 }
