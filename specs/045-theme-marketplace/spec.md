@@ -1,6 +1,6 @@
 # Feature Specification: Theme marketplace
 
-**Feature Branch**: `spec-043/theme-marketplace`
+**Feature Branch**: `spec-045/theme-marketplace`
 
 **Created**: 2026-11-26
 
@@ -159,3 +159,4 @@ A theme author exports their theme from Theme settings (spec 016 export) or writ
 - Ratings, reviews, download counts, payments and a public web gallery on the website are out of scope for this spec.
 - Per-server or per-page themes stay out of scope (as in spec 016).
 - Telemetry, if any, counts only theme names from the official source, following the existing telemetry catalog rules.
+- **Overlap with spec 043 (plugins to customize the app)**: spec 043 proposes theme packs as one plugin type. The two specs must agree on one theme package format, one catalog and one install path before either is planned; if spec 043 settles on theme packs as plugins, this spec becomes the theme-specific part of that marketplace rather than a second one.
