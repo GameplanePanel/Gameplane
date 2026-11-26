@@ -52,7 +52,7 @@ describe("BackupsTab download action", () => {
     expect(dialog).toHaveTextContent("1.4 GB");
     expect(screen.getByRole("radio", { name: /^\.tar\.gz/ })).toBeChecked();
     await userEvent.click(within(dialog).getByRole("button", { name: /^download$/i }));
-    expect(clicked).toEqual(["/backups/alpha-2026-05-07:download?format=tar.gz|true"]);
+    expect(clicked).toEqual(["/backups/alpha-2026-05-07:download?format=tar.gz&namespace=gameplane-games|true"]);
     expect(await screen.findByText("Preparing download…")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
     await waitFor(() => expect(screen.queryByText("Preparing download…")).not.toBeInTheDocument());
