@@ -43,7 +43,7 @@ skills; finish with `design-export`.
 ## Phase 3: Shared web rules (blocks US1–US5 React work)
 
 - [ ] T010 Add the tokens from `contracts/ui-rules.md` to `web/src/styles/globals.css` (dark + light blocks and `--color-*` mappings next to `--color-chart-stat`)
-- [ ] T011 Move the `.tabs__list.w-fit` rules onto every horizontal `.tabs__list` and set the selected radius to 12 px in `web/src/styles/globals.css`; keep the Server detail main tab bar spread full width; remove the then-redundant `w-fit` classes listed by T002
+- [ ] T011 Move the `.tabs__list.w-fit` rules onto every horizontal `.tabs__list` and set the selected radius to 12 px in `web/src/styles/globals.css`; keep the Server detail main tab bar spread full width with its pill track and pill selected tab, as the app has it today (OD-10); remove the then-redundant `w-fit` classes listed by T002
 - [ ] T012 [P] Add a shared `.range` slider style (filled track via `--fill`, WebKit + Firefox thumbs, disabled state) to `web/src/styles/globals.css`
 - [ ] T013 [P] Remove the extra outer frame around the tables listed in research.md "Audit set" (Servers, Backups, NodeInventory, CaptureWidget, ShareLinks; Users if the browser shows a double frame)
 - [ ] T014 [US2] Rework `web/src/components/ui/PhaseChip.tsx`: text-size pill with leading dot (green running/succeeded, grey stopped/pending/suspended, amber in-transition, red failed, Asleep violet per OD-9); update `web/src/components/ui/PhaseChip.test.tsx` to the spec
