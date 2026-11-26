@@ -1,12 +1,14 @@
 # Open decisions: spec 045 theme marketplace
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-3 were raised on 2026-11-26 and asked as decision cards. All three are open.
+Only a decision valgul answers is written here as settled. OD-1 to OD-3 were raised on 2026-11-26 and asked as decision cards. OD-1 is settled; OD-2 and OD-3 are open.
 
-## OD-1: Who can install themes from the catalog? (OPEN)
+## OD-1: Who can install themes from the catalog? (SETTLED: B, valgul 2026-11-26)
 
 - A. Admins (a new `themes:write` permission) install themes for the whole instance; every user then picks from the installed list in Theme settings. (Recommended: same model as modules, one reviewed set of CSS per instance, and the audit log shows who brought each theme in.)
 - B. Every user installs themes for themselves only; nothing is shared between users.
 - C. Both: admins install for everyone, and users may also apply any catalog theme to themselves only.
+
+**Settled (valgul, decision card 2026-11-26):** B, "Each user, for themselves". Any signed-in user installs catalog themes for their own account only; nothing is shared between users. Admins still manage theme sources (spec FR-001). With no instance-wide install, the earlier admin-set instance default theme was dropped; fallback is Modern Pink.
 
 ## OD-2: What can a theme package contain? (OPEN)
 

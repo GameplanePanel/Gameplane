@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (spec has none; three choices are open in OPEN-DECISIONS.md: OD-1 who installs, OD-2 package content, OD-3 where official themes live)
+- [ ] No [NEEDS CLARIFICATION] markers remain (spec has none; OD-1 settled; OD-2 package content and OD-3 where official themes live are open in OPEN-DECISIONS.md)
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -32,4 +32,4 @@
 ## Notes
 
 - Repository paths and existing spec references (spec 016, `ModuleSource`, `design.fig`) are kept on purpose: they tie the spec to what exists today, per this repo's spec convention.
-- Planning waits until OD-1 to OD-3 are settled (a spec must be fully written before any work).
+- Planning waits until OD-2 and OD-3 are settled (a spec must be fully written before any work).

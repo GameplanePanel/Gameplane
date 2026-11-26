@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-26
 
-**Status**: Draft (open decisions OD-1 to OD-3 waiting on valgul, see `OPEN-DECISIONS.md`)
+**Status**: Draft (OD-1 settled; OD-2 and OD-3 waiting on valgul, see `OPEN-DECISIONS.md`)
 
 **Input**: User description: "add a "market place" for them something like the game module but for custom theme"
 
@@ -35,7 +35,7 @@ A signed-in user opens the theme catalog and sees every theme published in the c
 
 ### User Story 2 - Install a theme and use it (Priority: P1)
 
-A theme found in the catalog is installed on the Gameplane instance (who may install is OD-1). Once installed, the theme appears in every permitted user's Theme settings next to Modern Pink and Legacy Orange, and selecting it applies it like a built-in preset, including light and dark variants. A user's choice is saved in their profile and follows them across devices.
+A user installs a theme from the catalog for their own account only (OD-1). Once installed, the theme appears in that user's Theme settings next to Modern Pink and Legacy Orange, and selecting it applies it like a built-in preset, including light and dark variants. Other users are not affected and do not see it in their own installed list. The user's installed themes and choice are saved in their profile and follow them across devices.
 
 **Why this priority**: Installing and selecting is what turns the catalog into a working feature.
 
@@ -43,7 +43,8 @@ A theme found in the catalog is installed on the Gameplane instance (who may ins
 
 **Acceptance Scenarios**:
 
-1. **Given** a theme in the catalog, **When** a permitted user installs it, **Then** it is listed as installed with its version and becomes selectable in Theme settings.
+1. **Given** a theme in the catalog, **When** a user installs it, **Then** it is listed as installed for that user with its version and becomes selectable in their Theme settings.
+5. **Given** user A installed and selected a theme, **When** user B signs in, **Then** user B's dashboard and installed list are unchanged.
 2. **Given** an installed theme selected by a user, **When** they switch between Light, Dark and System, **Then** the theme's light or dark variant is used; a theme that ships only one variant says so in the catalog and is used for both modes.
 3. **Given** a user who selected an installed theme, **When** they sign in on another device, **Then** the same theme is applied.
 4. **Given** a user with their own custom CSS overlay enabled, **When** they select an installed theme, **Then** their overlay stays on top of it, as with built-in presets (spec 016 FR-007).
@@ -52,18 +53,18 @@ A theme found in the catalog is installed on the Gameplane instance (who may ins
 
 ### User Story 3 - Update and remove installed themes (Priority: P2)
 
-When a source publishes a newer version of an installed theme, the catalog shows that an update is available with its changelog. Updating replaces the installed version for everyone who uses it. Removing a theme makes it unavailable; users who had it selected fall back to the instance default theme and see a one-time notice.
+When a source publishes a newer version of an installed theme, the catalog shows that an update is available with its changelog. Updating replaces the version the user installed. Removing a theme takes it out of the user's installed list; if it was selected, the user falls back to Modern Pink. If an admin disables or removes the theme's source, users keep their installed copy (FR-013).
 
 **Why this priority**: Themes go stale or get fixed; without update and removal the installed list only grows and breaks.
 
-**Independent Test**: Install version 1 of a theme, publish version 2 in a test source, see "Update available", update, confirm users get version 2; then remove it and confirm a user who used it falls back with a notice.
+**Independent Test**: Install version 1 of a theme, publish version 2 in a test source, see "Update available", update, confirm the user gets version 2; then remove it and confirm the user falls back to Modern Pink.
 
 **Acceptance Scenarios**:
 
 1. **Given** an installed theme at version 1 and version 2 in its source, **When** the catalog refreshes, **Then** the theme is marked "Update available" with the new version's changelog.
-2. **Given** an update is available, **When** a permitted user updates the theme, **Then** every user who selected it sees version 2 on their next page load, with no action of their own.
-3. **Given** an installed theme in use by some users, **When** it is removed, **Then** those users fall back to the instance default theme and see a notice naming the removed theme once.
-4. **Given** a theme pinned to a version (like a module digest pin), **When** a newer version appears, **Then** it is not applied until someone updates it.
+2. **Given** an update is available, **When** the user updates the theme, **Then** their dashboard uses version 2, and other users who installed the same theme stay on their own version until they update.
+3. **Given** a user's selected theme, **When** they remove it, **Then** they fall back to Modern Pink.
+4. **Given** an installed theme, **When** a newer version appears, **Then** it is not applied until the user updates it.
 
 ---
 
@@ -106,7 +107,7 @@ A theme author exports their theme from Theme settings (spec 016 export) or writ
 - **Unauthenticated pages**: Login and public share links keep the built-in Modern Pink theme (spec 016 FR-011); installed themes never apply there.
 - **Same theme name in two sources**: Themes are identified by source plus name; the catalog shows the source next to the name.
 - **Source down during install or update**: The install fails with the source error; nothing already installed changes.
-- **Instance default theme removed**: If the theme set as instance default is removed, the default falls back to Modern Pink.
+- **Theme no longer in any source**: A user's installed copy keeps working and is marked "Source removed"; it can still be removed but not updated.
 - **Contrast**: A theme whose text or accent contrast falls below the minimum used for custom colors in spec 016 is flagged "Low contrast" in the catalog; forced-colors and prefers-contrast still override it.
 - **Large packages**: A package over the size limit (CSS 32 KB like user CSS, previews and whole package limits set in planning) is refused at validation and at install.
 - **Air-gapped installs**: The official source can be mirrored into a private registry or local folder, like modules.
@@ -120,13 +121,13 @@ A theme author exports their theme from Theme settings (spec 016 export) or writ
 - **FR-003**: System MUST show a theme catalog to signed-in users listing every valid theme from enabled sources, with name, author, description, tags, license, version, source, light and dark previews, and a "Low contrast" or "Signature not verified" flag when it applies.
 - **FR-004**: The catalog MUST support search by name and filter by tag and by source, and MUST mark themes as Installed, Update available, Invalid or Source removed.
 - **FR-005**: Users MUST be able to preview a catalog or installed theme on their own session without changing their saved theme, and leave the preview with one action.
-- **FR-006**: Permitted users (per OD-1) MUST be able to install, update and remove themes; every install, update and removal MUST be written to the audit log with who, which theme, which version and which source.
-- **FR-007**: Installed themes MUST appear in every permitted user's Theme settings next to the built-in presets and be selectable with the same behaviour as presets, including Light, Dark and System modes and the custom CSS overlay staying on top.
+- **FR-006**: Every signed-in user MUST be able to install, update and remove catalog themes for their own account only (OD-1); installs never affect other users. Every install, update and removal MUST be written to the audit log with who, which theme, which version and which source.
+- **FR-007**: A user's installed themes MUST appear in that user's Theme settings next to the built-in presets and be selectable with the same behaviour as presets, including Light, Dark and System modes and the custom CSS overlay staying on top.
 - **FR-008**: A theme package MUST contain only what OD-2 allows, and every CSS it carries MUST pass the spec 016 FR-013 sanitization at validation, listing and install.
 - **FR-009**: Safe mode MUST suspend installed theme CSS as well as the user's own overlay.
-- **FR-010**: Installed themes MUST be versioned; an update MUST only take effect when a permitted user applies it, and every user of the theme MUST then get the new version without action of their own.
-- **FR-011**: When an installed theme is removed, users who selected it MUST fall back to the instance default theme and see a one-time notice naming the removed theme.
-- **FR-012**: Admins MUST be able to set an instance default theme (built-in or installed) used for new users and for users whose theme was removed; Modern Pink stays the default until changed, and unauthenticated pages always use Modern Pink.
+- **FR-010**: Installed themes MUST be versioned per user; a newer version MUST only take effect for a user when that user updates.
+- **FR-011**: When a user removes their selected theme, they MUST fall back to Modern Pink.
+- **FR-012**: Installed theme CSS MUST be isolated to the user who installed it, like custom CSS (spec 016 FR-008), and MUST never apply on unauthenticated pages, which always use Modern Pink.
 - **FR-013**: Themes MUST be identified by source plus theme name, and installed themes MUST keep working when their source is disabled or unreachable.
 - **FR-014**: System MUST provide authoring tooling to scaffold, validate offline, preview and package a theme, including turning a spec 016 theme export into a package.
 - **FR-015**: Theme packages MUST be published per OD-3, and the official theme set MUST seed from the existing example overlays where they pass validation.
@@ -137,9 +138,8 @@ A theme author exports their theme from Theme settings (spec 016 export) or writ
 - **Theme Source**: Where themes come from. Kind (registry, git, HTTP, local), location, credentials, verification settings, enabled flag, status (last refresh, last error, theme count).
 - **Theme Package**: One published version of a theme. Name, version, author, description, tags, license, changelog, light and dark previews, and the theme content allowed by OD-2; optional signature.
 - **Catalog Entry**: A Theme Package as seen through a source, with its validation result and flags (Low contrast, Signature not verified, Invalid).
-- **Installed Theme**: A Theme Package installed on this instance. Source, name, pinned version, installed by, installed at; selectable in Theme settings.
+- **Installed Theme**: A Theme Package installed by one user for their own account. User, source, name, pinned version, installed at; selectable in that user's Theme settings.
 - **User Theme Configuration** (from spec 016): gains the option to point at an Installed Theme instead of a built-in preset.
-- **Instance Default Theme**: The theme (built-in or installed) used for new users and as the fallback after a removal.
 
 ## Success Criteria *(mandatory)*
 
