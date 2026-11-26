@@ -141,7 +141,7 @@
     "name": "Screen/Server Detail — Backups",
     "width": 1440,
     "height": 900,
-    "hash": "72becb4855a3f156b45fc96d213a29dc9fd2eac6caf658e41268859a2844ce35"
+    "hash": "c6d009ee9ccec2e1082522f0c3f9f7c708d7aaeb81b441ef8eabf78f6f399bb8"
   },
   {
     "file": "hLB9Z",
@@ -285,7 +285,7 @@
     "name": "Screen/Backups — Index",
     "width": 1440,
     "height": 900,
-    "hash": "0986ea8f927f7ecc2465603f256182656e000bae111e52bc3dcd0d449c7c705b"
+    "hash": "154d88bea435a38a6ee08824e4d573b8814c853a6b30ca214de7a8d4fc5289c0"
   },
   {
     "file": "9dBXM",
@@ -293,7 +293,7 @@
     "name": "Screen/Backups — Index (Empty)",
     "width": 1440,
     "height": 900,
-    "hash": "3d5d64731e553109fb7db3ad43f4af726e7a46d688ab58297fc4ed3d21a0fe91"
+    "hash": "471aa66495069af439b3feedd3571242053f96325621faf4978ab86165453deb"
   },
   {
     "file": "fK8Bi",
@@ -317,7 +317,7 @@
     "name": "Screen/Backups — Restores",
     "width": 1440,
     "height": 900,
-    "hash": "554ddbed06b8362b88dd58ebb923d4ed4ad1b15827918355a875f31ee2689924"
+    "hash": "0de4ccfa5170bca8b7b773c10d2c6f5cd4e7840ffdab023219fb87ba1d3e7977"
   },
   {
     "file": "nfMMj",
@@ -325,7 +325,7 @@
     "name": "Screen/Backups — Restores (Empty)",
     "width": 1440,
     "height": 900,
-    "hash": "5677f23bd11e5fd6036eb9076a67d831fff7bb6f6192835cf43b99c0d89cd05d"
+    "hash": "2dd575a5c62e05a9d59d2bcc346410f8f686e7f4be2cf350463c839173c315c6"
   },
   {
     "file": "j9W8A",
@@ -1005,7 +1005,7 @@
     "name": "Screen/Backups — Restores filters open",
     "width": 1440,
     "height": 900,
-    "hash": "5ee8715772ad2ff68e183c53ff8ffccdff3ce494a0ccc470c84961fe5699ba57"
+    "hash": "1fe82d17d2eec9a3d73ce31b9fd0cfd7b8d4e054ef3ab4aec2171e00720dad27"
   },
   {
     "file": "YPKbV",
@@ -1045,7 +1045,7 @@
     "name": "Screen/Mobile — Backups filters open",
     "width": 375,
     "height": 844,
-    "hash": "618ac504afe416095a65dc4b74896fbbdd9a1bc99e7cf53c19325508aa328d34"
+    "hash": "0a7d65d51658341806090af31be6e86a60def99e98da00132b69200540e46122"
   },
   {
     "file": "iYUWc",
@@ -2046,5 +2046,301 @@
     "width": 1440,
     "height": 900,
     "hash": "8ae6217c10b6ee178b0bc9a137fb7144c9c517a2a666bc4ed09f0af322fcd388"
+  },
+  {
+    "file": "742824-1",
+    "figId": "742824:1",
+    "name": "Screen/Backups — Index (Light)",
+    "width": 1440,
+    "height": 900,
+    "hash": "fb266015b149d163aa7cbba8cd05a2e78464937feb5c386f42bdba6b8c1a1196"
+  },
+  {
+    "file": "742824-234",
+    "figId": "742824:234",
+    "name": "Screen/Backups — Restores (Light)",
+    "width": 1440,
+    "height": 900,
+    "hash": "f3cfa463d15fd911dee13c37d503827382bd4f35630a165bc2af1395b7a2d007"
+  },
+  {
+    "file": "742824-454",
+    "figId": "742824:454",
+    "name": "Screen/Server Detail — Backups (Light)",
+    "width": 1440,
+    "height": 900,
+    "hash": "65a1b92982ed9997cec3ca5654ab86952948ddbbb307ba331c7938fcb2909608"
+  },
+  {
+    "file": "742824-771",
+    "figId": "742824:771",
+    "name": "Screen/Server Detail — Backups (no restore permission)",
+    "width": 1440,
+    "height": 900,
+    "hash": "744bdf7ce958b96faa3a699473423dcf3d089d5cc64e38da972c76e7cbc21d63"
+  },
+  {
+    "file": "742824-1088",
+    "figId": "742824:1088",
+    "name": "Screen/Backups — Index (snapshot download note)",
+    "width": 1440,
+    "height": 900,
+    "hash": "1c26d8fadb0ad96cedaecaea03fcf32da03694c000b9ae2a1d2b56a0fad8fb2c"
+  },
+  {
+    "file": "1578494357-1",
+    "figId": "1578494357:1",
+    "name": "Screen/Dialog/Backup Download",
+    "width": 760,
+    "height": 420,
+    "hash": "c847e3a523644bc0813f37b4480ac7ffae74e9b74fcf7609ec9a3360dcab6b15"
+  },
+  {
+    "file": "1578494357-47",
+    "figId": "1578494357:47",
+    "name": "Screen/Dialog/Backup Download (Light)",
+    "width": 760,
+    "height": 420,
+    "hash": "2387a0f5f09cc68920cd8e9a025f0ac962707364226e0725b92bf851cede9b0d"
+  },
+  {
+    "file": "1578494357-93",
+    "figId": "1578494357:93",
+    "name": "Screen/Dialog/Backup Download (Preparing)",
+    "width": 760,
+    "height": 300,
+    "hash": "2318734249ae2bd812eadcd4bdef2e39a4755e44c8268edcfe22077c259259fb"
+  },
+  {
+    "file": "1578494357-119",
+    "figId": "1578494357:119",
+    "name": "Screen/Dialog/Backup Download (Preparing) (Light)",
+    "width": 760,
+    "height": 300,
+    "hash": "6bda4e31827c16b01d3b91c06604936be2723e79f2a9ae56a77e1c66aeae494d"
+  },
+  {
+    "file": "1578494357-145",
+    "figId": "1578494357:145",
+    "name": "Screen/Dialog/Upload Backup — Pick file",
+    "width": 760,
+    "height": 360,
+    "hash": "cb3c7a03432bb2127da9a141f93bb61e16ef5d4462391df998b0922f5811e895"
+  },
+  {
+    "file": "1578494357-177",
+    "figId": "1578494357:177",
+    "name": "Screen/Dialog/Upload Backup — Pick file (Light)",
+    "width": 760,
+    "height": 360,
+    "hash": "59ea8fc04370e1942c464e494d97cf4dd984555cbd3d554fbef2a69d79b6993e"
+  },
+  {
+    "file": "1578494357-209",
+    "figId": "1578494357:209",
+    "name": "Screen/Dialog/Upload Backup — Plain archive",
+    "width": 760,
+    "height": 520,
+    "hash": "9d3520b899ca3eaa035ff85fbc8e56aea50b0b4619cd33ceabcb87f1bda1ea08"
+  },
+  {
+    "file": "1578494357-252",
+    "figId": "1578494357:252",
+    "name": "Screen/Dialog/Upload Backup — Plain archive (Light)",
+    "width": 760,
+    "height": 520,
+    "hash": "1c035c27368b8182d0cf91839688c6186d2356f39cc22c28004e6c0ee45a9a8d"
+  },
+  {
+    "file": "1578494357-295",
+    "figId": "1578494357:295",
+    "name": "Screen/Dialog/Upload Backup — Uploading",
+    "width": 760,
+    "height": 340,
+    "hash": "19de56a154dbf1a85425156f17280c6561cc3e7c5ce676cbe759b0f9090541d6"
+  },
+  {
+    "file": "1578494357-322",
+    "figId": "1578494357:322",
+    "name": "Screen/Dialog/Upload Backup — Uploading (Light)",
+    "width": 760,
+    "height": 340,
+    "hash": "34259aa5aa1684dd900874b153340decda8b938fc80334c04b3d5a3a92591689"
+  },
+  {
+    "file": "1578494357-349",
+    "figId": "1578494357:349",
+    "name": "Screen/Dialog/Upload Backup — Checking",
+    "width": 760,
+    "height": 280,
+    "hash": "4d4acf53276a56e10f555f30c80db56350acaaf9050068770eb8e0d78f46ad3d"
+  },
+  {
+    "file": "1578494357-374",
+    "figId": "1578494357:374",
+    "name": "Screen/Dialog/Upload Backup — Checking (Light)",
+    "width": 760,
+    "height": 280,
+    "hash": "fc4911704624e3c2313c3351b41179aa5162dbd4b8adf2e6261f3741dad6ee19"
+  },
+  {
+    "file": "1578494357-399",
+    "figId": "1578494357:399",
+    "name": "Screen/Dialog/Upload Backup — Review (Gameplane archive, zip)",
+    "width": 760,
+    "height": 560,
+    "hash": "9a0ecc8ba6536c9c238a28821290b89486b9116965cdb2288ec74699b3926803"
+  },
+  {
+    "file": "1578494357-460",
+    "figId": "1578494357:460",
+    "name": "Screen/Dialog/Upload Backup — Review (Gameplane archive, zip) (Light)",
+    "width": 760,
+    "height": 560,
+    "hash": "178d69fc6838d1ae2a0ad59b6060b52059ceca250d44cf948281f608cef0cf39"
+  },
+  {
+    "file": "1578494357-521",
+    "figId": "1578494357:521",
+    "name": "Screen/Dialog/Upload Backup — Review (plain archive)",
+    "width": 760,
+    "height": 430,
+    "hash": "ef3e7c684287b9e1839b88c2b94c49062db03ff76252da66d063d100bf96d6c2"
+  },
+  {
+    "file": "1578494357-570",
+    "figId": "1578494357:570",
+    "name": "Screen/Dialog/Upload Backup — Review (plain archive) (Light)",
+    "width": 760,
+    "height": 430,
+    "hash": "52e913af30b67e73e8d0c52ede96efdcaf330d71723e73c5bc5ca0dc721374c6"
+  },
+  {
+    "file": "1578494357-619",
+    "figId": "1578494357:619",
+    "name": "Screen/Dialog/Upload Backup — Restoring",
+    "width": 760,
+    "height": 200,
+    "hash": "fcc65430848ba0f54b8bd142d9d2c796b376e825d991adfefbc289ad9c8bb76d"
+  },
+  {
+    "file": "1578494357-630",
+    "figId": "1578494357:630",
+    "name": "Screen/Dialog/Upload Backup — Restoring (Light)",
+    "width": 760,
+    "height": 200,
+    "hash": "341414eca12dac6a06e5b2bfdf6503062052eb2cd595ef4519d534e0ed9dc472"
+  },
+  {
+    "file": "1578494357-641",
+    "figId": "1578494357:641",
+    "name": "Screen/Dialog/Upload Backup — Succeeded",
+    "width": 760,
+    "height": 260,
+    "hash": "3983b4bbfde68812ab027a005b3b0b1a7463eb448d959753af0946359410f51b"
+  },
+  {
+    "file": "1578494357-675",
+    "figId": "1578494357:675",
+    "name": "Screen/Dialog/Upload Backup — Succeeded (Light)",
+    "width": 760,
+    "height": 260,
+    "hash": "038c1cf59b59446bc3078695f4bbe9a54b18e96b27fef6b99d2a60332e3d7d06"
+  },
+  {
+    "file": "1578494357-709",
+    "figId": "1578494357:709",
+    "name": "Screen/Dialog/Upload Backup — Refused",
+    "width": 760,
+    "height": 260,
+    "hash": "278f3615cb2f0626d821de63060fd4876eb0da10d1625e408382ec156ed60191"
+  },
+  {
+    "file": "1578494357-738",
+    "figId": "1578494357:738",
+    "name": "Screen/Dialog/Upload Backup — Refused (Light)",
+    "width": 760,
+    "height": 260,
+    "hash": "da808d40d9a8c9dda11800d28ae340b9efa6be80c1970d35d563e64f465794b0"
+  },
+  {
+    "file": "1578494357-767",
+    "figId": "1578494357:767",
+    "name": "Screen/Dialog/Upload Backup — No storage class",
+    "width": 760,
+    "height": 260,
+    "hash": "5a80b57fdfbdbe504bf12389ce9619df9cf4333b8412c3dd50fe6b5b3af48229"
+  },
+  {
+    "file": "1578494357-796",
+    "figId": "1578494357:796",
+    "name": "Screen/Dialog/Upload Backup — No storage class (Light)",
+    "width": 760,
+    "height": 260,
+    "hash": "269155f8fbb0b3198f0d58caabcac93fd81f942512a2abe517fd3115d3d54170"
+  },
+  {
+    "file": "1578494357-825",
+    "figId": "1578494357:825",
+    "name": "Screen/Dialog/Upload Backup — Too large",
+    "width": 760,
+    "height": 260,
+    "hash": "9e66444bfdaf507b9699cab4bae6a07e56d6e52d87d1b01e47dae309bdc56455"
+  },
+  {
+    "file": "1578494357-854",
+    "figId": "1578494357:854",
+    "name": "Screen/Dialog/Upload Backup — Too large (Light)",
+    "width": 760,
+    "height": 260,
+    "hash": "da3b657209fae324ce2e2199bce82a5aa9dec4d3d40a9430a41a9b79bd74e489"
+  },
+  {
+    "file": "1578494357-883",
+    "figId": "1578494357:883",
+    "name": "Screen/Dialog/Upload Backup — Confirmation timed out",
+    "width": 760,
+    "height": 260,
+    "hash": "c5cbf4b4dc9d4c61375f572844b8b7962ae2a8c19f5dab753c2a0736672d3e7e"
+  },
+  {
+    "file": "1578494357-911",
+    "figId": "1578494357:911",
+    "name": "Screen/Dialog/Upload Backup — Confirmation timed out (Light)",
+    "width": 760,
+    "height": 260,
+    "hash": "8a91086136e86e9015a5edc769d74765053d3f045b142d95d74b810e82056543"
+  },
+  {
+    "file": "1153210908-1",
+    "figId": "1153210908:1",
+    "name": "Screen/Mobile — Backup Download",
+    "width": 375,
+    "height": 844,
+    "hash": "b10a9ee2acbb3af9884ded1ff8dc9981b56dc571652c9e840141f80ab8ad251f"
+  },
+  {
+    "file": "1153210908-39",
+    "figId": "1153210908:39",
+    "name": "Screen/Mobile — Backup Download (Light)",
+    "width": 375,
+    "height": 844,
+    "hash": "e2baffb00c7a64aada03f57e20a9ff5900b2f7c941384db89f5f4bfba3ba26ef"
+  },
+  {
+    "file": "1153210908-77",
+    "figId": "1153210908:77",
+    "name": "Screen/Mobile — Upload backup review",
+    "width": 375,
+    "height": 844,
+    "hash": "4f022ec462f9355be2a632d34c0c9d15b961bc59bae2a1446edcf4507591b898"
+  },
+  {
+    "file": "1153210908-115",
+    "figId": "1153210908:115",
+    "name": "Screen/Mobile — Upload backup review (Light)",
+    "width": 375,
+    "height": 844,
+    "hash": "e1bf84102937f7f6cd54413d92ad42c304ffd3921bddb18757fc943543414742"
   }
 ]

@@ -1,0 +1,211 @@
+{
+  "file": "1578494357-209",
+  "name": "Screen/Dialog/Upload Backup — Plain archive",
+  "type": "FRAME",
+  "x": 10680,
+  "y": 37959,
+  "width": 760,
+  "height": 520,
+  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+  "strokeWeight": 1,
+  "cornerRadius": 16,
+  "clips": true,
+  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+  "children": [
+    {
+      "name": "Wizard Modal Header",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 760,
+      "height": 83,
+      "component": "Gameplane/Wizard Modal Header",
+      "componentId": "1:1889",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [20, 28, 20, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Upload backup", "Step 1 of 4 · File"]
+    },
+    {
+      "name": "Drop zone",
+      "type": "FRAME",
+      "x": 28,
+      "y": 107,
+      "width": 704,
+      "height": 140,
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "cornerRadius": 8,
+      "clips": true,
+      "variables": {"strokes/0/color": "field/border"}
+    },
+    {
+      "name": "title",
+      "type": "TEXT",
+      "x": 262,
+      "y": 157,
+      "width": 580,
+      "height": 18,
+      "fills": [{"type": "SOLID", "color": "#F7B750"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "Choose a .tar.gz or .zip file",
+      "font": ["Geist", 600, 14],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
+    },
+    {
+      "name": "desc",
+      "type": "TEXT",
+      "x": 190,
+      "y": 184,
+      "width": 580,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "Up to 20 GiB. Gameplane backups or plain data-folder archives.",
+      "font": ["Geist", 400, 12],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "Checkbox",
+      "type": "FRAME",
+      "x": 28,
+      "y": 267,
+      "width": 16,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "cornerRadius": 4,
+      "clips": true,
+      "variables": {"fills/0/color": "accent/accent", "strokes/0/color": "field/border"}
+    },
+    {
+      "name": "Completed",
+      "type": "TEXT",
+      "x": 56,
+      "y": 265,
+      "width": 190,
+      "height": 17,
+      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+      "text": "This is not a Gameplane backup",
+      "font": ["Geist", 400, 13],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "Hint",
+      "type": "TEXT",
+      "x": 28,
+      "y": 311,
+      "width": 33,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+      "text": "Game",
+      "font": ["Geist", 400, 12],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+    },
+    {
+      "name": "Game select",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 330,
+      "width": 280,
+      "height": 36,
+      "component": "Gameplane/Select",
+      "componentId": "1:311",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+      "cornerRadius": 12,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [8, 12, 8, 12],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "variables": {
+        "cornerRadius": "radius/xl",
+        "fills/0/color": "field/background",
+        "strokes/0/color": "field/border"
+      },
+      "texts": ["Minecraft (Java)"]
+    },
+    {
+      "name": "Notice",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 384,
+      "width": 640,
+      "height": 60,
+      "component": "Gameplane/Inline Notice/Warning",
+      "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
+      "cornerRadius": 12,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [12, 16, 12, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"fills/0/color": "warning/soft"},
+      "texts": [
+        "Gameplane cannot check this archive",
+        "Only the safety checks run: paths, links, device files and size."
+      ]
+    },
+    {
+      "name": "Wizard Modal Footer",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 452,
+      "width": 760,
+      "height": 68,
+      "component": "Gameplane/Wizard Modal Footer",
+      "componentId": "1:2019",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [16, 28, 16, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Cancel"]
+    },
+    {
+      "name": "Primary Button",
+      "type": "INSTANCE",
+      "x": 644,
+      "y": 468,
+      "width": 88,
+      "height": 36,
+      "component": "Gameplane/Button/Default",
+      "componentId": "1:306",
+      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["HUG", "HUG"]
+      },
+      "texts": ["Next"]
+    }
+  ]
+}
