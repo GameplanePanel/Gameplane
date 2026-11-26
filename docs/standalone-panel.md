@@ -269,8 +269,8 @@ helm --kubeconfig remote-admin.yaml upgrade --install gameplane charts/gameplane
   --set image.registry=<image-registry> --set image.tag=<matching-tag>
 ```
 
-The remote install keeps `operator.enabled=true`, so Helm installs the bundled
-CRDs through its native installation phase. The operator creates agents alongside
+The remote install keeps `operator.enabled=true`, so the chart's `crds.autoApply`
+pre-install hook Job applies the Gameplane CRDs. The operator creates agents alongside
 game servers. Enable the optional
 [private gateway](gateway-install.md) for agent operations such as console,
 files, and player management. Without a gateway, Kubernetes resource operations

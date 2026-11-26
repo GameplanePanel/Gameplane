@@ -30,6 +30,7 @@ import { formatRelative, formatRelativeFuture } from "@/lib/utils";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { ManageDestinationsLink } from "@/components/backups/ManageDestinationsLink";
+import { BackupDestinationsPanel } from "@/components/clusters/BackupDestinationsPanel";
 import { ScheduleForm } from "@/components/backups/ScheduleForm";
 import { RestoreDialog } from "@/components/backups/RestoreDialog";
 import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
@@ -40,16 +41,18 @@ import type { Backup, BackupSchedule } from "@/types";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { defineMessages, type MessageDescriptor } from "react-intl";
 
-type TabKey = "backups" | "schedules" | "restores";
+type TabKey = "backups" | "schedules" | "restores" | "destinations";
 const TAB_LABELS = defineMessages({
   backups: { id: "web.routes.backups.tab_backups", defaultMessage: "Backups", description: "Backups: label of the backups tab" },
   schedules: { id: "web.routes.backups.tab_schedules", defaultMessage: "Schedules", description: "Backups: label of the schedules tab" },
   restores: { id: "web.routes.backups.tab_restores", defaultMessage: "Restores", description: "Backups: label of the restores tab" },
+  destinations: { id: "web.routes.backups.tab_destinations", defaultMessage: "Destinations", description: "Backups: label of the tab listing each cluster's backup destinations (restic repositories); keep it short" },
 });
 const TABS: { id: TabKey; label: MessageDescriptor }[] = [
   { id: "backups", label: TAB_LABELS.backups },
   { id: "schedules", label: TAB_LABELS.schedules },
   { id: "restores", label: TAB_LABELS.restores },
+  { id: "destinations", label: TAB_LABELS.destinations },
 ];
 
 // Option label in the server pickers: "<server name> · <cluster> / <namespace>".
@@ -71,7 +74,7 @@ export function BackupsPage() {
   const intl = useOptionalIntl();
   const search = useLocation().search;
   const navigate = useNavigate();
-  const tab: TabKey = search.tab === "schedules" || search.tab === "restores" ? search.tab : "backups";
+  const tab: TabKey = search.tab === "schedules" || search.tab === "restores" || search.tab === "destinations" ? search.tab : "backups";
   const setTab = (next: TabKey) => {
     void navigate({ to: "/backups", replace: true, search: (previous) => ({ ...previous, tab: next === "backups" ? undefined : next }) });
   };
@@ -95,7 +98,7 @@ export function BackupsPage() {
       />
       {backupNow && <BackupNowDialog onClose={() => setBackupNow(false)} />}
       <Tabs selectedKey={tab} onSelectionChange={(key) => setTab(key as TabKey)}>
-        <Tabs.List>
+        <Tabs.List className="max-w-full overflow-x-auto">
           {TABS.map((t) => (
             <Tab key={t.id} id={t.id}>
               {intl.formatMessage(t.label)}
@@ -106,11 +109,31 @@ export function BackupsPage() {
       {tab === "backups" && <BackupsTabPanel location={location} onLocationChange={setLocation} locations={locations} />}
       {tab === "schedules" && <SchedulesTabPanel location={location} onLocationChange={setLocation} locations={locations} />}
       {tab === "restores" && <RestoresTabPanel location={location} onLocationChange={setLocation} locations={locations} />}
+      {tab === "destinations" && <DestinationsTabPanel location={location} locations={locations} loading={serverScopes === undefined && backupScopes.every((query) => query.isPending)} />}
     </div>
   );
 }
 
 type LocationFilterProps = { location: string; onLocationChange: (location: string) => void; locations: string[] };
+
+// One destinations card per cluster the fleet queries reached, or only the
+// cluster picked in the shared cluster filter. Destinations stay per cluster
+// (Clusters → cluster → Configuration); this tab is a shortcut to them.
+function DestinationsTabPanel({ location, locations, loading }: { location: string; locations: string[]; loading: boolean }) {
+  const intl = useOptionalIntl();
+  const clusters = location ? [location] : [...new Set(locations)].sort((a, b) => a.localeCompare(b));
+  if (clusters.length === 0 && loading) {
+    return <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.backups.loading_clusters_for_destinations", defaultMessage: "Loading clusters…", description: "Backups: destinations tab text shown while the list of clusters is fetched" })}</p>;
+  }
+  if (clusters.length === 0) {
+    return <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.backups.no_clusters_for_destinations", defaultMessage: "No clusters available.", description: "Backups: destinations tab text shown when no cluster could be listed" })}</p>;
+  }
+  return (
+    <div className="space-y-4">
+      {clusters.map((cluster) => <BackupDestinationsPanel key={cluster} clusterId={cluster} title={cluster} />)}
+    </div>
+  );
+}
 
 function BackupsTabPanel({ location, onLocationChange, locations }: LocationFilterProps) {
   const intl = useOptionalIntl();

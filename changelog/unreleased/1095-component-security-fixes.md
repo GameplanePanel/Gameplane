@@ -1,3 +1,0 @@
-# Security fixes in the optional components
-
-Network capture now rejects filters that use `portrange`, `less`, `greater`, `broadcast` or `multicast`, and any filter that would keep every packet, because these silently captured more traffic than asked for; capture files are created owner-only. The MCP server no longer follows HTTP redirects, caps per-user logs at 256 KiB, and refuses to start when `GAMEPLANE_MCP_TOKEN` is set without `GAMEPLANE_PANEL_URL` instead of falling back to break-glass mode. The tunnel validates frp port numbers and recreates its secret files privately, and the audit syslog bridge replaces control characters in forwarded events with spaces. [PR #1095](https://github.com/GameplanePanel/Gameplane/pull/1095)

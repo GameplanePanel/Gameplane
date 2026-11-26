@@ -1,4 +1,5 @@
 import { useResourceClient, useResourceAccess, useResourcePermissions, useResourceTarget, resourceCan, resourceKey } from "@/lib/resourceTarget";
+import { getServerTemplate } from "@/lib/serverTemplate";
 import { useEffect, useMemo, useRef, useState, Suspense, lazy } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Tabs } from "@heroui/react";
@@ -177,7 +178,7 @@ export function SettingsTab({ gs, name, ns, initialSection = "general", onDirtyC
     queryKey: resourceKey(resourceTarget, "template", draft?.spec.templateRef.name, revision),
     queryFn: ({ signal }) => revision
       ? resourceClient.withSignal(signal).Servers.effectiveTemplate(name, ns)
-      : resourceClient.withSignal(signal).Templates.get(draft!.spec.templateRef.name),
+      : getServerTemplate(resourceClient.withSignal(signal), name, ns, draft!.spec.templateRef.name),
     enabled: !!draft?.spec.templateRef.name,
   });
   const moduleText = useModuleText(draft?.spec.templateRef.name, resourceTarget.cluster);

@@ -15,16 +15,18 @@ import { formatRelative } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { ClusterSection, ClusterField } from "./ClusterSection";
 
-export function BackupDestinationsPanel({ clusterId, namespace = DESTINATION_NAMESPACE }: { clusterId: string; namespace?: string }) {
+// title replaces the card heading, e.g. with the cluster name on the Backups page's
+// Destinations tab, where one card is shown per cluster.
+export function BackupDestinationsPanel({ clusterId, namespace = DESTINATION_NAMESPACE, title }: { clusterId: string; namespace?: string; title?: string }) {
   const intl = useOptionalIntl();
   const identity = useMe();
   if (identity.isPending) return <LoadingCard message={intl.formatMessage({ id: "web.cluster_configuration.loading_permissions", defaultMessage: "Loading permissions…", description: "Cluster configuration: identity loading state" })} />;
   if (identity.isError && (!identity.data || (identity.error instanceof APIError && identity.error.status === 401))) return <ErrorCard message={intl.formatMessage({ id: "web.cluster_configuration.permissions_error", defaultMessage: "Couldn't load your permissions.", description: "Cluster configuration: identity loading failure" })} onRetry={() => void identity.refetch()} />;
-  if (!can(identity.data, "destinations:read", namespace, clusterId)) return <ClusterSection title={intl.formatMessage({ id: "web.routes.admin_settings.backup_destinations", defaultMessage: "Backup destinations", description: "Admin settings: title of the backup destinations section card for one cluster; keep it short" })}><p className="text-sm text-muted">{intl.formatMessage({ id: "web.cluster_configuration.destinations_denied", defaultMessage: "You don't have permission to view backup destinations on this cluster.", description: "Cluster configuration: backup destination access denied" })}</p></ClusterSection>;
-  return <>{identity.isError && <ErrorCard message={intl.formatMessage({ id: "web.cluster_configuration.permissions_error", defaultMessage: "Couldn't load your permissions.", description: "Cluster configuration: identity loading failure" })} onRetry={() => void identity.refetch()} />}<ClusterBackupDestSection key={JSON.stringify([clusterId, namespace])} cluster={clusterId} namespace={namespace} canManage={can(identity.data, "destinations:manage", namespace, clusterId)} /></>;
+  if (!can(identity.data, "destinations:read", namespace, clusterId)) return <ClusterSection title={title ?? intl.formatMessage({ id: "web.routes.admin_settings.backup_destinations", defaultMessage: "Backup destinations", description: "Admin settings: title of the backup destinations section card for one cluster; keep it short" })}><p className="text-sm text-muted">{intl.formatMessage({ id: "web.cluster_configuration.destinations_denied", defaultMessage: "You don't have permission to view backup destinations on this cluster.", description: "Cluster configuration: backup destination access denied" })}</p></ClusterSection>;
+  return <>{identity.isError && <ErrorCard message={intl.formatMessage({ id: "web.cluster_configuration.permissions_error", defaultMessage: "Couldn't load your permissions.", description: "Cluster configuration: identity loading failure" })} onRetry={() => void identity.refetch()} />}<ClusterBackupDestSection key={JSON.stringify([clusterId, namespace])} cluster={clusterId} namespace={namespace} title={title} canManage={can(identity.data, "destinations:manage", namespace, clusterId)} /></>;
 }
 
-function ClusterBackupDestSection({ cluster, namespace, canManage }: { cluster: string; namespace: string; canManage: boolean }) {
+function ClusterBackupDestSection({ cluster, namespace, title, canManage }: { cluster: string; namespace: string; title?: string; canManage: boolean }) {
   const intl = useOptionalIntl();
   const qc = useQueryClient();
   const { BackupDestinations } = createResourceClient({ cluster, namespace });
@@ -48,7 +50,7 @@ function ClusterBackupDestSection({ cluster, namespace, canManage }: { cluster: 
 
   return (
     <ClusterSection
-      title={intl.formatMessage({ id: "web.routes.admin_settings.backup_destinations", defaultMessage: "Backup destinations", description: "Admin settings: title of the backup destinations section card for one cluster; keep it short" })}
+      title={title ?? intl.formatMessage({ id: "web.routes.admin_settings.backup_destinations", defaultMessage: "Backup destinations", description: "Admin settings: title of the backup destinations section card for one cluster; keep it short" })}
       subtitle={namespace === DESTINATION_NAMESPACE
         ? intl.formatMessage({ id: "web.routes.admin_settings.restic_repositories_for_snapshots", defaultMessage: "Restic repositories for snapshots. Stored as labelled Kubernetes Secrets in the configured namespace.", description: "Admin settings: subtitle under Backup destinations: Restic repositories for snapshots, stored as labelled Kubernetes Secrets (Restic: technical term, usually left untranslated)" })
         : intl.formatMessage({ id: "web.cluster_configuration.scoped_backup_destinations", defaultMessage: "Restic repositories for snapshots. Credentials are stored in the {namespace} namespace.", description: "Backup destinations: identifies the Kubernetes namespace selected by a server link" }, { namespace })}

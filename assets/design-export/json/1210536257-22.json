@@ -1,0 +1,721 @@
+{
+  "file": "1210536257-22",
+  "name": "Screen/Backups — Destinations",
+  "type": "FRAME",
+  "x": 0,
+  "y": 68073,
+  "width": 1440,
+  "height": 1150,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 1150,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 1150,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "name": "Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Backups", "Search servers…", "AD"]
+        },
+        {
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 1086,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 20,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "children": [
+            {
+              "name": "Page Header",
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "children": [
+                {
+                  "name": "Title Col",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 432,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "phTitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 101,
+                      "height": 31,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Backups",
+                      "font": ["Geist", 600, 24],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "phSubtitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 35,
+                      "width": 432,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Snapshots, schedules, and restores across your authorized clusters.",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "phActions",
+                  "type": "FRAME",
+                  "x": 991,
+                  "y": 8.5,
+                  "width": 141,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "name": "Back Up Now Button",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 141,
+                      "height": 36,
+                      "component": "Button/Primary/MD",
+                      "componentId": "1:1094",
+                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "fills/0/color": "accent/accent"
+                      },
+                      "texts": ["Back up now"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "tabsBar",
+              "type": "FRAME",
+              "x": 24,
+              "y": 97,
+              "width": 405,
+              "height": 40,
+              "fills": [{"type": "SOLID", "color": "#232128"}],
+              "cornerRadius": 20,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [4, 4, 4, 4],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"fills/0/color": "default/default"},
+              "children": [
+                {
+                  "name": "tabBackups",
+                  "type": "INSTANCE",
+                  "x": 4,
+                  "y": 4,
+                  "width": 90,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "fills": [{"type": "SOLID", "color": "#1D1B22"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                  "texts": ["Backups"]
+                },
+                {
+                  "name": "tabSchedules",
+                  "type": "INSTANCE",
+                  "x": 94,
+                  "y": 4,
+                  "width": 101,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Schedules"]
+                },
+                {
+                  "name": "tabRestores",
+                  "type": "INSTANCE",
+                  "x": 195,
+                  "y": 4,
+                  "width": 91,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Restores"]
+                },
+                {
+                  "name": "tabDestinations",
+                  "type": "INSTANCE",
+                  "x": 286,
+                  "y": 4,
+                  "width": 115,
+                  "height": 32,
+                  "component": "Tab/Active",
+                  "componentId": "1:965",
+                  "fills": [{"type": "SOLID", "color": "#1D1B22"}],
+                  "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                  "texts": ["Destinations"]
+                }
+              ]
+            },
+            {
+              "name": "Backup destinations · local",
+              "type": "FRAME",
+              "x": 24,
+              "y": 157,
+              "width": 1132,
+              "height": 249,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "children": [
+                {
+                  "name": "Backup destinations heading",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 20,
+                  "width": 1092,
+                  "height": 23,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "local",
+                  "font": ["Geist", 600, 16],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "name": "Backup destinations description",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 55,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Restic repositories for snapshots. Stored as labelled Kubernetes Secrets in the configured namespace.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "Backup destination row",
+                  "type": "FRAME",
+                  "x": 20,
+                  "y": 87,
+                  "width": 1092,
+                  "height": 41,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 16,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "children": [
+                    {
+                      "name": "Repository details",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 1000,
+                      "height": 41,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "children": [
+                        {
+                          "name": "Repository name",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 1000,
+                          "height": 20,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "nightly-backups",
+                          "font": ["Geist", 500, 14],
+                          "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "Repository URL",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 24,
+                          "width": 1000,
+                          "height": 17,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "s3:s3.example.com/gameplane",
+                          "font": ["Geist", 400, 12],
+                          "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Delete destination",
+                      "type": "INSTANCE",
+                      "x": 1016,
+                      "y": 2.5,
+                      "width": 76,
+                      "height": 36,
+                      "component": "Button/Outline/MD",
+                      "componentId": "1:1794",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "strokes/0/color": "border-2"
+                      },
+                      "texts": ["Delete"]
+                    }
+                  ]
+                },
+                {
+                  "name": "Backup destination row",
+                  "type": "FRAME",
+                  "x": 20,
+                  "y": 140,
+                  "width": 1092,
+                  "height": 41,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 16,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "children": [
+                    {
+                      "name": "Repository details",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 1000,
+                      "height": 41,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "children": [
+                        {
+                          "name": "Repository name",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 1000,
+                          "height": 20,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "offsite",
+                          "font": ["Geist", 500, 14],
+                          "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "Repository URL",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 24,
+                          "width": 1000,
+                          "height": 17,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "b2:gameplane-offsite:/restic",
+                          "font": ["Geist", 400, 12],
+                          "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Delete destination",
+                      "type": "INSTANCE",
+                      "x": 1016,
+                      "y": 2.5,
+                      "width": 76,
+                      "height": 36,
+                      "component": "Button/Outline/MD",
+                      "componentId": "1:1794",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "strokes/0/color": "border-2"
+                      },
+                      "texts": ["Delete"]
+                    }
+                  ]
+                },
+                {
+                  "name": "Add backup destination",
+                  "type": "INSTANCE",
+                  "x": 20,
+                  "y": 193,
+                  "width": 159,
+                  "height": 36,
+                  "component": "Button/Primary/MD",
+                  "componentId": "1:1094",
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 16, 8, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "itemSpacing": "spacing/2",
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/4",
+                    "paddingLeft": "spacing/4",
+                    "fills/0/color": "accent/accent"
+                  },
+                  "texts": ["Add destination"]
+                }
+              ]
+            },
+            {
+              "name": "Backup destinations · remote-lab",
+              "type": "FRAME",
+              "x": 24,
+              "y": 426,
+              "width": 1132,
+              "height": 175,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "children": [
+                {
+                  "name": "Backup destinations heading",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 20,
+                  "width": 1092,
+                  "height": 23,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "remote-lab",
+                  "font": ["Geist", 600, 16],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "name": "Backup destinations description",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 55,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Restic repositories for snapshots. Stored as labelled Kubernetes Secrets in the configured namespace.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "Empty destinations",
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 87,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "No backup destinations configured. Add one to enable snapshots.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "Add backup destination",
+                  "type": "INSTANCE",
+                  "x": 20,
+                  "y": 119,
+                  "width": 159,
+                  "height": 36,
+                  "component": "Button/Primary/MD",
+                  "componentId": "1:1094",
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 16, 8, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "itemSpacing": "spacing/2",
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/4",
+                    "paddingLeft": "spacing/4",
+                    "fills/0/color": "accent/accent"
+                  },
+                  "texts": ["Add destination"]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
