@@ -5,7 +5,7 @@ name: republish-modules
 # tag, so an out-of-band fix to module metadata (e.g. a corrected
 # gameplaneMinVersion) would otherwise wait for the next release. This
 # workflow republishes exactly the bundles the superproject currently pins
-# (submodule pointer) — bump the `modules/` pointer on main first if you want
+# (submodule pointer) — bump the `modules/` pointer on master first if you want
 # the latest module commits.
 on:
   workflow_dispatch:

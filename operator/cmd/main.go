@@ -13,6 +13,7 @@ import (
 	"time"
 
 	snapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v8/apis/volumesnapshot/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -137,6 +138,8 @@ func main() {
 		allowedImageRegistries           cidrListFlag
 		agentLogLevel                    string
 		agentMaxUploadBytes              int64
+		backupUploadStagingStorageClass  string
+		backupExportTTL                  time.Duration
 		filesIdleTimeout                 time.Duration
 		agentCABundle                    string
 		agentClientCert                  string
@@ -270,6 +273,10 @@ func main() {
 		"Remove a stopped server's file-only pod after this long without a file operation; must be positive.")
 	flag.Int64Var(&agentMaxUploadBytes, "agent-max-upload-bytes", 0,
 		"Per-upload size limit passed to every agent as --max-upload-bytes; 0 keeps the agent default (20 GiB).")
+	flag.StringVar(&backupUploadStagingStorageClass, "backup-upload-staging-storage-class", "",
+		"StorageClass for the temporary volume a backup upload restore is unpacked on; empty uses the cluster default class.")
+	flag.DurationVar(&backupExportTTL, "backup-export-ttl", time.Hour,
+		"Lifetime of one backup download worker; must be between 1m and 24h.")
 	flag.StringVar(&moduleNamespace, "module-namespace", "gameplane-system",
 		"Namespace where ModuleSource credential Secrets live.")
 	flag.StringVar(&moduleConfigMapNamespace, "module-configmap-namespace", "",
@@ -347,6 +354,10 @@ func main() {
 	}
 	if agentMaxUploadBytes < 0 {
 		fmt.Fprintln(os.Stderr, "--agent-max-upload-bytes must not be negative")
+		os.Exit(1)
+	}
+	if backupExportTTL < time.Minute || backupExportTTL > 24*time.Hour {
+		fmt.Fprintln(os.Stderr, "--backup-export-ttl must be between 1m and 24h")
 		os.Exit(1)
 	}
 	if wakeStartLimit < 0 || wakeStartLimit > 128 {
@@ -658,17 +669,39 @@ func main() {
 		os.Exit(1)
 	}
 	if err := (&controller.RestoreReconciler{
-		Client:                   mgr.GetClient(),
-		APIReader:                mgr.GetAPIReader(),
-		Scheme:                   mgr.GetScheme(),
-		OperationQuiescer:        agentClient,
-		ResticImage:              resticImage,
-		BackupResources:          backupResources,
-		GameWorkloadPolicy:       gameWorkloadPolicy,
-		JobBackoffLimit:          &backupJobBackoff32,
-		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
+		Client:                    mgr.GetClient(),
+		APIReader:                 mgr.GetAPIReader(),
+		Scheme:                    mgr.GetScheme(),
+		OperationQuiescer:         agentClient,
+		ResticImage:               resticImage,
+		BackupResources:           backupResources,
+		GameWorkloadPolicy:        gameWorkloadPolicy,
+		JobBackoffLimit:           &backupJobBackoff32,
+		JobActiveDeadlineSeconds:  backupJobActiveDeadlineSeconds,
+		UploadStagingStorageClass: backupUploadStagingStorageClass,
+		AgentImage:                agentImage,
+		AgentImagePullPolicy:      corev1.PullPolicy(agentImagePullPolicy),
+		AgentCASecretName:         agentCASecretName,
+		AgentCASecretNamespace:    agentCASecretNamespace,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to set up controller", "controller", "Restore")
+		os.Exit(1)
+	}
+	if err := (&controller.BackupExportReconciler{
+		Client:                 mgr.GetClient(),
+		APIReader:              mgr.GetAPIReader(),
+		Scheme:                 mgr.GetScheme(),
+		AgentImage:             agentImage,
+		AgentImagePullPolicy:   corev1.PullPolicy(agentImagePullPolicy),
+		ResticImage:            resticImage,
+		BackupResources:        backupResources,
+		AgentCASecretName:      agentCASecretName,
+		AgentCASecretNamespace: agentCASecretNamespace,
+		DefaultTTL:             backupExportTTL,
+		WriterVersion:          Version,
+		Now:                    time.Now,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to set up controller", "controller", "BackupExport")
 		os.Exit(1)
 	}
 

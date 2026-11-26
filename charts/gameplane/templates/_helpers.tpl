@@ -102,6 +102,22 @@ arrives as float64, so it is formatted without an exponent. */ -}}
 {{- mul $n (index $m $u | int64) | int64 -}}
 {{- end -}}
 
+{{- /* gameplane.backupsQuantityBytes is gameplane.quantityBytes for backups.maxUploadSize (spec 041): same
+parsing, with error messages that name the backups key. */ -}}
+{{- define "gameplane.backupsQuantityBytes" -}}
+{{- $raw := . -}}
+{{- $s := "" -}}
+{{- if kindIs "float64" $raw -}}{{- $s = printf "%.0f" $raw -}}{{- else -}}{{- $s = toString $raw | trim -}}{{- end -}}
+{{- if not (regexMatch "^[0-9]+(Ki|Mi|Gi|Ti|Pi|k|K|M|G|T|P)?$" $s) -}}
+{{- fail (printf "backups.maxUploadSize %q must be a whole-number quantity such as 20Gi" $s) -}}
+{{- end -}}
+{{- $n := regexFind "^[0-9]+" $s | int64 -}}
+{{- if lt $n 1 -}}{{- fail (printf "backups.maxUploadSize %q must be greater than zero" $s) -}}{{- end -}}
+{{- $u := regexFind "[A-Za-z]+$" $s -}}
+{{- $m := dict "" 1 "Ki" 1024 "Mi" 1048576 "Gi" 1073741824 "Ti" 1099511627776 "Pi" 1125899906842624 "k" 1000 "K" 1000 "M" 1000000 "G" 1000000000 "T" 1000000000000 "P" 1000000000000000 -}}
+{{- mul $n (index $m $u | int64) | int64 -}}
+{{- end -}}
+
 {{- /*
 gameplane.labels intentionally omits app.kubernetes.io/name so each
 resource can set its own (e.g. "gameplane-api", "gameplane-operator")

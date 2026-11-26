@@ -887,6 +887,26 @@
     "defaultMessage": "clientSecret is required",
     "description": "API error from the auth provider credentials API (auth_provider_secret.go:put)."
   },
+  "server.backup.download.busy": {
+    "defaultMessage": "Too many downloads are running. Try again in a minute.",
+    "description": "API error from the backup archive download (backup_archives.go:download) when the namespace already has the maximum number of active exports (backups.maxConcurrentExports)."
+  },
+  "server.backup.download.failed": {
+    "defaultMessage": "The download could not start. Try again.",
+    "description": "API error from the backup archive download (backup_archives.go:awaitExport) when the export worker reports Failed or Expired. The worker's reason is logged and audited, never shown to the client."
+  },
+  "server.backup.download.not_ready": {
+    "defaultMessage": "This backup has not finished yet.",
+    "description": "API error from the backup archive download (backup_archives.go:download) when the Backup is not in the Succeeded phase."
+  },
+  "server.backup.download.snapshot_strategy": {
+    "defaultMessage": "Snapshot backups stay inside the storage system and cannot be downloaded.",
+    "description": "API error from the backup archive download (backup_archives.go:download) when the Backup uses the volume-snapshot strategy, which has no restic snapshot to export."
+  },
+  "server.backup.download.start_timeout": {
+    "defaultMessage": "The download did not start in time. Try again.",
+    "description": "API error from the backup archive download (backup_archives.go:awaitExport) when the export is not Ready within the start timeout."
+  },
   "server.bad_request": {
     "defaultMessage": "bad request",
     "description": "API error for a malformed request that does not fit a more specific message."
@@ -1114,6 +1134,38 @@
   "server.remote_cluster_not_implemented": {
     "defaultMessage": "not implemented: no cross-cluster agent yet; this route only serves the home cluster",
     "description": "API response for a home-cluster-only route called with a ?cluster= value that names another cluster. No cross-cluster agent exists yet."
+  },
+  "server.restore.confirm.bad_request": {
+    "defaultMessage": "The confirm request is not valid.",
+    "description": "API error from the restore confirm route (backup_archives.go:confirm) when the body does not carry a positive generation."
+  },
+  "server.restore.confirm.not_ready": {
+    "defaultMessage": "This restore is not waiting for confirmation. Refresh and try again.",
+    "description": "API error from the restore confirm route (backup_archives.go:confirm) when the Restore is not in AwaitingConfirmation or its generation does not match the request."
+  },
+  "server.restore.upload.bad_request": {
+    "defaultMessage": "The upload request is not valid: {message}",
+    "description": "API error from the upload route (backup_archives.go:upload) for a bad format, file name, server or template. {message} names the problem."
+  },
+  "server.restore.upload.failed": {
+    "defaultMessage": "The upload could not be received. Try again.",
+    "description": "API error from the upload route (backup_archives.go:upload) when the restore cannot take the archive. The reason from the operator or the archive receiver is logged, never shown to the client."
+  },
+  "server.restore.upload.length_required": {
+    "defaultMessage": "The upload needs a Content-Length header.",
+    "description": "API error from the upload route (backup_archives.go:upload) when the request has no usable Content-Length."
+  },
+  "server.restore.upload.no_storage_class": {
+    "defaultMessage": "No storage class is available to check uploads. Ask an administrator to configure one.",
+    "description": "API error from the upload route (backup_archives.go:upload) when the operator reports NoStagingStorageClass: no storage class is configured or defaulted for the temporary staging volume."
+  },
+  "server.restore.upload.server_busy": {
+    "defaultMessage": "A backup, restore or wipe is running on this server. Try again when it finishes.",
+    "description": "API error from the upload route (backup_archives.go:upload) when a non-terminal Backup or Restore targets the server, or a data wipe is running."
+  },
+  "server.restore.upload.too_large": {
+    "defaultMessage": "The archive is larger than the upload limit.",
+    "description": "API error from the upload route (backup_archives.go:upload) when the declared Content-Length is larger than backups.maxUploadSize."
   },
   "server.roles.admin_not_editable": {
     "defaultMessage": "the admin role cannot be edited",

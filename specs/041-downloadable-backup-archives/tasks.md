@@ -24,26 +24,26 @@
 
 ## Phase 2: Foundational
 
-- [ ] T004 [P] CRDs: add `operator/api/v1alpha1/backupexport_types.go` and the `Restore` upload fields, phases and status per data-model.md (CEL: exactly one of `backupRef`/`upload`; immutability except `upload.confirmed` false→true); run `make generate && make manifests`; commit deepcopy, `operator/config/{crd,rbac}/`, `charts/gameplane/charts/gameplane-crds/crds/`, `charts/gameplane/crd-manifests/`.
+- [X] T004 [P] CRDs: add `operator/api/v1alpha1/backupexport_types.go` and the `Restore` upload fields, phases and status per data-model.md (CEL: exactly one of `backupRef`/`upload`; immutability except `upload.confirmed` false→true); run `make generate && make manifests`; commit deepcopy, `operator/config/{crd,rbac}/`, `charts/gameplane/charts/gameplane-crds/crds/`, `charts/gameplane/crd-manifests/`.
 - [ ] T005 Design pass in `design.fig` through OpenPencil from the T003 prompt; run `hack/design/fig-export.ts`; commit `assets/design-export/` with it; get valgul's sign-off before T020 and T031.
-- [ ] T006 [P] Agent `archive-worker` subcommand skeleton in `agent/cmd/main.go` and `agent/internal/archive/`: mTLS server (agent CA, cert from mounted Secret), single-route mux keyed on `EXPORT_UID`/`RESTORE_UID`, idle timeout, termination-log writer.
-- [ ] T007 [P] `agent/internal/archive/manifest.go`: manifest type, JSON encode/decode, `formatVersion` check, layout mapping (`volumes/<logicalName>`, legacy `data/`) per research R3.
-- [ ] T008 [P] Operator shared builders `operator/internal/controller/archive_worker_pods.go`: worker Pod (agent image, restic init-copy into `emptyDir`, spec 030 security context, resource defaults from `--backup-resources`), ClusterIP Service, per-worker server cert Secret signed by the agent CA (reuse `signAgentServerCert`).
-- [ ] T009 [P] Chart: `backups.maxUploadSize`, `backups.uploadStagingStorageClass`, `backups.maxConcurrentExports`, `backups.exportTTL` in `charts/gameplane/values.yaml` and the API/operator flag wiring in templates; operator RBAC for `backupexports`.
-- [ ] T010 Verify operator ClusterRole covers pods, services, secrets, PVCs needed by T008 and T024 (`operator/config/rbac/role.yaml` via kubebuilder markers).
+- [X] T006 [P] Agent `archive-worker` subcommand skeleton in `agent/cmd/main.go` and `agent/internal/archive/`: mTLS server (agent CA, cert from mounted Secret), single-route mux keyed on `EXPORT_UID`/`RESTORE_UID`, idle timeout, termination-log writer.
+- [X] T007 [P] `agent/internal/archive/manifest.go`: manifest type, JSON encode/decode, `formatVersion` check, layout mapping (`volumes/<logicalName>`, legacy `data/`) per research R3.
+- [X] T008 [P] Operator shared builders `operator/internal/controller/archive_worker_pods.go`: worker Pod (agent image, restic init-copy into `emptyDir`, spec 030 security context, resource defaults from `--backup-resources`), ClusterIP Service, per-worker server cert Secret signed by the agent CA (reuse `signAgentServerCert`).
+- [X] T009 [P] Chart: `backups.maxUploadSize`, `backups.uploadStagingStorageClass`, `backups.maxConcurrentExports`, `backups.exportTTL` in `charts/gameplane/values.yaml` and the API/operator flag wiring in templates; operator RBAC for `backupexports`.
+- [X] T010 Verify operator ClusterRole covers pods, services, secrets, PVCs needed by T008 and T024 (`operator/config/rbac/role.yaml` via kubebuilder markers).
 
 ## Phase 3: User Story 1 - Download a backup (P1)
 
 **Independent test**: back up a server, download `.tar.gz` and `.zip`, unpack, compare checksums with the server data at backup time.
 
-- [ ] T011 [P] [US1] `agent/internal/archive/transcode.go`: read restic's tar stream, write manifest first, remap paths, write `.tar.gz` or streaming `.zip` (R4); refuse device files; tests with crafted tar input (`transcode_test.go`).
-- [ ] T012 [US1] Export server in `agent/internal/archive/export.go`: run `/tools/restic dump <snapshot> / --archive tar --retry-lock 10m` with repo env, pipe to T011, stream to the one client, non-zero exit on any error so the API can abort; tests.
-- [ ] T013 [US1] `operator/internal/controller/backupexport_controller.go`: validate (data-model.md), create cert/Pod/Service, set `Ready`, track Pod end → `Completed`/`Failed`, TTL → `Expired`, delete children; owner reference to the Backup; register in `operator/cmd/main.go`.
-- [ ] T014 [US1] Envtest `backupexport_envtest_test.go`: refusal cases (not Succeeded, volume-snapshot, UID mismatch, missing repo keys), Ready path, TTL expiry, cascade on Backup delete.
-- [ ] T015 [P] [US1] API `api/internal/handlers/backup_archives.go` download route per contracts/api.md (export create, wait, stream, abort on error, delete, audit, 429 limit); mount in `api/cmd/main.go`; add to `isLargeTransferPath`.
-- [ ] T016 [P] [US1] Gateway: `gatewayprotocol` `BackupExportTarget` and `api/internal/gateway/backup_archives.go` forwarding with identity checks like `capture.go`; panel side forwards for remote clusters.
-- [ ] T017 [US1] API tests: `backup_archives_envtest_test.go` (permissions via `backups:read`, refusals, audit rows, timeout exemption), gateway tests (wrong identity → 404).
-- [ ] T018 [P] [US1] i18n keys for download messages in the shared packs; `make check-i18n` runs in CI.
+- [X] T011 [P] [US1] `agent/internal/archive/transcode.go`: read restic's tar stream, write manifest first, remap paths, write `.tar.gz` or streaming `.zip` (R4); refuse device files; tests with crafted tar input (`transcode_test.go`).
+- [X] T012 [US1] Export server in `agent/internal/archive/export.go`: run `/tools/restic dump <snapshot> / --archive tar --retry-lock 10m` with repo env, pipe to T011, stream to the one client, non-zero exit on any error so the API can abort; tests.
+- [X] T013 [US1] `operator/internal/controller/backupexport_controller.go`: validate (data-model.md), create cert/Pod/Service, set `Ready`, track Pod end → `Completed`/`Failed`, TTL → `Expired`, delete children; owner reference to the Backup; register in `operator/cmd/main.go`.
+- [X] T014 [US1] Envtest `backupexport_envtest_test.go`: refusal cases (not Succeeded, volume-snapshot, UID mismatch, missing repo keys), Ready path, TTL expiry, cascade on Backup delete.
+- [X] T015 [P] [US1] API `api/internal/handlers/backup_archives.go` download route per contracts/api.md (export create, wait, stream, abort on error, delete, audit, 429 limit); mount in `api/cmd/main.go`; add to `isLargeTransferPath`.
+- [X] T016 [P] [US1] Gateway: `gatewayprotocol` `BackupExportTarget` and `api/internal/gateway/backup_archives.go` forwarding with identity checks like `capture.go`; panel side forwards for remote clusters.
+- [X] T017 [US1] API tests: `backup_archives_envtest_test.go` (permissions via `backups:read`, refusals, audit rows, timeout exemption), gateway tests (wrong identity → 404).
+- [X] T018 [P] [US1] i18n keys for download messages in the shared packs; `make check-i18n` runs in CI.
 - [ ] T019 [P] [US1] `web/src/lib/api.ts` `backupDownloadURL`, types in `web/src/types.ts`.
 - [ ] T020 [US1] `web/src/routes/tabs/Backups.tsx`: Download action with format choice and the "contains every server file" note (FR-019), hidden for volume-snapshot backups and without `backups:read`; tests in a new `Backups_download.test.tsx`. Needs T005 sign-off.
 - [ ] T021 [US1] E2E `test/e2e/backup_archives_e2e_test.go`: download tar.gz and zip, checksum against data; viewer permission; CSI refusal; remote cluster download in the `multicluster` bucket if a remote fixture is needed there. Register bucket `backup-archives` in `test/e2e/buckets.sh`.
@@ -52,14 +52,14 @@
 
 **Independent test**: upload a downloaded archive to an empty server of the same game and restore; refuse another game; reject unsafe archives with the server untouched.
 
-- [ ] T022 [P] [US2] `agent/internal/archive/unpack.go`: safe unpack of tar.gz and zip onto the staging root (no absolute paths, `..`, outside links, devices, hard links outside; unpacked-size cap; strip one wrapping folder for plain archives; zip permission reset); test set covering SC-005.
-- [ ] T023 [US2] Receiver in `agent/internal/archive/receive.go`: accept one `PUT`, enforce declared size, write file to staging, run T022, write summary JSON to the termination log; copy mode `agent archive-worker copy` that replaces each target volume's contents from staging; tests.
-- [ ] T024 [US2] `operator/internal/controller/restore_upload.go`: staging PVC (class from flag or default, refuse `NoStagingStorageClass`, size per R5, target node topology), receiver Pod/Service, read summary, FR-013 checks (game, volumes, version warnings), `AwaitingConfirmation` with 30 min timeout, then existing suspend/fence path, copy Pod, resume; cleanup on every terminal phase; final-copy failure message (OD-7).
-- [ ] T025 [US2] Envtest `restore_upload_envtest_test.go`: no storage class, wrong game refused before suspend, plain archive needs template, confirmation timeout, client disconnect cleanup, copy failure leaves server stopped with message, staging PVC deleted in all paths.
-- [ ] T026 [P] [US2] API upload and confirm routes per contracts/api.md in `backup_archives.go`; size limit; delete Restore on disconnect; audit; `isLargeTransferPath` for `POST /restores:upload`.
-- [ ] T027 [P] [US2] Gateway forwarding for the upload stream and confirm.
-- [ ] T028 [US2] API tests: `backups:restore` required, 411/413, busy server, disconnect cleanup, audit rows.
-- [ ] T029 [P] [US2] i18n keys for upload and restore messages.
+- [X] T022 [P] [US2] `agent/internal/archive/unpack.go`: safe unpack of tar.gz and zip onto the staging root (no absolute paths, `..`, outside links, devices, hard links outside; unpacked-size cap; strip one wrapping folder for plain archives; zip permission reset); test set covering SC-005.
+- [X] T023 [US2] Receiver in `agent/internal/archive/receive.go`: accept one `PUT`, enforce declared size, write file to staging, run T022, write summary JSON to the termination log; copy mode `agent archive-worker copy` that replaces each target volume's contents from staging; tests.
+- [X] T024 [US2] `operator/internal/controller/restore_upload.go`: staging PVC (class from flag or default, refuse `NoStagingStorageClass`, size per R5, target node topology), receiver Pod/Service, read summary, FR-013 checks (game, volumes, version warnings), `AwaitingConfirmation` with 30 min timeout, then existing suspend/fence path, copy Pod, resume; cleanup on every terminal phase; final-copy failure message (OD-7).
+- [X] T025 [US2] Envtest `restore_upload_envtest_test.go`: no storage class, wrong game refused before suspend, plain archive needs template, confirmation timeout, client disconnect cleanup, copy failure leaves server stopped with message, staging PVC deleted in all paths.
+- [X] T026 [P] [US2] API upload and confirm routes per contracts/api.md in `backup_archives.go`; size limit; delete Restore on disconnect; audit; `isLargeTransferPath` for `POST /restores:upload`.
+- [X] T027 [P] [US2] Gateway forwarding for the upload stream and confirm.
+- [X] T028 [US2] API tests: `backups:restore` required, 411/413, busy server, disconnect cleanup, audit rows.
+- [X] T029 [P] [US2] i18n keys for upload and restore messages.
 - [ ] T030 [P] [US2] `web/src/lib/api.ts` `uploadRestore` (XHR progress), `confirmRestore`; types.
 - [ ] T031 [US2] Backups tab Upload backup flow: file picker, format detect, "not a Gameplane archive" + game select, upload progress, check summary with warnings, overwrite and partial-copy risk confirmation, result; tests in new `Backups_upload.test.tsx`. Needs T005 sign-off.
 - [ ] T032 [US2] E2E in `backup_archives_e2e_test.go`: Gameplane archive restore, wrong game, plain archive, unsafe set, interrupted upload leaves server running and no staging PVC.

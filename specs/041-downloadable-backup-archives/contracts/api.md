@@ -6,9 +6,9 @@ All routes take the usual cluster and namespace selection (`resolveCluster`, `re
 
 Permission: `backups:read` (OD-6).
 
-1. Load Backup; 404 if missing. 409 `backup.download.not_ready` unless `phase=Succeeded`. 400 `backup.download.snapshot_strategy` for `volume-snapshot`.
-2. 429 `backup.download.busy` when the namespace already has `backups.maxConcurrentExports` active exports.
-3. Create `BackupExport{backupRef, backupUID, format}`; wait up to 120 s for `Ready` (fail 504 `backup.download.start_timeout` and delete it).
+1. Load Backup; 404 if missing. 409 `server.backup.download.not_ready` unless `phase=Succeeded`. 400 `server.backup.download.snapshot_strategy` for `volume-snapshot`.
+2. 429 `server.backup.download.busy` when the namespace already has `backups.maxConcurrentExports` active exports.
+3. Create `BackupExport{backupRef, backupUID, format}`; wait up to 120 s for `Ready` (fail 504 `server.backup.download.start_timeout` and delete it).
 4. Respond `200`, `Content-Type: application/gzip` or `application/zip`, `Content-Disposition: attachment; filename="<server>-<capturedAt UTC yyyyMMdd-HHmmss>.<ext>"`, `X-Gameplane-Estimated-Bytes: <status.size>` when known, no `Content-Length`; stream from the worker.
 5. On worker error mid-stream: abort the connection (no clean end), so the browser marks the download failed (FR-006).
 6. Always delete the BackupExport when the request ends.
@@ -19,9 +19,9 @@ Remote clusters: steps 1–6 run in the cluster gateway; the panel API forwards 
 
 Permission: `backups:restore` (OD-6). Query: `server` (required), `format=tar.gz|zip` (required), `fileName` (required), `template` (required when the file is a plain archive; the dashboard asks for it when the user ticks "not a Gameplane archive"). Body: raw file bytes; `Content-Length` required.
 
-1. 413 `restore.upload.too_large` when `Content-Length` > `backups.maxUploadSize`; 411 without `Content-Length`.
-2. 404 when the server is missing; 409 `restore.upload.server_busy` if a backup, restore or wipe owns it.
-3. Create `Restore{serverRef, upload:{fileName, format, declaredBytes, confirmedTemplate}}`; wait up to 120 s for `Receiving` (or `Failed` with `NoStagingStorageClass` → 409 `restore.upload.no_storage_class`).
+1. 413 `server.restore.upload.too_large` when `Content-Length` > `backups.maxUploadSize`; 411 without `Content-Length`.
+2. 404 when the server is missing; 409 `server.restore.upload.server_busy` if a backup, restore or wipe owns it.
+3. Create `Restore{serverRef, upload:{fileName, format, declaredBytes, confirmedTemplate}}`; wait up to 120 s for `Receiving` (or `Failed` with `NoStagingStorageClass` → 409 `server.restore.upload.no_storage_class`).
 4. Stream the body to the receiver, stopping at `declaredBytes`; abort on overflow.
 5. Respond `202 {"restore": "<name>"}` once the receiver has the whole file. Checks continue in the operator; the client polls `GET /restores/{name}`.
 6. If the client disconnects, delete the Restore (operator cleans up; server never touched).

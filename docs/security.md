@@ -1284,7 +1284,7 @@ Secret read. Without the grant, the API omits "used" and the dashboard shows
 
 ## mcp-server (optional)
 
-The optional MCP server (`mcpServer.enabled`, see [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/main/README.md))
+The optional MCP server (`mcpServer.enabled`, see [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/master/README.md))
 is strictly read-only: no tool it exposes can create, update, patch, delete,
 or apply anything. It runs in one of two modes.
 

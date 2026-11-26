@@ -195,7 +195,7 @@ jobs:
           git -C "$website_repo_path" config user.email gameplane-screenshot-bot@users.noreply.github.com
 
           # Prepare the branch and commit
-          base="main"
+          base="master"
           branch="chore/screenshot-refresh-${REF_NAME}"
 
           git -C "$website_repo_path" checkout -b "$branch"

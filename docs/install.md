@@ -69,7 +69,7 @@ helm upgrade --install gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
   --set ingress.host=gameplane.your-domain.test
 ```
 
-`:edge` moves with `main`; pin a specific commit with `image.tag=sha-<short>`
+`:edge` moves with `master`; pin a specific commit with `image.tag=sha-<short>`
 when you need reproducibility.
 
 ### Verifying image signatures
@@ -355,7 +355,7 @@ Top-level knobs (see `values.yaml` for the full list):
     - `backupEgress.ports` — TCP ports for repository connections (default 443, 22); unlike `gameEgress` there is no private-range exclusion, since the destination is an admin-configured repository Secret rather than an attacker-influenced URL, and is often itself private
 - `clusterOps.enabled` — credential-minting cluster operations (Add node, Download kubeconfig) in the dashboard's Cluster page (default off; grants powerful kube-system + CSR-approval RBAC)
   - `clusterOps.externalAddress` — external (node-routable) API server address, e.g. `1.2.3.4:6443` or `https://k8s.example.com:6443`, used in the join command and downloaded kubeconfig instead of the in-cluster ClusterIP; leave empty only when the in-cluster address is itself reachable from outside the cluster
-- `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](https://github.com/GameplanePanel/mcp/blob/main/README.md)
+- `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](https://github.com/GameplanePanel/mcp/blob/master/README.md)
   - `mcpServer.replicas` — MCP server replicas (default 1)
 - `sftp.enabled` — optional SFTP endpoint for game server files (default off); see [sftp.md](sftp.md)
 - `updates.channel` — informational release-channel label (e.g., `stable`, `edge`) shown read-only in the dashboard's Admin Settings → Updates section; purely informational (Gameplane upgrades via Helm, not auto-update)
@@ -370,7 +370,7 @@ Top-level knobs (see `values.yaml` for the full list):
   - `defaultModuleSource.type` — source type: `oci` (default, pulls pre-built bundles from a registry) or `git` (index the public `GameplanePanel/module` repo)
   - `defaultModuleSource.git.*` — git configuration (when `type: git`)
     - `git.url` — repository URL (default `https://github.com/GameplanePanel/module.git`)
-    - `git.ref` — git branch/tag (defaults to a pinned module-repo release tag, see `defaultModuleSource.git.ref` in `values.yaml`; set `main` to track the bleeding edge, but then a module bump on `main` can stop serving the version installed Modules pin, which leaves them `Failed`/`VersionUnavailable`)
+    - `git.ref` — git branch/tag (defaults to a pinned module-repo release tag, see `defaultModuleSource.git.ref` in `values.yaml`; set `master` to track the bleeding edge, but then a module bump on `master` can stop serving the version installed Modules pin, which leaves them `Failed`/`VersionUnavailable`)
     - `git.subPath` — module subdirectory within the repository (default `""`, empty means root)
   - `defaultModuleSource.oci.*` — OCI registry configuration (when `type: oci`)
     - `oci.url` — OCI registry URL (e.g., `ghcr.io/gameplanepanel/gameplane-modules`)
@@ -557,7 +557,7 @@ a slow or down sink never blocks or fails a request.
 - `api.audit.webhook.authSecretRef` — optional `Authorization` header for the
   webhook, sourced from a Secret (never a flag — see [security](security.md)).
 - `api.audit.webhook.syslogBridge.enabled` — deploy the bundled
-  [audit-syslog-bridge [optional]](https://github.com/GameplanePanel/audit-syslog-bridge/blob/main/README.md) and point the webhook
+  [audit-syslog-bridge [optional]](https://github.com/GameplanePanel/audit-syslog-bridge/blob/master/README.md) and point the webhook
   at it automatically, so events are forwarded to a **syslog** collector. Set
   `syslogBridge.syslog.addr` to your collector `host:port` (required when
   enabled), and optionally `network` (`tcp`/`udp`), `tls`, `facility`, and

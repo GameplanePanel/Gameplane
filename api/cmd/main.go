@@ -511,6 +511,14 @@ func main() {
 		}
 		handlers.MountServerCapabilities(p, reg, ws.NewCaptureGatewayClient(reg, credentialsNS), captureConfig)
 		handlers.MountCapture(p, reg, auditor, captureConfig, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)
+		handlers.MountBackupArchives(p, reg, auditor, handlers.BackupArchiveConfig{
+			GatewayNamespace:     credentialsNS,
+			MaxConcurrentExports: cfg.backupsMaxConcurrentExports,
+			AgentCABundle:        cfg.agentCABundle,
+			AgentClientCert:      cfg.agentClientCert,
+			AgentClientKey:       cfg.agentClientKey,
+			MaxUploadBytes:       cfg.backupsMaxUploadBytes,
+		})
 		ws.MountWithPlayerNames(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, playerNames, ws.AgentGatewayOptions{
 			Namespace:      credentialsNS,
 			Files:          fileAccess,
@@ -683,6 +691,10 @@ type config struct {
 	captureDefaultMaxSizeBytes  int64
 	// filesMaxUploadBytes caps one files/stream upload (Helm files.maxUploadSize).
 	filesMaxUploadBytes int64
+	// backupsMaxUploadBytes caps one backup-archive upload restore (Helm backups.maxUploadSize).
+	backupsMaxUploadBytes int64
+	// backupsMaxConcurrentExports caps backup downloads per namespace (Helm backups.maxConcurrentExports).
+	backupsMaxConcurrentExports int
 
 	gameDataStorageClass string
 
@@ -790,6 +802,8 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	c.captureDefaultMaxSizeBytes = envOrInt64("GAMEPLANE_CAPTURE_DEFAULT_MAX_SIZE", 5368709120)
 	fs.Int64Var(&c.filesMaxUploadBytes, "files-max-upload-bytes", envOrInt64("GAMEPLANE_FILES_MAX_UPLOAD_BYTES", 20<<30),
 		"maximum size of one file uploaded through files/stream (bytes); Helm files.maxUploadSize")
+	fs.Int64Var(&c.backupsMaxUploadBytes, "backups-max-upload-bytes", envOrInt64("GAMEPLANE_BACKUPS_MAX_UPLOAD_BYTES", 20<<30), "largest archive one upload restore accepts (bytes); Helm backups.maxUploadSize")
+	fs.IntVar(&c.backupsMaxConcurrentExports, "backups-max-concurrent-exports", 3, "backup downloads that may run at once per namespace; Helm backups.maxConcurrentExports")
 	fs.BoolVar(&c.standalone, "standalone", envOr("GAMEPLANE_STANDALONE", "") == "true", "run without a local Kubernetes cluster")
 	fs.BoolVar(&c.remoteClusters, "remote-clusters", true, "load remote cluster credentials and connect to registered clusters")
 	fs.StringVar(&c.panelKeyFile, "panel-key-file", envOr("GAMEPLANE_PANEL_KEY_FILE", "/data/panel.key"), "persistent standalone credential encryption key file")
@@ -964,6 +978,10 @@ func bodyLimit(maxBytes int64) func(http.Handler) http.Handler {
 // proxy caps it itself at the configured files.maxUploadSize
 // (MaxBytesReader in ws.httpProxyLimit).
 func isUploadPath(path string) bool {
+	// Archive uploads (spec 041) are capped by backups.maxUploadSize in the handler.
+	if path == "/restores:upload" {
+		return true
+	}
 	if !strings.HasPrefix(path, "/servers/") {
 		return false
 	}
@@ -1076,6 +1094,10 @@ func isLargeTransferPath(method, path string) bool {
 		if path == "/admin/audit/export" {
 			return true
 		}
+		// Backup archive downloads (spec 041) stream for as long as the worker takes.
+		if strings.HasPrefix(path, "/backups/") && strings.HasSuffix(path, ":download") {
+			return true
+		}
 		if !strings.HasPrefix(path, "/servers/") {
 			return false
 		}
@@ -1083,6 +1105,10 @@ func isLargeTransferPath(method, path string) bool {
 			strings.HasSuffix(path, "/files/archive") ||
 			strings.HasSuffix(path, "/logs/download") ||
 			strings.HasSuffix(path, ":capture-file")
+	}
+	if method == http.MethodPost && path == "/restores:upload" {
+		// Archive uploads (spec 041) stream the whole body to the receiver on req.Context().
+		return true
 	}
 	if method == http.MethodPost && strings.HasPrefix(path, "/servers/") {
 		// Uploads stream their body on req.Context(). URL installs also

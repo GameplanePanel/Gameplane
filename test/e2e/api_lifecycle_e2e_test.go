@@ -138,14 +138,23 @@ func TestAPI_LifecycleRestart(t *testing.T) {
 	}
 	oldUID := original.UID
 
-	resp, body, err := cli.Post("/servers/"+gs+":restart", nil)
-	if err != nil {
-		t.Fatalf("POST :restart: %v", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusAccepted {
-		t.Fatalf(":restart expected 202, got %d body=%q", resp.StatusCode, string(body))
-	}
+	// The API patches the server conditionally on the version it read, so a
+	// status write by the operator in between returns 409 "conflict, retry".
+	// Repeat the call then, as a real client would; any other status fails.
+	envInstance.Eventually(t, time.Minute, func() (bool, string) {
+		resp, body, err := cli.Post("/servers/"+gs+":restart", nil)
+		if err != nil {
+			t.Fatalf("POST :restart: %v", err)
+		}
+		_ = resp.Body.Close()
+		if resp.StatusCode == http.StatusConflict {
+			return false, ":restart conflicted with a controller update: " + string(body)
+		}
+		if resp.StatusCode != http.StatusAccepted {
+			t.Fatalf(":restart expected 202, got %d body=%q", resp.StatusCode, string(body))
+		}
+		return true, ""
+	})
 
 	envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
 		pod, err := envInstance.K8s.CoreV1().Pods(ns).Get(ctx, gs+"-0", metav1.GetOptions{})

@@ -682,6 +682,6 @@ flowchart LR
   `kube-system`), and pod logs can surface secrets an app logs at startup.
   Talks directly to the Kubernetes API (not through the API server), gated
   via `mcpServer.enabled` and reachable only via `kubectl exec` (stdio
-  transport, no network port). See the [`GameplanePanel/mcp` README](https://github.com/GameplanePanel/mcp/blob/main/README.md) (the `mcp-server/` submodule).
+  transport, no network port). See the [`GameplanePanel/mcp` README](https://github.com/GameplanePanel/mcp/blob/master/README.md) (the `mcp-server/` submodule).
 
 See `docs/security.md` for the threat model.

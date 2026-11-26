@@ -1,9 +1,9 @@
 ---
 name: submodule-bump
-description: "Use after a modules, website or component submodule PR has merged to its main branch, to bump the submodule pointer in the main Gameplane repo. Takes one argument: modules, website, mcp-server, audit-syslog-bridge, tunnel or capture-sidecar."
+description: "Use after a modules, website or component submodule PR has merged to its master branch, to bump the submodule pointer in the main Gameplane repo. Takes one argument: modules, website, mcp-server, audit-syslog-bridge, tunnel or capture-sidecar."
 ---
 
-Argument: `modules`, `website`, or a component submodule from `.gitmodules` (`mcp-server`, `audit-syslog-bridge`, `tunnel`, `capture-sidecar`). From `.gitmodules`: `modules` is GameplanePanel/module (branch `main`), `website` is GameplanePanel/website (branch `main`, has its own CLAUDE.md and AGENTS.md). Repo mapping: `mcp-server` -> GameplanePanel/mcp; every other component -> GameplanePanel/<same name> (branch `main`).
+Argument: `modules`, `website`, or a component submodule from `.gitmodules` (`mcp-server`, `audit-syslog-bridge`, `tunnel`, `capture-sidecar`). From `.gitmodules`: `modules` is GameplanePanel/module (branch `master`), `website` is GameplanePanel/website (branch `master`, has its own CLAUDE.md and AGENTS.md). Repo mapping: `mcp-server` -> GameplanePanel/mcp; every other component -> GameplanePanel/<same name> (branch `master`).
 
 ## Preconditions
 
@@ -26,9 +26,9 @@ Argument: `modules`, `website`, or a component submodule from `.gitmodules` (`mc
    git checkout -b claude/bump-<sub>-submodule origin/master
    git submodule update --init <sub>
    ```
-4. Record the old pointer, then move the submodule to the merged commit on its `main`:
+4. Record the old pointer, then move the submodule to the merged commit on its `master`:
    ```sh
-   git -C <sub> fetch origin main
+   git -C <sub> fetch origin master
    git -C <sub> checkout <merged-sha>
    ```
 5. List the submodule commits the bump includes:
@@ -73,6 +73,6 @@ Argument: `modules`, `website`, or a component submodule from `.gitmodules` (`mc
 ## Notes
 
 - Never edit submodule contents from the main repo. Module or website changes go through their own PR first.
-- Never bump to a commit that is not on the submodule's `main`.
+- Never bump to a commit that is not on the submodule's `master`.
 - Never force-push or rebase the bump branch. Use a new commit for fixes.
 - If CI on the bump PR fails, diagnose with `ci-triager` before changing anything.

@@ -92,23 +92,39 @@ func (c *CaptureGatewayClient) Delete(ctx context.Context, target gatewayprotoco
 	return c.request(ctx, target, http.MethodDelete, nil)
 }
 
+// BackupExportDownload streams a backup archive identified by its server,
+// export and export UIDs. It is a GET only and never retries.
+func (c *CaptureGatewayClient) BackupExportDownload(ctx context.Context, target gatewayprotocol.BackupExportTarget, headers http.Header) (*http.Response, error) {
+	path, err := gatewayprotocol.BackupExportPath(target)
+	if err != nil {
+		return nil, fmt.Errorf("build gateway backup export path: %w", err)
+	}
+	return c.send(ctx, target.Target, path, http.MethodGet, headers, "backup export")
+}
+
 func (c *CaptureGatewayClient) request(ctx context.Context, target gatewayprotocol.CaptureTarget, method string, headers http.Header) (*http.Response, error) {
 	path, err := gatewayprotocol.CapturePath(target)
 	if err != nil {
 		return nil, fmt.Errorf("build gateway capture path: %w", err)
 	}
-	_, transport, err := c.resolver.resolve(ctx, target.Cluster, agentTarget{name: target.Name, namespace: target.Namespace})
+	return c.send(ctx, target.Target, path, method, headers, "capture")
+}
+
+// send issues one request for an already built gateway path to the server
+// identified by t. label names the operation in error messages.
+func (c *CaptureGatewayClient) send(ctx context.Context, t gatewayprotocol.Target, path, method string, headers http.Header, label string) (*http.Response, error) {
+	_, transport, err := c.resolver.resolve(ctx, t.Cluster, agentTarget{name: t.Name, namespace: t.Namespace})
 	if err != nil {
-		return nil, fmt.Errorf("resolve gateway capture target: %w", err)
+		return nil, fmt.Errorf("resolve gateway %s target: %w", label, err)
 	}
-	if transport.target.UID != target.UID {
-		return nil, errors.New("capture server identity changed")
+	if transport.target.UID != t.UID {
+		return nil, fmt.Errorf("%s server identity changed", label)
 	}
 	u := *transport.base
 	u.Path = path
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("build gateway capture request: %w", err)
+		return nil, fmt.Errorf("build gateway %s request: %w", label, err)
 	}
 	for _, name := range []string{"Range", "If-Range", "If-None-Match", "If-Modified-Since"} {
 		if value := headers.Get(name); value != "" {
@@ -117,7 +133,44 @@ func (c *CaptureGatewayClient) request(ctx context.Context, target gatewayprotoc
 	}
 	resp, err := transport.http.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("send gateway capture request: %w", err)
+		return nil, fmt.Errorf("send gateway %s request: %w", label, err)
+	}
+	return resp, nil
+}
+
+// RestoreUploadStream PUTs one uploaded archive to the restore's receiver
+// through the remote gateway. body must carry exactly contentLength bytes; the
+// length is sent as Content-Length and never inferred. A failed or truncated
+// body surfaces as an error and is never retried; the returned response, when
+// there is one, is the receiver's status and must be closed by the caller.
+func (c *CaptureGatewayClient) RestoreUploadStream(ctx context.Context, cluster string, target gatewayprotocol.RestoreUploadTarget, body io.Reader, contentLength int64) (*http.Response, error) {
+	if cluster != target.Cluster {
+		return nil, errors.New("restore upload cluster does not match its target")
+	}
+	if body == nil || contentLength <= 0 {
+		return nil, errors.New("restore upload requires a body and a positive content length")
+	}
+	path, err := gatewayprotocol.RestoreUploadPath(target)
+	if err != nil {
+		return nil, fmt.Errorf("build gateway restore upload path: %w", err)
+	}
+	_, transport, err := c.resolver.resolve(ctx, cluster, agentTarget{name: target.Name, namespace: target.Namespace})
+	if err != nil {
+		return nil, fmt.Errorf("resolve gateway restore upload target: %w", err)
+	}
+	if transport.target.UID != target.UID {
+		return nil, errors.New("restore upload server identity changed")
+	}
+	u := *transport.base
+	u.Path = path
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u.String(), body)
+	if err != nil {
+		return nil, fmt.Errorf("build gateway restore upload request: %w", err)
+	}
+	req.ContentLength = contentLength
+	resp, err := transport.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("send gateway restore upload request: %w", err)
 	}
 	return resp, nil
 }
