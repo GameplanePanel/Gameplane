@@ -231,6 +231,7 @@ func (c *Curseforge) Versions(ctx context.Context, projectID string, f Filter) (
 			Name:          fl.DisplayName,
 			VersionNumber: fl.DisplayName,
 			GameVersions:  fl.GameVersions,
+			Loaders:       cfLoaders(fl.GameVersions),
 			ReleaseType:   cfReleaseType(fl.ReleaseType),
 			PublishedAt:   published,
 			Files: []File{{
@@ -277,6 +278,20 @@ var cfLoaderTags = map[string]string{
 	"neoforge": "NeoForge",
 	"fabric":   "Fabric",
 	"quilt":    "Quilt",
+}
+
+// cfLoaders returns the Gameplane loader ids (lower-cased cfLoaderTags keys)
+// of the loader tags in a file's gameVersions, in tag order, without repeats.
+func cfLoaders(tags []string) []string {
+	var out []string
+	for _, tag := range tags {
+		id := strings.ToLower(tag)
+		if _, ok := cfLoaderTags[id]; !ok || slices.Contains(out, id) {
+			continue
+		}
+		out = append(out, id)
+	}
+	return out
 }
 
 // cfFileMatches reports whether a file's gameVersions tags fit the filter.

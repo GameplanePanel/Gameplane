@@ -154,11 +154,17 @@ func (h *registryHandler) search(w http.ResponseWriter, req *http.Request) {
 		// slips past) — clamp here once rather than in every engine.
 		offset = 0
 	}
+	typ := req.URL.Query().Get("type")
+	if typ == "modpack" && allLoadersRequested(req) {
+		// FR-014: "All loaders" lists packs for every loader and Minecraft
+		// version, so the server's facets do not narrow the search.
+		loader, gameVersion = "", ""
+	}
 	res, err := p.Search(req.Context(), registry.SearchQuery{
 		Term:        req.URL.Query().Get("q"),
 		Loader:      loader,
 		GameVersion: gameVersion,
-		ProjectType: req.URL.Query().Get("type"),
+		ProjectType: typ,
 		Category:    req.URL.Query().Get("category"),
 		Sort:        req.URL.Query().Get("sort"),
 		Limit:       limit,
@@ -186,14 +192,22 @@ func (h *registryHandler) versions(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("invalid project id"))
 		return
 	}
-	res, err := p.Versions(req.Context(), project, registry.Filter{
-		Loader:      loader,
-		GameVersion: gameVersion,
-		ProjectType: req.URL.Query().Get("type"),
-	})
+	typ := req.URL.Query().Get("type")
+	allLoaders := typ == "modpack" && allLoadersRequested(req)
+	filter := registry.Filter{Loader: loader, GameVersion: gameVersion, ProjectType: typ}
+	if allLoaders {
+		filter.Loader, filter.GameVersion = "", ""
+	}
+	res, err := p.Versions(req.Context(), project, filter)
 	if err != nil {
 		httperr.WriteCode(w, req, http.StatusBadGateway, fmt.Errorf("mod registry versions failed: %w", err))
 		return
+	}
+	if allLoaders {
+		// FR-014: keep only the pack versions this server's template can run,
+		// each naming the template version it runs on.
+		selected, _, _ := unstructured.NestedString(target.server.Object, "spec", "version")
+		res = matchServerVersions(target.template, selected, res)
 	}
 	writeJSON(w, res)
 }
@@ -269,7 +283,25 @@ func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Reques
 		httperr.WriteMessage(w, req, messages.New("server.modpack.backup_unavailable", nil))
 		return
 	}
-	if h.modpacksBlockedReason(req.Context(), target, prov) != "" {
+	// The server runs the entry it has now, unless serverVersion switches it
+	// (FR-014, OD-13 B); the key check and the audit row follow that entry.
+	currentID := currentServerVersionID(target)
+	runEntry := activeVersionEntry(target.template, currentID)
+	var serverSwitch string
+	if body.ServerVersion != "" && body.ServerVersion != currentID {
+		entry, err := h.serverVersionTarget(req.Context(), target, prov, body)
+		if errors.Is(err, errServerVersionMismatch) {
+			httperr.WriteMessage(w, req, messages.New("server.modpack.server_version_mismatch", nil))
+			return
+		}
+		if err != nil {
+			h.writeResolveErr(w, req, err)
+			return
+		}
+		runEntry = entry
+		serverSwitch = currentID + "->" + body.ServerVersion
+	}
+	if h.blockedReasonFor(req.Context(), target, prov, runEntry) != "" {
 		httperr.WriteMessage(w, req, messages.New("server.modpack.key_required", nil))
 		return
 	}
@@ -294,6 +326,10 @@ func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Reques
 	updated, err := updateModTarget(req.Context(), target, func(current *unstructured.Unstructured) {
 		// SetNestedMap only fails on a non-map parent; spec is always a map here.
 		_ = unstructured.SetNestedMap(current.Object, spec, "spec", "modpack")
+		if serverSwitch != "" {
+			// The server switches to the matching version in the same write as the pack.
+			_ = unstructured.SetNestedField(current.Object, body.ServerVersion, "spec", "version")
+		}
 		// A removal whose backup failed leaves its request behind, and an
 		// adopted legacy pin would hold back the new pack; installing a pack
 		// supersedes both.
@@ -307,8 +343,21 @@ func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Reques
 		httperr.Write(w, req, err)
 		return
 	}
-	h.auditModpack(req, target.server.GetName(), action, prov.provider, body.Project, body.Version)
+	h.auditModpack(req, target.server.GetName(), action, prov.provider, body.Project, body.Version, serverSwitch)
 	writeJSONStatus(w, http.StatusAccepted, h.modpackViewFor(req, target, updated, false))
+}
+
+// providerFor returns the central engine for a template's declared provider,
+// or false when the engine is not configured.
+func (h *registryHandler) providerFor(ctx context.Context, prov providerCfg) (registry.Provider, bool) {
+	return h.reg.For(ctx, registry.Config{
+		Provider:         prov.provider,
+		Community:        prov.community,
+		SteamAppID:       prov.steamAppID,
+		CurseForgeGameID: prov.curseforgeGameID,
+		GitHubOwner:      prov.githubOwner,
+		GitHubRepo:       prov.githubRepo,
+	})
 }
 
 // resolve picks the requested provider from the selected server's template,
@@ -318,14 +367,7 @@ func (h *registryHandler) resolve(ctx context.Context, target *modTarget, provid
 	if !ok {
 		return nil, "", "", errNoRegistry
 	}
-	p, ok := h.reg.For(ctx, registry.Config{
-		Provider:         prov.provider,
-		Community:        prov.community,
-		SteamAppID:       prov.steamAppID,
-		CurseForgeGameID: prov.curseforgeGameID,
-		GitHubOwner:      prov.githubOwner,
-		GitHubRepo:       prov.githubRepo,
-	})
+	p, ok := h.providerFor(ctx, prov)
 	if !ok {
 		return nil, "", "", errNoRegistry
 	}
