@@ -47,7 +47,7 @@ describe("BackupsPage", () => {
         HttpResponse.json({
           items: [
             makeBackup({ metadata: { name: "alpha-new" }, status: { phase: "Succeeded", size: "200Gi", dataSize: "15032385536" } }),
-            makeBackup({ metadata: { name: "alpha-old" }, status: { phase: "Succeeded", size: "200Gi" } }),
+            makeBackup({ metadata: { name: "alpha-old" }, spec: { serverRef: { name: "alpha" }, strategy: "volume-snapshot" }, status: { phase: "Succeeded", size: "200Gi" } }),
           ],
         }),
       ),

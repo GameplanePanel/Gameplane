@@ -380,7 +380,7 @@ describe("BackupsTab", () => {
         HttpResponse.json({
           items: [
             makeBackup({ metadata: { name: "backup-1" }, spec: { serverRef: { name: "alpha" } }, status: { phase: "Succeeded", size: "200Gi", dataSize: "1073741824" } }),
-            makeBackup({ metadata: { name: "backup-2" }, spec: { serverRef: { name: "alpha" } }, status: { phase: "Succeeded", size: "200Gi" } }),
+            makeBackup({ metadata: { name: "backup-2" }, spec: { serverRef: { name: "alpha" }, strategy: "volume-snapshot" }, status: { phase: "Succeeded", size: "200Gi" } }),
           ],
         }),
       ),

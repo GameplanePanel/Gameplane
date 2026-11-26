@@ -14,7 +14,7 @@ import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { ScheduleForm } from "@/components/backups/ScheduleForm";
 import { RestoreDialog } from "@/components/backups/RestoreDialog";
 import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
-import { BackupSize } from "@/components/backups/BackupSize";
+import { BackupSize, backupDataSize } from "@/components/backups/BackupSize";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { Backup, BackupSchedule } from "@/types";
 import { useOptionalIntl } from "@/lib/i18n/format";
@@ -127,9 +127,9 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
     .filter((t): t is string => Boolean(t))
     .sort();
   const nextBackupAt = nextRuns[0];
-  // Only backups with a recorded dataSize count; older ones are left out (OD-8).
-  const withDataSize = succeeded.filter((b) => Boolean(b.status?.dataSize));
-  const totalBytes = withDataSize.reduce((acc, b) => acc + parseQuantityToBytes(b.status?.dataSize), 0);
+  // Only backups with a known data size count; older volume snapshots are left out (OD-8).
+  const withDataSize = succeeded.filter((b) => Boolean(backupDataSize(b)));
+  const totalBytes = withDataSize.reduce((acc, b) => acc + parseQuantityToBytes(backupDataSize(b)), 0);
   const totalCoverage = totalBytes > 0 && withDataSize.length < succeeded.length
     ? intl.formatMessage({ id: "web.routes.tabs.backups.total_size_coverage", defaultMessage: "across {covered} of {total} {total, plural, one {backup} other {backups}}", description: "Backups tab: line under the Total data size card when some successful backups have no recorded data size and are left out of the total; {covered} backups are counted out of {total} successful ones" }, { covered: String(withDataSize.length), total: String(succeeded.length) })
     : undefined;

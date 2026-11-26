@@ -117,6 +117,7 @@ describe("BackupDetailDrawer", () => {
         HttpResponse.json(
           makeBackup({
             metadata: { name: "alpha-old" },
+            spec: { serverRef: { name: "alpha" }, strategy: "volume-snapshot" },
             status: { phase: "Succeeded", snapshotID: "abc123", size: "200Gi" },
           }),
         ),

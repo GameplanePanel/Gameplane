@@ -89,11 +89,18 @@ describe("BackupRow", () => {
     expect(screen.queryByText(/ added$/)).not.toBeInTheDocument();
   });
 
-  it("labels the size of a backup without data size as volume size", () => {
-    const backup = makeBackup({ status: { size: "200Gi" } });
+  it("labels the size of a volume snapshot without data size as volume size", () => {
+    const backup = makeBackup({ spec: { serverRef: { name: "alpha" }, strategy: "volume-snapshot" }, status: { size: "200Gi" } });
     render(tableWrap(<BackupRow backup={backup} showServer={false} onSelect={() => {}} onRestore={() => {}} />));
     expect(screen.getByText("200Gi")).toBeInTheDocument();
     expect(screen.getByText("volume size")).toBeInTheDocument();
+  });
+
+  it("shows an older Restic backup's size as its data size, without the volume size label", () => {
+    const backup = makeBackup({ spec: { serverRef: { name: "alpha" }, strategy: "restic-snapshot" }, status: { size: "1073741824" } });
+    render(tableWrap(<BackupRow backup={backup} showServer={false} onSelect={() => {}} onRestore={() => {}} />));
+    expect(screen.getByText("1.0 GB")).toBeInTheDocument();
+    expect(screen.queryByText("volume size")).not.toBeInTheDocument();
   });
 
   it("Restore button is enabled when phase=Succeeded with snapshotID", async () => {

@@ -69,6 +69,17 @@ describe("StorageInput", () => {
     expect(fn).not.toHaveBeenCalled();
   });
 
+  it("picking a unit right after typing applies it to the typed number", () => {
+    const fn = vi.fn();
+    render(<StorageInput label="Storage size" value="10Gi" onChange={fn} />);
+    const box = screen.getByLabelText("Storage size value");
+    fireEvent.change(box, { target: { value: "500" } });
+    fireEvent.blur(box); // focus moves to the unit select
+    expect(fn).toHaveBeenLastCalledWith("500Gi");
+    fireEvent.change(screen.getByLabelText("Storage size unit"), { target: { value: "Mi" } });
+    expect(fn).toHaveBeenLastCalledWith("500Mi");
+  });
+
   it("marks the box invalid and disables both controls when asked", () => {
     render(<StorageInput label="Storage size" value="2Gi" onChange={() => {}} invalid disabled />);
     expect(screen.getByLabelText("Storage size value")).toHaveAttribute("aria-invalid", "true");

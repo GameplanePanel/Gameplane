@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { convertMem, formatMemQuantity, parseMemQuantity, type MemUnit } from "@/lib/quantity";
@@ -39,6 +39,10 @@ export function StorageInput({ value, onChange, label, id, disabled = false, inv
   const [unit, setUnit] = useState<StorageUnit>(parsed && parsed.unit !== "Ki" ? parsed.unit : parsed ? "Mi" : "Gi");
   // Raw text while typing; null = not editing (show the derived value).
   const [buffer, setBuffer] = useState<string | null>(null);
+  // The number the user last typed. Picking a unit right after typing (the blur
+  // already saved it in the old unit) applies that unit to the typed number, so
+  // "500" then MiB means 500 MiB, not 500 GiB shown as 512000 MiB.
+  const typed = useRef<number | null>(null);
 
   const derivedText = parsed ? String(roundDisplay(convertMem(parsed, unit).value)) : "";
 
@@ -47,17 +51,27 @@ export function StorageInput({ value, onChange, label, id, disabled = false, inv
     setBuffer(null);
     if (text === null || text === derivedText) return; // nothing edited
     if (text.trim() === "") {
+      typed.current = null;
       onChange("");
       return;
     }
     const num = Number(text);
     if (!Number.isFinite(num) || num <= 0) return; // keep the previous value
+    typed.current = num;
     onChange(formatMemQuantity({ value: num, unit }));
   };
 
   const handleUnitChange = (next: string) => {
+    const nextUnit = next as StorageUnit;
+    // Text still in the box (no blur yet) counts as typed too.
+    const pending = buffer !== null && buffer !== derivedText && Number(buffer) > 0 ? Number(buffer) : null;
+    const num = pending ?? typed.current;
     setBuffer(null);
-    setUnit(next as StorageUnit);
+    setUnit(nextUnit);
+    if (num !== null) {
+      typed.current = num;
+      onChange(formatMemQuantity({ value: num, unit: nextUnit }));
+    }
   };
 
   return (
