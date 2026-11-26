@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No open decisions remain (OD-1 to OD-6 in `OPEN-DECISIONS.md` await valgul)
+- [x] No open decisions remain (OD-1 to OD-6 settled 2026-11-26)
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -32,4 +32,4 @@
 ## Notes
 
 - The Background section names current CRDs and files so planning starts from facts; requirements stay behavioural.
-- Planning starts only after every OD is settled.
+- All ODs settled 2026-11-26; ready for planning.
