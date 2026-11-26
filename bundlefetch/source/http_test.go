@@ -154,7 +154,7 @@ func TestNewArchiveHTTPClientCheckRedirect(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			req, err := http.NewRequest(http.MethodGet, "https://example.com/bundle.tar.gz", nil)
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://example.com/bundle.tar.gz", nil)
 			if err != nil {
 				t.Fatalf("new request: %v", err)
 			}
