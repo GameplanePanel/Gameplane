@@ -36,6 +36,7 @@ rules:
   - ""
   resources:
   - persistentvolumeclaims
+  - persistentvolumes
   - pods
   - pods/ephemeralcontainers
   - pods/log

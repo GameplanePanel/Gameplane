@@ -179,7 +179,7 @@ func TestBuildArchiveWorkerPod_Serve(t *testing.T) {
 	if got := workerVolumeNames(pod.Spec.Volumes); !reflect.DeepEqual(got, wantVols) {
 		t.Fatalf("volumes = %v, want %v", got, wantVols)
 	}
-	tls := pod.Spec.Volumes[1].VolumeSource.Secret
+	tls := pod.Spec.Volumes[1].Secret
 	if tls == nil || tls.SecretName != "exp-abc" {
 		t.Fatalf("tls volume secret = %+v", tls)
 	}

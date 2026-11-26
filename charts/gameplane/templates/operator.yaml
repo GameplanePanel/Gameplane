@@ -83,6 +83,11 @@ rules:
   - apiGroups: ["storage.k8s.io"]
     resources: [storageclasses]
     verbs: [get, list, watch]
+  # Upload restores read the PersistentVolume behind each target claim to copy
+  # its node affinity onto the staging volume (spec 041). Read-only, cluster-scoped.
+  - apiGroups: [""]
+    resources: [persistentvolumes]
+    verbs: [get, list, watch]
   # CSI VolumeSnapshots back the volume-snapshot backup strategy: the
   # backup controller watches them cluster-wide for readyToUse and reads
   # the (cluster-scoped) content objects they bind to. Creation/deletion is

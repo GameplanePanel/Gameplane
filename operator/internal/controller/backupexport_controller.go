@@ -106,7 +106,7 @@ func (r *BackupExportReconciler) reconcile(ctx context.Context, req ctrl.Request
 
 	now := r.now()
 	ttl := exportTTL(&export, r.DefaultTTL)
-	expires := export.CreationTimestamp.Time.Add(ttl)
+	expires := export.CreationTimestamp.Add(ttl)
 
 	if exportIsTerminal(export.Status.Phase) {
 		return ctrl.Result{}, r.deleteExportWorker(ctx, &export)
@@ -378,7 +378,10 @@ func (r *BackupExportReconciler) ensureOwned(
 ) error {
 	kind := fmt.Sprintf("%T", obj)
 	key := client.ObjectKeyFromObject(obj)
-	existing := obj.DeepCopyObject().(client.Object)
+	existing, ok := obj.DeepCopyObject().(client.Object)
+	if !ok {
+		return fmt.Errorf("deep copy of %s is not a client.Object", kind)
+	}
 	err := r.Get(ctx, key, existing)
 	if err == nil {
 		return nil

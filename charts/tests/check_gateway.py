@@ -118,7 +118,7 @@ def main():
     assert {obj["metadata"]["namespace"] for obj in roles} == {"games-one", "games-two"}
     for role in roles:
         assert role["rules"] == [
-            {"apiGroups": ["gameplane.local"], "resources": ["gameservers", "networkcaptures"], "verbs": ["get"]},
+            {"apiGroups": ["gameplane.local"], "resources": ["gameservers", "networkcaptures", "backups", "backupexports"], "verbs": ["get"]},
             {"apiGroups": [""], "resources": ["services"], "verbs": ["get"]},
         ]
     policy = one(objects, "NetworkPolicy", "gameplane-gateway")["spec"]

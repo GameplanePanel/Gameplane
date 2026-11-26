@@ -360,8 +360,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, "--backup-export-ttl must be between 1m and 24h")
 		os.Exit(1)
 	}
-	// wired into RestoreReconciler and BackupExportReconciler by spec 041 T013/T024
-	_ = backupUploadStagingStorageClass
 	if wakeStartLimit < 0 || wakeStartLimit > 128 {
 		fmt.Fprintln(os.Stderr, "--wake-start-limit must be between 0 and 128")
 		os.Exit(1)
@@ -671,15 +669,20 @@ func main() {
 		os.Exit(1)
 	}
 	if err := (&controller.RestoreReconciler{
-		Client:                   mgr.GetClient(),
-		APIReader:                mgr.GetAPIReader(),
-		Scheme:                   mgr.GetScheme(),
-		OperationQuiescer:        agentClient,
-		ResticImage:              resticImage,
-		BackupResources:          backupResources,
-		GameWorkloadPolicy:       gameWorkloadPolicy,
-		JobBackoffLimit:          &backupJobBackoff32,
-		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
+		Client:                    mgr.GetClient(),
+		APIReader:                 mgr.GetAPIReader(),
+		Scheme:                    mgr.GetScheme(),
+		OperationQuiescer:         agentClient,
+		ResticImage:               resticImage,
+		BackupResources:           backupResources,
+		GameWorkloadPolicy:        gameWorkloadPolicy,
+		JobBackoffLimit:           &backupJobBackoff32,
+		JobActiveDeadlineSeconds:  backupJobActiveDeadlineSeconds,
+		UploadStagingStorageClass: backupUploadStagingStorageClass,
+		AgentImage:                agentImage,
+		AgentImagePullPolicy:      corev1.PullPolicy(agentImagePullPolicy),
+		AgentCASecretName:         agentCASecretName,
+		AgentCASecretNamespace:    agentCASecretNamespace,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to set up controller", "controller", "Restore")
 		os.Exit(1)
