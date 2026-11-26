@@ -50,6 +50,17 @@ func TestBackup_DeleteForgetsSnapshot(t *testing.T) {
 		ids[name] = waitBackupSucceeded(t, ns, name, 5*time.Minute)
 	}
 
+	// status.dataSize mirrors status.size for a restic Backup (spec 042).
+	keepObj, err := envInstance.Dyn.Resource(backupGVR).Namespace(ns).Get(context.Background(), keepName, metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("get Backup %s: %v", keepName, err)
+	}
+	size, _, _ := unstructured.NestedString(keepObj.Object, "status", "size")
+	dataSize, _, _ := unstructured.NestedString(keepObj.Object, "status", "dataSize")
+	if size != "" && dataSize != size {
+		t.Fatalf("Backup %s status.dataSize=%q, want status.size %q", keepName, dataSize, size)
+	}
+
 	// All three snapshots are in the repository before anything is deleted.
 	present := resticSnapshotIDs(t)
 	for _, name := range []string{keepName, dropName, twiceName} {

@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: c5608982f8b8b5619ef0c0bc446995ecd231bf92d3c2dc5615bad2579107e906
+    gameplane.local/crd-bundle-sha256: d9367a3a24404dcad8ad7580e51c31f0b981239af94387630ad2578217b840a4
     controller-gen.kubebuilder.io/version: v0.22.0
   name: backups.gameplane.local
 spec:
@@ -348,6 +348,17 @@ spec:
                   - type
                   type: object
                 type: array
+              dataSize:
+                anyOf:
+                - type: integer
+                - type: string
+                description: |-
+                  DataSize is the size of the server's data when the backup was
+                  captured: Restic's total bytes processed, or the agent's game data
+                  directory usage for a CSI snapshot. Absent means unknown; it is never
+                  the volume capacity.
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
               message:
                 description: Message is a human-readable reason when Phase=Failed.
                 type: string

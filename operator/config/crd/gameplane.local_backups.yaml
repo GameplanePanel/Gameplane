@@ -347,6 +347,17 @@ spec:
                   - type
                   type: object
                 type: array
+              dataSize:
+                anyOf:
+                - type: integer
+                - type: string
+                description: |-
+                  DataSize is the size of the server's data when the backup was
+                  captured: Restic's total bytes processed, or the agent's game data
+                  directory usage for a CSI snapshot. Absent means unknown; it is never
+                  the volume capacity.
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
               message:
                 description: Message is a human-readable reason when Phase=Failed.
                 type: string
