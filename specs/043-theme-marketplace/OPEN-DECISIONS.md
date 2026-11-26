@@ -38,5 +38,5 @@ Raised by planning (research.md R1). Themes are per panel user (OD-1), while mod
 
 ## PR-B (bundlefetch extraction): unsettled values
 
-- **B1. Coverage total for `bundlefetch`.** `bundlefetch/.testcoverage.yml` sets `total: 90` (per the goal). Only `oci` and `verify` tests move there; the new `source/` package (git, archive, local, dirs, digests) is covered only by the operator's `modsrc` tests. Options: (a) keep 90 and add `bundlefetch/source/*_test.go` under a T002 addendum; (b) set a lower total now and raise it with the T012 tests. Open: needs valgul.
+- **B1. Coverage total for `bundlefetch`.** Not a decision after all: `bundlefetch/.testcoverage.yml` keeps `total: 90`, and PR-B adds new test files `bundlefetch/source/*_test.go` (new tests need no sign-off, see tasks.md "Tests"). If CI still reports under 90, more new tests are added; the gate is not lowered.
 - **B5. Logger hook in `bundlefetch/verify`.** `fulcioPools` used controller-runtime's `log.FromContext`, which cannot move. It now uses `logr.FromContext(ctx)` and falls back to `slog.ErrorContext` when the context has no logger. Warning text is unchanged. Open: needs valgul if another hook is preferred.

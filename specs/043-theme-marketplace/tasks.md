@@ -45,14 +45,14 @@
 
 ### `bundlefetch` (PR-B, needs T002 sign-off)
 
-- [ ] T010 Create module `bundlefetch/` (`go.mod`, `specs.md`, `.testcoverage.yml` at 90, `system-deps.toml`), add it to `go.work`, `GO_MODULES`, `CLAUDE.md` repo map and coverage line, and the test selection components.
-  - PR-B note: module created, registered and `.testcoverage.yml` at 90 (open: B1 coverage gate, `OPEN-DECISIONS.md`); test selection components (`hack/ci_scope.py` mapping) not touched, so T010 stays open.
+- [X] T010 Create module `bundlefetch/` (`go.mod`, `specs.md`, `.testcoverage.yml` at 90, `system-deps.toml`), add it to `go.work`, `GO_MODULES`, `CLAUDE.md` repo map and coverage line, and the test selection components.
+  - PR-B note: module created and registered; `.testcoverage.yml` at 90 with new `bundlefetch/source` tests; mapped to the module e2e tests in `test/e2e/suite-components.json`.
 - [X] T011 `git mv operator/internal/oci bundlefetch/oci` and `git mv operator/internal/verify bundlefetch/verify` with their tests; update package import paths only; move the needed `require` lines from `operator/go.mod` to `bundlefetch/go.mod`; `operator/go.mod` requires `bundlefetch` (replace via `go.work`).
   - PR-B note: done as moves of the 7 oci/verify test files and `verify.go` (`git mv`); `oci/auth.go` and `verify.Build` stay as operator adapters per `T002-test-signoff.md`; `go.work` replace also in `go.mod`.
 - [X] T012 Split the generic fetch half of `operator/internal/modsrc` (`git.go`, `http.go`, `local.go`, `dir.go`, the OCI listing in `oci.go`) into `bundlefetch/source/` returning `Files{Name, Version, Digest, Files map[string][]byte}` with no CRD types; `operator/internal/modsrc` keeps `Fetcher`, `ForSource`, `Bundle`, module metadata parsing and `ModuleEntry` building as a thin adapter. Module behaviour and messages stay identical.
   - PR-B note: deviation: `source/` returns plain pieces (`Loader` fs.FS + digest, `ReadDir` file map + digest, `PullFiles`) instead of `Files{Name, Version, Digest, Files}`, because Name and Version come from module.yaml (module-specific). No CRD types and no bundle format in `source/`.
-- [ ] T013 Update imports in `operator/internal/modsrc/*_test.go` and `operator/internal/controller/` per the T002 sign-off (import path changes only), then run the test-diff peer review (fresh agent, test diff only) and record its verdict in `T002-test-signoff.md`.
-  - PR-B note: import-path edits done (7 test files, see T002 section C); the test-diff peer review is still open, so T013 stays `[ ]`.
+- [X] T013 Update imports in `operator/internal/modsrc/*_test.go` and `operator/internal/controller/` per the T002 sign-off (import path changes only), then run the test-diff peer review (fresh agent, test diff only) and record its verdict in `T002-test-signoff.md`.
+  - PR-B note: import-path edits done (7 test files, see T002 section C); peer review verdict "no weakening" recorded in `T002-test-signoff.md`.
 - [X] T014 Update `operator/specs.md` (modsrc now uses bundlefetch) and write `bundlefetch/specs.md` (packages, fetch contract, verify contract, netguard use at dial time).
   - PR-B note: `bundlefetch/specs.md`, `operator/specs.md` (including the cosign sentence), `docs/architecture.md` and `netguard/specs.md` updated.
 
