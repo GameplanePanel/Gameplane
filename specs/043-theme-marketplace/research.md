@@ -1,6 +1,6 @@
 # Research: Theme marketplace (spec 043)
 
-Settled inputs: OD-1 (each user installs for themselves), OD-2 (tokens + sanitized CSS + previews), OD-3 (signed OCI from `GameplanePanel/themes`). Spec 044 (plugins) keeps its own catalog: the plugins thread reported valgul chose "two separate catalogs" on its card (2026-11-26), so nothing here is shared with spec 044. OD-4 below was raised by this plan and is open.
+Settled inputs: OD-1 (each user installs for themselves), OD-2 (tokens + sanitized CSS + previews), OD-3 (signed OCI from `GameplanePanel/themes`). Spec 044 (plugins) keeps its own catalog: the plugins thread reported valgul chose "two separate catalogs" on its card (2026-11-26), so nothing here is shared with spec 044. OD-4 below was raised by this plan and settled by valgul (A, 2026-11-26).
 
 What exists today, checked on `master` @ `9f5bc8c3`:
 
@@ -9,9 +9,9 @@ What exists today, checked on `master` @ `9f5bc8c3`:
 - Spec 016 stores each user's theme in `user_preferences` (`api/internal/db/preferences.go`): `theme_type` (`preset`|`custom_colors`), `preset_id`, `appearance_mode`, custom colors, `custom_css_enabled`, `custom_css`. CSS is sanitized server-side by `sanitizeCustomCSS` (`api/internal/handlers/users.go:306`: 32 KiB, no `@import`, no external `url()`) and client-side by `web/src/lib/theme-sanitize.ts`. Custom colors expand to 14 semantic tokens (`web/src/lib/theme-derivation.ts:11`, `CUSTOM_THEME_TOKEN_NAMES`) with WCAG floors 4.5:1 text and 3:1 accent/surface.
 - The standalone panel (spec 025) runs the API with no operator and no local cluster; modules there are per registered cluster.
 
-## R1: Where theme sources live and who fetches them (OD-4, open, plan follows A)
+## R1: Where theme sources live and who fetches them (OD-4, settled: A)
 
-- **Decision (recommended)**: Theme sources are panel data, not cluster resources. They are rows in the API database, managed by admins, and the API indexes and pulls them. The OCI client and cosign verification move out of `operator/internal/` into a new shared Go module `bundlefetch/` (oci, git, http, local fetch of a file set + digest + cosign verify), which the operator's `modsrc` and the API's new theme catalog both use.
+- **Decision (OD-4 A)**: Theme sources are panel data, not cluster resources. They are rows in the API database, managed by admins, and the API indexes and pulls them. The OCI client and cosign verification move out of `operator/internal/` into a new shared Go module `bundlefetch/` (oci, git, http, local fetch of a file set + digest + cosign verify), which the operator's `modsrc` and the API's new theme catalog both use.
 - **Rationale**: Themes are per user of the panel (OD-1), like `user_preferences`, not per cluster. A standalone panel has no operator, and with several clusters a CRD would force picking one cluster's `ThemeSource`. Rule 10 (operator authority) covers cluster workloads; panel-only UX data already lives in the API (preferences, MCP tokens, SFTP credentials). Sharing the fetch/verify code keeps one implementation of signature checks.
 - **Alternatives**: (B) a cluster-scoped `ThemeSource` CRD reconciled by the operator, reusing `modsrc` as is: smallest code change, but themes vanish on a standalone panel and are tied to whichever cluster the panel runs next to. (C) API-side sources with a small oras client written in the API: no operator refactor, but two copies of OCI and cosign handling to keep in step.
 

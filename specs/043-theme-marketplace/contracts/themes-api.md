@@ -1,6 +1,6 @@
 # Contract: themes API (spec 043)
 
-All routes under the API base path, JSON, session or bearer auth as today. Errors use the existing `httperr` shape. Follows OD-4 option A (open).
+All routes under the API base path, JSON, session or bearer auth as today. Errors use the existing `httperr` shape. Follows OD-4 A (settled).
 
 ## Theme sources (admin, `themes:manage`)
 

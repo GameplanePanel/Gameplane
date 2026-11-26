@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [x] No [NEEDS CLARIFICATION] markers remain (OD-1 to OD-3 settled by valgul 2026-11-26; OD-4 raised by planning, open)
+- [x] No [NEEDS CLARIFICATION] markers remain (OD-1 to OD-3 settled by valgul 2026-11-26; OD-4 settled 2026-11-26)
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)

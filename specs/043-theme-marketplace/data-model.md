@@ -1,6 +1,6 @@
 # Data model: Theme marketplace (spec 043)
 
-Follows OD-4 option A (open): theme sources are panel data in the API database. All tables arrive in one portable migration `api/internal/db/migrations/common/028_theme_marketplace.sql` (portable SQL per `api/internal/db/migrations/README.md`: timestamps bound from Go, no dialect-specific syntax). If OD-4 settles on B, `theme_sources` becomes a CRD and `theme_catalog_entries` its status plus a cache; the per-user tables stay as they are.
+Follows OD-4 A (settled 2026-11-26): theme sources are panel data in the API database. All tables arrive in one portable migration `api/internal/db/migrations/common/028_theme_marketplace.sql` (portable SQL per `api/internal/db/migrations/README.md`: timestamps bound from Go, no dialect-specific syntax).
 
 ## theme_sources
 
