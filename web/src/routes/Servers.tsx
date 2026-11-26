@@ -91,6 +91,12 @@ export function ServersPage() {
   const emptyValue = intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
   const inventoryUnavailable = intl.formatMessage({ id: "web.routes.servers.inventory_unavailable", defaultMessage: "inventory unavailable", description: "Servers: sub-label on the storage and inventory-nodes cards when inventory cannot be read" });
   const storage = cluster.usedStorageBytes === undefined ? { valueText: emptyValue, subText: inventoryUnavailable, overcommitted: false } : describeStorageProvisioned(cluster.usedStorageBytes, cluster.totalStorageBytes, intl, cluster.storageCapacitySource);
+  const unavailableBadge = intl.formatMessage({ id: "web.routes.servers.unavailable", defaultMessage: "Unavailable", description: "Servers: amber badge on a summary card whose data cannot be read; keep it short" });
+  const storageWarning = storage.overcommitted
+    ? intl.formatMessage({ id: "web.routes.servers.overcommitted", defaultMessage: "Overcommitted", description: "Servers: amber badge on the Storage provisioned card when provisioned storage exceeds capacity; keep it short" })
+    : cluster.usedStorageBytes === undefined
+      ? unavailableBadge
+      : undefined;
 
   // Derive distinct games and namespaces from servers
   const distinctGames = useMemo(() => {
@@ -200,7 +206,8 @@ export function ServersPage() {
             sub={error || (fleet?.partial && servers.length === 0)
               ? intl.formatMessage({ id: "web.routes.servers.server_status_unavailable", defaultMessage: "server status unavailable", description: "Servers: sub-label on the Running card when server data cannot be read" })
               : intl.formatMessage(runningSubLabel, { count: servers.length })}
-            accent={error || (fleet?.partial && servers.length === 0) ? "warning" : "success"}
+            accent="success"
+            warning={error || (fleet?.partial && servers.length === 0) ? unavailableBadge : undefined}
           />
           <StatCard
             label={intl.formatMessage({ id: "web.routes.servers.players_online", defaultMessage: "Players online", description: "Servers: label of the summary card for players online; the line under the number shows the peak or a note when counts are unavailable" })}
@@ -211,7 +218,8 @@ export function ServersPage() {
               : players.unknown
                 ? intl.formatMessage({ id: "web.routes.servers.player_counts_unavailable", defaultMessage: "{count} server player counts unavailable", description: "Servers: sub-label on the Players online card when some servers report no player count; {count} is how many" }, { count: players.unknown })
                 : intl.formatMessage({ id: "web.routes.servers.peak_players", defaultMessage: "peak {count}", description: "Servers: sub-label on the Players online card with the peak player count; {count} is the peak" }, { count: counts.playersMax })}
-            accent="primary"
+            accent="info"
+            warning={error || !players.known || (fleet?.partial && servers.length === 0) ? unavailableBadge : undefined}
           />
           <StatCard
             label={intl.formatMessage({ id: "web.routes.servers.vcpus", defaultMessage: "vCPUs", description: "Servers: label of the summary card with the total vCPU count; vCPU is a technical term, usually left untranslated" })}
@@ -227,7 +235,8 @@ export function ServersPage() {
             icon={<HardDrive className="h-4 w-4" />}
             value={storage.valueText}
             sub={storage.subText ?? emptyValue}
-            accent={storage.overcommitted ? "warning" : "violet"}
+            accent="teal"
+            warning={storageWarning}
           />
           <StatCard
             label={intl.formatMessage({ id: "web.routes.servers.inventory_nodes", defaultMessage: "Inventory nodes", description: "Servers: label of the summary card counting the nodes in the cluster inventory" })}
@@ -240,7 +249,8 @@ export function ServersPage() {
                 : inventory?.partial
                   ? intl.formatMessage({ id: "web.routes.servers.returned_nodes_only", defaultMessage: "returned nodes only", description: "Servers: sub-label on the inventory-nodes card when the inventory is partial" })
                   : intl.formatMessage({ id: "web.routes.servers.authorized_inventory_nodes", defaultMessage: "authorized inventory nodes", description: "Servers: sub-label on the inventory-nodes card" })}
-            accent="violet"
+            accent="slate"
+            warning={inventoryError ? unavailableBadge : undefined}
           />
         </div>
       )}
@@ -280,7 +290,7 @@ export function ServersPage() {
                 placeholder={intl.formatMessage({ id: "web.routes.servers.search_servers", defaultMessage: "Search servers…", description: "Servers: placeholder text inside the search box above the server list on wide screens, shown while the box is empty" })}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full pl-9"
+                className="h-10 w-full pl-9"
                 aria-label={intl.formatMessage({ id: "web.routes.servers.search_servers_2", defaultMessage: "Search servers", description: "Servers: screen-reader name of the server search box on wide and narrow screens; not shown on screen" })}
               />
             </div>
@@ -297,13 +307,13 @@ export function ServersPage() {
               isOpen={isFilterOpen}
               onOpenChange={handleOpenFilterChange}
             >
-              <div className="inline-flex items-center gap-2 rounded-[6px] px-3 py-2 text-sm font-medium border border-default-300 bg-default-100 hover:bg-default-200 cursor-pointer transition-colors">
+              <Button variant="outline" className="filter-trigger h-10 gap-2 px-3 md:h-10">
                 <Filter className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.servers.filter", defaultMessage: "Filter", description: "Servers: button that opens the filter panel, with a count of applied filters; keep it short" })}{appliedFacetCount > 0 && (
                   <Chip size="sm" variant="soft" className="ml-1.5">
                     {appliedFacetCount}
                   </Chip>
                 )}
-              </div>
+              </Button>
             </FilterPopover>
           </div>
         </div>
@@ -317,7 +327,7 @@ export function ServersPage() {
               placeholder={intl.formatMessage({ id: "web.routes.servers.search", defaultMessage: "Search…", description: "Servers: placeholder inside the search box shown on narrow screens; the short form of the search prompt" })}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-9 rounded-xl"
+              className="h-10 w-full pl-9 rounded-xl"
               aria-label={intl.formatMessage({ id: "web.routes.servers.search_servers_2", defaultMessage: "Search servers", description: "Servers: screen-reader name of the server search box on wide and narrow screens; not shown on screen" })}
             />
           </div>
@@ -334,11 +344,11 @@ export function ServersPage() {
             isOpen={isFilterOpen}
             onOpenChange={handleOpenFilterChange}
           >
-            <div className="filter-trigger relative inline-flex items-center justify-center w-10 h-10 rounded-xl border border-default-300 bg-default-100 hover:bg-default-200 cursor-pointer">
+            <Button isIconOnly variant="outline" className="filter-trigger relative h-10 w-10">
               <span className="sr-only">{intl.formatMessage({ id: "web.routes.servers.filter", defaultMessage: "Filter", description: "Servers: button that opens the filter panel, with a count of applied filters; keep it short" })}</span>
               <SlidersHorizontal className="h-[18px] w-[18px]" />
               {appliedFacetCount > 0 && <span className="absolute -right-1 -top-1 rounded-full bg-accent px-1 text-[10px] text-accent-foreground">{appliedFacetCount}</span>}
-            </div>
+            </Button>
           </FilterPopover>
         </div>
       )}
@@ -363,8 +373,7 @@ export function ServersPage() {
 
         </div>
       ) : (
-        <div className="rounded-lg border border-border bg-card overflow-hidden">
-          <Table.Root className="bg-transparent">
+          <Table.Root>
             <Table.ScrollContainer>
               <Table.Content aria-label={intl.formatMessage({ id: "web.routes.servers.server_list", defaultMessage: "Server list", description: "Servers: hidden name of the server list table, read only by screen readers" })} keyboardNavigationBehavior="arrow">
                 <Table.Header>
@@ -455,7 +464,6 @@ export function ServersPage() {
               </Table.Content>
             </Table.ScrollContainer>
           </Table.Root>
-        </div>
       )}
     </div>
   );
@@ -543,6 +551,7 @@ function ServerLifecycleActions({
         <ActionButton
           title={intl.formatMessage({ id: "web.routes.servers.wake", defaultMessage: "Wake", description: "Servers: tooltip of the icon button that wakes a sleeping server; keep it short" })}
           disabled={pending || !gs.fleetAccess?.canControl}
+          tone="start"
           onClick={() => onAct({ target: gs.fleetTarget, verb: "wake" })}
         >
           <Sunrise className="h-4 w-4" />
@@ -550,6 +559,7 @@ function ServerLifecycleActions({
       ) : (
         <ActionButton
           title={intl.formatMessage({ id: "web.routes.servers.start", defaultMessage: "Start", description: "Servers: tooltip of the icon button that starts a stopped server; keep it short" })}
+          tone="start"
           disabled={pending || !gs.fleetAccess?.canControl || phase === "Running" || phase === "Starting"}
           onClick={() => onAct({ target: gs.fleetTarget, verb: "start" })}
         >
@@ -563,6 +573,7 @@ function ServerLifecycleActions({
         // honors immediately, distinct from an idle sleep a wake window
         // would otherwise resurrect.
         disabled={pending || !gs.fleetAccess?.canControl || (!asleep && (phase === "Stopped" || phase === "Suspended"))}
+        tone="stop"
         onClick={() => onAct({ target: gs.fleetTarget, verb: "stop" })}
       >
         <Square className="h-4 w-4" />
@@ -624,7 +635,7 @@ function ServerCard({
             </div>
           </div>
         </div>
-        <PhaseChip phase={phase} asleep={asleep} className="px-1 py-0.5 text-[11px] leading-[13px] font-medium rounded-full" />
+        <PhaseChip phase={phase} asleep={asleep} />
       </div>
 
       {/* Row 2: Game label */}
@@ -650,13 +661,20 @@ function StatChip({ icon, value }: { icon: ReactNode; value: ReactNode }) {
   );
 }
 
+const actionHoverClass = {
+  start: "hover:text-success",
+  stop: "hover:text-danger",
+  neutral: "hover:text-foreground",
+} as const;
+
 function ActionButton({
-  children, title, onClick, disabled,
+  children, title, onClick, disabled, tone = "neutral",
 }: {
   children: ReactNode;
   title: string;
   onClick?: () => void;
   disabled?: boolean;
+  tone?: keyof typeof actionHoverClass;
 }) {
   return (
     <Button
@@ -666,7 +684,7 @@ function ActionButton({
       onPress={onClick}
       isDisabled={disabled}
       size="sm"
-      className="text-foreground/60 hover:text-foreground"
+      className={cn("text-foreground", actionHoverClass[tone])}
     >
       <span title={title}>{children}</span>
     </Button>
