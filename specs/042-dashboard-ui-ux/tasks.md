@@ -98,7 +98,7 @@ skills; finish with `design-export`.
 - [x] T033 [US4] Rename the card to "Total data size" and sum `dataSize` in `web/src/routes/tabs/Backups.tsx` (~L160), with coverage text when some backups lack it
 - [x] T034 [P] [US4] Same Size display on the Backups page `web/src/routes/Backups.tsx` and `web/src/components/backups/BackupDetailDrawer.tsx`
 - [x] T035 [P] [US4] Update `web/src/components/backups/BackupRow.test.tsx`, `web/src/components/backups/BackupDetailDrawer.test.tsx`, `web/src/routes/tabs/Backups.test.tsx`, `web/src/routes/Backups.test.tsx` for data size, added line and coverage text
-- [ ] T036 [US4] Changelog `changelog/unreleased/<PR>-backup-data-size.md` (new status field, card renamed)
+- [x] T036 [US4] Changelog `changelog/unreleased/<PR>-backup-data-size.md` (new status field, card renamed)
 - [x] T037 [US4] Old backups without `dataSize`: label per OD-8 in `web/src/components/backups/BackupSize.tsx`
 - [x] T038 [US4] Exclude them from the total and show the coverage text per OD-8 in `web/src/routes/tabs/Backups.tsx`
 
@@ -119,7 +119,7 @@ skills; finish with `design-export`.
 
 - [x] T043 Run `npx tsc --noEmit` in `web/` and `go build ./...` in `operator/` (compile checks only)
 - [x] T044 Browser smoke test at sonnet via Chrome MCP of quickstart.md steps 1–5 in dark and light, 1280 px and 390 px; screenshots to `/mnt/project-files/notes/042/`
-- [ ] T045 Changelog `changelog/unreleased/<PR>-dashboard-ui-polish.md` for the visual changes
+- [x] T045 Changelog `changelog/unreleased/<PR>-dashboard-ui-polish.md` for the visual changes
 - [x] T046 Fresh-agent peer review of every test diff (weakened / deleted / only replaced); sign-off card for anything weakened or deleted
 - [ ] T047 Once all tasks are done and merged, archive with `spec-archive` (`specs/done_042-dashboard-ui-ux`)
 
