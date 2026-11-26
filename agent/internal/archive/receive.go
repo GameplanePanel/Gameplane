@@ -146,7 +146,7 @@ func (rv *receiver) missingLength(r *http.Request) bool {
 // store writes exactly the declared number of bytes to the upload file and
 // fsyncs it. A body longer than declared returns errUploadOverflow.
 func (rv *receiver) store(body io.Reader) error {
-	if err := os.MkdirAll(rv.cfg.StagingDir, 0o755); err != nil {
+	if err := os.MkdirAll(rv.cfg.StagingDir, 0o750); err != nil {
 		return fmt.Errorf("create staging directory: %w", err)
 	}
 	f, err := os.OpenFile(rv.uploadPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
@@ -182,7 +182,7 @@ func (rv *receiver) unpack() {
 		if err := os.RemoveAll(rv.unpackDir); err != nil {
 			return UnpackResult{}, fmt.Errorf("clear unpack directory: %w", err)
 		}
-		if err := os.MkdirAll(rv.unpackDir, 0o755); err != nil {
+		if err := os.MkdirAll(rv.unpackDir, 0o750); err != nil {
 			return UnpackResult{}, fmt.Errorf("create unpack directory: %w", err)
 		}
 		return Unpack(rv.uploadPath, rv.unpackDir, UnpackOptions{

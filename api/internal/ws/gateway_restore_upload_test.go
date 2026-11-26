@@ -1,11 +1,20 @@
 package ws
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/GameplanePanel/gameplane/api/internal/gatewayprotocol"
 )
+
+// closeIfAny closes the response body of a call that returned one, so a
+// rejected call never leaks its connection.
+func closeIfAny(resp *http.Response) {
+	if resp != nil {
+		_ = resp.Body.Close()
+	}
+}
 
 // RestoreUploadStream refuses malformed calls before any network use: a
 // cluster that is not the target's, no body, an unknown length, and a server
@@ -21,27 +30,32 @@ func TestRestoreUploadStreamRejectsBadCallsWithoutDialing(t *testing.T) {
 	body := strings.NewReader("archive")
 	for name, call := range map[string]func() error{
 		"cluster mismatch": func() error {
-			_, err := client.RestoreUploadStream(t.Context(), "local", target, body, 7)
+			resp, err := client.RestoreUploadStream(t.Context(), "local", target, body, 7)
+			closeIfAny(resp)
 			return err
 		},
 		"nil body": func() error {
-			_, err := client.RestoreUploadStream(t.Context(), "remote", target, nil, 7)
+			resp, err := client.RestoreUploadStream(t.Context(), "remote", target, nil, 7)
+			closeIfAny(resp)
 			return err
 		},
 		"unknown length": func() error {
-			_, err := client.RestoreUploadStream(t.Context(), "remote", target, body, 0)
+			resp, err := client.RestoreUploadStream(t.Context(), "remote", target, body, 0)
+			closeIfAny(resp)
 			return err
 		},
 		"stale server uid": func() error {
 			stale := target
 			stale.UID = "replaced-uid"
-			_, err := client.RestoreUploadStream(t.Context(), "remote", stale, body, 7)
+			resp, err := client.RestoreUploadStream(t.Context(), "remote", stale, body, 7)
+			closeIfAny(resp)
 			return err
 		},
 		"invalid restore name": func() error {
 			bad := target
 			bad.Restore = "Bad/Name"
-			_, err := client.RestoreUploadStream(t.Context(), "remote", bad, body, 7)
+			resp, err := client.RestoreUploadStream(t.Context(), "remote", bad, body, 7)
+			closeIfAny(resp)
 			return err
 		},
 	} {

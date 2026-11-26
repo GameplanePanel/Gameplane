@@ -170,9 +170,12 @@ func (h *backupArchiveHandler) upload(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 	delivered := false
+	// Cleanup must survive a client disconnect, so it runs on a context
+	// detached from the request's cancellation.
+	cleanupCtx := context.WithoutCancel(req.Context())
 	defer func() {
 		if !delivered {
-			h.deleteRestore(req.Context(), k, ns, restoreName)
+			h.deleteRestore(cleanupCtx, k, ns, restoreName)
 		}
 	}()
 
@@ -422,10 +425,11 @@ func serverRefName(obj map[string]any) string {
 	return name
 }
 
-// deleteRestore removes an upload Restore once the request has ended. It runs
-// on a context detached from the request so a client disconnect does not skip it.
+// deleteRestore removes an upload Restore once the request has ended. The
+// caller passes a context detached from the request so a client disconnect
+// does not skip it; this function only adds its own timeout.
 func (h *backupArchiveHandler) deleteRestore(ctx context.Context, k *kube.Client, ns, name string) {
-	cctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), backupArchiveDeleteTimeout)
+	cctx, cancel := context.WithTimeout(ctx, backupArchiveDeleteTimeout)
 	defer cancel()
 	if err := kube.DeleteRestore(cctx, k.Dynamic, ns, name); err != nil {
 		slog.Warn("restore upload: delete restore failed", "restore", name, "err", err)

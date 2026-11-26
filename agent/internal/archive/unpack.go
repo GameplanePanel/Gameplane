@@ -727,8 +727,19 @@ type tarStream struct {
 	tr *tar.Reader
 }
 
+// openArchiveFile opens the archive at p through a root scoped to its directory.
+// The returned file stays valid after the root is closed.
+func openArchiveFile(p string) (*os.File, error) {
+	dir, err := os.OpenRoot(filepath.Dir(p))
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = dir.Close() }()
+	return dir.Open(filepath.Base(p))
+}
+
 func openTarStream(p string) (*tarStream, error) {
-	f, err := os.Open(p)
+	f, err := openArchiveFile(p)
 	if err != nil {
 		return nil, fmt.Errorf("open archive: %w", err)
 	}
@@ -756,7 +767,9 @@ func (s *tarStream) next() (rawEntry, error) {
 		hdr = h
 		break
 	}
-	e := rawEntry{name: hdr.Name, mode: fs.FileMode(hdr.Mode) & 0o777, linkname: hdr.Linkname}
+	// Masking in int64 first bounds the value to 0o777, so the conversion cannot overflow.
+	perm := hdr.Mode & 0o777
+	e := rawEntry{name: hdr.Name, mode: fs.FileMode(perm), linkname: hdr.Linkname}
 	switch hdr.Typeflag {
 	case tar.TypeReg:
 		e.kind = entryFile

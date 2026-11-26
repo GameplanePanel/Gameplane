@@ -62,7 +62,7 @@ func restoreUploadPathFor(t *testing.T, target gatewayprotocol.RestoreUploadTarg
 
 // workerTransport routes the gateway's upstream dial to a local TLS worker
 // double while keeping the production request shape.
-func workerTransport(t *testing.T, upstream *httptest.Server) func(TLSFiles) (*http.Transport, error) {
+func workerTransport(_ *testing.T, upstream *httptest.Server) func(TLSFiles) (*http.Transport, error) {
 	return func(TLSFiles) (*http.Transport, error) {
 		tr := upstream.Client().Transport.(*http.Transport).Clone()
 		tr.TLSClientConfig.ServerName = "127.0.0.1"

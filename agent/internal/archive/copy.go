@@ -94,7 +94,8 @@ func copyVolumes(stagingUnpacked, targets string, names []string) ([]string, err
 	return copied, nil
 }
 
-// dirTime is a directory whose mode and times are set after its contents.
+// dirTime is a directory whose mode and times are set after its contents. path
+// is relative to the root of the directory it belongs to.
 type dirTime struct {
 	path string
 	info fs.FileInfo
@@ -102,61 +103,73 @@ type dirTime struct {
 
 // copyVolume empties dst, which must be an existing mount, and copies the tree
 // at src into it. Modes, symlinks and modification times are preserved; owner
-// is left to the pod's fsGroup. The walk never follows symlinks.
+// is left to the pod's fsGroup. The walk never follows symlinks. Every
+// filesystem operation on either side goes through a root-scoped handle, so no
+// name can resolve outside src or dst.
 func copyVolume(src, dst string) error {
-	si, err := os.Lstat(src)
+	// os.OpenRoot follows a symlink at the top level; refuse one explicitly so a
+	// staged volume folder can never be redirected elsewhere.
+	if li, err := os.Lstat(src); err == nil && li.Mode()&fs.ModeSymlink != 0 {
+		return errors.New("staged volume is a symlink")
+	}
+	srcRoot, err := os.OpenRoot(src)
+	if err != nil {
+		return fmt.Errorf("staged volume: %w", err)
+	}
+	defer func() { _ = srcRoot.Close() }()
+	si, err := srcRoot.Stat(".")
 	if err != nil {
 		return fmt.Errorf("staged volume: %w", err)
 	}
 	if !si.IsDir() {
 		return errors.New("staged volume is not a directory")
 	}
-	di, err := os.Lstat(dst)
+	dstRoot, err := os.OpenRoot(dst)
+	if err != nil {
+		return fmt.Errorf("target mount: %w", err)
+	}
+	defer func() { _ = dstRoot.Close() }()
+	di, err := dstRoot.Stat(".")
 	if err != nil {
 		return fmt.Errorf("target mount: %w", err)
 	}
 	if !di.IsDir() {
 		return errors.New("target mount is not a directory")
 	}
-	if err := clearDir(dst); err != nil {
+	if err := clearDir(dstRoot); err != nil {
 		return err
 	}
 
 	var dirs []dirTime
-	err = filepath.WalkDir(src, func(p string, d fs.DirEntry, walkErr error) error {
+	err = fs.WalkDir(srcRoot.FS(), ".", func(rel string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
-		rel, err := filepath.Rel(src, p)
-		if err != nil {
-			return err
-		}
-		out := filepath.Join(dst, rel)
 		info, err := d.Info()
 		if err != nil {
 			return err
 		}
 		switch {
 		case rel == ".":
-			dirs = append(dirs, dirTime{path: dst, info: info})
+			dirs = append(dirs, dirTime{path: ".", info: info})
 			return nil
 		case info.IsDir():
-			if err := os.Mkdir(out, 0o700); err != nil {
+			if err := dstRoot.Mkdir(rel, 0o700); err != nil {
 				return fmt.Errorf("create directory %q: %w", rel, err)
 			}
-			dirs = append(dirs, dirTime{path: out, info: info})
+			dirs = append(dirs, dirTime{path: rel, info: info})
 			return nil
 		case info.Mode().IsRegular():
-			return copyFile(p, out, info)
+			return copyFile(srcRoot, dstRoot, rel, info)
 		case info.Mode()&fs.ModeSymlink != 0:
-			target, err := os.Readlink(p)
+			target, err := srcRoot.Readlink(rel)
 			if err != nil {
 				return fmt.Errorf("read symlink %q: %w", rel, err)
 			}
 			if filepath.IsAbs(target) {
 				return fmt.Errorf("symlink %q has an absolute target", rel)
 			}
-			if err := os.Symlink(target, out); err != nil {
+			if err := dstRoot.Symlink(target, rel); err != nil {
 				return fmt.Errorf("create symlink %q: %w", rel, err)
 			}
 			return nil
@@ -169,10 +182,10 @@ func copyVolume(src, dst string) error {
 	// Deepest directories first, so a read-only parent is fixed after its children.
 	for i := len(dirs) - 1; i >= 0; i-- {
 		dt := dirs[i]
-		if err := os.Chmod(dt.path, dt.info.Mode().Perm()); err != nil {
+		if err := dstRoot.Chmod(dt.path, dt.info.Mode().Perm()); err != nil {
 			return fmt.Errorf("set directory mode: %w", err)
 		}
-		if err := os.Chtimes(dt.path, dt.info.ModTime(), dt.info.ModTime()); err != nil {
+		if err := dstRoot.Chtimes(dt.path, dt.info.ModTime(), dt.info.ModTime()); err != nil {
 			return fmt.Errorf("set directory times: %w", err)
 		}
 	}
@@ -180,39 +193,41 @@ func copyVolume(src, dst string) error {
 }
 
 // clearDir removes every entry inside dir but keeps dir itself, the mount point.
-func clearDir(dir string) error {
-	entries, err := os.ReadDir(dir)
+// Entries are removed through dir, so a symlink is removed rather than followed.
+func clearDir(dir *os.Root) error {
+	entries, err := fs.ReadDir(dir.FS(), ".")
 	if err != nil {
 		return fmt.Errorf("read target mount: %w", err)
 	}
 	for _, e := range entries {
-		if err := os.RemoveAll(filepath.Join(dir, e.Name())); err != nil {
+		if err := dir.RemoveAll(e.Name()); err != nil {
 			return fmt.Errorf("clear target mount: %w", err)
 		}
 	}
 	return nil
 }
 
-// copyFile copies one regular file, keeping its permission bits and mtime.
-func copyFile(src, dst string, info fs.FileInfo) error {
-	in, err := os.OpenFile(src, os.O_RDONLY|syscall.O_NOFOLLOW, 0)
+// copyFile copies one regular file named rel from srcRoot to dstRoot, keeping
+// its permission bits and mtime.
+func copyFile(srcRoot, dstRoot *os.Root, rel string, info fs.FileInfo) error {
+	in, err := srcRoot.OpenFile(rel, os.O_RDONLY|syscall.O_NOFOLLOW, 0)
 	if err != nil {
-		return fmt.Errorf("open %q: %w", filepath.Base(src), err)
+		return fmt.Errorf("open %q: %w", filepath.Base(rel), err)
 	}
 	defer func() { _ = in.Close() }()
-	out, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+	out, err := dstRoot.OpenFile(rel, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
-		return fmt.Errorf("create %q: %w", filepath.Base(dst), err)
+		return fmt.Errorf("create %q: %w", filepath.Base(rel), err)
 	}
 	if _, err := io.Copy(out, in); err != nil {
 		_ = out.Close()
-		return fmt.Errorf("copy %q: %w", filepath.Base(src), err)
+		return fmt.Errorf("copy %q: %w", filepath.Base(rel), err)
 	}
 	if err := out.Close(); err != nil {
-		return fmt.Errorf("close %q: %w", filepath.Base(dst), err)
+		return fmt.Errorf("close %q: %w", filepath.Base(rel), err)
 	}
-	if err := os.Chmod(dst, info.Mode().Perm()); err != nil {
-		return fmt.Errorf("set mode of %q: %w", filepath.Base(dst), err)
+	if err := dstRoot.Chmod(rel, info.Mode().Perm()); err != nil {
+		return fmt.Errorf("set mode of %q: %w", filepath.Base(rel), err)
 	}
-	return os.Chtimes(dst, info.ModTime(), info.ModTime())
+	return dstRoot.Chtimes(rel, info.ModTime(), info.ModTime())
 }
