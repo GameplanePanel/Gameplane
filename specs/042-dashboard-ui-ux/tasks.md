@@ -118,7 +118,7 @@ skills; finish with `design-export`.
 ## Phase 9: Polish and cross-cutting
 
 - [x] T043 Run `npx tsc --noEmit` in `web/` and `go build ./...` in `operator/` (compile checks only)
-- [ ] T044 Browser smoke test at sonnet via Chrome MCP of quickstart.md steps 1–5 in dark and light, 1280 px and 390 px; screenshots to `/mnt/project-files/notes/042/`
+- [x] T044 Browser smoke test at sonnet via Chrome MCP of quickstart.md steps 1–5 in dark and light, 1280 px and 390 px; screenshots to `/mnt/project-files/notes/042/`
 - [ ] T045 Changelog `changelog/unreleased/<PR>-dashboard-ui-polish.md` for the visual changes
 - [x] T046 Fresh-agent peer review of every test diff (weakened / deleted / only replaced); sign-off card for anything weakened or deleted
 - [ ] T047 Once all tasks are done and merged, archive with `spec-archive` (`specs/done_042-dashboard-ui-ux`)
