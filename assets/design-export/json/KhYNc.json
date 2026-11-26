@@ -167,7 +167,7 @@
               "x": 24,
               "y": 134,
               "width": 1132,
-              "height": 52,
+              "height": 40,
               "component": "Gameplane/Server Detail Tabs",
               "componentId": "1:466",
               "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -176,7 +176,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 12, 0],
+                "padding": [0, 0, 0, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -202,7 +202,7 @@
               "name": "Mods Header",
               "type": "FRAME",
               "x": 24,
-              "y": 210,
+              "y": 198,
               "width": 1132,
               "height": 36,
               "layout": {
@@ -307,7 +307,7 @@
               "name": "Mods By ID Explainer",
               "type": "FRAME",
               "x": 24,
-              "y": 270,
+              "y": 258,
               "width": 1132,
               "height": 41,
               "fills": [{"type": "SOLID", "color": "#232128"}],
@@ -377,7 +377,7 @@
               "name": "Add Mods Toolbar",
               "type": "FRAME",
               "x": 24,
-              "y": 335,
+              "y": 323,
               "width": 1132,
               "height": 40,
               "layout": {
@@ -509,7 +509,7 @@
               "name": "Selected Mods Section",
               "type": "FRAME",
               "x": 24,
-              "y": 399,
+              "y": 387,
               "width": 1132,
               "height": 234,
               "layout": {
@@ -1158,7 +1158,7 @@
               "name": "Save Footer",
               "type": "FRAME",
               "x": 24,
-              "y": 657,
+              "y": 645,
               "width": 1132,
               "height": 52,
               "strokes": [{"type": "SOLID", "color": "#2C2932"}],

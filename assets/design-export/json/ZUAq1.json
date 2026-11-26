@@ -167,7 +167,7 @@
               "x": 24,
               "y": 134,
               "width": 1132,
-              "height": 52,
+              "height": 40,
               "component": "Gameplane/Server Detail Tabs",
               "componentId": "1:466",
               "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -176,7 +176,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 12, 0],
+                "padding": [0, 0, 0, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -202,9 +202,9 @@
               "name": "Settings Content",
               "type": "FRAME",
               "x": 24,
-              "y": 210,
+              "y": 198,
               "width": 1132,
-              "height": 682,
+              "height": 694,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
@@ -223,7 +223,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 224,
-                  "height": 682,
+                  "height": 694,
                   "component": "Gameplane/Server Settings Sub Nav",
                   "componentId": "1:1289",
                   "fills": [{"type": "SOLID", "color": "#17151A"}],
@@ -263,7 +263,7 @@
                   "x": 224,
                   "y": 0,
                   "width": 908,
-                  "height": 682,
+                  "height": 694,
                   "layout": {
                     "mode": "VERTICAL",
                     "gap": 0,
@@ -282,7 +282,7 @@
                       "x": 0,
                       "y": 0,
                       "width": 908,
-                      "height": 682,
+                      "height": 694,
                       "layout": {
                         "mode": "VERTICAL",
                         "gap": 0,

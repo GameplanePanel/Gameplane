@@ -167,7 +167,7 @@
               "x": 24,
               "y": 126,
               "width": 1132,
-              "height": 52,
+              "height": 40,
               "component": "Gameplane/Server Detail Tabs",
               "componentId": "1:466",
               "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -176,7 +176,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 12, 0],
+                "padding": [0, 0, 0, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -202,7 +202,7 @@
               "name": "Install Header",
               "type": "FRAME",
               "x": 24,
-              "y": 194,
+              "y": 182,
               "width": 1132,
               "height": 65,
               "layout": {
@@ -468,7 +468,7 @@
               "name": "Upload Dropzone",
               "type": "FRAME",
               "x": 24,
-              "y": 275,
+              "y": 263,
               "width": 1132,
               "height": 148,
               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
@@ -540,7 +540,7 @@
               "name": "Upload Note",
               "type": "TEXT",
               "x": 24,
-              "y": 439,
+              "y": 427,
               "width": 1132,
               "height": 14,
               "fills": [{"type": "SOLID", "color": "#9E98A6"}],
@@ -554,7 +554,7 @@
               "name": "Upload Footer",
               "type": "FRAME",
               "x": 24,
-              "y": 469,
+              "y": 457,
               "width": 1132,
               "height": 32,
               "layout": {

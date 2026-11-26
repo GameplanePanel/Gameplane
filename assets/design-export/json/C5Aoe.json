@@ -703,7 +703,7 @@
                   "height": 36,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "CENTER",
@@ -717,7 +717,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 252,
+                      "width": 216,
                       "height": 36,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -725,8 +725,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:8584",
@@ -769,7 +770,7 @@
                           "type": "FRAME",
                           "x": 42,
                           "y": 0,
-                          "width": 210,
+                          "width": 174,
                           "height": 36,
                           "layout": {
                             "mode": "VERTICAL",
@@ -779,6 +780,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -787,9 +789,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 135,
+                              "width": 174,
                               "height": 18,
                               "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "user-server-test",
                               "font": ["JetBrains Mono", 500, 14],
                               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
@@ -800,9 +803,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 210,
+                              "width": 174,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "—",
                               "font": ["JetBrains Mono", 400, 12],
                               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
@@ -815,7 +819,7 @@
                       "id": "1:8589",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 252,
+                      "x": 216,
                       "y": 8,
                       "width": 99,
                       "height": 20,

@@ -218,7 +218,7 @@
                   "height": 52,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "MIN",
@@ -232,7 +232,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 250,
+                      "width": 232,
                       "height": 52,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -240,8 +240,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:6832",
@@ -284,7 +285,7 @@
                           "type": "FRAME",
                           "x": 40,
                           "y": 0,
-                          "width": 210,
+                          "width": 192,
                           "height": 52,
                           "layout": {
                             "mode": "VERTICAL",
@@ -294,6 +295,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -302,9 +304,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 78,
+                              "width": 192,
                               "height": 20,
                               "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "mc-survival",
                               "font": ["Geist", 500, 14],
                               "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
@@ -316,9 +319,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 141,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "local / gameplane-games",
                               "font": ["Geist", 400, 12],
                               "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
@@ -330,9 +334,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 36,
-                              "width": 210,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "mc.frp.gameplane.dev:25565",
                               "font": ["JetBrains Mono", 400, 12],
                               "lineHeight": {"value": 133.3299994468689, "unit": "PERCENT"},
@@ -346,7 +351,7 @@
                       "id": "1:6838",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 250,
+                      "x": 232,
                       "y": 0,
                       "width": 80,
                       "height": 20,
@@ -487,7 +492,7 @@
                   "height": 52,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "MIN",
@@ -501,7 +506,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 250,
+                      "width": 247,
                       "height": 52,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -509,8 +514,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:6846",
@@ -553,7 +559,7 @@
                           "type": "FRAME",
                           "x": 40,
                           "y": 0,
-                          "width": 210,
+                          "width": 207,
                           "height": 52,
                           "layout": {
                             "mode": "VERTICAL",
@@ -563,6 +569,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -571,9 +578,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 53,
+                              "width": 207,
                               "height": 20,
                               "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "mc-test",
                               "font": ["Geist", 500, 14],
                               "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
@@ -585,9 +593,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 141,
+                              "width": 207,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "local / gameplane-games",
                               "font": ["Geist", 400, 12],
                               "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
@@ -599,9 +608,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 36,
-                              "width": 210,
+                              "width": 207,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "—",
                               "font": ["JetBrains Mono", 400, 12],
                               "lineHeight": {"value": 133.3299994468689, "unit": "PERCENT"},
@@ -615,7 +625,7 @@
                       "id": "1:6852",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 250,
+                      "x": 247,
                       "y": 0,
                       "width": 65,
                       "height": 20,
@@ -756,7 +766,7 @@
                   "height": 52,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "MIN",
@@ -770,7 +780,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 250,
+                      "width": 241,
                       "height": 52,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -778,8 +788,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:6860",
@@ -822,7 +833,7 @@
                           "type": "FRAME",
                           "x": 40,
                           "y": 0,
-                          "width": 210,
+                          "width": 201,
                           "height": 52,
                           "layout": {
                             "mode": "VERTICAL",
@@ -832,6 +843,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -840,9 +852,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 108,
+                              "width": 201,
                               "height": 20,
                               "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "user-server-test",
                               "font": ["Geist", 500, 14],
                               "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
@@ -854,9 +867,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 141,
+                              "width": 201,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "local / gameplane-games",
                               "font": ["Geist", 400, 12],
                               "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
@@ -868,9 +882,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 36,
-                              "width": 210,
+                              "width": 201,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "—",
                               "font": ["JetBrains Mono", 400, 12],
                               "lineHeight": {"value": 133.3299994468689, "unit": "PERCENT"},
@@ -884,7 +899,7 @@
                       "id": "1:6866",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 250,
+                      "x": 241,
                       "y": 0,
                       "width": 71,
                       "height": 20,
@@ -1025,7 +1040,7 @@
                   "height": 52,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "MIN",
@@ -1039,7 +1054,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 250,
+                      "width": 232,
                       "height": 52,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -1047,8 +1062,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:6874",
@@ -1091,7 +1107,7 @@
                           "type": "FRAME",
                           "x": 40,
                           "y": 0,
-                          "width": 210,
+                          "width": 192,
                           "height": 52,
                           "layout": {
                             "mode": "VERTICAL",
@@ -1101,6 +1117,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -1109,9 +1126,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 97,
+                              "width": 192,
                               "height": 20,
                               "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "test-server-09",
                               "font": ["Geist", 500, 14],
                               "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
@@ -1123,9 +1141,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 77,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "local / default",
                               "font": ["Geist", 400, 12],
                               "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
@@ -1137,9 +1156,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 36,
-                              "width": 209,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "test-server-09.gameplane-dem…",
                               "font": ["JetBrains Mono", 400, 12],
                               "lineHeight": {"value": 133.3299994468689, "unit": "PERCENT"},
@@ -1153,7 +1173,7 @@
                       "id": "1:6880",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 250,
+                      "x": 232,
                       "y": 0,
                       "width": 80,
                       "height": 20,
@@ -1294,7 +1314,7 @@
                   "height": 52,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "MIN",
@@ -1308,7 +1328,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 250,
+                      "width": 232,
                       "height": 52,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -1316,8 +1336,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:6888",
@@ -1360,7 +1381,7 @@
                           "type": "FRAME",
                           "x": 40,
                           "y": 0,
-                          "width": 210,
+                          "width": 192,
                           "height": 52,
                           "layout": {
                             "mode": "VERTICAL",
@@ -1370,6 +1391,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -1378,9 +1400,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 78,
+                              "width": 192,
                               "height": 20,
                               "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "mc-survival",
                               "font": ["Geist", 500, 14],
                               "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
@@ -1392,9 +1415,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 141,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "local / gameplane-games",
                               "font": ["Geist", 400, 12],
                               "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
@@ -1406,9 +1430,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 36,
-                              "width": 210,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "mc.frp.gameplane.dev:25565",
                               "font": ["JetBrains Mono", 400, 12],
                               "lineHeight": {"value": 133.3299994468689, "unit": "PERCENT"},
@@ -1422,7 +1447,7 @@
                       "id": "1:6894",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 250,
+                      "x": 232,
                       "y": 0,
                       "width": 80,
                       "height": 20,

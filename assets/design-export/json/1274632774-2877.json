@@ -160,7 +160,7 @@
               "x": 24,
               "y": 118,
               "width": 1132,
-              "height": 52,
+              "height": 40,
               "component": "Gameplane/Server Detail Tabs",
               "componentId": "1:466",
               "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
@@ -169,7 +169,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 12, 0],
+                "padding": [0, 0, 0, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -194,7 +194,7 @@
               "name": "Active Modpack Card",
               "type": "INSTANCE",
               "x": 24,
-              "y": 186,
+              "y": 174,
               "width": 1132,
               "height": 106,
               "component": "Gameplane/Active Modpack Card",
@@ -226,7 +226,7 @@
               "name": "Modpacks Heading",
               "type": "FRAME",
               "x": 24,
-              "y": 308,
+              "y": 296,
               "width": 1132,
               "height": 34,
               "layout": {
@@ -270,7 +270,7 @@
               "name": "Filters Row",
               "type": "FRAME",
               "x": 24,
-              "y": 358,
+              "y": 346,
               "width": 1132,
               "height": 40,
               "layout": {
@@ -369,7 +369,7 @@
               "name": "Category Chips",
               "type": "FRAME",
               "x": 24,
-              "y": 414,
+              "y": 402,
               "width": 1132,
               "height": 24,
               "layout": {
@@ -525,7 +525,7 @@
               "name": "Modpacks Grid",
               "type": "FRAME",
               "x": 24,
-              "y": 454,
+              "y": 442,
               "width": 1132,
               "height": 220,
               "layout": {
@@ -1477,7 +1477,7 @@
               "name": "Load More Row",
               "type": "FRAME",
               "x": 24,
-              "y": 690,
+              "y": 678,
               "width": 1132,
               "height": 32,
               "layout": {
