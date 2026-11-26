@@ -59,6 +59,11 @@ interface FilterPopoverProps {
   contentClassName?: string;
   /** Additional draft filter fields, above the optional game/namespace facets. */
   fields?: ReactNode;
+  /**
+   * True when children is itself a pressable Button: it then opens the popover
+   * directly instead of being wrapped in a second role="button" trigger.
+   */
+  triggerIsButton?: boolean;
 }
 
 /**
@@ -80,13 +85,16 @@ export function FilterPopover({
   onOpenChange,
   contentClassName,
   fields,
+  triggerIsButton = false,
 }: FilterPopoverProps) {
   const intl = useOptionalIntl();
   return (
     <Popover isOpen={isOpen} onOpenChange={onOpenChange}>
-      <Popover.Trigger>
-        {children}
-      </Popover.Trigger>
+      {triggerIsButton ? children : (
+        <Popover.Trigger>
+          {children}
+        </Popover.Trigger>
+      )}
       <Popover.Content className={cn("w-[280px] max-w-[calc(100vw-2rem)] max-h-[min(36rem,80vh)] overflow-y-auto bg-surface p-1", contentClassName)}>
         <div className="space-y-0">
           {fields && <div className="space-y-3 px-2 py-2">{fields}</div>}

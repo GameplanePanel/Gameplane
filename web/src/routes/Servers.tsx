@@ -306,6 +306,7 @@ export function ServersPage() {
               onClear={handleClearFilter}
               isOpen={isFilterOpen}
               onOpenChange={handleOpenFilterChange}
+              triggerIsButton
             >
               <Button variant="outline" className="filter-trigger h-10 gap-2 px-3 md:h-10">
                 <Filter className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.servers.filter", defaultMessage: "Filter", description: "Servers: button that opens the filter panel, with a count of applied filters; keep it short" })}{appliedFacetCount > 0 && (
@@ -343,6 +344,7 @@ export function ServersPage() {
             onClear={handleClearFilter}
             isOpen={isFilterOpen}
             onOpenChange={handleOpenFilterChange}
+            triggerIsButton
           >
             <Button isIconOnly variant="outline" className="filter-trigger relative h-10 w-10">
               <span className="sr-only">{intl.formatMessage({ id: "web.routes.servers.filter", defaultMessage: "Filter", description: "Servers: button that opens the filter panel, with a count of applied filters; keep it short" })}</span>
