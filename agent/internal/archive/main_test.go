@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -36,7 +38,7 @@ func TestMainUsageErrorsReturn2(t *testing.T) {
 }
 
 func TestMainValidModesNotImplemented(t *testing.T) {
-	for _, mode := range []string{"export", "receive", "copy"} {
+	for _, mode := range []string{"receive", "copy"} {
 		t.Run(mode, func(t *testing.T) {
 			var buf bytes.Buffer
 			if got := Main(context.Background(), []string{mode, "--uid", "u"}, &buf); got != 3 {
@@ -92,6 +94,30 @@ func TestParseFlagsAllFlags(t *testing.T) {
 	}
 	if opts != want {
 		t.Errorf("parseFlags = %+v, want %+v", opts, want)
+	}
+}
+
+func TestMainExportModeFailsWithoutConfig(t *testing.T) {
+	// Clear every variable exportConfigFromEnv reads so the test does not
+	// depend on the ambient environment.
+	for _, name := range []string{"ARCHIVE_SNAPSHOT_ID", "ARCHIVE_FORMAT", "ARCHIVE_MANIFEST"} {
+		t.Setenv(name, "")
+	}
+	term := filepath.Join(t.TempDir(), "term")
+	var buf bytes.Buffer
+	got := Main(context.Background(), []string{"export", "--uid", "u", "--termination-log", term}, &buf)
+	if got == 2 || got == 3 {
+		t.Fatalf("Main exit code = %d, want a run failure (1)", got)
+	}
+	if got != 1 {
+		t.Fatalf("Main exit code = %d, want 1", got)
+	}
+	b, err := os.ReadFile(term)
+	if err != nil {
+		t.Fatalf("termination log not written: %v", err)
+	}
+	if len(b) == 0 {
+		t.Fatal("termination log is empty")
 	}
 }
 

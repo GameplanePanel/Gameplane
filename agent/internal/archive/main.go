@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
 	"time"
 )
 
@@ -34,6 +35,9 @@ func Main(ctx context.Context, args []string, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		writeUsage(stderr)
 		return 2
+	}
+	if opts.Mode == "export" {
+		return runExport(ctx, opts, os.Getenv, stderr)
 	}
 	fmt.Fprintf(stderr, "%s: not implemented yet\n", opts.Mode)
 	return 3
