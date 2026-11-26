@@ -96,7 +96,7 @@
       "type": "INSTANCE",
       "x": 28,
       "y": 280,
-      "width": 640,
+      "width": 704,
       "height": 60,
       "component": "Gameplane/Inline Notice/Warning",
       "fills": [{"type": "SOLID", "color": "#FEF3C7"}],

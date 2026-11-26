@@ -53,11 +53,11 @@
           "y": 24,
           "width": 580,
           "height": 18,
-          "fills": [{"type": "SOLID", "color": "#F7B750"}],
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
           "layoutAlignSelf": "STRETCH",
           "text": "Upload backup",
           "font": ["Geist", 600, 14],
-          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
+          "variables": {"fontFamily": "typography/font-sans"}
         },
         {
           "name": "Hint",

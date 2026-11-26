@@ -90,7 +90,7 @@
       "type": "INSTANCE",
       "x": 28,
       "y": 256,
-      "width": 640,
+      "width": 704,
       "height": 60,
       "component": "Gameplane/Inline Notice/Warning",
       "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
@@ -104,17 +104,14 @@
         "sizing": ["FIXED", "HUG"]
       },
       "variables": {"fills/0/color": "warning/soft"},
-      "texts": [
-        "Older game version",
-        "Captured with 1.20.6. This server runs 1.21.4. Restore asks you to confirm."
-      ]
+      "texts": ["Older game version", "Captured with 1.20.6. This server runs 1.21.4."]
     },
     {
       "name": "Notice",
       "type": "INSTANCE",
       "x": 28,
       "y": 326,
-      "width": 640,
+      "width": 704,
       "height": 60,
       "component": "Gameplane/Inline Notice/Warning",
       "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
@@ -138,7 +135,7 @@
       "type": "INSTANCE",
       "x": 28,
       "y": 396,
-      "width": 640,
+      "width": 704,
       "height": 80,
       "component": "Gameplane/Inline Notice/Danger",
       "fills": [{"type": "SOLID", "color": "#2E1317"}],

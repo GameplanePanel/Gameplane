@@ -785,7 +785,7 @@
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 12, 0, 12],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -1007,7 +1007,7 @@
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 12, 0, 12],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -1029,13 +1029,15 @@
                             {
                               "name": "Download Button",
                               "type": "INSTANCE",
-                              "x": 59,
+                              "x": 67,
                               "y": 8,
-                              "width": 100,
+                              "width": 104,
                               "height": 32,
-                              "component": "Gameplane/Button/Small/Ghost",
-                              "componentId": "1:1124",
+                              "component": "Gameplane/Button/Outline",
+                              "componentId": "1:770",
                               "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokeWeight": 1,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 0,
@@ -1249,7 +1251,7 @@
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 12, 0, 12],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -1271,7 +1273,7 @@
                             {
                               "name": "No download (snapshot)",
                               "type": "TEXT",
-                              "x": 59,
+                              "x": 67,
                               "y": 15.5,
                               "width": 12,
                               "height": 17,

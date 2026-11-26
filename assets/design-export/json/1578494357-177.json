@@ -75,19 +75,6 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
     {
-      "name": "Checkbox",
-      "type": "FRAME",
-      "x": 28,
-      "y": 267,
-      "width": 16,
-      "height": 16,
-      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
-      "strokeWeight": 1,
-      "cornerRadius": 4,
-      "clips": true,
-      "variables": {"strokes/0/color": "field/border"}
-    },
-    {
       "name": "Completed",
       "type": "TEXT",
       "x": 56,
@@ -124,9 +111,9 @@
     {
       "name": "Primary Button",
       "type": "INSTANCE",
-      "x": 644,
+      "x": 668,
       "y": 308,
-      "width": 88,
+      "width": 64,
       "height": 36,
       "component": "Gameplane/Button/Default",
       "componentId": "1:306",
@@ -140,6 +127,24 @@
         "sizing": ["HUG", "HUG"]
       },
       "texts": ["Next"]
+    },
+    {
+      "name": "Checkbox",
+      "type": "INSTANCE",
+      "x": 28,
+      "y": 267,
+      "width": 16,
+      "height": 16,
+      "component": "Checkbox/Checked",
+      "componentId": "1:6050",
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["HUG", "HUG"]
+      }
     }
   ]
 }
