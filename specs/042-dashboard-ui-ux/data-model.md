@@ -19,8 +19,8 @@ Existing fields, unchanged:
 
 - Written once, when the backup reaches `Succeeded`; never rewritten.
 - Restic: `dataSize = total_bytes_processed` (only when > 0).
-- CSI snapshot: `dataSize = GameServer.status.agent.diskUsedBytes` captured at snapshot
-  admission if the agent's last heartbeat is no older than 10 minutes; otherwise empty.
+- CSI snapshot: `dataSize = GameServer.status.agent.diskUsedBytes` read when the snapshot
+  completes (game still quiesced) if the last heartbeat is no older than 10 minutes; otherwise empty.
 - Never set from the volume capacity.
 - Backups created before the operator upgrade have no `dataSize` (see OD-8 for display).
 

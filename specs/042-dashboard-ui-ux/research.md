@@ -77,7 +77,7 @@ Facts checked on master `0195f508`.
     reads the files, so this is the data size. Same value as today's `size`.
   - **CSI snapshot**: the GameServer's `status.agent.diskUsedBytes`
     (`gameserver_types.go:1081-1086`, measured by the agent every 5 minutes,
-    `agent/internal/usage/disk.go`) read when the snapshot is admitted, only if the agent
+    `agent/internal/usage/disk.go`) read when the snapshot completes (the game is still quiesced), only if the agent
     sample is fresh (within 10 minutes of the last heartbeat); otherwise left empty.
   - `size` and `bytesAdded` keep their meaning (no breaking change).
 - **Rationale**: FR-030/031 for every method with no new agent work; the operator stays
