@@ -125,7 +125,7 @@
     "name": "Screen/Server Detail — Modpacks",
     "width": 1440,
     "height": 900,
-    "hash": "cfcb062557b579880ebc60dd458828906717e7507d7171aed4c83af114ae18d3"
+    "hash": "cfae3ad2a34d648f10b2ff4aaff5c22db584f5eb7e202d9814d07df8fa782c55"
   },
   {
     "file": "dPP50",
@@ -1597,7 +1597,7 @@
     "name": "Screen/Mobile — Server Detail — Modpacks",
     "width": 390,
     "height": 1100,
-    "hash": "4ee3db6de351d8a97e1e010c54325a6732962dce35abb57b9be4879c7324472d"
+    "hash": "69348e172048d0999cf2a25bdcae7cbefb6ff2744b17db394af963128d28bf0f"
   },
   {
     "file": "1274632774-4001",
@@ -2014,5 +2014,37 @@
     "width": 1440,
     "height": 1150,
     "hash": "da9bb47d976e135bd3f86917b96a931bd875519b3af29b236ea5538fe878e764"
+  },
+  {
+    "file": "1730846790-11",
+    "figId": "1730846790:11",
+    "name": "Screen/Server Detail — Modpacks (All loaders)",
+    "width": 1440,
+    "height": 900,
+    "hash": "c0e91a3fb9461523766a70d6d923519c61e6804606be757d294ec1beac0c2c25"
+  },
+  {
+    "file": "1730846790-322",
+    "figId": "1730846790:322",
+    "name": "Screen/Server Detail — Modpacks — Choose version (All loaders)",
+    "width": 1440,
+    "height": 900,
+    "hash": "56e999c946fd33fd12eab345ea0d5f072b6c7967344ee1ddc1528c34a6f8212d"
+  },
+  {
+    "file": "1730846790-741",
+    "figId": "1730846790:741",
+    "name": "Screen/Server Detail — Modpacks — Choose version (No runnable version)",
+    "width": 1440,
+    "height": 900,
+    "hash": "4bfaa5603508cd24c41ad252a2b8895bc08e9f87f12c8e2884dc9396033b6b93"
+  },
+  {
+    "file": "1730846790-1140",
+    "figId": "1730846790:1140",
+    "name": "Screen/Server Detail — Modpacks — Confirm install (version change)",
+    "width": 1440,
+    "height": 900,
+    "hash": "2067c6aa2cea0105de012aea40e7b8c36e37daafc71c054bee95ef6ca6c8ddea"
   }
 ]
