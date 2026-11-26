@@ -143,7 +143,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [16, 24, 16, 24],
+                "padding": [16, 0, 16, 0],
                 "primary": "SPACE_BETWEEN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -167,7 +167,7 @@
               "x": 24,
               "y": 134,
               "width": 1132,
-              "height": 40,
+              "height": 52,
               "component": "Gameplane/Server Detail Tabs",
               "componentId": "1:466",
               "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -176,7 +176,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 0, 24],
+                "padding": [0, 0, 12, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -202,7 +202,7 @@
               "name": "Mods Header",
               "type": "FRAME",
               "x": 24,
-              "y": 198,
+              "y": 210,
               "width": 1132,
               "height": 36,
               "layout": {
@@ -307,7 +307,7 @@
               "name": "Mods By ID Explainer",
               "type": "FRAME",
               "x": 24,
-              "y": 258,
+              "y": 270,
               "width": 1132,
               "height": 41,
               "fills": [{"type": "SOLID", "color": "#232128"}],
@@ -377,7 +377,7 @@
               "name": "Add Mods Toolbar",
               "type": "FRAME",
               "x": 24,
-              "y": 323,
+              "y": 335,
               "width": 1132,
               "height": 40,
               "layout": {
@@ -509,7 +509,7 @@
               "name": "Selected Mods Section",
               "type": "FRAME",
               "x": 24,
-              "y": 387,
+              "y": 399,
               "width": 1132,
               "height": 234,
               "layout": {
@@ -1158,7 +1158,7 @@
               "name": "Save Footer",
               "type": "FRAME",
               "x": 24,
-              "y": 645,
+              "y": 657,
               "width": 1132,
               "height": 52,
               "strokes": [{"type": "SOLID", "color": "#2C2932"}],

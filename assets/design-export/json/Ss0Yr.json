@@ -143,7 +143,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [16, 24, 16, 24],
+                "padding": [16, 0, 16, 0],
                 "primary": "SPACE_BETWEEN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -167,7 +167,7 @@
               "x": 24,
               "y": 126,
               "width": 1132,
-              "height": 40,
+              "height": 52,
               "component": "Gameplane/Server Detail Tabs",
               "componentId": "1:466",
               "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -176,7 +176,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 0, 24],
+                "padding": [0, 0, 12, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -202,7 +202,7 @@
               "name": "Install Header",
               "type": "FRAME",
               "x": 24,
-              "y": 182,
+              "y": 194,
               "width": 1132,
               "height": 65,
               "layout": {
@@ -468,7 +468,7 @@
               "name": "From URL Card",
               "type": "FRAME",
               "x": 24,
-              "y": 263,
+              "y": 275,
               "width": 1132,
               "height": 253,
               "fills": [{"type": "SOLID", "color": "#1C1A20"}],

@@ -110,7 +110,7 @@
           "x": 0,
           "y": 64,
           "width": 1180,
-          "height": 936,
+          "height": 1016,
           "fills": [{"type": "SOLID", "color": "#121114"}],
           "layout": {
             "mode": "VERTICAL",
@@ -160,7 +160,7 @@
               "x": 24,
               "y": 118,
               "width": 1132,
-              "height": 40,
+              "height": 52,
               "component": "Gameplane/Server Detail Tabs",
               "componentId": "1:466",
               "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -169,7 +169,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 0, 0],
+                "padding": [0, 0, 12, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -194,7 +194,7 @@
               "name": "Active Modpack Card",
               "type": "INSTANCE",
               "x": 24,
-              "y": 174,
+              "y": 186,
               "width": 1132,
               "height": 106,
               "component": "Gameplane/Active Modpack Card",
@@ -226,7 +226,7 @@
               "name": "Missing Files Notice",
               "type": "FRAME",
               "x": 24,
-              "y": 296,
+              "y": 308,
               "width": 1132,
               "height": 221,
               "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
@@ -687,7 +687,7 @@
               "name": "Modpacks Heading",
               "type": "FRAME",
               "x": 24,
-              "y": 533,
+              "y": 545,
               "width": 1132,
               "height": 34,
               "layout": {
@@ -731,7 +731,7 @@
               "name": "Filters Row",
               "type": "FRAME",
               "x": 24,
-              "y": 583,
+              "y": 595,
               "width": 1132,
               "height": 40,
               "layout": {
@@ -830,7 +830,7 @@
               "name": "Category Chips",
               "type": "FRAME",
               "x": 24,
-              "y": 639,
+              "y": 651,
               "width": 1132,
               "height": 17,
               "layout": {
@@ -871,7 +871,7 @@
               "name": "Modpacks Grid",
               "type": "FRAME",
               "x": 24,
-              "y": 672,
+              "y": 684,
               "width": 1132,
               "height": 220,
               "layout": {
@@ -1823,7 +1823,7 @@
               "name": "Load More Row",
               "type": "FRAME",
               "x": 24,
-              "y": 908,
+              "y": 920,
               "width": 1132,
               "height": 32,
               "layout": {

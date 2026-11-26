@@ -465,7 +465,7 @@
           "x": 0,
           "y": 172,
           "width": 1180,
-          "height": 40,
+          "height": 52,
           "component": "Gameplane/Server Detail Tabs",
           "componentId": "1:466",
           "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -474,7 +474,7 @@
           "layout": {
             "mode": "HORIZONTAL",
             "gap": 0,
-            "padding": [0, 24, 0, 24],
+            "padding": [0, 24, 12, 24],
             "primary": "MIN",
             "counter": "CENTER",
             "sizing": ["FIXED", "HUG"]
@@ -500,9 +500,9 @@
           "name": "Body",
           "type": "FRAME",
           "x": 0,
-          "y": 212,
+          "y": 224,
           "width": 1180,
-          "height": 1108,
+          "height": 1096,
           "fills": [{"type": "SOLID", "color": "#121114"}],
           "layout": {
             "mode": "VERTICAL",

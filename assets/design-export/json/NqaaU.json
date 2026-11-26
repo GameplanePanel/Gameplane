@@ -143,7 +143,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [16, 24, 16, 24],
+                "padding": [16, 0, 16, 0],
                 "primary": "SPACE_BETWEEN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -167,7 +167,7 @@
               "x": 24,
               "y": 134,
               "width": 1132,
-              "height": 40,
+              "height": 52,
               "component": "Gameplane/Server Detail Tabs",
               "componentId": "1:466",
               "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -176,7 +176,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 0, 24],
+                "padding": [0, 0, 12, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -202,9 +202,9 @@
               "name": "Settings Content",
               "type": "FRAME",
               "x": 24,
-              "y": 198,
+              "y": 210,
               "width": 1132,
-              "height": 714,
+              "height": 702,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
@@ -223,7 +223,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 224,
-                  "height": 714,
+                  "height": 702,
                   "component": "Gameplane/Server Settings Sub Nav",
                   "componentId": "1:1289",
                   "fills": [{"type": "SOLID", "color": "#17151A"}],
@@ -263,7 +263,7 @@
                   "x": 224,
                   "y": 0,
                   "width": 908,
-                  "height": 714,
+                  "height": 702,
                   "layout": {
                     "mode": "VERTICAL",
                     "gap": 0,
@@ -282,7 +282,7 @@
                       "x": 0,
                       "y": 0,
                       "width": 908,
-                      "height": 714,
+                      "height": 702,
                       "layout": {
                         "mode": "VERTICAL",
                         "gap": 0,
