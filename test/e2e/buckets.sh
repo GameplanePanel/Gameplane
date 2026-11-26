@@ -505,6 +505,16 @@ TestBackup_PreparationAndSameNodeCopy
 EOF
 }
 
+# backup-archives (spec 041) gets its own job so its restic backups, staging
+# claims and upload restores cannot disturb the operator bucket's parallel
+# servers. Admin logins: two (one per test), plus one viewer-role login in
+# TestBackupArchives_Download. amd64 only, like sftp.
+bucket_backup_archives() { cat <<'EOF'
+TestBackupArchives_Download
+TestBackupArchives_UploadRestore
+EOF
+}
+
 # TestGameServer_Modpack_BlockedModManualDownload (spec 035, T046) is excluded
 # from every CI bucket: its last step needs a jar the operator downloads by
 # hand in a browser (CurseForge serves a blocked mod only to a browser
@@ -547,7 +557,7 @@ EOF
 }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery standalone sftp
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation backup-archives monitoring recovery standalone sftp
 }
 
 list_bucket() {
@@ -574,6 +584,7 @@ list_bucket() {
 	restricted-workloads) bucket_restricted_workloads ;;
 	management-placement) bucket_management_placement ;;
 	backup-preparation) bucket_backup_preparation ;;
+	backup-archives) bucket_backup_archives ;;
 	recovery) bucket_recovery ;;
 	standalone) bucket_standalone ;;
 	sftp) bucket_sftp ;;

@@ -46,7 +46,7 @@
 - [X] T018 [P] [US1] i18n keys for download messages in the shared packs; `make check-i18n` runs in CI.
 - [X] T019 [P] [US1] `web/src/lib/api.ts` `backupDownloadURL`, types in `web/src/types.ts`.
 - [X] T020 [US1] `web/src/routes/tabs/Backups.tsx`: Download action with format choice and the "contains every server file" note (FR-019), hidden for volume-snapshot backups and without `backups:read`; tests in a new `Backups_download.test.tsx`. Needs T005 sign-off.
-- [ ] T021 [US1] E2E `test/e2e/backup_archives_e2e_test.go`: download tar.gz and zip, checksum against data; viewer permission; CSI refusal; remote cluster download in the `multicluster` bucket if a remote fixture is needed there. Register bucket `backup-archives` in `test/e2e/buckets.sh`.
+- [X] T021 [US1] E2E `test/e2e/backup_archives_e2e_test.go`: download tar.gz and zip, checksum against data; viewer permission; CSI refusal; remote cluster download in the `multicluster` bucket if a remote fixture is needed there. Register bucket `backup-archives` in `test/e2e/buckets.sh`.
 
 ## Phase 4: User Story 2 - Restore from an uploaded archive (P2)
 
@@ -62,7 +62,7 @@
 - [X] T029 [P] [US2] i18n keys for upload and restore messages.
 - [X] T030 [P] [US2] `web/src/lib/api.ts` `uploadRestore` (XHR progress), `confirmRestore`; types.
 - [X] T031 [US2] Backups tab Upload backup flow: file picker, format detect, "not a Gameplane archive" + game select, upload progress, check summary with warnings, overwrite and partial-copy risk confirmation, result; tests in new `Backups_upload.test.tsx`. Needs T005 sign-off.
-- [ ] T032 [US2] E2E in `backup_archives_e2e_test.go`: Gameplane archive restore, wrong game, plain archive, unsafe set, interrupted upload leaves server running and no staging PVC.
+- [X] T032 [US2] E2E in `backup_archives_e2e_test.go`: Gameplane archive restore, wrong game, plain archive, unsafe set, interrupted upload leaves server running and no staging PVC.
 
 ## Phase 5: Polish
 
