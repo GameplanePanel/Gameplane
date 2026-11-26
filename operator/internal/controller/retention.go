@@ -65,6 +65,9 @@ func (r *BackupScheduleReconciler) trimBackups(
 		case gameplanev1alpha1.RestorePhaseSucceeded, gameplanev1alpha1.RestorePhaseFailed:
 			continue
 		}
+		if rs.Spec.BackupRef == nil {
+			continue
+		}
 		pinned[rs.Spec.BackupRef.Name] = true
 	}
 

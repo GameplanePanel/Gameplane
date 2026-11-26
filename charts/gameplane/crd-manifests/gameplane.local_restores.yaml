@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: c5608982f8b8b5619ef0c0bc446995ecd231bf92d3c2dc5615bad2579107e906
+    gameplane.local/crd-bundle-sha256: e12b1273041b23bb3ba78e4224cfb34b64d0d453f0a8e84f80389e3b0bd78b12
     controller-gen.kubebuilder.io/version: v0.22.0
   name: restores.gameplane.local
 spec:
@@ -60,7 +60,8 @@ spec:
             properties:
               backupRef:
                 description: |-
-                  BackupRef is the source Backup. Must live in the same namespace
+                  BackupRef is the source Backup. Exactly one of backupRef and upload is set.
+                  Must live in the same namespace
                   and have status.phase=Succeeded with a non-empty snapshotID.
                 properties:
                   name:
@@ -88,10 +89,61 @@ spec:
                 required:
                 - name
                 type: object
+              upload:
+                description: |-
+                  Upload restores the target from an uploaded archive instead of a Backup
+                  (spec 041). The archive is checked on a temporary staging volume and
+                  copied over the target only after the user confirms; it is not kept.
+                properties:
+                  confirmed:
+                    description: |-
+                      Confirmed is set by the user after reviewing status.upload. It can
+                      only change from false to true.
+                    type: boolean
+                  confirmedTemplate:
+                    description: |-
+                      ConfirmedTemplate is the GameTemplate the user said a plain archive
+                      (no Gameplane manifest) is for (OD-4). Required for plain archives.
+                    maxLength: 253
+                    type: string
+                  declaredBytes:
+                    description: DeclaredBytes is the Content-Length the API accepted.
+                    format: int64
+                    minimum: 1
+                    type: integer
+                  fileName:
+                    description: FileName as uploaded, for audit and display only.
+                    maxLength: 255
+                    minLength: 1
+                    type: string
+                  format:
+                    enum:
+                    - tar.gz
+                    - zip
+                    type: string
+                required:
+                - declaredBytes
+                - fileName
+                - format
+                type: object
+                x-kubernetes-validations:
+                - message: confirmed cannot be cleared
+                  rule: '!has(oldSelf.confirmed) || !oldSelf.confirmed || (has(self.confirmed)
+                    && self.confirmed)'
+                - message: upload fields other than confirmed are immutable
+                  rule: self.fileName == oldSelf.fileName && self.format == oldSelf.format
+                    && self.declaredBytes == oldSelf.declaredBytes && (has(self.confirmedTemplate)
+                    == has(oldSelf.confirmedTemplate)) && (!has(self.confirmedTemplate)
+                    || self.confirmedTemplate == oldSelf.confirmedTemplate)
             required:
-            - backupRef
             - serverRef
             type: object
+            x-kubernetes-validations:
+            - message: exactly one of backupRef and upload is required
+              rule: has(self.backupRef) != has(self.upload)
+            - message: restore source cannot change
+              rule: has(self.backupRef) == has(oldSelf.backupRef) && has(self.upload)
+                == has(oldSelf.upload)
           status:
             description: RestoreStatus is the observed state of a Restore.
             properties:
@@ -165,6 +217,8 @@ spec:
                 description: RestorePhase is a high-level state for a Restore job.
                 enum:
                 - Pending
+                - Receiving
+                - AwaitingConfirmation
                 - Suspending
                 - Running
                 - Resuming
@@ -263,6 +317,65 @@ spec:
                   Job.
                 format: date-time
                 type: string
+              upload:
+                description: Upload is set for upload restores (spec 041).
+                properties:
+                  kind:
+                    description: Kind is "gameplane" (manifest found) or "plain".
+                    type: string
+                  manifest:
+                    description: |-
+                      ArchiveManifestSummary is the part of an archive manifest shown before
+                      confirmation.
+                    properties:
+                      capturedAt:
+                        format: date-time
+                        type: string
+                      cluster:
+                        type: string
+                      formatVersion:
+                        format: int32
+                        type: integer
+                      gameVersion:
+                        type: string
+                      namespace:
+                        type: string
+                      serverName:
+                        type: string
+                      serverUID:
+                        type: string
+                      templateName:
+                        type: string
+                      templateRevision:
+                        type: string
+                      volumes:
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                  receivedAt:
+                    description: ReceivedAt is when the whole file reached the staging
+                      volume.
+                    format: date-time
+                    type: string
+                  receiverService:
+                    description: ReceiverService is the ClusterIP Service the API
+                      or gateway streams the upload to.
+                    type: string
+                  stagingClaimName:
+                    description: StagingClaimName is the temporary PVC (OD-7); deleted
+                      when the restore ends.
+                    type: string
+                  unpackedBytes:
+                    format: int64
+                    type: integer
+                  warnings:
+                    description: Warnings are shown before confirmation (older game
+                      version, zip permission reset).
+                    items:
+                      type: string
+                    type: array
+                type: object
             type: object
         type: object
     served: true

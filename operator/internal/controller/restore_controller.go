@@ -77,6 +77,9 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		rs.Status.Phase == gameplanev1alpha1.RestorePhaseFailed {
 		return r.cleanupRestore(ctx, &rs)
 	}
+	if rs.Spec.Upload != nil {
+		return r.reconcileUpload(ctx, &rs)
+	}
 
 	// Pin the snapshotID at first observation so retention can't pull
 	// the rug out from under us mid-restore.
