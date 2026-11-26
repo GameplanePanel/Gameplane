@@ -1,18 +1,22 @@
 import { useResourceAccess, useResourceClient, useResourceTarget, resourceKey, useResourcePermissions, resourceCan } from "@/lib/resourceTarget";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, CalendarClock, Clock, HardDrive } from "lucide-react";
+import { Archive, CalendarClock, Clock, HardDrive, Upload } from "lucide-react";
 import { Button, Table } from "@heroui/react";
 import { StatCard } from "@/components/ui/StatCard";
 import { PhaseChip, backupAwaitingSnapshot } from "@/components/ui/PhaseChip";
 
 import { APIError } from "@/lib/api";
+import { canUploadBackups, restoreSourceName } from "@/lib/backupArchives";
 import { useBackupDestinations } from "@/lib/destinations";
 import { backupReadOptions, isAuthorizationError, useBackupAccessKey } from "@/lib/backupReadOptions";
 import { formatBytes, formatRelative, formatRelativeFuture, parseQuantityToBytes } from "@/lib/utils";
 import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { ScheduleForm } from "@/components/backups/ScheduleForm";
 import { RestoreDialog } from "@/components/backups/RestoreDialog";
+import { BackupDownloadDialog } from "@/components/backups/BackupDownloadDialog";
+import { DownloadAction } from "@/components/backups/DownloadAction";
+import { UploadBackupDialog } from "@/components/backups/UploadBackupDialog";
 import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
 import { BackupSize } from "@/components/backups/BackupSize";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -40,6 +44,8 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
   const [deleting, setDeleting] = useState<BackupSchedule | null>(null);
   const [restoringBackup, setRestoringBackup] = useState<Backup | null>(null);
   const [selectedBackup, setSelectedBackup] = useState<string | null>(null);
+  const [downloadingBackup, setDownloadingBackup] = useState<Backup | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { data: backupsData, error: backupRequestError } = useQuery({
     queryKey: [...resourceKey(resourceTarget, "backups"), "access", accessKey],
@@ -258,7 +264,7 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
                 key={r.metadata.name}
                 className="flex justify-between rounded border border-border bg-surface/30 px-4 py-2 text-sm"
               >
-                <span className="font-mono">{r.spec.backupRef.name}</span>
+                <span className="font-mono">{restoreSourceName(r)}</span>
                 <span className="text-foreground/60">
                   <PhaseChip phase={r.status?.phase} />
                   {r.status?.completionTime &&
@@ -276,17 +282,25 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
           {/* The disabled reason lives on a wrapping element's title
               (react-aria's Button strips a bare `title` prop) so the
               button's accessible name stays its visible text. */}
-          <span title={backupNowHint}>
-            <Button
-              size="sm"
-              onPress={() => createNow.mutate()}
-              isDisabled={backupNowDisabled}
-            >
-              {createNow.isPending
-                ? intl.formatMessage({ id: "web.routes.tabs.backups.starting", defaultMessage: "Starting…", description: "Backups: label of the Back up now button while the backup is being started" })
-                : intl.formatMessage({ id: "web.routes.tabs.backups.back_up_now", defaultMessage: "Back up now", description: "Backups: label of the button that starts a backup immediately" })}
-            </Button>
-          </span>
+          <div className="flex items-center gap-2">
+            <span title={backupNowHint}>
+              <Button
+                size="sm"
+                onPress={() => createNow.mutate()}
+                isDisabled={backupNowDisabled}
+              >
+                {createNow.isPending
+                  ? intl.formatMessage({ id: "web.routes.tabs.backups.starting", defaultMessage: "Starting…", description: "Backups: label of the Back up now button while the backup is being started" })
+                  : intl.formatMessage({ id: "web.routes.tabs.backups.back_up_now", defaultMessage: "Back up now", description: "Backups: label of the button that starts a backup immediately" })}
+              </Button>
+            </span>
+            {canUploadBackups(permissions) && (
+              <Button size="sm" variant="outline" onPress={() => setUploading(true)}>
+                <Upload className="h-4 w-4" aria-hidden="true" />
+                {intl.formatMessage({ id: "web.routes.tabs.backups.upload_backup", defaultMessage: "Upload backup", description: "Backups tab: button that opens the dialog for restoring this server from an uploaded .tar.gz or .zip archive; keep it short" })}
+              </Button>
+            )}
+          </div>
         </div>
         {createNow.error && <ErrorBanner err={createNow.error} />}
         <Table.Root>
@@ -318,13 +332,14 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
                         {formatRelative(b.status?.completionTime, intl)}
                       </Table.Cell>
                       <Table.Cell onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-end">
+                        <div className="flex items-center justify-end gap-2">
                           <Button
                             size="sm"
                             variant="outline"
                             isDisabled={!restorable || !resourceCan(permissions, "backups:restore")}
                             onPress={() => setRestoringBackup(b)}
                           >{intl.formatMessage({ id: "web.routes.tabs.backups.restore", defaultMessage: "Restore", description: "Backups tab: row button that opens the restore dialog for one backup; disabled when the backup cannot be restored; keep it short" })}</Button>
+                          <DownloadAction backup={b} permissions={permissions} onDownload={setDownloadingBackup} />
                         </div>
                       </Table.Cell>
                     </Table.Row>
@@ -336,6 +351,15 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
         </Table.Root>
       </section>
 
+      <BackupDownloadDialog
+        backup={backupsDenied ? null : downloadingBackup}
+        target={resourceTarget}
+        ns={ns}
+        onClose={() => setDownloadingBackup(null)}
+      />
+      {uploading && canUploadBackups(permissions) && (
+        <UploadBackupDialog serverName={name} target={resourceTarget} ns={ns} onClose={() => setUploading(false)} />
+      )}
       <RestoreDialog
         backup={backupsDenied ? null : restoringBackup}
         defaultServer={name}

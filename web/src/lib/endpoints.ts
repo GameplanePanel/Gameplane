@@ -989,6 +989,7 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
 
   const Restores = {
     list: (ns?: string) => api<List<Restore>>(withNS("/restores", ns)),
+    get: (name: string, ns?: string, signal?: AbortSignal) => api<Restore>(withNS(`/restores/${name}`, ns), { signal }),
     create: (opts: RestoreCreate, ns?: string) => {
       const { name, generateName, ...spec } = opts;
       const ident = name ? { name } : { generateName: generateName ?? "restore-" };
