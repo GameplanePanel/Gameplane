@@ -11,6 +11,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -76,7 +77,7 @@ func readTarGz(t *testing.T, data []byte) archiveFiles {
 	out := archiveFiles{}
 	for {
 		hdr, err := tr.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return out
 		}
 		if err != nil {
@@ -206,13 +207,21 @@ func archiveBackup(t *testing.T, ns, gs, name string) {
 }
 
 // archiveDownload GETs a backup archive as cli.
-func archiveDownload(t *testing.T, cli *APIClient, ns, backup, format string) (*http.Response, []byte) {
+// archiveResult is the status and headers of a finished download; the body
+// is already read and closed.
+type archiveResult struct {
+	StatusCode int
+	Header     http.Header
+}
+
+func archiveDownload(t *testing.T, cli *APIClient, ns, backup, format string) (archiveResult, []byte) {
 	t.Helper()
 	resp, body, err := cli.Get("/backups/" + backup + ":download?namespace=" + url.QueryEscape(ns) + "&format=" + url.QueryEscape(format))
 	if err != nil {
 		t.Fatalf("download %s as %s: %v", backup, format, err)
 	}
-	return resp, body
+	_ = resp.Body.Close()
+	return archiveResult{StatusCode: resp.StatusCode, Header: resp.Header}, body
 }
 
 // archiveUpload POSTs a raw archive body to /restores:upload. size is the
@@ -222,7 +231,7 @@ func archiveUpload(cli *APIClient, ns, server, format, fileName, template string
 	if template != "" {
 		q.Set("template", template)
 	}
-	req, err := http.NewRequest(http.MethodPost, cli.BaseURL+"/restores:upload?"+q.Encode(), body)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, cli.BaseURL+"/restores:upload?"+q.Encode(), body)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -293,6 +302,7 @@ func archiveConfirm(t *testing.T, cli *APIClient, ns string, rs *unstructured.Un
 	if err != nil {
 		t.Fatalf("confirm %s: %v", rs.GetName(), err)
 	}
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusAccepted {
 		t.Fatalf("confirm %s: %d %s", rs.GetName(), resp.StatusCode, body)
 	}
