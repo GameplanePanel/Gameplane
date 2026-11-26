@@ -45,7 +45,7 @@ metadata:
   labels: {{- include "gameplane.labels" $ | nindent 4 }}
 rules:
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers, networkcaptures]
+    resources: [gameservers, networkcaptures, backups, backupexports]
     verbs: [get]
   - apiGroups: [""]
     resources: [services]
