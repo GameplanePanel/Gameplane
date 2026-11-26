@@ -31,7 +31,7 @@ spec:
   {{- if eq $type "git" }}
   git:
     url: {{ $src.git.url | quote }}
-    ref: {{ $src.git.ref | default "main" | quote }}
+    ref: {{ $src.git.ref | default "master" | quote }}
     {{- with $src.git.subPath }}
     subPath: {{ . | quote }}
     {{- end }}
