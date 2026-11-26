@@ -98,7 +98,7 @@ network capture.
 **Acceptance Scenarios**:
 
 1. **Given** a running server, **When** its pill renders, **Then** it shows a green dot.
-2. **Given** a stopped server, **Then** grey; **given** a sleeping server, **then** blue;
+2. **Given** a stopped server, **Then** grey; **given** a sleeping server, **then** violet (the existing sleep colour);
    **given** starting, stopping, suspending or resuming, **then** amber; **given** failed,
    **then** red.
 3. **Given** any screen that shows a pill, **When** it renders, **Then** the pill text is
@@ -207,7 +207,7 @@ settings and sees at a glance where each value sits on its range.
 - **FR-003**: Every table MUST have exactly one frame; the extra outer frame MUST be
   removed on Servers, Backups and Users and any other table found with it.
 - **FR-004**: The status pill MUST match the surrounding text size and show a coloured
-  dot (green running/succeeded, grey stopped/pending/suspended, blue asleep, amber
+  dot (green running/succeeded, grey stopped/pending/suspended, violet (sleep colour) asleep, amber
   in-transition, red failed) on every screen that uses it, Dashboard included.
 - **FR-005**: Every slider MUST show a fill in the brand colour from its start to its
   handle, with one shared look.

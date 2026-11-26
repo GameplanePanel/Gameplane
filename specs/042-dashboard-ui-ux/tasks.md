@@ -9,7 +9,7 @@ test to match this spec needs no sign-off but gets a fresh-agent peer review of 
 diff; deleting or weakening one needs valgul's written sign-off.
 
 **Gates**: no React before valgul approves the design export (T009). T037, T038 wait on
-OD-8; T014 waits on OD-9. Nothing is pushed until valgul says go.
+OD-8. Nothing is pushed until valgul says go.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -47,7 +47,7 @@ skills; finish with `design-export`.
 - [ ] T011 Move the `.tabs__list.w-fit` rules onto every horizontal `.tabs__list` and set the selected radius to 12 px in `web/src/styles/globals.css`; keep the Server detail main tab bar spread full width; remove the then-redundant `w-fit` classes listed by T002
 - [ ] T012 [P] Add a shared `.range` slider style (filled track via `--fill`, WebKit + Firefox thumbs, disabled state) to `web/src/styles/globals.css`
 - [ ] T013 [P] Remove the extra outer frame around the tables listed in research.md "Audit set" (Servers, Backups, NodeInventory, CaptureWidget, ShareLinks; Users if the browser shows a double frame)
-- [ ] T014 [US2] Rework `web/src/components/ui/PhaseChip.tsx`: text-size pill with leading dot (green running/succeeded, grey stopped/pending/suspended, amber in-transition, red failed, Asleep per OD-9); update `web/src/components/ui/PhaseChip.test.tsx` to the spec
+- [ ] T014 [US2] Rework `web/src/components/ui/PhaseChip.tsx`: text-size pill with leading dot (green running/succeeded, grey stopped/pending/suspended, amber in-transition, red failed, Asleep violet per OD-9); update `web/src/components/ui/PhaseChip.test.tsx` to the spec
 - [ ] T015 [US2] Remove per-call size overrides on `PhaseChip` (e.g. `web/src/routes/Servers.tsx:627`) in all call sites: `Dashboard.tsx`, `Servers.tsx`, `ServerDetail.tsx`, `Backups.tsx`, `tabs/Backups.tsx`, `components/backups/BackupRow.tsx`, `components/backups/BackupDetailDrawer.tsx`, `components/CaptureWidget.tsx`
 
 **Checkpoint**: shared rules visible app-wide; Dashboard changes only through the pill (FR-051).
@@ -131,7 +131,7 @@ skills; finish with `design-export`.
 - Phase 1 → Phase 2 (design) → **valgul approval (T009)** → Phase 3 → Phases 4–8 → Phase 9.
 - Operator part of US4 (T026–T030) has no design dependency and may start after Phase 1.
 - US1 depends on T010 (tokens) and T013; US2 is T014–T015 (+ T021); US3 depends on T010, T011; US4 web depends on T026, T031; US5 depends on T012.
-- T014 waits on OD-9; T037–T038 wait on OD-8.
+- T037–T038 wait on OD-8.
 
 ## Parallel examples
 

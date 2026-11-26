@@ -7,7 +7,7 @@ These hold for every screen, not just the four reviewed ones.
 | Corner shape | 12 px for buttons, inputs, tabs, segmented controls, cards. Full pill only for the page's single main action and small labels (status pill, count badge, chip). |
 | Tab lists | Horizontal tabs size to their label and never wrap. Selected highlight 12 px. |
 | Tables | One frame per table. |
-| Status pill | Text size of its row, leading dot: green Running/Succeeded, grey Stopped/Pending/Suspended, sleep colour Asleep (OD-9), amber Starting/Stopping/Suspending/Resuming, red Failed. |
+| Status pill | Text size of its row, leading dot: green Running/Succeeded, grey Stopped/Pending/Suspended, violet sleep colour Asleep (OD-9), amber Starting/Stopping/Suspending/Resuming, red Failed. |
 | Sliders | Track filled in the accent colour from start to handle, shared style. |
 | Colours | Theme tokens only, defined for dark and light. |
 
