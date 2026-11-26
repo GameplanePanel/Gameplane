@@ -517,6 +517,7 @@ func main() {
 			AgentCABundle:        cfg.agentCABundle,
 			AgentClientCert:      cfg.agentClientCert,
 			AgentClientKey:       cfg.agentClientKey,
+			MaxUploadBytes:       cfg.backupsMaxUploadBytes,
 		})
 		ws.MountWithPlayerNames(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, playerNames, ws.AgentGatewayOptions{
 			Namespace:      credentialsNS,
@@ -977,6 +978,10 @@ func bodyLimit(maxBytes int64) func(http.Handler) http.Handler {
 // proxy caps it itself at the configured files.maxUploadSize
 // (MaxBytesReader in ws.httpProxyLimit).
 func isUploadPath(path string) bool {
+	// Archive uploads (spec 041) are capped by backups.maxUploadSize in the handler.
+	if path == "/restores:upload" {
+		return true
+	}
 	if !strings.HasPrefix(path, "/servers/") {
 		return false
 	}
@@ -1100,6 +1105,10 @@ func isLargeTransferPath(method, path string) bool {
 			strings.HasSuffix(path, "/files/archive") ||
 			strings.HasSuffix(path, "/logs/download") ||
 			strings.HasSuffix(path, ":capture-file")
+	}
+	if method == http.MethodPost && path == "/restores:upload" {
+		// Archive uploads (spec 041) stream the whole body to the receiver on req.Context().
+		return true
 	}
 	if method == http.MethodPost && strings.HasPrefix(path, "/servers/") {
 		// Uploads stream their body on req.Context(). URL installs also

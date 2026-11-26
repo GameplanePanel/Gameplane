@@ -107,6 +107,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		h.serveBackupExport(w, req, target)
 		return
 	}
+	if target, err := gatewayprotocol.ParseRestoreUploadPath(req.URL.Path); err == nil {
+		h.serveRestoreUpload(w, req, target)
+		return
+	}
 	target, agentPath, err := gatewayprotocol.ParsePath(req.URL.Path)
 	if err != nil || req.URL.RawPath != "" || target.Cluster != h.cfg.Cluster || !h.namespaceAllowed(target.Namespace) {
 		http.NotFound(w, req)

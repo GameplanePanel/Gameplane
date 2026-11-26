@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -201,7 +202,7 @@ func TestBackupExportStreamsReadyArchiveFromBoundWorker(t *testing.T) {
 func TestBackupExportUpstreamFailureAbortsResponse(t *testing.T) {
 	h, cert := newFixture(t)
 	target := backupExportFixture(t, h, "Ready", "exp-svc", "same-name")
-	upstream := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	upstream := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/zip")
 		w.Header().Set("Content-Length", "100000")
 		w.WriteHeader(http.StatusOK)
@@ -231,7 +232,7 @@ func TestBackupExportUpstreamFailureAbortsResponse(t *testing.T) {
 		h.ServeHTTP(rr, request(t, cert, http.MethodGet, backupExportPathFor(t, target)))
 		return nil
 	}()
-	if recovered != http.ErrAbortHandler {
+	if err, ok := recovered.(error); !ok || !errors.Is(err, http.ErrAbortHandler) {
 		t.Fatalf("recovered=%v want http.ErrAbortHandler (status=%d body=%q)", recovered, rr.Code, rr.Body.String())
 	}
 	if got := rr.Body.String(); got != "partial-archive" {

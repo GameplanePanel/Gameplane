@@ -18,7 +18,9 @@ func TestIsLargeTransferPathBackupDownloads(t *testing.T) {
 		{"backup read is not a transfer", http.MethodGet, "/backups/nightly-1", false},
 		{"download suffix on another verb", http.MethodPost, "/backups/nightly-1:download", false},
 		{"download suffix without backups prefix", http.MethodGet, "/servers/alpha:download", false},
-		{"restore upload is not a backup download", http.MethodPost, "/restores:upload", false},
+		// Changed in spec 041 upload work: POST /restores:upload streams the whole archive, so it is a large transfer.
+		{"restore upload streams its archive", http.MethodPost, "/restores:upload", true},
+		{"restore confirm is not a transfer", http.MethodPost, "/restores/nightly-1:confirm", false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

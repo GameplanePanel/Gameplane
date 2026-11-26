@@ -137,3 +137,40 @@ func (c *CaptureGatewayClient) send(ctx context.Context, t gatewayprotocol.Targe
 	}
 	return resp, nil
 }
+
+// RestoreUploadStream PUTs one uploaded archive to the restore's receiver
+// through the remote gateway. body must carry exactly contentLength bytes; the
+// length is sent as Content-Length and never inferred. A failed or truncated
+// body surfaces as an error and is never retried; the returned response, when
+// there is one, is the receiver's status and must be closed by the caller.
+func (c *CaptureGatewayClient) RestoreUploadStream(ctx context.Context, cluster string, target gatewayprotocol.RestoreUploadTarget, body io.Reader, contentLength int64) (*http.Response, error) {
+	if cluster != target.Cluster {
+		return nil, errors.New("restore upload cluster does not match its target")
+	}
+	if body == nil || contentLength <= 0 {
+		return nil, errors.New("restore upload requires a body and a positive content length")
+	}
+	path, err := gatewayprotocol.RestoreUploadPath(target)
+	if err != nil {
+		return nil, fmt.Errorf("build gateway restore upload path: %w", err)
+	}
+	_, transport, err := c.resolver.resolve(ctx, cluster, agentTarget{name: target.Name, namespace: target.Namespace})
+	if err != nil {
+		return nil, fmt.Errorf("resolve gateway restore upload target: %w", err)
+	}
+	if transport.target.UID != target.UID {
+		return nil, errors.New("restore upload server identity changed")
+	}
+	u := *transport.base
+	u.Path = path
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u.String(), body)
+	if err != nil {
+		return nil, fmt.Errorf("build gateway restore upload request: %w", err)
+	}
+	req.ContentLength = contentLength
+	resp, err := transport.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("send gateway restore upload request: %w", err)
+	}
+	return resp, nil
+}

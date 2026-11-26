@@ -61,11 +61,20 @@ type BackupArchiveConfig struct {
 	AgentCABundle   string
 	AgentClientCert string
 	AgentClientKey  string
+	// MaxUploadBytes caps one archive upload (Helm backups.maxUploadSize).
+	// Values below 1 select the default.
+	MaxUploadBytes int64
 }
 
 // backupExportGateway is the cluster gateway call for remote archive streams.
 type backupExportGateway interface {
 	BackupExportDownload(ctx context.Context, target gatewayprotocol.BackupExportTarget, headers http.Header) (*http.Response, error)
+}
+
+// restoreUploadGateway is the cluster gateway call that streams an uploaded
+// archive to a remote cluster's receiver.
+type restoreUploadGateway interface {
+	RestoreUploadStream(ctx context.Context, cluster string, target gatewayprotocol.RestoreUploadTarget, body io.Reader, contentLength int64) (*http.Response, error)
 }
 
 // backupExportHost is an in-cluster "host:port" authority that can only be
@@ -90,19 +99,28 @@ type backupArchiveHandler struct {
 	cfg       BackupArchiveConfig
 	tlsClient *http.Client
 	gateway   backupExportGateway
+	// uploads streams archive uploads to remote clusters (spec 041).
+	uploads restoreUploadGateway
 	// exportURL builds the worker URL for an export. Tests replace it to
 	// point at a stand-in server.
-	exportURL    func(host backupExportHost, uid string) *url.URL
+	exportURL func(host backupExportHost, uid string) *url.URL
+	// uploadURL builds the receiver URL for an upload. Tests replace it.
+	uploadURL    func(host backupExportHost, uid string) *url.URL
 	pollInterval time.Duration
 	startTimeout time.Duration
 }
 
-// MountBackupArchives wires GET /backups/{name}:download.
-// The route is served through the protected router group, so the RBAC
-// middleware maps it to backups:read.
+// MountBackupArchives wires GET /backups/{name}:download and the archive
+// upload routes (spec 041). The download is served through the protected
+// router group, so the RBAC middleware maps it to backups:read. The upload
+// and confirm routes are non-GET restores routes (backups:restore). The
+// upload path "/restores:upload" has no first path segment "restores", so
+// the rule in rbac.go does not match it until an explicit rule is added.
 func MountBackupArchives(r chi.Router, reg *kube.Registry, auditor *audit.Auditor, cfg BackupArchiveConfig) {
 	h := newBackupArchiveHandler(reg, auditor, cfg)
 	r.Get("/backups/{name}:download", h.download)
+	r.Post("/restores:upload", h.upload)
+	r.Post("/restores/{name}:confirm", h.confirm)
 }
 
 func newBackupArchiveHandler(reg *kube.Registry, auditor *audit.Auditor, cfg BackupArchiveConfig) *backupArchiveHandler {
@@ -114,6 +132,7 @@ func newBackupArchiveHandler(reg *kube.Registry, auditor *audit.Auditor, cfg Bac
 		auditor:      auditor,
 		cfg:          cfg,
 		exportURL:    defaultBackupExportURL,
+		uploadURL:    defaultRestoreUploadURL,
 		pollInterval: backupArchivePollInterval,
 		startTimeout: backupArchiveStartTimeout,
 	}
@@ -121,7 +140,9 @@ func newBackupArchiveHandler(reg *kube.Registry, auditor *audit.Auditor, cfg Bac
 		h.tlsClient = buildAgentHTTPClient(cfg.AgentCABundle, cfg.AgentClientCert, cfg.AgentClientKey)
 	}
 	if cfg.GatewayNamespace != "" {
-		h.gateway = ws.NewCaptureGatewayClient(reg, cfg.GatewayNamespace)
+		gw := ws.NewCaptureGatewayClient(reg, cfg.GatewayNamespace)
+		h.gateway = gw
+		h.uploads = gw
 	}
 	return h
 }
@@ -169,11 +190,11 @@ func (h *backupArchiveHandler) download(w http.ResponseWriter, req *http.Request
 		return
 	}
 	if src.backup.Status.Phase != backupPhaseSucceeded {
-		h.refuseMessage(w, req, auditPath, target, "not_ready", messages.New("backup.download.not_ready", nil))
+		h.refuseMessage(w, req, auditPath, target, "not_ready", messages.New("server.backup.download.not_ready", nil))
 		return
 	}
 	if src.backup.Spec.Strategy == "volume-snapshot" {
-		h.refuseMessage(w, req, auditPath, target, "snapshot_strategy", messages.New("backup.download.snapshot_strategy", nil))
+		h.refuseMessage(w, req, auditPath, target, "snapshot_strategy", messages.New("server.backup.download.snapshot_strategy", nil))
 		return
 	}
 
@@ -183,7 +204,7 @@ func (h *backupArchiveHandler) download(w http.ResponseWriter, req *http.Request
 		return
 	}
 	if active >= h.cfg.MaxConcurrentExports {
-		h.refuseMessage(w, req, auditPath, target, "busy", messages.New("backup.download.busy", nil))
+		h.refuseMessage(w, req, auditPath, target, "busy", messages.New("server.backup.download.busy", nil))
 		return
 	}
 
@@ -280,13 +301,14 @@ func (h *backupArchiveHandler) awaitExport(ctx context.Context, k *kube.Client, 
 		case kube.BackupExportPhaseReady:
 			return exp, "", nil, nil
 		case kube.BackupExportPhaseFailed, kube.BackupExportPhaseExpired:
-			return nil, "export_failed", messages.New("backup.download.failed", map[string]any{"message": exp.Status.Message}), nil
+			slog.Warn("backup download: export failed", "export", name, "message", exp.Status.Message)
+			return nil, "export_failed", messages.New("server.backup.download.failed", nil), nil
 		}
 		select {
 		case <-ctx.Done():
 			return nil, "client_disconnected", nil, nil
 		case <-deadline.C:
-			return nil, "start_timeout", messages.New("backup.download.start_timeout", nil), nil
+			return nil, "start_timeout", messages.New("server.backup.download.start_timeout", nil), nil
 		case <-ticker.C:
 		}
 	}
@@ -418,10 +440,11 @@ func (h *backupArchiveHandler) refuseMessage(w http.ResponseWriter, req *http.Re
 	httperr.WriteMessage(w, req, m)
 }
 
-// auditOrFail writes a GET audit row. A failed write is not survivable: it
-// writes a generic 500 and reports false, and the caller must return.
+// auditOrFail writes an audit row carrying the request's method (GET for
+// downloads, POST for uploads and confirms). A failed write is not survivable:
+// it writes a generic 500 and reports false, and the caller must return.
 func (h *backupArchiveHandler) auditOrFail(w http.ResponseWriter, req *http.Request, auditPath, target, reason string, status int) bool {
-	if err := h.auditor.WriteSync(req.Context(), http.MethodGet, auditPath, target, reason, status); err != nil {
+	if err := h.auditor.WriteSync(req.Context(), req.Method, auditPath, target, reason, status); err != nil {
 		httperr.WriteCode(w, req, http.StatusInternalServerError, errors.New("audit write failed"))
 		return false
 	}
@@ -434,7 +457,7 @@ func (h *backupArchiveHandler) auditOrFail(w http.ResponseWriter, req *http.Requ
 func (h *backupArchiveHandler) correct(req *http.Request, auditPath, target, reason string, status int) {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(req.Context()), backupArchiveCorrectionTimeout)
 	defer cancel()
-	if err := h.auditor.WriteSync(ctx, http.MethodGet, auditPath, target, reason, status); err != nil {
+	if err := h.auditor.WriteSync(ctx, req.Method, auditPath, target, reason, status); err != nil {
 		slog.Error("backup download: audit correction failed", "path", auditPath, "target", target, "reason", reason, "err", err)
 	}
 }

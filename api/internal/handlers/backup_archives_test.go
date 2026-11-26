@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -169,6 +170,17 @@ func backupProblemID(t *testing.T, rr *httptest.ResponseRecorder) string {
 	return p.MessageID
 }
 
+// doProblem sends a GET that asks for application/problem+json, so the
+// refusal body carries the registry messageId the assertions read.
+func doProblem(t *testing.T, h http.Handler, path string) *httptest.ResponseRecorder {
+	t.Helper()
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, path, nil)
+	req.Header.Set("Accept", "application/problem+json")
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	return rr
+}
+
 func expectBackupRefusal(t *testing.T, rr *httptest.ResponseRecorder, status int, id string) {
 	t.Helper()
 	if rr.Code != status || backupProblemID(t, rr) != id {
@@ -202,15 +214,15 @@ func TestBackupDownloadMissingBackupIs404(t *testing.T) {
 func TestBackupDownloadNotFinishedIs409(t *testing.T) {
 	store := newTestStore(t)
 	h := newBackupTestHandler(t, store, fakeBackupClient(newBackupFixture("b1", "Running", "")), 3)
-	rr := do(t, newBackupTestRouter(h), http.MethodGet, "/backups/b1:download", nil)
-	expectBackupRefusal(t, rr, http.StatusConflict, "backup.download.not_ready")
+	rr := doProblem(t, newBackupTestRouter(h), "/backups/b1:download")
+	expectBackupRefusal(t, rr, http.StatusConflict, "server.backup.download.not_ready")
 }
 
 func TestBackupDownloadSnapshotStrategyIs400(t *testing.T) {
 	store := newTestStore(t)
 	h := newBackupTestHandler(t, store, fakeBackupClient(newBackupFixture("b1", "Succeeded", "volume-snapshot")), 3)
-	rr := do(t, newBackupTestRouter(h), http.MethodGet, "/backups/b1:download", nil)
-	expectBackupRefusal(t, rr, http.StatusBadRequest, "backup.download.snapshot_strategy")
+	rr := doProblem(t, newBackupTestRouter(h), "/backups/b1:download")
+	expectBackupRefusal(t, rr, http.StatusBadRequest, "server.backup.download.snapshot_strategy")
 }
 
 func TestBackupDownloadBusyIs429WhenCapReached(t *testing.T) {
@@ -222,8 +234,8 @@ func TestBackupDownloadBusyIs429WhenCapReached(t *testing.T) {
 		newExportFixture("e3", "Ready"),
 	)
 	h := newBackupTestHandler(t, store, k, 3)
-	rr := do(t, newBackupTestRouter(h), http.MethodGet, "/backups/b1:download", nil)
-	expectBackupRefusal(t, rr, http.StatusTooManyRequests, "backup.download.busy")
+	rr := doProblem(t, newBackupTestRouter(h), "/backups/b1:download")
+	expectBackupRefusal(t, rr, http.StatusTooManyRequests, "server.backup.download.busy")
 }
 
 func TestBackupDownloadExportFailedIs502AndDeletesExport(t *testing.T) {
@@ -231,8 +243,8 @@ func TestBackupDownloadExportFailedIs502AndDeletesExport(t *testing.T) {
 	k := fakeBackupClient(newBackupFixture("b1", "Succeeded", ""))
 	k.Dynamic.(*dynamicfake.FakeDynamicClient).PrependReactor("create", "backupexports", exportReactor("Failed", "node pool exhausted"))
 	h := newBackupTestHandler(t, store, k, 3)
-	rr := do(t, newBackupTestRouter(h), http.MethodGet, "/backups/b1:download", nil)
-	expectBackupRefusal(t, rr, http.StatusBadGateway, "backup.download.failed")
+	rr := doProblem(t, newBackupTestRouter(h), "/backups/b1:download")
+	expectBackupRefusal(t, rr, http.StatusBadGateway, "server.backup.download.failed")
 	if exp, err := k.GetBackupExport(t.Context(), scope.DefaultNamespace, "b1-export-fixed"); err != nil || exp != nil {
 		t.Fatalf("export after failure: exp=%v err=%v, want deleted", exp, err)
 	}
@@ -248,8 +260,8 @@ func TestBackupDownloadStartTimeoutIs504AndDeletesExport(t *testing.T) {
 	k.Dynamic.(*dynamicfake.FakeDynamicClient).PrependReactor("create", "backupexports", exportReactor("", ""))
 	h := newBackupTestHandler(t, store, k, 3)
 	h.startTimeout = 20 * time.Millisecond
-	rr := do(t, newBackupTestRouter(h), http.MethodGet, "/backups/b1:download", nil)
-	expectBackupRefusal(t, rr, http.StatusGatewayTimeout, "backup.download.start_timeout")
+	rr := doProblem(t, newBackupTestRouter(h), "/backups/b1:download")
+	expectBackupRefusal(t, rr, http.StatusGatewayTimeout, "server.backup.download.start_timeout")
 	if exp, err := k.GetBackupExport(t.Context(), scope.DefaultNamespace, "b1-export-fixed"); err != nil || exp != nil {
 		t.Fatalf("export after timeout: exp=%v err=%v, want deleted", exp, err)
 	}
@@ -327,7 +339,8 @@ func TestBackupDownloadMidStreamFailureAbortsAndCorrectsAudit(t *testing.T) {
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/backups/b1:download", nil)
 	func() {
 		defer func() {
-			if rec := recover(); rec != http.ErrAbortHandler {
+			rec := recover()
+			if err, ok := rec.(error); !ok || !errors.Is(err, http.ErrAbortHandler) {
 				t.Fatalf("recovered %v, want http.ErrAbortHandler", rec)
 			}
 		}()
