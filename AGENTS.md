@@ -110,7 +110,7 @@ After cloning: `git submodule update --init modules` (required for `make dev-up`
 | telemetryschema | Go | stdlib-only shared telemetry report contract: types, strict decode, official module catalog, report signing (api, telemetry-receiver) |
 | i18n | Go | shared language packs (`go:embed`), ICU MessageFormat subset, pack validator, `i18n-check` CI tool (api, web, operator, gp-module) |
 | gp-module | Go | module CLI: scaffold, offline validate, dry-run preview, OCI package |
-| operator | Go, controller-runtime | authoritative reconciler for 9 CRDs (`GameServer`, `GameTemplate`, …) |
+| operator | Go, controller-runtime | authoritative reconciler for 10 CRDs (`GameServer`, `GameTemplate`, `BackupExport`, …) |
 | api | Go, chi | REST/WS UX gateway; SQLite, experimental PostgreSQL |
 | agent | Go | pod sidecar: console (PTY/RCON), files, logs, heartbeats |
 | audit-syslog-bridge | Go (submodule GameplanePanel/audit-syslog-bridge) | webhook audit events → RFC 5424 syslog |

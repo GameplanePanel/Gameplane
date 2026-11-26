@@ -68,6 +68,7 @@ agent/
 ├── internal/
 │   ├── a2s/                 # Valve A2S_INFO client for player counts (capabilities.players.query)
 │   ├── actions/             # Module-declared operator actions (templated RCON)
+│   ├── archive/             # Archive workers (spec 041): export, receive, copy; manifest; safe unpack
 │   ├── auth/                # Request authenticator (mTLS + bearer token)
 │   ├── caps/                # Mirrors GameTemplate.spec.capabilities schema (JSON unmarshaling)
 │   ├── console/             # Duplex WebSocket console bridge (RCON stdin/stdout)
@@ -236,6 +237,29 @@ Resource usage env vars (set by the operator):
 | `/players/whitelist/remove` | POST | Remove a player from the whitelist; request: `{ name }`; response: `{ ok, raw? }` |
 
 All endpoints on the `--addr` control mux, except `/healthz`, return `401 Unauthorized` if the request lacks a valid cert or token. `/healthz` is outside the auth middleware: in mTLS mode (always used by the operator) the TLS handshake still requires a verified client certificate for it, as for every path; in bearer-token fallback mode it answers without a token. `/metrics` is not on that mux at all — it lives on the separate `--metrics-addr` listener, which has no auth of its own.
+
+## Archive workers (spec 041)
+
+Entry: `agent/cmd/main.go` dispatches `agent archive-worker <mode> ...` to `archive.Main` (`agent/internal/archive/main.go`) before the sidecar's own flags are parsed. The operator starts these short-lived workers in its own Pods (`BackupExport` and upload Restore); they are not part of the game pod's sidecar. Modes: `export`, `receive`, `copy`.
+
+Common flags: `--uid` (required; the worker serves only paths carrying its own UID), `--addr` (default `:9443`), `--cert`, `--key`, `--client-ca` (mTLS with the agent CA), `--idle-timeout` (default 10m), `--termination-log` (default `/dev/termination-log`). Each run writes one JSON outcome to the termination log, success or failure. `server.go` routes only the exact expected path; anything else is 404.
+
+- **export** (`export.go`, `transcode.go`): serves `GET /export/<uid>` once. Environment: `ARCHIVE_SNAPSHOT_ID`, `ARCHIVE_FORMAT` (`tar.gz` or `zip`), `ARCHIVE_MANIFEST` (the operator-built manifest, written first in the archive as `gameplane-backup.json`), plus the restic repository variables. The worker runs `restic dump <snapshot> / --archive tar --retry-lock 10m` and transcodes the tar stream into the requested format, laying each captured volume under its own folder. The first bytes are held back so an early failure is a 502, not a truncated 200. A failure after the response starts aborts the connection. The worker exits 0 only after a complete download.
+- **receive** (`receive.go`): accepts one `PUT /upload/<restore UID>` with a required `Content-Length`. Environment: `ARCHIVE_FORMAT`, `ARCHIVE_DECLARED_BYTES`, `ARCHIVE_MAX_UNPACKED_BYTES`, `ARCHIVE_STAGING_DIR`, optional `ARCHIVE_PLAIN_TEMPLATE` (set for a plain archive). The body must be exactly the declared size; a longer body aborts the request. The file is written and fsynced to the staging volume, then unpacked by the safe unpacker. The summary goes to the termination log: `kind` (`gameplane` or `plain`), `manifest`, `unpackedBytes`, `volumes`, `zipPermissionsReset`, `error`. The operator reads that summary and applies the FR-013 checks.
+- **copy** (`copy.go`): environment `ARCHIVE_COPY_VOLUMES` and `ARCHIVE_STAGING_DIR`. For each named volume it empties the target mount (entries are removed through the mount's descriptor, so a symlink is removed, not followed), then copies `<staging>/volumes/<name>` into it, preserving modes, symlinks and mtimes. Owner is left to the Pod's fsGroup. Every operation goes through root-scoped handles, so no name resolves outside source or target. Failure writes the reason to the termination log; the operator then leaves the server stopped.
+
+**Manifest** (`manifest.go`): `gameplane-backup.json` with `formatVersion` 1. Reading is capped at `maxManifestBytes`. A `formatVersion` above 1 fails with `ErrNewerFormat` ("made by a newer Gameplane"), so the upload is refused.
+
+**Unpack safety rules** (`unpack.go`, applied to tar.gz and zip alike; SC-005):
+
+- Refused with an error that names the entry: absolute names, names containing `..`, symlinks whose target escapes the unpacked root (absolute or out-of-tree `..` chains), hard links to anything outside the archive, device files and FIFOs, and content above `ARCHIVE_MAX_UNPACKED_BYTES`. A hard link to a file extracted earlier counts against the cap again, because the copy is made on restore.
+- Every write walks from the root directory descriptor with `openat(O_NOFOLLOW)`, so an earlier entry's symlink cannot redirect a later write. An existing entry of the same name is unlinked, never followed.
+- Symlink targets are checked against the tree extracted so far. A `..` step that follows a missing component or a symlink is refused, because a later entry could still change it.
+- Layout: a Gameplane archive (manifest first) is placed under `volumes/<name>/` as the manifest lists. Any other archive goes under `volumes/data/`, with one wrapping folder stripped when all entries share it.
+- Zip archives carry no Unix modes: files and directories get the fixed defaults (`zipFileMode`, `zipDirMode`), and the summary sets `zipPermissionsReset`.
+- Directory modes from the archive are applied last, deepest first, so a restrictive parent cannot block its children.
+
+**Tests:** `*_test.go` and `*_gaps_test.go` next to each file; the unsafe-archive cases of spec SC-005 are covered by the unpack tests.
 
 ## Key invariants
 

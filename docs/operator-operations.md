@@ -314,3 +314,61 @@ Roll the operator back together with its CRDs: an older operator does not
 know `spec.origin`, so its updates to a scheduled Backup would drop the field
 and the apiserver would refuse them, leaving such a Backup unable to finish
 deletion.
+
+## Backup archives: download and upload
+
+Spec 041 (`specs/041-downloadable-backup-archives/`) lets a user take a finished
+restic backup out of Gameplane as one file, and restore a server from a file.
+Restic stays the only store: no archive is kept in the cluster, and an upload is
+written straight into the server, not saved as a backup.
+
+**Download.** Open the server's Backups tab and choose **Download** on a
+finished backup, then `.tar.gz` (the default) or `.zip`. The archive holds every
+captured volume under its own folder and a `gameplane-backup.json` manifest
+(server, namespace, template and revision, game version, capture time, restic
+snapshot ID, Gameplane version). The archive is a plain, unencrypted file and
+holds every server file, including configs that may contain passwords. Anyone
+who can view backups can download them (`backups:read`). Snapshot (CSI) backups
+cannot be downloaded; they stay inside the storage system.
+
+The download streams from a worker Pod that the operator starts for each
+download (a `BackupExport`). The panel never holds the archive in memory. At most
+`backups.maxConcurrentExports` (default 3) run per namespace, and each lasts at
+most `backups.exportTTL` (default 1h). If a backup is deleted or pruned during a
+download, or the worker fails, the browser gets a broken transfer rather than a
+file that looks complete.
+
+**Upload and restore.** On the Backups tab choose **Upload backup** and pick a
+`.tar.gz` or `.zip` file (`backups:restore`). A Gameplane archive is checked
+against the server: the game and template must match, and every volume the
+server uses must be present. A plain archive (for example a world copied from
+another host) needs you to confirm the game, and Gameplane then cannot check its
+contents beyond the safety checks. Warnings (an older game version, or zip file
+permissions reset to the server's defaults) appear before you confirm.
+
+The file is received onto a temporary staging volume and unpacked there. Nothing
+on the server changes until the checks pass and you confirm. Confirmation must
+come within 30 minutes of the upload, or the restore fails. Only then is the
+server stopped and its data replaced from the staging volume. The staging volume
+is deleted when the restore ends, on success or failure.
+
+Operator notes:
+
+- The staging PVC uses `backups.uploadStagingStorageClass`. Empty uses the
+  cluster's default StorageClass. With neither, uploads are refused before the
+  server stops, and the message names this value.
+- `backups.maxUploadSize` (default `20Gi`) caps an upload. Larger files are
+  refused before they are sent.
+- A failure during the final copy can leave the server's data partly replaced.
+  The restore then ends Failed, the server stays stopped, and the message says
+  so. Check the data before starting the server again.
+- Unsafe archives are rejected with a plain reason, and nothing is written to a
+  server. The checks refuse absolute paths, `..` names, links that point outside
+  the data folder, device files, truncated or oversized content, and archives
+  whose manifest format is newer than this Gameplane.
+
+Helm values: `backups.maxUploadSize`, `backups.uploadStagingStorageClass`,
+`backups.maxConcurrentExports`, `backups.exportTTL`. Operator flags:
+`--backup-upload-staging-storage-class`, `--backup-export-ttl`. The BackupExport
+CRD is `backupexports.gameplane.local` (short name `bkx`); see
+`operator/specs.md` and `api/specs.md` for the contracts.
