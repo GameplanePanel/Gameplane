@@ -20,8 +20,8 @@ OD-8; T014 waits on OD-9. Nothing is pushed until valgul says go.
 
 ## Phase 1: Setup
 
-- [ ] T001 Re-check every `file:line` cited in `specs/042-dashboard-ui-ux/spec.md` Context and `research.md` against fresh `origin/master`; correct drift in those two files before any edit
-- [ ] T002 List every horizontal `Tabs.List` and every `Table.Root` with its wrapper in `web/src/` (grep), and append the two lists to `specs/042-dashboard-ui-ux/research.md` R2/R3 as the audit set
+- [x] T001 Re-check every `file:line` cited in `specs/042-dashboard-ui-ux/spec.md` Context and `research.md` against fresh `origin/master`; correct drift in those two files before any edit
+- [x] T002 List every horizontal `Tabs.List` and every `Table.Root` with its wrapper in `web/src/` (grep), and append the two lists to `specs/042-dashboard-ui-ux/research.md` R2/R3 as the audit set
 
 ---
 
@@ -46,7 +46,7 @@ skills; finish with `design-export`.
 - [ ] T010 Add the tokens from `contracts/ui-rules.md` to `web/src/styles/globals.css` (dark + light blocks and `--color-*` mappings next to `--color-chart-stat`)
 - [ ] T011 Move the `.tabs__list.w-fit` rules onto every horizontal `.tabs__list` and set the selected radius to 12 px in `web/src/styles/globals.css`; keep the Server detail main tab bar spread full width; remove the then-redundant `w-fit` classes listed by T002
 - [ ] T012 [P] Add a shared `.range` slider style (filled track via `--fill`, WebKit + Firefox thumbs, disabled state) to `web/src/styles/globals.css`
-- [ ] T013 [P] Remove the extra outer frame around tables in `web/src/routes/Servers.tsx`, `web/src/routes/Backups.tsx`, `web/src/routes/Users.tsx` and any other T002 hit
+- [ ] T013 [P] Remove the extra outer frame around the tables listed in research.md "Audit set" (Servers, Backups, NodeInventory, CaptureWidget, ShareLinks; Users if the browser shows a double frame)
 - [ ] T014 [US2] Rework `web/src/components/ui/PhaseChip.tsx`: text-size pill with leading dot (green running/succeeded, grey stopped/pending/suspended, amber in-transition, red failed, Asleep per OD-9); update `web/src/components/ui/PhaseChip.test.tsx` to the spec
 - [ ] T015 [US2] Remove per-call size overrides on `PhaseChip` (e.g. `web/src/routes/Servers.tsx:627`) in all call sites: `Dashboard.tsx`, `Servers.tsx`, `ServerDetail.tsx`, `Backups.tsx`, `tabs/Backups.tsx`, `components/backups/BackupRow.tsx`, `components/backups/BackupDetailDrawer.tsx`, `components/CaptureWidget.tsx`
 

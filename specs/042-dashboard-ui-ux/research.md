@@ -104,3 +104,21 @@ Facts checked on master `0195f508`.
   through the component instance.
 - Runs on valgul's machine or a cloud thread with the OpenPencil `master` build, then
   `hack/design/fig-export.ts`; valgul approves before React (SC-007).
+
+## Audit set (T002, origin/master `62e2fbb0`, no drift in cited files since `0195f508`)
+
+**Horizontal tab lists** (11; `w-fit` = already opts in):
+`components/registry-browser.tsx:181` w-fit · `pages/ClusterDetail.tsx:49` ·
+`routes/AdminLogs.tsx:211` w-fit · `routes/ServerDetail.tsx:351` (main bar, keep full
+width) · `routes/Users.tsx:231` w-fit · `routes/Servers.tsx:255` (status filter) ·
+`routes/tabs/Settings.tsx:314` (vertical on desktop, horizontal on mobile) ·
+`routes/tabs/Logs.tsx:172` (source, the bug) · `routes/tabs/Logs.tsx:192` w-fit ·
+`routes/AuditLog.tsx:117` w-fit · `routes/Backups.tsx:101`.
+
+**Tables with an extra outer frame** (bordered wrapper right around `Table.Root`):
+`routes/Servers.tsx:366`, `routes/Backups.tsx:~191`, `components/nodes/NodeInventory.tsx:~165`,
+`components/CaptureWidget.tsx:~432`, `routes/tabs/settings/ShareLinks.tsx:~606`.
+`routes/Users.tsx` wraps its table in a `Card` (`overflow-hidden p-0`): check in the
+browser whether that draws a second frame. No outer border found near the others
+(`modpack-missing-files.tsx`, `tabs/settings/EnvVars.tsx`, `tabs/Backups.tsx`,
+`McpTokens.tsx`, `AuditLog.tsx`).
