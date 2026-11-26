@@ -5571,10 +5571,6 @@
     "defaultMessage": "Voir les serveurs de {name}",
     "description": "Clusters: accessible label of the View servers button; {name} is the cluster display name"
   },
-  "web.routes.create_server.50gi": {
-    "defaultMessage": "50Gi",
-    "description": "Create server: example placeholder in the storage size field showing the size format; an example value, not a default"
-  },
   "web.routes.create_server.add_port_mapping": {
     "defaultMessage": "Ajouter une correspondance de port",
     "description": "Create server: button that adds a new empty tunnel port mapping row to the list; keep it short"
@@ -9171,10 +9167,6 @@
     "defaultMessage": "Recharger",
     "description": "Settings tab: inline button in the footer warning that reloads the latest server settings; keep it short"
   },
-  "web.routes.tabs.settings.resources.10gi": {
-    "defaultMessage": "10Gi",
-    "description": "Resources: example placeholder in the storage size box; an example value, not a default"
-  },
   "web.routes.tabs.settings.resources.allowvolumeexpansion_true": {
     "defaultMessage": "allowVolumeExpansion: true",
     "description": "Resources: Kubernetes StorageClass field name shown in the storage size hint"
@@ -9194,10 +9186,6 @@
   "web.routes.tabs.settings.resources.invalid_quantity_e_g_10gi": {
     "defaultMessage": "Quantité non valide (par ex. \"10Gi\").",
     "description": "Resources: validation error under the storage size box when the value is not a valid quantity such as 10Gi"
-  },
-  "web.routes.tabs.settings.resources.k8s_quantity_e_g_10gi_200gi": {
-    "defaultMessage": "Quantité K8s (par ex. 10Gi, 200Gi).",
-    "description": "Resources: hint under the storage size field saying the value is a Kubernetes quantity such as 10Gi or 200Gi; Kubernetes is a technical term"
   },
   "web.routes.tabs.settings.resources.leave_blank_to_use_the_cluster_default": {
     "defaultMessage": "Laisser vide pour utiliser la valeur par défaut du cluster.",
