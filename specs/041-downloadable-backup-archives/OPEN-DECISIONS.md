@@ -1,6 +1,6 @@
 # Open decisions: spec 041 downloadable backup archives
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-6 were raised on 2026-11-25 while writing `spec.md` and asked as decision cards in the spec thread. All six are settled (2026-11-26). The OD-1 answer removed the archive volume, so OD-5 was asked again with new options.
+Only a decision valgul answers is written here as settled. OD-1 to OD-6 were raised on 2026-11-25 while writing `spec.md` and asked as decision cards in the spec thread. All six are settled (2026-11-26). Planning raised OD-7 on 2026-11-26; it is open. The OD-1 answer removed the archive volume, so OD-5 was asked again with new options.
 
 ## OD-1: Where do plain archive backups live? (SETTLED: B, valgul 2026-11-26)
 
@@ -49,3 +49,10 @@ The first version (A: store it on an archive volume; B: stream it straight into 
 - B. Reuse existing ones: download needs `backups:read`, upload needs `backups:restore`.
 
 **Settled (valgul picked B on the decision card, 2026-11-26):** no new permissions. Downloading a backup needs `backups:read`; uploading an archive needs `backups:restore`, in the backup's cluster and namespace. Anyone who can view backups can download them, so the download confirmation warns that the archive holds every server file, including configs with passwords.
+
+## OD-7: Where is an upload held while it is checked, before it replaces server data? (OPEN, raised by planning 2026-11-26)
+
+Follows from OD-5 B: an upload goes straight into the server, but FR-011 and FR-014 require that an interrupted or unsafe upload leaves the server's data unchanged, so the upload must be unpacked somewhere first and swapped in only once it is complete and checked.
+
+- A. Unpacked into a hidden staging folder on the server's own data volume (one per captured volume), then swapped in by rename; the old data is removed only after the swap. Needs free space on that volume about the size of the unpacked upload; the upload's size is checked against free space before the server stops, and running out mid-unpack fails the restore with live data untouched. (Recommended: works on every cluster with no storage class, and the swap is a fast rename on the same filesystem.)
+- B. Unpacked onto a temporary extra volume created from the cluster's default storage class, then copied over the server's data. No free space needed on the game volume, but needs a default storage class, the copy is slower, and a failure during the copy leaves the server half-overwritten unless the old data is also staged.
