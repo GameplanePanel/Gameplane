@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, type CSSProperties } from "react";
 import { defineMessages, type MessageDescriptor } from "react-intl";
 import { cn } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
@@ -27,7 +27,7 @@ export interface ResourceInputProps {
   disabled?: boolean;
   id?: string;
   // Accessible name of the slider and its fields; defaults to the kind's name
-  // ("CPU cores" / "Memory (GiB)"). Set it when one form has two inputs of the
+  // ("CPU" / "Memory"). Set it when one form has two inputs of the
   // same kind (e.g. a limit and a reservation) so each keeps a unique name.
   label?: string;
 }
@@ -128,6 +128,8 @@ export function ResourceInput({
   const [buffer, setBuffer] = useState<string | null>(null);
 
   const baseValue = Math.max(minBase, Math.min(maxBase, parsed.base));
+  // Share of the track left of the handle, for the shared .range fill (FR-005).
+  const fillPct = maxBase > minBase ? Math.round(((baseValue - minBase) / (maxBase - minBase)) * 10000) / 100 : 0;
 
   // Passive (derived) input text in the current display unit.
   const derivedText = useMemo(() => {
@@ -178,8 +180,8 @@ export function ResourceInput({
   const ariaLabel =
     label ??
     (kind === "cpu"
-      ? intl.formatMessage({ id: "web.components.ui.resource_input.cpu_cores", defaultMessage: "CPU cores", description: "Resource input: accessible name of the CPU slider and its fields" })
-      : intl.formatMessage({ id: "web.components.ui.resource_input.memory_gib", defaultMessage: "Memory (GiB)", description: "Resource input: accessible name of the memory slider and its fields" }));
+      ? intl.formatMessage({ id: "web.components.ui.resource_input.cpu_cores", defaultMessage: "CPU", description: "Resource input: accessible name of the CPU slider and its fields" })
+      : intl.formatMessage({ id: "web.components.ui.resource_input.memory_gib", defaultMessage: "Memory", description: "Resource input: accessible name of the memory slider and its fields" }));
   const unitOptions = kind === "cpu" ? CPU_UNIT_OPTIONS : MEM_UNIT_OPTIONS;
 
   return (
@@ -195,7 +197,8 @@ export function ResourceInput({
         value={baseValue}
         disabled={disabled}
         onChange={(e) => handleSliderChange(Number(e.target.value))}
-        className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-border accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+        className="range min-w-0 flex-1"
+        style={{ "--fill": `${fillPct}%` } as CSSProperties}
       />
       <input
         id={id ? `${id}-input` : undefined}
@@ -207,7 +210,7 @@ export function ResourceInput({
         step={stepBase}
         aria-label={intl.formatMessage({ id: "web.components.ui.resource_input.value_label", defaultMessage: "{name} value", description: "Resource input: accessible name of the number field; {name} is the resource name, e.g. CPU cores" }, { name: ariaLabel })}
         className={cn(
-          "h-9 w-16 rounded-md border border-border bg-surface px-3 text-sm text-fg",
+          "h-9 w-24 rounded-md border border-border bg-surface px-3 text-sm text-fg",
           "placeholder:text-muted focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary",
           "disabled:opacity-50",
         )}

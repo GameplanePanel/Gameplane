@@ -5,7 +5,7 @@
 // The generated password exists only in the caller's state; it is never
 // put in a query cache.
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import {
   Button,
   Description,
@@ -207,7 +207,10 @@ export function GeneratePasswordDialog({
                   value={length}
                   onChange={(e) => setLength(Number(e.target.value))}
                   disabled={busy}
-                  className="w-full accent-primary"
+                  className="range"
+                  style={{
+                    "--fill": `${Math.round(((length - SFTP_PASSWORD_MIN_LENGTH) / (SFTP_PASSWORD_MAX_LENGTH - SFTP_PASSWORD_MIN_LENGTH)) * 10000) / 100}%`,
+                  } as CSSProperties}
                 />
                 <div className="flex justify-between text-xs text-muted">
                   <span>{SFTP_PASSWORD_MIN_LENGTH}</span>
