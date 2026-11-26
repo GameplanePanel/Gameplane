@@ -76,6 +76,30 @@ rules:
 - apiGroups:
   - gameplane.local
   resources:
+  - backupexports
+  verbs:
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - gameplane.local
+  resources:
+  - backupexports/status
+  - backups/status
+  - clusters/status
+  - gametemplates/status
+  - modules/status
+  - modulesources/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - gameplane.local
+  resources:
   - backups
   - modules
   verbs:
@@ -90,18 +114,6 @@ rules:
   - backups/finalizers
   - modules/finalizers
   verbs:
-  - update
-- apiGroups:
-  - gameplane.local
-  resources:
-  - backups/status
-  - clusters/status
-  - gametemplates/status
-  - modules/status
-  - modulesources/status
-  verbs:
-  - get
-  - patch
   - update
 - apiGroups:
   - gameplane.local

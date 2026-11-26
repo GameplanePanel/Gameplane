@@ -13,6 +13,7 @@ import (
 	"time"
 
 	snapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v8/apis/volumesnapshot/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -681,6 +682,23 @@ func main() {
 		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to set up controller", "controller", "Restore")
+		os.Exit(1)
+	}
+	if err := (&controller.BackupExportReconciler{
+		Client:                 mgr.GetClient(),
+		APIReader:              mgr.GetAPIReader(),
+		Scheme:                 mgr.GetScheme(),
+		AgentImage:             agentImage,
+		AgentImagePullPolicy:   corev1.PullPolicy(agentImagePullPolicy),
+		ResticImage:            resticImage,
+		BackupResources:        backupResources,
+		AgentCASecretName:      agentCASecretName,
+		AgentCASecretNamespace: agentCASecretNamespace,
+		DefaultTTL:             backupExportTTL,
+		WriterVersion:          Version,
+		Now:                    time.Now,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to set up controller", "controller", "BackupExport")
 		os.Exit(1)
 	}
 

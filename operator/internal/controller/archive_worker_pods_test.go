@@ -111,7 +111,7 @@ func basePodParams() archiveWorkerParams {
 	}
 }
 
-func volumeNames(vols []corev1.Volume) []string {
+func workerVolumeNames(vols []corev1.Volume) []string {
 	out := make([]string, 0, len(vols))
 	for _, v := range vols {
 		out = append(out, v.Name)
@@ -176,7 +176,7 @@ func TestBuildArchiveWorkerPod_Serve(t *testing.T) {
 	}
 
 	wantVols := []string{"tmp", "tls", "data"}
-	if got := volumeNames(pod.Spec.Volumes); !reflect.DeepEqual(got, wantVols) {
+	if got := workerVolumeNames(pod.Spec.Volumes); !reflect.DeepEqual(got, wantVols) {
 		t.Fatalf("volumes = %v, want %v", got, wantVols)
 	}
 	tls := pod.Spec.Volumes[1].VolumeSource.Secret
@@ -258,7 +258,7 @@ func TestBuildArchiveWorkerPod_CopyWithRestic(t *testing.T) {
 	}
 
 	wantVols := []string{"tmp", "tools", "data"}
-	if got := volumeNames(pod.Spec.Volumes); !reflect.DeepEqual(got, wantVols) {
+	if got := workerVolumeNames(pod.Spec.Volumes); !reflect.DeepEqual(got, wantVols) {
 		t.Fatalf("volumes = %v, want %v", got, wantVols)
 	}
 
@@ -309,7 +309,7 @@ func TestBuildArchiveWorkerPod_NoResticNoServe(t *testing.T) {
 	if len(pod.Spec.InitContainers) != 0 {
 		t.Errorf("unexpected init containers")
 	}
-	if got := volumeNames(pod.Spec.Volumes); !reflect.DeepEqual(got, []string{"tmp", "data"}) {
+	if got := workerVolumeNames(pod.Spec.Volumes); !reflect.DeepEqual(got, []string{"tmp", "data"}) {
 		t.Errorf("volumes = %v", got)
 	}
 	c := pod.Spec.Containers[0]
