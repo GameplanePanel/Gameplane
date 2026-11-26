@@ -466,7 +466,7 @@ func TestExtractTarGz(t *testing.T) {
 		data := httptFixtureTarGz(t, []httptEntry{
 			{name: "dir/", typeflag: tar.TypeDir},
 			{name: "link", typeflag: tar.TypeSymlink},
-			{name: "./", typeflag: tar.TypeReg},
+			{name: ".", typeflag: tar.TypeReg},
 			{name: "bundle/a.yaml", typeflag: tar.TypeReg, body: "a: 1"},
 			{name: `bundle\b.yaml`, typeflag: tar.TypeReg, body: "b: 2"},
 		})
