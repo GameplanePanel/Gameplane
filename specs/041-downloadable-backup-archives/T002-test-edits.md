@@ -10,6 +10,7 @@ Editing an existing test so it matches the spec needs no sign-off (valgul 2026-1
 | `agent/internal/archive/main_test.go` | `"export"` removed from `TestMainValidModesNotImplemented`; new `TestMainExportModeFailsWithoutConfig` asserts exit 1 and a written termination log | export mode is implemented by T012, so it no longer returns 3 | 2026-11-26, sonnet: removal covered by the added test, nothing weakened or deleted |
 | `charts/tests/check_gateway.py` | expected `gameplane-gateway-read` rules extended from `[gameservers, networkcaptures]` to `[gameservers, networkcaptures, backups, backupexports]` | the gateway reads Backup and BackupExport to forward downloads (FR-007) | 2026-11-26, sonnet: list extended, nothing weakened or deleted |
 | `api/internal/rbac/rbac_test.go` | three `TestAllow` cases added for `POST /restores:upload` | new route needs `backups:restore` (OD-6) | 2026-11-26, sonnet: added only |
+| `charts/tests/check_standalone.py`, `test/e2e/helm_install_e2e_test.go`, `.github/workflows/ci.yaml` (reuse-values check) | `backupexports.gameplane.local` added to the expected CRD lists; hook CRD count 9 → 10 | the chart ships the new BackupExport CRD (data-model.md) | 2026-11-26, sonnet: list extended and count corrected, nothing weakened or deleted |
 
 ## Candidates still to check when their layer lands
 

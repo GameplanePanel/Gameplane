@@ -1621,7 +1621,7 @@ jobs:
           assert ('Job', 'gameplane-crd-apply') in resources, "reuse-values disabled the crd-apply hook"
           manifests = next(d for d in docs if d['kind'] == 'ConfigMap' and d['metadata']['name'] == 'gameplane-crd-manifests')
           hook_crds = {yaml.safe_load(v)['metadata']['name'] for v in manifests['data'].values()}
-          assert len(hook_crds) == 9, f"reuse-values dropped CRDs from the crd-apply hook: {hook_crds}"
+          assert len(hook_crds) == 10, f"reuse-values dropped CRDs from the crd-apply hook: {hook_crds}"
           assert ('Deployment', 'gameplane-gateway') not in resources
           assert ('NetworkPolicy', 'allow-api-to-agent') in resources
           assert ('NetworkPolicy', 'allow-api-to-capture') not in resources, "legacy values without capture enabled its ingress"
