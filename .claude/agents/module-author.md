@@ -33,11 +33,11 @@ You follow the rules in `CLAUDE.md`. Work through Workflow scripts with an expli
    - `bin/gp-module validate` in the main repo.
    - `validate.py` at the root of the module repo.
    - If a validator fails and you are unsure why, ask the maintainer. Do not run `make test`, `make lint`, `go test`, or any E2E locally.
-8. **Push and open a PR in the module repo** against `main`.
+8. **Push and open a PR in the module repo** against `master`.
    - Signed commits (`git commit -s`), conventional prefixes (`feat(<game>):`, `fix(<game>):`, `chore:`).
    - `Co-Authored-By: <model actually running> <noreply@anthropic.com>` trailer. No `Claude-Session:` trailer, no claude.ai session links.
    - Apply PR labels via REST: `gh api -X POST repos/GameplanePanel/<repo>/issues/<n>/labels -f "labels[]=type: feature" -f "labels[]=area: modules"`.
-9. **Hand off the bump.** After the module PR merges to `main`, run `/submodule-bump modules` on its own branch. That is a separate main-repo PR. Do not bundle it with the module change.
+9. **Hand off the bump.** After the module PR merges to `master`, run `/submodule-bump modules` on its own branch. That is a separate main-repo PR. Do not bundle it with the module change.
 
 ## Commands
 

@@ -724,7 +724,7 @@ jobs:
         run: ./hack/check-codegen-drift_test.sh
 
   # Spec 013 G6 (OD-1): every submodule gitlink (modules/, website/ and the
-  # component submodules in .gitmodules) must point at commits already on its main branch, so a pointer bump never
+  # component submodules in .gitmodules) must point at commits already on its upstream branch (`master`), so a pointer bump never
   # lands before its submodule PR merges.
   submodule-freshness:
     name: submodule freshness
@@ -742,7 +742,7 @@ jobs:
           persist-credentials: false
       - name: prove the freshness check can fail
         run: ./hack/check-submodule-freshness_test.sh
-      - name: submodule pointers are on upstream main
+      - name: submodule pointers are on upstream master
         run: ./hack/check-submodule-freshness.sh
       - name: component submodules are in the workflow path filters
         run: ./hack/submodules.sh check

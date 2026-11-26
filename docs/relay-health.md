@@ -216,8 +216,8 @@ payload byte counters. Columns give the worst measurement across four trials
 per route and rate. CPU is the largest combined frpc + frps CPU-seconds delta
 per ten-second trial, including the driver's final one-second receive window.
 
-The [first series](https://github.com/GameplanePanel/tunnel/blob/main/bench/results/frp-loopback-series-1.jsonl) and
-[counter-instrumented series](https://github.com/GameplanePanel/tunnel/blob/main/bench/results/frp-loopback-series-2.jsonl)
+The [first series](https://github.com/GameplanePanel/tunnel/blob/master/bench/results/frp-loopback-series-1.jsonl) and
+[counter-instrumented series](https://github.com/GameplanePanel/tunnel/blob/master/bench/results/frp-loopback-series-2.jsonl)
 contain all 32 direct and relayed trial records, the runner kernel and the
 SHA-256 digest of each executable.
 
