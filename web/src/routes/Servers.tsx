@@ -637,7 +637,7 @@ function ServerCard({
             </div>
           </div>
         </div>
-        <PhaseChip phase={phase} asleep={asleep} />
+        <PhaseChip phase={phase} asleep={asleep} className="shrink-0 text-sm" />
       </div>
 
       {/* Row 2: Game label */}

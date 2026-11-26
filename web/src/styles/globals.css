@@ -640,7 +640,10 @@ input:-webkit-autofill:focus {
 
 /* Status pill (042 FR-004): text size of the row, leading dot in the text
    colour. Used by PhaseChip and by Chip with the dot prop. */
-.phase-chip {
+/* .chip.phase-chip: must out-rank the 4px `.chip:not(.rounded-full)` pin above,
+   the status pill is a full pill (042 contracts/ui-rules.md). */
+.phase-chip,
+.chip.phase-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
