@@ -195,27 +195,12 @@ func (m cfMod) project() Project {
 // third-party distribution carry no downloadUrl and are skipped — neither
 // the dashboard nor the pack installer can fetch them.
 func (c *Curseforge) Versions(ctx context.Context, projectID string, f Filter) ([]Version, error) {
-	params := url.Values{}
-	if f.GameVersion != "" {
-		params.Set("gameVersion", f.GameVersion)
-	}
-	if lt := cfLoaderType(f.Loader); lt != 0 {
-		params.Set("modLoaderType", strconv.Itoa(lt))
-	}
-	params.Set("pageSize", "50")
-	u := c.baseURL + "/mods/" + url.PathEscape(projectID) + "/files"
-	if enc := params.Encode(); enc != "" {
-		u += "?" + enc
-	}
-
-	var resp struct {
-		Data []cfFile `json:"data"`
-	}
-	if err := c.get(ctx, u, &resp); err != nil {
+	files, err := c.versionFiles(ctx, projectID, f)
+	if err != nil {
 		return nil, err
 	}
-	out := make([]Version, 0, len(resp.Data))
-	for _, fl := range resp.Data {
+	out := make([]Version, 0, len(files))
+	for _, fl := range files {
 		if fl.DownloadURL == "" {
 			continue
 		}
@@ -231,6 +216,7 @@ func (c *Curseforge) Versions(ctx context.Context, projectID string, f Filter) (
 			Name:          fl.DisplayName,
 			VersionNumber: fl.DisplayName,
 			GameVersions:  fl.GameVersions,
+			Loaders:       cfLoaders(fl.GameVersions),
 			ReleaseType:   cfReleaseType(fl.ReleaseType),
 			PublishedAt:   published,
 			Files: []File{{
@@ -242,6 +228,48 @@ func (c *Curseforge) Versions(ctx context.Context, projectID string, f Filter) (
 		})
 	}
 	return out, nil
+}
+
+// Every Versions call (filtered or unfiltered) pages through the pack's files:
+// index 0, 50, 100, ... until a page holds fewer than cfVersionsPageSize files
+// or cfVersionsMaxPages pages were read. That is a hard cap of 250 files per
+// call. Filtered calls page too, so the install check sees every file that the
+// unfiltered "All loaders" list can offer.
+const (
+	cfVersionsPageSize = 50
+	cfVersionsMaxPages = 5
+)
+
+// versionFiles fetches the project's raw files for Versions, paging up to
+// cfVersionsMaxPages pages for both filtered and unfiltered calls.
+func (c *Curseforge) versionFiles(ctx context.Context, projectID string, f Filter) ([]cfFile, error) {
+	var files []cfFile
+	for page := 0; page < cfVersionsMaxPages; page++ {
+		params := url.Values{}
+		if f.GameVersion != "" {
+			params.Set("gameVersion", f.GameVersion)
+		}
+		if lt := cfLoaderType(f.Loader); lt != 0 {
+			params.Set("modLoaderType", strconv.Itoa(lt))
+		}
+		params.Set("pageSize", strconv.Itoa(cfVersionsPageSize))
+		params.Set("index", strconv.Itoa(page*cfVersionsPageSize))
+		u := c.baseURL + "/mods/" + url.PathEscape(projectID) + "/files"
+		if enc := params.Encode(); enc != "" {
+			u += "?" + enc
+		}
+		var resp struct {
+			Data []cfFile `json:"data"`
+		}
+		if err := c.get(ctx, u, &resp); err != nil {
+			return nil, err
+		}
+		files = append(files, resp.Data...)
+		if len(resp.Data) < cfVersionsPageSize {
+			break
+		}
+	}
+	return files, nil
 }
 
 type cfFile struct {
@@ -277,6 +305,20 @@ var cfLoaderTags = map[string]string{
 	"neoforge": "NeoForge",
 	"fabric":   "Fabric",
 	"quilt":    "Quilt",
+}
+
+// cfLoaders returns the Gameplane loader ids (lower-cased cfLoaderTags keys)
+// of the loader tags in a file's gameVersions, in tag order, without repeats.
+func cfLoaders(tags []string) []string {
+	var out []string
+	for _, tag := range tags {
+		id := strings.ToLower(tag)
+		if _, ok := cfLoaderTags[id]; !ok || slices.Contains(out, id) {
+			continue
+		}
+		out = append(out, id)
+	}
+	return out
 }
 
 // cfFileMatches reports whether a file's gameVersions tags fit the filter.

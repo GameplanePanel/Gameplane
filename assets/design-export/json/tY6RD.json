@@ -506,6 +506,50 @@
                   },
                   "variables": {"strokes/0/color": "border/border"},
                   "texts": ["Multiplayer"]
+                },
+                {
+                  "name": "All loaders Row",
+                  "type": "FRAME",
+                  "x": 394,
+                  "y": 0,
+                  "width": 109,
+                  "height": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 10,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "clips": true,
+                  "children": [
+                    {
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 3.5,
+                      "width": 63,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "All loaders",
+                      "font": ["Geist", 400, 13],
+                      "variables": {"fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "All loaders switch",
+                      "type": "INSTANCE",
+                      "x": 73,
+                      "y": 2,
+                      "width": 36,
+                      "height": 20,
+                      "component": "Gameplane/Switch/Off",
+                      "componentId": "1:1470",
+                      "fills": [{"type": "SOLID", "color": "#2C2932"}],
+                      "cornerRadius": 24,
+                      "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "border/border"}
+                    }
+                  ]
                 }
               ]
             },

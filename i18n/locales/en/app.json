@@ -1067,6 +1067,14 @@
     "defaultMessage": "this server has no modpack",
     "description": "API error from the modpack API (registry_modpack.go:removeModpack) when there is no modpack to remove."
   },
+  "server.modpack.server_version_forbidden": {
+    "defaultMessage": "changing the server version needs permission to edit the server",
+    "description": "API error from the modpack API (registry.go:installModpack) when a modpack install would switch the server version (serverVersion) and the caller lacks servers:write in the server's namespace."
+  },
+  "server.modpack.server_version_mismatch": {
+    "defaultMessage": "the chosen pack version does not run on that server version",
+    "description": "API error from the modpack API (registry.go:installModpack, registry_server_version.go:serverVersionTarget) when a modpack install names a server version (serverVersion) that is not a template version or cannot run the chosen pack version."
+  },
   "server.modpack.version_required": {
     "defaultMessage": "version is required",
     "description": "API error from the modpack API (registry.go:installModpack) when a modpack is installed without choosing a version."
@@ -2555,6 +2563,14 @@
     "defaultMessage": "Takes a backup to the cluster’s backup destination ({destination}) before the change. If the backup fails, nothing changes.",
     "description": "Modpack confirm dialog: help text under the back-up checkbox naming the backup destination; the backup is taken first and the change is cancelled if it fails; {destination} is the destination name"
   },
+  "web.components.modpack_confirm_dialog.backup_help_destination_version_change": {
+    "defaultMessage": "Takes a backup to the cluster’s backup destination ({destination}). The server version changes right away; the pack is installed only after the backup succeeds.",
+    "description": "Modpack confirm dialog: help text under the back-up checkbox when the change also switches the server version; the server version changes immediately, the modpack is installed only after the backup succeeds, and the backup goes to the named cluster backup destination; {destination} is the destination name"
+  },
+  "web.components.modpack_confirm_dialog.backup_help_version_change": {
+    "defaultMessage": "Takes a backup to this server's backup destination. The server version changes right away; the pack is installed only after the backup succeeds.",
+    "description": "Modpack confirm dialog: help text under the back-up checkbox when the change also switches the server version and the cluster has no named destination; the server version changes immediately, the modpack is installed only after the backup succeeds"
+  },
   "web.components.modpack_confirm_dialog.cancel": {
     "defaultMessage": "Cancel",
     "description": "Modpack confirm dialog: button that closes the dialog without changing the modpack"
@@ -2618,6 +2634,18 @@
   "web.components.modpack_confirm_dialog.remove_warning": {
     "defaultMessage": "Every mod in the mods folder is deleted, including ones added by hand. The world folder is not touched.",
     "description": "Modpack confirm dialog: danger warning when removing the modpack; every mod in the mods folder is deleted, including hand-added ones, and the world folder is kept"
+  },
+  "web.components.modpack_confirm_dialog.server_version_warning_body": {
+    "defaultMessage": "The server version changes from {from} to {to}.",
+    "description": "Modpack confirm dialog: body of the server version warning; {from} is the server's current version name, {to} the version it switches to"
+  },
+  "web.components.modpack_confirm_dialog.server_version_warning_restart": {
+    "defaultMessage": "The server restarts on the new version right away, before any backup finishes.",
+    "description": "Modpack confirm dialog: sentence after the server version warning; the server switches version and restarts before the requested backup completes"
+  },
+  "web.components.modpack_confirm_dialog.server_version_warning_title": {
+    "defaultMessage": "The server version changes",
+    "description": "Modpack confirm dialog: heading of the warning shown when the chosen pack version makes the server switch its version"
   },
   "web.components.modpack_confirm_dialog.switch_desc": {
     "defaultMessage": "{serverName} restarts on {packTitle} {versionName}.",
@@ -2691,9 +2719,17 @@
     "defaultMessage": "Loading versions…",
     "description": "Modpack version picker: shown while the versions of the modpack are loading"
   },
+  "web.components.modpack_version_picker.no_runnable_versions": {
+    "defaultMessage": "This server can't run any version of this pack.",
+    "description": "Modpack version picker: empty state with All loaders on; the server's game version and loader cannot run any version of this pack"
+  },
   "web.components.modpack_version_picker.no_versions": {
     "defaultMessage": "No versions of this pack match {mcLabel}.",
     "description": "Modpack version picker: empty state when the modpack has no version for the server's game version and loader; {mcLabel} is that label"
+  },
+  "web.components.modpack_version_picker.no_versions_for_server": {
+    "defaultMessage": "No versions are available for this server.",
+    "description": "Modpack version picker: empty state with All loaders on when the server has no version of the pack to run"
   },
   "web.components.modpack_version_picker.older": {
     "defaultMessage": "Older",
@@ -2722,6 +2758,14 @@
   "web.components.modpack_version_picker.release_type_release": {
     "defaultMessage": "Release",
     "description": "Modpack version picker: chip for a stable release of the modpack version"
+  },
+  "web.components.modpack_version_picker.runs_on": {
+    "defaultMessage": "Runs on {serverVersionName}",
+    "description": "Modpack version picker: row line naming the server version the pack version needs when it differs from the server's current one; {serverVersionName} is that version's display name"
+  },
+  "web.components.modpack_version_picker.showing_all_loaders": {
+    "defaultMessage": "Showing every version this server can run, newest first.",
+    "description": "Modpack version picker: subtitle when All loaders is on; lists every pack version the server can run, whatever loader it needs, newest first"
   },
   "web.components.modpack_version_picker.showing_versions": {
     "defaultMessage": "Showing versions for {mcLabel}, newest first.",
@@ -3674,6 +3718,10 @@
   "web.components.registry_browser.all_categories": {
     "defaultMessage": "All",
     "description": "Registry browser: category chip that clears the category filter"
+  },
+  "web.components.registry_browser.all_loaders": {
+    "defaultMessage": "All loaders",
+    "description": "Registry browser: switch label that lists modpack versions for every loader and game version the server can run, not only the server's own"
   },
   "web.components.registry_browser.category_unavailable": {
     "defaultMessage": "Category filtering isn't available for {provider}.",

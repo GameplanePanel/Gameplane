@@ -301,7 +301,7 @@
                           "x": 0,
                           "y": 0,
                           "width": 908,
-                          "height": 638,
+                          "height": 626,
                           "layout": {
                             "mode": "VERTICAL",
                             "gap": 20,
@@ -760,7 +760,7 @@
                           "name": "Form Footer",
                           "type": "FRAME",
                           "x": 0,
-                          "y": 638,
+                          "y": 626,
                           "width": 908,
                           "height": 56,
                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],

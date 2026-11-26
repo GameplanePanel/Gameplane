@@ -63,6 +63,10 @@ type modpackInstallBody struct {
 	VersionName string `json:"versionName"`
 	BackupFirst bool   `json:"backupFirst"`
 	Ref         string `json:"ref"`
+	// ServerVersion is an optional template version id (spec 035 FR-014). When
+	// it differs from the server's current version, the install switches the
+	// server to it in the same write as the pack.
+	ServerVersion string `json:"serverVersion"`
 }
 
 // modpackRemoveRequest is the JSON stored in the modpack-remove annotation.
@@ -262,11 +266,16 @@ func (h *registryHandler) backupDestinationName(req *http.Request, target *modTa
 // carries one of those tags, and the administrator has not enabled key
 // sharing. The Secret is read only when the first two hold.
 func (h *registryHandler) modpacksBlockedReason(ctx context.Context, target *modTarget, p providerCfg) string {
+	selected, _, _ := unstructured.NestedString(target.server.Object, "spec", "version")
+	return h.blockedReasonFor(ctx, target, p, activeVersionEntry(target.template, selected))
+}
+
+// blockedReasonFor is modpacksBlockedReason for the server version entry the
+// pack would run on (the image decides whether the CurseForge key is needed).
+func (h *registryHandler) blockedReasonFor(ctx context.Context, target *modTarget, p providerCfg, entry map[string]any) string {
 	if p.modpacks == nil || len(p.modpacks.needsKeyImageTags) == 0 {
 		return ""
 	}
-	selected, _, _ := unstructured.NestedString(target.server.Object, "spec", "version")
-	entry := activeVersionEntry(target.template, selected)
 	if entry == nil {
 		return ""
 	}
@@ -370,7 +379,7 @@ func (h *registryHandler) removeModpack(w http.ResponseWriter, req *http.Request
 		httperr.Write(w, req, err)
 		return
 	}
-	h.auditModpack(req, gs.GetName(), "remove", removed.Provider, removed.Project, removed.Version)
+	h.auditModpack(req, gs.GetName(), "remove", removed.Provider, removed.Project, removed.Version, "")
 	writeJSONStatus(w, http.StatusAccepted, h.modpackViewFor(req, target, updated, false))
 }
 
@@ -387,11 +396,16 @@ func newModpackRequestID() (string, error) {
 // install, change or remove). Provider, project and version are validated
 // slugs; the CurseForge key never reaches this code. A failed audit write is
 // logged and the generic audit middleware row stays as the fallback.
-func (h *registryHandler) auditModpack(req *http.Request, serverName, action, provider, project, version string) {
+// serverSwitch is "<old>-><new>" when the install also switched the server
+// version (FR-014), else "".
+func (h *registryHandler) auditModpack(req *http.Request, serverName, action, provider, project, version, serverSwitch string) {
 	if h.audit == nil {
 		return
 	}
 	reason := fmt.Sprintf("server.modpack.%s provider=%s project=%s version=%s", action, provider, project, version)
+	if serverSwitch != "" {
+		reason += " server_version=" + serverSwitch
+	}
 	if err := h.audit.WriteSync(req.Context(), req.Method, req.URL.Path, serverName, reason, http.StatusAccepted); err != nil {
 		slog.Warn("modpack audit write failed", "server", serverName, "action", action, "err", err)
 		return

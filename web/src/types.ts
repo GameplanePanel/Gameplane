@@ -166,6 +166,9 @@ export interface ModpackInstallBody {
   title?: string;
   versionName?: string;
   backupFirst?: boolean;
+  // Template version id the server should run after the install, set only
+  // when the picked pack version needs a different server version.
+  serverVersion?: string;
 }
 
 export interface CurseForgeShare {
@@ -353,6 +356,10 @@ export interface RegistryVersion {
   releaseType?: "release" | "beta" | "alpha";
   // RFC 3339 publish time; absent when unknown.
   publishedAt?: string;
+  // All-loaders browse only: the template version entry (id and display name)
+  // the server runs to host this pack version. Absent otherwise.
+  serverVersion?: string;
+  serverVersionName?: string;
   files: RegistryFile[];
 }
 

@@ -12,7 +12,7 @@ import { activeVersion } from "@/lib/capabilities";
 import { RegistryBrowser, RegistryIcon, compactNum, providerLabel } from "@/components/registry-browser";
 import { ModpackActiveCard } from "@/components/modpack-active-card";
 import { ModpackMissingFiles } from "@/components/modpack-missing-files";
-import { ModpackVersionPicker } from "@/components/modpack-version-picker";
+import { ModpackVersionPicker, serverVersionSwitch } from "@/components/modpack-version-picker";
 import { ModpackConfirmDialog } from "@/components/modpack-confirm-dialog";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { defineMessages, type IntlShape, type MessageDescriptor } from "react-intl";
@@ -21,7 +21,8 @@ type Banner = { kind: "ok" | "err"; text: string };
 
 // A modpack chosen in the registry browser, waiting for a version pick.
 // change is true when the picker switches the pack already on the server.
-type PickerState = { provider: string; project: string; title: string; pinnedVersionId?: string; change?: boolean };
+// allLoaders lists every version the server can run (install only).
+type PickerState = { provider: string; project: string; title: string; pinnedVersionId?: string; change?: boolean; allLoaders?: boolean };
 
 // A chosen version waiting for confirmation. mode is decided by the caller.
 type ConfirmState = {
@@ -94,6 +95,8 @@ export function ModpacksTab({
   const [picker, setPicker] = useState<PickerState | null>(null);
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  // All loaders toggle for the browser; off by default.
+  const [allLoaders, setAllLoaders] = useState(false);
 
   const modpackKey = resourceKey(resourceTarget, "modpack", name, ns);
   const serverKey = resourceKey(resourceTarget, "server", name, ns);
@@ -117,6 +120,11 @@ export function ModpacksTab({
     ? intl.formatMessage({ id: "web.routes.tabs.modpacks.minecraft_version", defaultMessage: "Minecraft {version}", description: "Modpacks: label for the server's Minecraft version in the active modpack card; {version} is the version number" }, { version: gv.gameVersion })
     : "";
   const mcLabel = [mcVersionLabel, loaderLabel].filter(Boolean).join(" · ");
+  // The server's current version entry; picks that need another one switch it.
+  // A stale spec.version matches no entry, and the server then runs the
+  // template's default entry, so that is the version the switch is measured from.
+  const currentVersion = gv ?? tmpl?.spec.versions?.find((v) => v.default) ?? tmpl?.spec.versions?.[0];
+  const currentVersionId = currentVersion?.id;
 
   const installMut = useMutation({
     mutationFn: (body: ModpackInstallBody) => Servers.installModpack(name, body, ns),
@@ -125,6 +133,10 @@ export function ModpacksTab({
       void qc.invalidateQueries({ queryKey: ["fleet"] });
       setConfirm(null);
       setBanner({ kind: "ok", text: intl.formatMessage({ id: "web.routes.tabs.modpacks.banner_set", defaultMessage: "Set modpack {title}. The server is restarting to install it.", description: "Modpacks: banner shown after a modpack is set on the server; {title} is the modpack title" }, { title: body.title ?? body.project }) });
+      void qc.invalidateQueries({ predicate: (q) => q.queryKey.includes("modpack-versions") });
+      if (body.serverVersion) {
+        void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "registry-providers") });
+      }
       return qc.invalidateQueries({ queryKey: serverKey });
     },
   });
@@ -169,7 +181,7 @@ export function ModpacksTab({
   const install = (p: RegistryProject, provider: string) => {
     if (declFor(provider)?.modpacks?.refEnv) {
       const project = p.slug || p.id;
-      setPicker({ provider, project, title: p.title, pinnedVersionId: pinnedFor(provider, project) });
+      setPicker({ provider, project, title: p.title, pinnedVersionId: pinnedFor(provider, project), allLoaders });
       return;
     }
     installDeps.mutate({ p, provider });
@@ -203,6 +215,13 @@ export function ModpacksTab({
     err ? errorTextIntl(intl, err, intl.formatMessage({ id: "web.routes.tabs.modpacks.error_request_failed", defaultMessage: "request failed", description: "Modpacks: fallback error text when the error has no message" })) : undefined;
 
   const showSubtitleNew = hasEnvMode;
+
+  // Set when the picked pack version needs a different server version.
+  const switchTo = confirm ? serverVersionSwitch(confirm.version, currentVersionId) : undefined;
+  const serverVersionChange =
+    confirm && switchTo
+      ? { from: currentVersion?.displayName || currentVersion?.id || server?.spec.version || "", to: confirm.version.serverVersionName || switchTo }
+      : undefined;
 
   return (
     <div className="flex h-full flex-col gap-4 p-6">
@@ -253,6 +272,9 @@ export function ModpacksTab({
           type="modpack"
           categories={MODPACK_CATEGORIES.map((c) => ({ value: c.value, label: intl.formatMessage(c.label) }))}
           pillButtons={true}
+          allLoaders={allLoaders}
+          onAllLoadersChange={setAllLoaders}
+          hasAllLoaders={(p) => !!declFor(p)?.modpacks?.refEnv}
           renderItem={(p, provider) => {
             const envMode = !!declFor(provider)?.modpacks?.refEnv;
             return (
@@ -305,6 +327,8 @@ export function ModpacksTab({
           title={picker.title}
           mcLabel={mcLabel}
           pinnedVersionId={picker.pinnedVersionId}
+          allLoaders={picker.allLoaders === true}
+          currentVersionId={currentVersionId}
           confirmLabel={picker.change ? intl.formatMessage({ id: "web.routes.tabs.modpacks.continue", defaultMessage: "Continue", description: "Modpacks: button that continues from the version picker to the confirmation step" }) : undefined}
           onContinue={(v, isOlder) => onPicked(picker, v, isOlder)}
         />
@@ -326,6 +350,7 @@ export function ModpacksTab({
           backupDestination={view?.backupDestination}
           pending={installMut.isPending}
           error={installMut.error ? errMsg(installMut.error, intl) : undefined}
+          serverVersionChange={serverVersionChange}
           onConfirm={({ backupFirst }) =>
             installMut.mutate({
               provider: confirm.provider,
@@ -334,6 +359,8 @@ export function ModpacksTab({
               title: confirm.title,
               versionName: versionNameOf(confirm.version),
               backupFirst,
+              // Sent only when the server must switch version; otherwise the body is unchanged.
+              ...(switchTo ? { serverVersion: switchTo } : {}),
             })
           }
         />
