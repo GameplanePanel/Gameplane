@@ -229,7 +229,7 @@ func TestInstallModpack_ServerVersionSwitchWritesVersionAndPack(t *testing.T) {
 	k, fp := installSwitchFixture([]registry.Version{{ID: "pack-forge", Loaders: []string{"forge"}, GameVersions: []string{"1.12.2"}}})
 	mount := mountRegistryRouter(k, fakeSet{p: fp})
 
-	rr := modpackReqAs(t, adminUser(), mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
+	rr := modpackReqAs(t, switchAdminUser(), mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
 		"provider": "modrinth", "project": "pack", "version": "pack-forge",
 		"serverVersion": "1.12.2-forge",
 	})
@@ -298,7 +298,7 @@ func TestInstallModpack_ServerVersionRejects(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			k, fp := installSwitchFixture(tc.versions)
 			mount := mountRegistryRouter(k, fakeSet{p: fp})
-			rr := modpackReqAs(t, adminUser(), mount, http.MethodPost, "/servers/alpha/modpack", tc.body)
+			rr := modpackReqAs(t, switchAdminUser(), mount, http.MethodPost, "/servers/alpha/modpack", tc.body)
 			if rr.Code != http.StatusBadRequest {
 				t.Fatalf("got %d %s, want 400", rr.Code, rr.Body)
 			}
@@ -322,7 +322,7 @@ func TestInstallModpack_ServerVersionSwitchChecksTargetImageKey(t *testing.T) {
 	fp := &versionsProvider{versions: []registry.Version{{ID: "pack-forge", Loaders: []string{"forge"}, GameVersions: []string{"1.12.2"}}}}
 	mount := mountRegistryRouter(k, fakeSet{p: fp})
 
-	rr := modpackReqAs(t, adminUser(), mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
+	rr := modpackReqAs(t, switchAdminUser(), mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
 		"provider": "curseforge", "project": "pack", "version": "pack-forge", "serverVersion": "1.12.2-forge",
 	})
 	if rr.Code != http.StatusConflict {
@@ -357,7 +357,7 @@ func TestInstallModpack_ServerVersionRejectsUnfittingVersion(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			k, fp := installSwitchFixture([]registry.Version{tc.version})
 			mount := mountRegistryRouter(k, fakeSet{p: fp})
-			rr := modpackReqAs(t, adminUser(), mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
+			rr := modpackReqAs(t, switchAdminUser(), mount, http.MethodPost, "/servers/alpha/modpack", map[string]any{
 				"provider": "curseforge", "project": "pack", "version": "pack-forge",
 				"serverVersion": "1.12.2-forge",
 			})
@@ -432,8 +432,8 @@ func TestRegistryVersions_AllLoadersSkipsKeyBlockedEntries(t *testing.T) {
 	}
 }
 
-// adminUser holds every permission on every cluster and namespace.
-func adminUser() *auth.User {
+// switchAdminUser holds every permission on every cluster and namespace.
+func switchAdminUser() *auth.User {
 	return &auth.User{ID: 1, Username: "admin", Perms: map[string]map[string]map[string]struct{}{
 		"*": {"*": {"*": {}}},
 	}}
