@@ -84,7 +84,7 @@ func (s *Service) SeedOfficial(ctx context.Context, cfg OfficialConfig) error {
 		return fmt.Errorf("read official theme source: %w", err)
 	}
 
-	spec := mergeOfficialSpec(current.Spec, desired.Spec, cfg)
+	spec := mergeOfficialSpec(current.Spec, desired.Spec)
 	if current.Spec == spec && equalStringPtr(current.Verify, desired.Verify) {
 		return nil
 	}
@@ -102,7 +102,7 @@ func (s *Service) SeedOfficial(ctx context.Context, cfg OfficialConfig) error {
 // list taken from the chart, so admin settings on the row (allow globs, the
 // insecure flag) survive a restart. A spec that does not decode as an oci spec
 // is replaced by the desired one.
-func mergeOfficialSpec(current, desired string, cfg OfficialConfig) string {
+func mergeOfficialSpec(current, desired string) string {
 	var sp sourceSpec
 	if err := json.Unmarshal([]byte(current), &sp); err != nil || sp.OCI == nil {
 		return desired
