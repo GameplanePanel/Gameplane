@@ -1,6 +1,7 @@
 package oci
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"strings"
@@ -66,7 +67,7 @@ func TestPull_RejectsModuleBundleOverTotal(t *testing.T) {
 	for range MaxBundleSize/MaxTemplateLayerSize + 1 {
 		layers = append(layers, titled(LayerNameTemplate, MediaTypeTemplate, MaxTemplateLayerSize))
 	}
-	pushDeclared(t, reg, "gameplane/overtotal", ArtifactType, layers, nil)
+	pushDeclared(t, reg, "gameplane/overtotal", ArtifactType, layers, map[string][]byte{LayerNameTemplate: bytes.Repeat([]byte("t"), MaxTemplateLayerSize)})
 	_, _, err := New(nil, true).Pull(context.Background(), reg.host()+"/gameplane/overtotal", "1.0.0")
 	if err == nil || !strings.Contains(err.Error(), "bundle layers exceed") {
 		t.Fatalf("Pull err = %v, want a bundle total error", err)
