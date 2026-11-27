@@ -18,8 +18,8 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `feat/041-backup-archives` from fresh `master` after the docs PR for this folder merges; record the base SHA in the PR body.
-- [ ] T002 List existing tests that encode behaviour this spec changes (file, test, assertion, needed change) in `specs/041-downloadable-backup-archives/T002-test-edits.md`: candidates `operator/internal/controller/restore_*_test.go` (required `backupRef`, phase enum), `api/internal/rbac/*_test.go` (route rules), `api/cmd/*_test.go` (large-transfer paths), `api/internal/gateway/*_test.go` (operation allow-list), `web/src/routes/tabs/Backups*.test.tsx`. Mark each "matches spec, peer review" or "needs valgul sign-off".
+- [X] T001 Create `feat/041-backup-archives` from fresh `master` after the docs PR for this folder merges; record the base SHA in the PR body. Done: branch `feat/041-backup-archives`, merged as #1117.
+- [X] T002 List existing tests that encode behaviour this spec changes (file, test, assertion, needed change) in `specs/041-downloadable-backup-archives/T002-test-edits.md`: candidates `operator/internal/controller/restore_*_test.go` (required `backupRef`, phase enum), `api/internal/rbac/*_test.go` (route rules), `api/cmd/*_test.go` (large-transfer paths), `api/internal/gateway/*_test.go` (operation allow-list), `web/src/routes/tabs/Backups*.test.tsx`. Mark each "matches spec, peer review" or "needs valgul sign-off". Done: `T002-test-edits.md`.
 - [X] T003 Write the design prompt `/mnt/project-files/notes/design-prompts/041-backup-archives.md` (done with the docs PR; see T005).
 
 ## Phase 2: Foundational
@@ -69,7 +69,7 @@
 - [X] T033 [P] Update `operator/specs.md` (BackupExport, Restore upload lifecycle, 10 CRDs), `api` and `agent` `specs.md`, `CLAUDE.md` CRD count, user docs for backups (find the page via `docs/agent-architecture.md`).
 - [X] T034 [P] `changelog/unreleased/<PR>-backup-archives.md`.
 - [ ] T035 Browser smoke test via Chrome MCP at `sonnet` on a dev cluster, parallel with the diff review.
-- [ ] T037 User docs page for backup download and upload on the website (`GameplanePanel/website`, docs collection), then bump the `website` pointer; split from T033, which covered the in-repo docs (`docs/operator-operations.md`).
+- [X] T037 User docs page for backup download and upload on the website (`GameplanePanel/website`, docs collection), then bump the `website` pointer; split from T033, which covered the in-repo docs (`docs/operator-operations.md`). Done: GameplanePanel/website#45 (page `backup-archives`), `website` pointer bumped in the same PR as this tick.
 - [ ] T036 valgul's quickstart walk (`quickstart.md`), then archive the folder to `specs/done_041-downloadable-backup-archives` (core rule 16).
 
 ## Dependencies
