@@ -1043,13 +1043,31 @@ uploadModuleSource:
   name: uploads
   refreshInterval: 1h
 
-# Theme marketplace (spec 043). The official theme source (ghcr.io/gameplanepanel/gameplane-themes,
-# keyless-signed) is seeded on first start and can be browsed by every signed-in user. Set
+# Theme marketplace (spec 043). The official theme source (ghcr.io/gameplanepanel/gameplane-themes)
+# is seeded on first start, reconciled from these values on every start, and can be browsed by every signed-in user. Set
 # officialSource.enabled to false on air-gapped installs that do not mirror it; the source
 # can also be disabled later from Settings → Theme sources.
+#
+# Official themes are signed with the same cosign key pair as the official modules, so the
+# signing public key here is the same block as defaultModuleSource.oci.verify.cosignPublicKey
+# (signing/cosign.pub). Every start reconciles the official source's URL, theme list and verify
+# policy from these values; the admin's enabled flag and refresh interval are kept.
 themes:
   officialSource:
     enabled: true
+    url: ghcr.io/gameplanepanel/gameplane-themes
+    # Theme names the official source indexes. Empty for now; GameplanePanel/themes releases
+    # add names here (like the module list above).
+    themes: []
+    # Cosign signature verification (keyed, offline). Off by default, as for official modules.
+    verify:
+      enabled: false
+      # Keep this key byte-identical to signing/cosign.pub.
+      cosignPublicKey: |
+        -----BEGIN PUBLIC KEY-----
+        MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEptXw/hWES+fiWwez02SAqfPvvXzb
+        DleBuL5fwB4MM20CXQWykjj12Kx3ZHLmf0KTb6TN4QCjJ7B4tj2pc066ow==
+        -----END PUBLIC KEY-----
 
 # Optional network packet capture sidecar for GameServers. When enabled cluster-wide,
 # admins can opt individual GameServers into live capture and download PCAPNG files

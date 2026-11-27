@@ -19,6 +19,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/auth"
 	"github.com/GameplanePanel/gameplane/api/internal/db"
 	"github.com/GameplanePanel/gameplane/api/internal/themes"
+	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
 	"github.com/GameplanePanel/gameplane/bundlefetch/source"
 	"github.com/GameplanePanel/gameplane/bundlefetch/verify"
 )
@@ -135,7 +136,7 @@ func newThemeCatEnv(t *testing.T) *themeCatEnv {
 	}
 	env.svc = themes.New(themes.Deps{
 		Store: store,
-		OCI:   func(bool) source.OCIClient { return env.oci },
+		OCI:   func(oci.CredentialFunc, bool) source.OCIClient { return env.oci },
 		Verifier: func(context.Context, string, bool) (verify.Verifier, error) {
 			return themeCatVerifier{}, nil
 		},

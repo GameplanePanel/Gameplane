@@ -1,6 +1,6 @@
 # Open decisions: spec 043 theme marketplace
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-3 were raised on 2026-11-26 and asked as decision cards. OD-1 to OD-3 are settled. Planning raised OD-4 on 2026-11-26; it is settled. OD-5, OD-6 and OD-7 are open (raised during implementation); see the end of this file.
+Only a decision valgul answers is written here as settled. OD-1 to OD-3 were raised on 2026-11-26 and asked as decision cards. OD-1 to OD-3 are settled. Planning raised OD-4 on 2026-11-26; it is settled. OD-5 is settled. OD-6 and OD-7 were raised during implementation and valgul settled both on 2026-11-27 (OD-6: same as modules; OD-7: A, `themes:manage`). No decision in this file is open.
 
 ## OD-1: Who can install themes from the catalog? (SETTLED: B, valgul 2026-11-26)
 
@@ -41,11 +41,11 @@ Raised by planning (research.md R1). Themes are per panel user (OD-1), while mod
 - **B1. Coverage total for `bundlefetch`.** Not a decision after all: `bundlefetch/.testcoverage.yml` keeps `total: 90`, and PR-B adds new test files `bundlefetch/source/*_test.go` (new tests need no sign-off, see tasks.md "Tests"). If CI still reports under 90, more new tests are added; the gate is not lowered.
 - **B5. Logger hook in `bundlefetch/verify`.** SETTLED (valgul, decision card 2026-11-27): "Context logger, slog fallback". `fulcioPools` uses `logr.FromContext(ctx)` and falls back to `slog.ErrorContext` when the context has no logger; the operator logs as before and the warning text is unchanged.
 
-## OD-5: How is a theme source credential stored? (OPEN, raised 2026-11-27 by T015/T016)
+## OD-5: How is a theme source credential stored? (SETTLED: A, valgul 2026-11-27)
 
 data-model.md says `theme_sources.credential` is a blob encrypted with the panel key. Findings: the panel key exists only in standalone mode, is private to package `controlplane`, covers only `management_objects` rows of kind `secrets`, and is absent in combined (in-cluster) mode, where secrets live in Kubernetes. A new encrypted blob column would be unreadable in combined mode and skipped by key rotation.
 
-What the branch implements now (provisional, not settled): migration `028_theme_marketplace.sql` has `theme_sources.credential_ref TEXT` (nullable) in place of the blob. The row holds only the name of a labelled credential Secret, managed through `kube.Client.Secrets(ns)` (Kubernetes Secret in combined mode, panel-encrypted `management_objects` in standalone, covered by key rotation). The credential is never stored in the row or returned by the API. Store code treats `credential_ref` as an opaque string.
+valgul chose A on the decision card ("Secret, name kept on the source"). The branch implements: migration `028_theme_marketplace.sql` has `theme_sources.credential_ref TEXT` (nullable) in place of the blob. The row holds only the name of a labelled credential Secret, managed through `kube.Client.Secrets(ns)` (Kubernetes Secret in combined mode, panel-encrypted `management_objects` in standalone, covered by key rotation). The credential is never stored in the row or returned by the API. Store code treats `credential_ref` as an opaque string.
 
 - A. Labelled Secret, name in `credential_ref` (recommended, as implemented). Needs a secret name that fits 63 characters: cap source names or derive the name from the numeric id.
 - B. Keep the encrypted blob as data-model.md says, with a new panel-key helper usable in both modes. Needs a new encryption path and rotation coverage for the new column.
@@ -58,15 +58,13 @@ Blocks T046 (source credential handling). Settle before T046 is merged; if B is 
 - Ids are generated in Go (random positive 53-bit, as `auth.newMCPTokenID`). No `REFERENCES`: dependent rows are deleted or nulled in Go transactions (`DeleteThemeSource`, `DeleteInstalledTheme`, `DeleteUserTx`).
 - `bundlefetch` is added to `api/go.mod` (replace and require). `go mod tidy` also moved unrelated indirect versions (go-openapi swag 0.28 to 0.29, x/time 0.15 to 0.16, onsi/gomega added) because bundlefetch pulls in newer shared dependencies.
 
-## OD-6: Official source identity and theme list (OPEN, raised 2026-11-27 by T021)
+## OD-6: Official source identity and theme list (SETTLED: "Same as modules", valgul 2026-11-27)
 
-The seeded `official` source (`api/internal/themes/seed.go`) cannot verify anything yet:
-
-- The keyless identity is a placeholder, `https://github.com/GameplanePanel/themes/.github/workflows/release.yaml@refs/heads/master`. cosign matches the Fulcio subject exactly (`bundlefetch/verify/verify.go:209`), and a release tag gives a different ref per tag, so no single string covers every release. Options: (A) pin the exact ref the T061 workflow signs with (for example `@refs/heads/master` if releases sign from master); (B) add a subject-regex option to `bundlefetch/verify` (a bundlefetch change, needs its own test pass). Until this is settled, every official theme reports `unverified`.
-- The OCI spec needs an explicit `themes[]` list (registries cannot be enumerated). The seed writes `themes: []`, so the official source indexes nothing until the list exists (T062). Options: (A) ship the list in the API with each release, (B) let the source read an index artifact.
-- Deletion: SeedOfficial stores a marker (`config` key `themes.official_seeded`) so a deleted official source is not re-created on restart. Still open: whether `DELETE` of `official` returns 409 (disable only, recommended in OD-8 notes) or is allowed.
-
-Blocks T061 and T062 (identity and list), and the T046 rule that reserves the name `official`.
+- Official themes are signed with the same cosign key pair as the official modules. The official source's verify policy is keyed with the project public key `signing/cosign.pub` (offline, no Rekor), not keyless.
+- The chart carries a copy of that key in `themes.officialSource.verify.cosignPublicKey`, the same block as `defaultModuleSource.oci.verify.cosignPublicKey`. Verify is off by default, as for official modules.
+- The official theme list ships in the chart as `themes.officialSource.themes`, the same way `defaultModuleSource.oci.modules` does. It is empty until GameplanePanel/themes releases add names. Every API start reconciles the official row's URL, theme list and verify policy from the chart; the admin's enabled flag and refresh interval are kept.
+- This replaces the earlier answers: the keyless tag identity, the placeholder identity (removed from the code), and the index-artifact option.
+- Deletion: the `themes.official_seeded` marker is removed, because a deleted official source is not re-created by the start. `DELETE` of `official` returns 409 (disable only), so a missing row can only mean a fresh database.
 
 ## Implementation notes (T019/T021, no decision needed)
 
@@ -92,9 +90,9 @@ Blocks T061 and T062 (identity and list), and the T046 rule that reserves the na
 - `DELETE /themes/sources/official` answers 409: the official source can only be disabled, as the T004 design brief says ("marked as built-in and cannot be deleted, only disabled") and FR-002 allows.
 - Install limit answers 409 `server.themes.install_limit`; a malformed or foreign installed id answers 404; refresh on a disabled source answers 409 `source_disabled`.
 - `refreshInterval` is in seconds (default 3600, floor 300). Source names are DNS labels of at most 40 characters (room for a derived Secret name, OD-5).
-- Until OD-5 is settled, no credential is accepted: a request with `credential` gets 400, and sources are pulled anonymously.
+- OD-5 (option A) is implemented: `POST`/`PUT /themes/sources` take an optional `credential`. An oci source takes docker config JSON (`{"auths": {...}}`); a git or http source takes `{"token"}` or `{"username","password"}`; a local source takes none (422). The value is stored as a labelled Secret `gameplane-theme-source-<name>` (label `gameplane.local/theme-source=true`) through `kube.Client.Secrets(credentialsNS)`, and the row keeps only its name in `credential_ref`. PUT without `credential` keeps it, `null` clears it, and a moved location drops it. Delete removes the Secret. Responses and errors never carry the value. The indexer reads the Secret for each pull; the signature check still pulls anonymously.
 - Source list items carry an extra `builtin` boolean (additive to `contracts/themes-api.md`).
 
-## OD-7: Permission for theme sources (OPEN, raised 2026-11-27)
+## OD-7: Permission for theme sources (SETTLED: A, valgul 2026-11-27)
 
-research.md R6 chose a new admin-only permission `themes:manage`, but valgul has not answered this exact question and spec 039 owns permission changes. Asked on a card: (A) new `themes:manage` as planned (recommended), (B) reuse `modules:manage`. The branch implements A and is not pushed until this is answered.
+**Settled (valgul, 2026-11-27): A, new permission.** A new admin-only permission `themes:manage` governs theme sources (research.md R6; rbac catalog key `themes:manage`). It is not `modules:manage`.

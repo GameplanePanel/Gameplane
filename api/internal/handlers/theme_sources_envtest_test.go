@@ -122,8 +122,10 @@ func TestThemeSourcesRefuseInvalidSettings(t *testing.T) {
 			`{"http":{"url":"http://example.com/t.tar.gz"}}`, ""), http.StatusUnprocessableEntity},
 		{"unknown spec key", themeSrcBody("typo-key", "oci",
 			`{"oci":{"url":"registry.test/typo","themez":["deep-ocean"]}}`, ""), http.StatusUnprocessableEntity},
-		{"credential field refused", themeSrcBody("cred-field", "oci", themeSrcSpec("cred-field"),
-			`,"credential":{"username":"u","password":"p"}`), http.StatusBadRequest},
+		{"oci credential not docker config", themeSrcBody("cred-shape", "oci", themeSrcSpec("cred-shape"),
+			`,"credential":{"username":"u","password":"p"}`), http.StatusUnprocessableEntity},
+		{"credential on local source", themeSrcBody("cred-local", "local",
+			`{"local":{"path":"themes"}}`, `,"credential":{"token":"t"}`), http.StatusUnprocessableEntity},
 	}
 	for _, c := range cases {
 		rr := themeInstDo(t, h, http.MethodPost, "/themes/sources", c.body)
@@ -252,10 +254,18 @@ func TestThemeSourceDeleteKeepsInstalledCopies(t *testing.T) {
 	}
 }
 
+// officialTestCosignKey is the official signing public key (signing/cosign.pub,
+// the same block as the chart's defaultModuleSource.oci.verify.cosignPublicKey).
+const officialTestCosignKey = "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEptXw/hWES+fiWwez02SAqfPvvXzb\nDleBuL5fwB4MM20CXQWykjj12Kx3ZHLmf0KTb6TN4QCjJ7B4tj2pc066ow==\n-----END PUBLIC KEY-----\n"
+
 func TestThemeSourceOfficialIsBuiltIn(t *testing.T) {
 	env := newThemeCatEnv(t)
 	ctx := context.Background()
-	if err := env.svc.SeedOfficial(ctx, true); err != nil {
+	if err := env.svc.SeedOfficial(ctx, themes.OfficialConfig{
+		Enabled:         true,
+		VerifyEnabled:   true,
+		CosignPublicKey: officialTestCosignKey,
+	}); err != nil {
 		t.Fatalf("seed official: %v", err)
 	}
 	admin := env.router("admin")
@@ -275,8 +285,8 @@ func TestThemeSourceOfficialIsBuiltIn(t *testing.T) {
 	}
 
 	// Disabling it is allowed; the response marks it built in.
-	disable := fmt.Sprintf(`{"type":"oci","spec":{"oci":{"url":%q,"themes":[]}},"verify":{"keyless":{"issuer":%q,"identity":%q}},"enabled":false}`,
-		themes.OfficialSourceURL, themes.OfficialKeylessIssuer, themes.OfficialKeylessIdentity)
+	disable := fmt.Sprintf(`{"type":"oci","spec":{"oci":{"url":%q,"themes":[]}},"verify":{"key":%q},"enabled":false}`,
+		themes.OfficialSourceURL, officialTestCosignKey)
 	rr := themeInstDo(t, admin, http.MethodPut, "/themes/sources/"+themes.OfficialSourceName, disable)
 	if rr.Code != http.StatusOK {
 		t.Fatalf("disable official: status %d body %s", rr.Code, rr.Body.String())
