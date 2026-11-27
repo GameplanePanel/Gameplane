@@ -240,9 +240,15 @@ func main() {
 	authRegistry := auth.NewRegistry(store,
 		auth.NewK8sSecretReader(k8s, credentialsNS), oidcAuth, cfg.oidcDisplayName, helmPolicy)
 	// Theme marketplace (spec 043): the reserved official source is seeded
-	// once on first start. Same code path in combined and standalone mode.
-	themeSvc := themes.New(themes.Deps{Store: store, Logger: logger, LocalRoot: cfg.themesLocalRoot})
-	if err := themeSvc.SeedOfficial(ctx, cfg.themesOfficialSource); err != nil {
+	// and reconciled from the chart on every start. Same code path in combined and standalone mode.
+	themeSvc := themes.New(themes.Deps{
+		Store:         store,
+		Logger:        logger,
+		LocalRoot:     cfg.themesLocalRoot,
+		Kube:          k8s,
+		CredentialsNS: credentialsNS,
+	})
+	if err := themeSvc.SeedOfficial(ctx, cfg.themesOfficial); err != nil {
 		logger.Error("seed theme sources", "err", err)
 		os.Exit(1)
 	}
@@ -671,7 +677,7 @@ type config struct {
 	telemetryBundled       bool
 	telemetryInterval      time.Duration
 	officialModuleSource   string
-	themesOfficialSource   bool
+	themesOfficial         themes.OfficialConfig
 	themesLocalRoot        string
 	clusterOps             bool
 	clusterExternalAddress string
@@ -773,9 +779,16 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	// credential and only comes from the environment (a mounted Secret),
 	// never a flag.
 	c.telemetryAuth = envOr("GAMEPLANE_TELEMETRY_AUTH", "")
-	// Env-only, like GAMEPLANE_TELEMETRY_BUNDLED: the chart sets it from
-	// themes.officialSource.enabled. Anything but "false" seeds the source.
-	c.themesOfficialSource = envOr("GAMEPLANE_THEMES_OFFICIAL_SOURCE", "true") != "false"
+	// Env-only, like GAMEPLANE_TELEMETRY_BUNDLED: the chart sets these from
+	// themes.officialSource. Anything but "false" enables the source. The list
+	// is comma separated; the key is the PEM public key, set when verify is on.
+	c.themesOfficial = themes.OfficialConfig{
+		Enabled:         envOr("GAMEPLANE_THEMES_OFFICIAL_SOURCE", "true") != "false",
+		URL:             envOr("GAMEPLANE_THEMES_OFFICIAL_URL", ""),
+		Themes:          splitCommaList(envOr("GAMEPLANE_THEMES_OFFICIAL_THEMES", "")),
+		VerifyEnabled:   envOr("GAMEPLANE_THEMES_OFFICIAL_VERIFY", "false") == "true",
+		CosignPublicKey: envOr("GAMEPLANE_THEMES_OFFICIAL_COSIGN_KEY", ""),
+	}
 	// Local theme sources read only under this directory. Empty (the default)
 	// disables local sources, so an admin cannot point the API at any host path.
 	fs.StringVar(&c.themesLocalRoot, "themes-local-root", envOr("GAMEPLANE_THEMES_LOCAL_ROOT", ""),
@@ -849,6 +862,17 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	// This must happen in main() after flag parsing, not here, so we can
 	// apply error handling.
 	c.trustedProxies = strings.Split(trustedProxiesStr, ",")
+}
+
+// splitCommaList splits a comma-separated env value into trimmed, non-empty items.
+func splitCommaList(v string) []string {
+	var out []string
+	for _, item := range strings.Split(v, ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			out = append(out, item)
+		}
+	}
+	return out
 }
 
 func envOr(key, fallback string) string {

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
 	"github.com/GameplanePanel/gameplane/bundlefetch/source"
 	"github.com/GameplanePanel/gameplane/bundlefetch/verify"
 	"github.com/GameplanePanel/gameplane/themepkg"
@@ -126,7 +127,7 @@ func newHarness(t *testing.T) *harness {
 		Store:     h.store,
 		Clock:     h.clock.Now,
 		LocalRoot: h.localRoot,
-		OCI:       func(bool) source.OCIClient { return h.oci },
+		OCI:       func(oci.CredentialFunc, bool) source.OCIClient { return h.oci },
 		Verifier: func(context.Context, string, bool) (verify.Verifier, error) {
 			return h.verifier, nil
 		},
