@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Overview (PVC Provisioning Failed)",
   "type": "FRAME",
   "x": 8200,
-  "y": 26476,
+  "y": 28750,
   "width": 1440,
   "height": 1320,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -543,8 +543,7 @@
                   "y": 16,
                   "width": 20,
                   "height": 20,
-                  "component": "lucide/triangle-alert/20x20",
-                  "variables": {"fills/0/color": "warning/soft-foreground"}
+                  "component": "lucide/triangle-alert/20x20"
                 },
                 {
                   "name": "contents",

@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Overview (Never sleeps)",
   "type": "FRAME",
   "x": 3280,
-  "y": 26476,
+  "y": 28750,
   "width": 1440,
   "height": 1725,
   "fills": [{"type": "SOLID", "color": "#121114"}],

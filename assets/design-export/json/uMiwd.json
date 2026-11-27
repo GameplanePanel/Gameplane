@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Authentication",
   "type": "FRAME",
   "x": 0,
-  "y": 85693,
+  "y": 93507,
   "width": 1440,
   "height": 1636,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -103,8 +103,7 @@
                       "y": 8,
                       "width": 16,
                       "height": 16,
-                      "component": "lucide/shield-check/16x16",
-                      "variables": {"fills/0/color": "accent/accent"}
+                      "component": "lucide/shield-check/16x16"
                     }
                   ]
                 },
@@ -642,17 +641,17 @@
                 {
                   "name": "logout",
                   "type": "INSTANCE",
-                  "x": 204,
-                  "y": 8,
-                  "width": 24,
-                  "height": 24,
+                  "x": 192,
+                  "y": 2,
+                  "width": 36,
+                  "height": 36,
                   "component": "Button/Ghost/Icon/MD",
                   "componentId": "1:942",
                   "cornerRadius": 24,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
-                    "padding": [10, 0, 10, 0],
+                    "padding": [0, 0, 0, 0],
                     "primary": "CENTER",
                     "counter": "CENTER",
                     "sizing": ["FIXED", "FIXED"]

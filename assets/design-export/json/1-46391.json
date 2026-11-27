@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Files (Uploads, Light)",
   "type": "FRAME",
   "x": 3920,
-  "y": 32501,
+  "y": 34775,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#FFFFFF"}],

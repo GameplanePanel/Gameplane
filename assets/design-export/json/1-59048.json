@@ -1,0 +1,1226 @@
+{
+  "file": "1-59048",
+  "id": "1:59048",
+  "name": "Screen/Theme detail — installed",
+  "type": "FRAME",
+  "x": 0,
+  "y": 88922,
+  "width": 1440,
+  "height": 900,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "id": "1:59304",
+      "name": "App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "id": "1:59305",
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "id": "1:59643",
+          "name": "Top Bar",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "children": [
+            {
+              "id": "1:60001",
+              "name": "Breadcrumbs",
+              "type": "FRAME",
+              "x": 32,
+              "y": 23,
+              "width": 421,
+              "height": 18,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "id": "1:60201",
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 72,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "gameplane",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "id": "1:60202",
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 80,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "id": "1:60423",
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60203",
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 102,
+                  "y": 0,
+                  "width": 53,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Settings",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "id": "1:60204",
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 163,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "id": "1:60424",
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60205",
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 185,
+                  "y": 0,
+                  "width": 43,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Theme",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "id": "1:60206",
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 236,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "id": "1:60425",
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60207",
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 258,
+                  "y": 0,
+                  "width": 50,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Catalog",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "id": "1:60208",
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 316,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "id": "1:60426",
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60209",
+                  "name": "crumbPage",
+                  "type": "TEXT",
+                  "x": 338,
+                  "y": 0,
+                  "width": 83,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Aurora Night",
+                  "font": ["Geist", 500, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                }
+              ]
+            },
+            {
+              "id": "1:60002",
+              "name": "Actions",
+              "type": "FRAME",
+              "x": 764,
+              "y": 0,
+              "width": 384,
+              "height": 64,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:60210",
+                  "name": "Cluster Pill",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 15.5,
+                  "width": 94,
+                  "height": 33,
+                  "visible": false,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 8,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "id": "1:60427",
+                      "name": "healthDot",
+                      "type": "ELLIPSE",
+                      "x": 12,
+                      "y": 12.5,
+                      "width": 8,
+                      "height": 8,
+                      "fills": [{"type": "SOLID", "color": "#21C45D"}],
+                      "variables": {"fills/0/color": "success/success"}
+                    },
+                    {
+                      "id": "1:60428",
+                      "name": "clusterName",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 8,
+                      "width": 30,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "local",
+                      "font": ["Geist", 500, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "id": "1:60429",
+                      "name": "chevron",
+                      "type": "INSTANCE",
+                      "x": 66,
+                      "y": 8.5,
+                      "width": 16,
+                      "height": 16,
+                      "component": "lucide/chevron-down/16x16"
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60211",
+                  "name": "Search",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 12,
+                  "width": 280,
+                  "height": 40,
+                  "component": "SearchField/Primary",
+                  "componentId": "1:1928",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "texts": ["Search servers…"]
+                },
+                {
+                  "id": "1:60212",
+                  "name": "Bell Wrap",
+                  "type": "FRAME",
+                  "x": 292,
+                  "y": 12,
+                  "width": 40,
+                  "height": 40,
+                  "children": [
+                    {
+                      "id": "1:60430",
+                      "name": "Sdet8",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 36,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "id": "1:60596",
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 8,
+                          "y": 8,
+                          "width": 20,
+                          "height": 20,
+                          "component": "lucide/bell/20x20"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:60431",
+                      "name": "UnreadDot",
+                      "type": "ELLIPSE",
+                      "x": 29,
+                      "y": 1,
+                      "width": 8,
+                      "height": 8,
+                      "visible": false,
+                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "strokes": [{"type": "SOLID", "color": "#121114"}],
+                      "strokeWeight": 1.5,
+                      "variables": {"fills/0/color": "accent/accent", "strokes/0/color": "background/background"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60213",
+                  "name": "Avatar",
+                  "type": "INSTANCE",
+                  "x": 344,
+                  "y": 12,
+                  "width": 40,
+                  "height": 40,
+                  "component": "Avatar/Text",
+                  "componentId": "1:2407",
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 9999,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "default/default"},
+                  "texts": ["AD"]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1:59644",
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:60003",
+              "name": "Page Header",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "component": "Gameplane/Page Header",
+              "componentId": "1:3282",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": ["Theme details", "Preview a theme, then install it for your account."]
+            },
+            {
+              "id": "1:60004",
+              "name": "Settings Layout",
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 711,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 24,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:60214",
+                  "name": "Settings Nav",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 220,
+                  "height": 530,
+                  "component": "Gameplane/Admin Settings Nav/Theme active",
+                  "componentId": "1:59062",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 2,
+                    "padding": [8, 0, 8, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "texts": [
+                    "ACCOUNT",
+                    "Theme",
+                    "MCP tokens",
+                    "SFTP",
+                    "SERVER",
+                    "General",
+                    "Authentication",
+                    "Module sources",
+                    "Theme sources",
+                    "Mod registries",
+                    "Notifications",
+                    "Telemetry",
+                    "Updates",
+                    "About"
+                  ]
+                },
+                {
+                  "id": "1:60215",
+                  "name": "Content Column",
+                  "type": "FRAME",
+                  "x": 244,
+                  "y": 0,
+                  "width": 888,
+                  "height": 684,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 16,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "id": "1:60432",
+                      "name": "Gameplane/Back Link",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 112,
+                      "height": 17,
+                      "component": "Gameplane/Back Link",
+                      "componentId": "1:59064",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 4,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "texts": ["Back to catalog"]
+                    },
+                    {
+                      "id": "1:60433",
+                      "name": "Theme Header",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 33,
+                      "width": 888,
+                      "height": 85,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 10,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "id": "1:60597",
+                          "name": "Title Row",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 261,
+                          "height": 31,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "children": [
+                            {
+                              "id": "1:60796",
+                              "name": "detailName",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 145,
+                              "height": 31,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Aurora Night",
+                              "font": ["Geist", 600, 24],
+                              "variables": {"fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "id": "1:60797",
+                              "name": "detailBadge",
+                              "type": "INSTANCE",
+                              "x": 157,
+                              "y": 7,
+                              "width": 104,
+                              "height": 17,
+                              "component": "Chip/Soft/Warning/SM",
+                              "componentId": "1:3082",
+                              "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
+                              "cornerRadius": 16,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 2,
+                                "padding": [2, 4, 2, 4],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "warning/soft"},
+                              "texts": ["UPDATE AVAILABLE"]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:60598",
+                          "name": "Meta Row",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 41,
+                          "width": 723,
+                          "height": 17,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 20,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "children": [
+                            {
+                              "id": "1:60798",
+                              "name": "meta Author",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 0,
+                              "width": 111,
+                              "height": 17,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 6,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "children": [
+                                {
+                                  "id": "1:60974",
+                                  "name": "metaKey",
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 41,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "text": "Author",
+                                  "font": ["Geist", 400, 13],
+                                  "variables": {"fills/0/color": "foreground/muted"}
+                                },
+                                {
+                                  "id": "1:60975",
+                                  "name": "metaVal",
+                                  "type": "TEXT",
+                                  "x": 47,
+                                  "y": 0,
+                                  "width": 64,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "Ada Reyes",
+                                  "font": ["Geist", 500, 13],
+                                  "variables": {"fills/0/color": "foreground/foreground"}
+                                }
+                              ]
+                            },
+                            {
+                              "id": "1:60799",
+                              "name": "meta Version",
+                              "type": "FRAME",
+                              "x": 131,
+                              "y": 0,
+                              "width": 173,
+                              "height": 17,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 6,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "children": [
+                                {
+                                  "id": "1:60976",
+                                  "name": "metaKey",
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 45,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "text": "Version",
+                                  "font": ["Geist", 400, 13],
+                                  "variables": {"fills/0/color": "foreground/muted"}
+                                },
+                                {
+                                  "id": "1:60977",
+                                  "name": "metaVal",
+                                  "type": "TEXT",
+                                  "x": 51,
+                                  "y": 0,
+                                  "width": 122,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "1.3.0 (installed 1.2.0)",
+                                  "font": ["Geist", 500, 13],
+                                  "variables": {"fills/0/color": "foreground/foreground"}
+                                }
+                              ]
+                            },
+                            {
+                              "id": "1:60800",
+                              "name": "meta License",
+                              "type": "FRAME",
+                              "x": 324,
+                              "y": 0,
+                              "width": 74,
+                              "height": 17,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 6,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "children": [
+                                {
+                                  "id": "1:60978",
+                                  "name": "metaKey",
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 46,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "text": "License",
+                                  "font": ["Geist", 400, 13],
+                                  "variables": {"fills/0/color": "foreground/muted"}
+                                },
+                                {
+                                  "id": "1:60979",
+                                  "name": "metaVal",
+                                  "type": "TEXT",
+                                  "x": 52,
+                                  "y": 0,
+                                  "width": 22,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "MIT",
+                                  "font": ["Geist", 500, 13],
+                                  "variables": {"fills/0/color": "foreground/foreground"}
+                                }
+                              ]
+                            },
+                            {
+                              "id": "1:60801",
+                              "name": "meta Homepage",
+                              "type": "FRAME",
+                              "x": 418,
+                              "y": 0,
+                              "width": 305,
+                              "height": 17,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 6,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "children": [
+                                {
+                                  "id": "1:60980",
+                                  "name": "metaKey",
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 65,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "text": "Homepage",
+                                  "font": ["Geist", 400, 13],
+                                  "variables": {"fills/0/color": "foreground/muted"}
+                                },
+                                {
+                                  "id": "1:60981",
+                                  "name": "homepageLink",
+                                  "type": "TEXT",
+                                  "x": 71,
+                                  "y": 0,
+                                  "width": 216,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#7DB4FF"}],
+                                  "text": "github.com/ada-reyes/aurora-night",
+                                  "font": ["Geist", 500, 13],
+                                  "variables": {"fills/0/color": "foreground/link"}
+                                },
+                                {
+                                  "id": "1:60982",
+                                  "name": "icon",
+                                  "type": "INSTANCE",
+                                  "x": 293,
+                                  "y": 2.5,
+                                  "width": 12,
+                                  "height": 12,
+                                  "component": "lucide/external-link/12x12"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:60599",
+                          "name": "Tags Row",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 68,
+                          "width": 159,
+                          "height": 17,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 6,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "children": [
+                            {
+                              "id": "1:60802",
+                              "name": "tag dark",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
+                              "width": 32,
+                              "height": 17,
+                              "component": "Chip/Tertiary/Default/SM",
+                              "componentId": "1:1932",
+                              "cornerRadius": 16,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 2,
+                                "padding": [2, 4, 2, 4],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"cornerRadius": "radius/2xl"},
+                              "texts": ["dark"]
+                            },
+                            {
+                              "id": "1:60803",
+                              "name": "tag blue",
+                              "type": "INSTANCE",
+                              "x": 38,
+                              "y": 0,
+                              "width": 31,
+                              "height": 17,
+                              "component": "Chip/Tertiary/Default/SM",
+                              "componentId": "1:1932",
+                              "cornerRadius": 16,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 2,
+                                "padding": [2, 4, 2, 4],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"cornerRadius": "radius/2xl"},
+                              "texts": ["blue"]
+                            },
+                            {
+                              "id": "1:60804",
+                              "name": "tag calm",
+                              "type": "INSTANCE",
+                              "x": 75,
+                              "y": 0,
+                              "width": 34,
+                              "height": 17,
+                              "component": "Chip/Tertiary/Default/SM",
+                              "componentId": "1:1932",
+                              "cornerRadius": 16,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 2,
+                                "padding": [2, 4, 2, 4],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"cornerRadius": "radius/2xl"},
+                              "texts": ["calm"]
+                            },
+                            {
+                              "id": "1:60805",
+                              "name": "source official",
+                              "type": "INSTANCE",
+                              "x": 115,
+                              "y": 0,
+                              "width": 44,
+                              "height": 17,
+                              "component": "Chip/Soft/Default/SM",
+                              "componentId": "1:1002",
+                              "fills": [{"type": "SOLID", "color": "#232128"}],
+                              "cornerRadius": 16,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 2,
+                                "padding": [2, 4, 2, 4],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+                              "texts": ["official"]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:60434",
+                      "name": "Previews",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 134,
+                      "width": 888,
+                      "height": 269,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 16,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "id": "1:60600",
+                          "name": "Preview light",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 436,
+                          "height": 269,
+                          "component": "Gameplane/Theme Preview Panel",
+                          "componentId": "1:59086",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 8,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "texts": ["Light", "Dark only"]
+                        },
+                        {
+                          "id": "1:60601",
+                          "name": "Preview dark",
+                          "type": "INSTANCE",
+                          "x": 452,
+                          "y": 0,
+                          "width": 436,
+                          "height": 269,
+                          "component": "Gameplane/Theme Preview Panel",
+                          "componentId": "1:59086",
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 8,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "texts": ["Dark"]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:60435",
+                      "name": "Actions",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 419,
+                      "width": 888,
+                      "height": 32,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "id": "1:60602",
+                          "name": "Action Row",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 395,
+                          "height": 32,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "children": [
+                            {
+                              "id": "1:60806",
+                              "name": "btnPreview",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
+                              "width": 73,
+                              "height": 32,
+                              "component": "Button/Outline/SM",
+                              "componentId": "1:633",
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 12,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 5,
+                                "padding": [8, 12, 8, 12],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "variables": {
+                                "paddingRight": "spacing/3",
+                                "paddingLeft": "spacing/3",
+                                "topLeftRadius": "radius/xl",
+                                "topRightRadius": "radius/xl",
+                                "bottomLeftRadius": "radius/xl",
+                                "bottomRightRadius": "radius/xl",
+                                "strokes/0/color": "border-2"
+                              },
+                              "texts": ["Preview"]
+                            },
+                            {
+                              "id": "1:60807",
+                              "name": "btnRemove",
+                              "type": "INSTANCE",
+                              "x": 81,
+                              "y": 0,
+                              "width": 74,
+                              "height": 32,
+                              "component": "Button/Outline/SM",
+                              "componentId": "1:633",
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 12,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 5,
+                                "padding": [8, 12, 8, 12],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "variables": {
+                                "paddingRight": "spacing/3",
+                                "paddingLeft": "spacing/3",
+                                "topLeftRadius": "radius/xl",
+                                "topRightRadius": "radius/xl",
+                                "bottomLeftRadius": "radius/xl",
+                                "bottomRightRadius": "radius/xl",
+                                "strokes/0/color": "border-2"
+                              },
+                              "texts": ["Remove"]
+                            },
+                            {
+                              "id": "1:60808",
+                              "name": "updateNote",
+                              "type": "TEXT",
+                              "x": 163,
+                              "y": 8,
+                              "width": 139,
+                              "height": 16,
+                              "fills": [{"type": "SOLID", "color": "#F7B750"}],
+                              "text": "Update from 1.2.0 to 1.3.0",
+                              "font": ["Geist", 400, 12],
+                              "variables": {"fills/0/color": "warning/soft-foreground"}
+                            },
+                            {
+                              "id": "1:60809",
+                              "name": "btnPrimary",
+                              "type": "INSTANCE",
+                              "x": 310,
+                              "y": 0,
+                              "width": 85,
+                              "height": 32,
+                              "component": "Button/Primary/SM",
+                              "componentId": "1:629",
+                              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 5,
+                                "padding": [8, 10, 8, 10],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"},
+                              "texts": ["Update"]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:60436",
+                      "name": "Description Card",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 467,
+                      "width": 888,
+                      "height": 217,
+                      "component": "Gameplane/Theme Description Card",
+                      "componentId": "1:59083",
+                      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 12,
+                        "padding": [20, 20, 20, 20],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                      "texts": [
+                        "Description",
+                        "Deep blue surfaces with a cyan accent. Tuned for long sessions with low glare. Dark only.",
+                        "Changelog",
+                        "v1.3.0",
+                        "Improved contrast on muted text and added a focus ring color.",
+                        "v1.2.0",
+                        "Cyan accent refresh and softer card borders.",
+                        "v1.0.0",
+                        "Initial release."
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
