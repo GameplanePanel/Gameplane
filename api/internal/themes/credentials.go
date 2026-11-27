@@ -329,7 +329,7 @@ func ociCredentialFunc(data map[string][]byte, host string) (oci.CredentialFunc,
 		return nil, errors.New("theme source credential auth entry is not valid")
 	}
 	return func(_ context.Context, registry string) (auth.Credential, error) {
-		if registry != host {
+		if registryKey(registry) != registryKey(host) {
 			return auth.EmptyCredential, nil
 		}
 		return cred, nil

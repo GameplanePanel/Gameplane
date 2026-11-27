@@ -127,7 +127,9 @@ func (h *themeInstalledHandler) create(w http.ResponseWriter, req *http.Request)
 		return
 	}
 	var body installBody
-	if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+	dec := json.NewDecoder(req.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&body); err != nil {
 		httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
 		return
 	}
