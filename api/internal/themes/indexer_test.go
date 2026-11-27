@@ -192,6 +192,18 @@ func (h *harness) detail(sourceName, theme string) (db.ThemeCatalogEntry, bool) 
 			if err != nil {
 				h.t.Fatalf("get catalog entry: %v", err)
 			}
+			// Previews are served on their own route, so the entry read does not
+			// carry them; load them the way that route does.
+			for mode, dst := range map[string]*[]byte{"light": &full.PreviewLight, "dark": &full.PreviewDark} {
+				data, err := h.store.GetThemeCatalogPreview(context.Background(), e.ID, mode)
+				switch {
+				case err == nil:
+					*dst = data
+				case errors.Is(err, db.ErrThemeNotFound):
+				default:
+					h.t.Fatalf("get %s preview: %v", mode, err)
+				}
+			}
 			return full, true
 		}
 	}
