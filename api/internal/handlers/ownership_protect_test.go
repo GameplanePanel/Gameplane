@@ -162,7 +162,7 @@ func TestConfig_ResetRoleMapping_NoAuthRow_WritesNothing(t *testing.T) {
 		t.Fatalf("status = %d; body=%s", status, body)
 	}
 	var n int
-	if err := store.DB.QueryRow(`SELECT COUNT(*) FROM config WHERE key = 'auth'`).Scan(&n); err != nil {
+	if err := store.DB.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM config WHERE key = 'auth'`).Scan(&n); err != nil {
 		t.Fatal(err)
 	}
 	if n != 0 {

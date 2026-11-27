@@ -687,14 +687,14 @@ const (
 )
 
 // truncateUTF8 cuts s to at most max bytes without splitting a UTF-8 rune.
-func truncateUTF8(s string, max int) string {
-	if len(s) <= max {
+func truncateUTF8(s string, limit int) string {
+	if len(s) <= limit {
 		return s
 	}
-	for max > 0 && !utf8.RuneStart(s[max]) {
-		max--
+	for limit > 0 && !utf8.RuneStart(s[limit]) {
+		limit--
 	}
-	return s[:max]
+	return s[:limit]
 }
 
 // Middleware logs every mutating request after the handler returns.
