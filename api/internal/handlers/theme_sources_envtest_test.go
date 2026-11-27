@@ -82,8 +82,13 @@ func themeSrcEntries(t *testing.T, env *themeCatEnv, source string) []db.ThemeCa
 // themeSrcAssertNoCredential fails when a response body names a credential.
 func themeSrcAssertNoCredential(t *testing.T, body string) {
 	t.Helper()
-	if strings.Contains(strings.ToLower(body), "credential") {
-		t.Fatalf("response carries a credential field: %s", body)
+	// Error texts may name the credential ("credential for an oci source must
+	// be ..."); only a JSON field carrying it, or its Secret reference, is a leak.
+	lower := strings.ToLower(body)
+	for _, key := range []string{`"credential"`, `"credentialref"`, `"credential_ref"`} {
+		if strings.Contains(lower, key) {
+			t.Fatalf("response carries a credential field (%s): %s", key, body)
+		}
 	}
 }
 
@@ -278,10 +283,13 @@ func TestThemeSourceOfficialIsBuiltIn(t *testing.T) {
 		t.Fatalf("create named official: status %d body %s", rr.Code, rr.Body.String())
 	}
 
-	// Dropping the signature policy of the built-in source is refused.
+	// The chart owns the built-in source's signature policy: a PUT without
+	// verify is accepted and the stored policy is kept (OD-6).
 	unsigned := fmt.Sprintf(`{"type":"oci","spec":{"oci":{"url":%q,"themes":[]}}}`, themes.OfficialSourceURL)
-	if rr := themeInstDo(t, admin, http.MethodPut, "/themes/sources/"+themes.OfficialSourceName, unsigned); rr.Code != http.StatusUnprocessableEntity {
-		t.Fatalf("drop official verify: status %d body %s", rr.Code, rr.Body.String())
+	if rr := themeInstDo(t, admin, http.MethodPut, "/themes/sources/"+themes.OfficialSourceName, unsigned); rr.Code != http.StatusOK {
+		t.Fatalf("put official without verify: status %d body %s", rr.Code, rr.Body.String())
+	} else if !strings.Contains(rr.Body.String(), "BEGIN PUBLIC KEY") {
+		t.Fatalf("put official without verify dropped the chart key: %s", rr.Body.String())
 	}
 
 	// Disabling it is allowed; the response marks it built in.
