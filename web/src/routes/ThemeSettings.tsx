@@ -242,9 +242,12 @@ export function ThemeSettingsPage() {
     );
   }
 
+  // An edit ends an active catalog preview (its banner goes away), so the
+  // draft-preview effect below applies the edited draft instead.
   const update = (patch: Partial<UserThemePreferences>) => {
     setLastError(null);
     setLastDone(null);
+    dropThemePreview();
     setDraft((d) => (d ? { ...d, ...patch } : d));
   };
 
@@ -418,18 +421,15 @@ export function ThemeSettingsPage() {
   // mounts the custom-color vars and re-appends #gameplane-custom-css last in <head>.
   // A stylesheet the sanitizer rejects is never previewed (FR-013): the last
   // saved overlay stays in place instead, so e.g. an @import is never fetched.
-  // A catalog preview that is still active stays on screen until the draft
-  // changes: the first edit ends the preview (its banner goes away) and the
-  // draft takes over, so the page and the banner never name different themes.
+  // A catalog preview that is still active stays on screen until the first
+  // edit: `update` ends it, so the page and the banner never name different
+  // themes.
   const savedCss = preferences?.customCss ?? null;
   useEffect(() => {
     if (!draft) return;
-    if (getThemePreview() !== null) {
-      if (!dirty) return;
-      dropThemePreview();
-    }
+    if (getThemePreview() !== null) return;
     applyThemePreferences(cssResult.ok ? draft : { ...draft, customCss: savedCss });
-  }, [draft, dirty, cssResult.ok, savedCss]);
+  }, [draft, cssResult.ok, savedCss]);
 
   // --- Export ----------------------------------------------------------------
 
