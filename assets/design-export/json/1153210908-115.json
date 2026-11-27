@@ -1,0 +1,177 @@
+{
+  "file": "1153210908-115",
+  "id": "1:59111",
+  "name": "Screen/Mobile — Upload backup review (Light)",
+  "type": "FRAME",
+  "x": 35165,
+  "y": 40233,
+  "width": 375,
+  "height": 844,
+  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "Mobile TopBar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64,
+      "component": "Gameplane/Mobile TopBar",
+      "componentId": "1:1782",
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 16, 0, 16],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Servers", "AD"]
+    },
+    {
+      "id": "1:59176",
+      "name": "Sheet",
+      "type": "FRAME",
+      "x": 0,
+      "y": 404,
+      "width": 375,
+      "height": 440,
+      "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "cornerRadius": 16,
+      "clips": true,
+      "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+      "children": [
+        {
+          "id": "1:59189",
+          "name": "title",
+          "type": "TEXT",
+          "x": 16,
+          "y": 24,
+          "width": 580,
+          "height": 18,
+          "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "Upload backup",
+          "font": ["Geist", 600, 14],
+          "variables": {"fontFamily": "typography/font-sans"}
+        },
+        {
+          "id": "1:59190",
+          "name": "Hint",
+          "type": "TEXT",
+          "x": 16,
+          "y": 48,
+          "width": 109,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "text": "Step 4 of 4 · Review",
+          "font": ["Geist", 400, 12],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        },
+        {
+          "name": "Summary row",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 80,
+          "width": 343,
+          "height": 28,
+          "component": "Gameplane/Summary Row",
+          "texts": ["Source", "Plain archive"]
+        },
+        {
+          "name": "Summary row",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 108,
+          "width": 343,
+          "height": 28,
+          "component": "Gameplane/Summary Row",
+          "texts": ["Game", "Minecraft (Java)"]
+        },
+        {
+          "name": "Summary row",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 136,
+          "width": 343,
+          "height": 28,
+          "component": "Gameplane/Summary Row",
+          "texts": ["Restores onto", "Primary volume"]
+        },
+        {
+          "name": "Notice",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 176,
+          "width": 343,
+          "height": 92,
+          "component": "Gameplane/Inline Notice/Danger",
+          "fills": [{"type": "SOLID", "color": "#FEE2E2"}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [12, 16, 12, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "variables": {"fills/0/color": "danger/soft"},
+          "texts": [
+            "Replaces all data on mc-survival",
+            "The server stops during the restore. If the copy fails partway, data may be partly replaced and the server stays stopped."
+          ]
+        },
+        {
+          "name": "Confirm Button",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 284,
+          "width": 343,
+          "height": 44,
+          "component": "Gameplane/Button/Danger",
+          "componentId": "1:3975",
+          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "texts": ["Confirm restore"]
+        },
+        {
+          "name": "Cancel Button",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 340,
+          "width": 343,
+          "height": 36,
+          "component": "Gameplane/Button/Outline",
+          "componentId": "1:770",
+          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+          "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "texts": ["Cancel"]
+        }
+      ]
+    }
+  ]
+}

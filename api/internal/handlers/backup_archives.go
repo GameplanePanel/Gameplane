@@ -26,6 +26,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
 	"github.com/GameplanePanel/gameplane/api/internal/messages"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/workerconn"
 	"github.com/GameplanePanel/gameplane/api/internal/ws"
 )
 
@@ -337,13 +338,19 @@ func (h *backupArchiveHandler) openLocal(req *http.Request, ns string, exp *kube
 	if !ok || uid == "" || strings.ContainsAny(uid, "/?#") {
 		return nil, http.StatusBadGateway, errors.New("backup export has an invalid worker address")
 	}
-	upReq, err := http.NewRequestWithContext(req.Context(), http.MethodGet, h.exportURL(host, uid).String(), nil)
-	if err != nil {
-		return nil, http.StatusInternalServerError, fmt.Errorf("build backup export request: %w", err)
+	target := h.exportURL(host, uid).String()
+	resp, err := workerconn.Do(req.Context(), h.tlsClient.Do, func(rctx context.Context, _ io.Reader) (*http.Request, error) {
+		upReq, err := http.NewRequestWithContext(rctx, http.MethodGet, target, nil)
+		if err != nil {
+			return nil, fmt.Errorf("build backup export request: %w", err)
+		}
+		return upReq, nil
+	}, nil)
+	if errors.Is(err, workerconn.ErrBuildRequest) {
+		return nil, http.StatusInternalServerError, err
 	}
-	resp, err := h.tlsClient.Do(upReq)
 	if err != nil {
-		return nil, backupUpstreamStatus(err), errors.New("backup archive worker is unreachable")
+		return nil, backupUpstreamStatus(err), fmt.Errorf("backup archive worker is unreachable: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		_ = resp.Body.Close()
@@ -378,7 +385,7 @@ func (h *backupArchiveHandler) openRemote(req *http.Request, k *kube.Client, ns 
 	}
 	resp, err := h.gateway.BackupExportDownload(req.Context(), target, req.Header)
 	if err != nil {
-		return nil, backupUpstreamStatus(err), errors.New("backup archive worker is unreachable")
+		return nil, backupUpstreamStatus(err), fmt.Errorf("backup archive worker is unreachable: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		_ = resp.Body.Close()

@@ -6,13 +6,15 @@ All routes under the API base path, JSON, session or bearer auth as today. Error
 
 | Method | Path | Body / result |
 |---|---|---|
-| GET | `/themes/sources` | list: `{name, type, spec, verify, refreshInterval, enabled, lastSyncAt, lastError, themeCount}`; no credentials |
-| POST | `/themes/sources` | create: `{name, type, spec, credential?, verify?, refreshInterval?, enabled?}` → 201 + source; 409 on duplicate name |
-| PUT | `/themes/sources/{name}` | replace (credential omitted = keep, `null` = clear) |
+| GET | `/themes/sources` | list: `{name, type, spec, verify, credentialSecret, refreshInterval, enabled, builtin, lastSyncAt, lastError, themeCount}`; `credentialSecret` is a Secret name or null, never a Secret value |
+| POST | `/themes/sources` | create: `{name, type, spec, credentialSecret?, verify?, refreshInterval?, enabled?}` → 201 + source; 409 on duplicate name |
+| PUT | `/themes/sources/{name}` | replace (`credentialSecret` omitted = keep, `null` or `""` = clear; it stays when the location changes, as on a ModuleSource) |
 | DELETE | `/themes/sources/{name}` | 204; catalog entries go, users' installed copies stay (FR-013) |
 | POST | `/themes/sources/{name}/refresh` | 202; indexes now |
 
-Validation mirrors `ModuleSource` CEL rules: type-specific spec required, `verify` only for `oci`, interval ≥ 5m. Source URLs pass `netguard.IsPublic` at dial time unless the admin marks `oci.insecure` for a private registry (same rule as module sources).
+Validation mirrors `ModuleSource` CEL rules: type-specific spec required, `verify` only for `oci`, interval ≥ 5m. Source URLs pass `netguard.IsAllowed` at dial time, the same rule as module sources: private and in-cluster addresses are allowed, link-local and cloud metadata addresses are refused (valgul 2026-11-27). `oci.insecure` only allows plain HTTP to the registry.
+
+`credentialSecret` names a Secret the admin creates in the credentials namespace, like a ModuleSource `pullSecretRef` or `secretRef` (OD-5, valgul 2026-11-27: "Secret name, like modules"). The panel only reads it, for each pull, and never creates, changes or deletes it. It must be a Kubernetes object name; a `local` source takes none (422). It holds `.dockerconfigjson` for an `oci` source, and `token` or `username` + `password` for a `git` or `http` source. A missing Secret or missing keys fail the source with a `lastError` that names the Secret, never its values. A restricted install (`nativeRBAC.remoteClusters: false`) lists the name in `nativeRBAC.runtimeSecretNames` so the API may read it.
 
 ## Catalog (any signed-in user)
 

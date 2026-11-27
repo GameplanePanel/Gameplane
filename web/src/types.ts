@@ -6,6 +6,8 @@ export interface ObjectMeta {
   uid?: string;
   namespace?: string;
   creationTimestamp?: string;
+  // Bumped by the API server on every spec change; upload restores echo it when confirming.
+  generation?: number;
   labels?: Record<string, string>;
   annotations?: Record<string, string>;
 }
@@ -825,13 +827,49 @@ export interface BackupSchedule {
 }
 
 export type RestorePhase =
-  | "Pending" | "Suspending" | "Running" | "Resuming" | "Succeeded" | "Failed";
+  | "Pending" | "Receiving" | "AwaitingConfirmation" | "Suspending" | "Running" | "Resuming" | "Succeeded" | "Failed";
+
+// Archive formats a backup can be downloaded as and an upload restore accepts (spec 041).
+export type ArchiveFormat = "tar.gz" | "zip";
+
+// Upload source of a Restore (spec 041); mirrors operator RestoreUpload.
+export interface RestoreUploadSpec {
+  fileName: string;
+  format: ArchiveFormat;
+  declaredBytes: number;
+  confirmedTemplate?: string;
+  confirmed?: boolean;
+}
+
+// Manifest fields shown before an upload restore is confirmed.
+export interface ArchiveManifestSummary {
+  formatVersion?: number;
+  cluster?: string;
+  namespace?: string;
+  serverName?: string;
+  serverUID?: string;
+  templateName?: string;
+  templateRevision?: string;
+  gameVersion?: string;
+  capturedAt?: string;
+  volumes?: string[];
+}
+
+// Receive and check result of an upload restore; mirrors operator RestoreUploadStatus.
+export interface RestoreUploadStatus {
+  kind?: "gameplane" | "plain";
+  manifest?: ArchiveManifestSummary;
+  unpackedBytes?: number;
+  warnings?: string[];
+}
 
 export interface Restore {
   metadata: ObjectMeta;
+  // Exactly one of backupRef and upload is set.
   spec: {
-    backupRef: { name: string };
+    backupRef?: { name: string };
     serverRef: { name: string };
+    upload?: RestoreUploadSpec;
   };
   status?: {
     recoveryPlan?: {
@@ -842,6 +880,7 @@ export interface Restore {
       gameVersion: string;
       volumes: NonNullable<BackupCaptureManifest["volumes"]>;
     };
+    upload?: RestoreUploadStatus;
     phase?: RestorePhase;
     snapshotID?: string;
     startTime?: string;
