@@ -167,26 +167,15 @@ func scanThemeSource(sc rowScanner, extra ...any) (ThemeSource, error) {
 	return src, nil
 }
 
-// themeSourceNameExists reports whether a source with the name is stored.
-func (s *Store) themeSourceNameExists(ctx context.Context, name string) (bool, error) {
-	var n int
-	if err := s.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM theme_sources WHERE name = ?`, name).Scan(&n); err != nil {
-		return false, fmt.Errorf("check theme source name: %w", err)
-	}
-	return n > 0, nil
-}
-
 // CreateThemeSource stores a new source and returns it with its generated id
 // and timestamps. A zero ID is generated; CreatedAt and UpdatedAt are set to
 // now. It returns ErrThemeSourceExists when the name is taken.
+//
+// The insert is ON CONFLICT (name) DO NOTHING, so two replicas racing to create
+// the same name get one row and one ErrThemeSourceExists, not a driver error.
+// The clause works on SQLite 3.24 or later and on PostgreSQL.
 func (s *Store) CreateThemeSource(ctx context.Context, src ThemeSource) (ThemeSource, error) {
-	exists, err := s.themeSourceNameExists(ctx, src.Name)
-	if err != nil {
-		return ThemeSource{}, err
-	}
-	if exists {
-		return ThemeSource{}, ErrThemeSourceExists
-	}
+	var err error
 	if src.ID == 0 {
 		if src.ID, err = newThemeID(); err != nil {
 			return ThemeSource{}, err
@@ -198,13 +187,22 @@ func (s *Store) CreateThemeSource(ctx context.Context, src ThemeSource) (ThemeSo
 	if src.Enabled {
 		enabled = 1
 	}
-	if _, err := s.DB.ExecContext(ctx,
+	res, err := s.DB.ExecContext(ctx,
 		`INSERT INTO theme_sources (id, name, type, spec, credential_ref, verify, refresh_interval_s, enabled, last_sync_at, last_error, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		 ON CONFLICT (name) DO NOTHING`,
 		src.ID, src.Name, src.Type, src.Spec, nullableString(src.CredentialRef), nullableString(src.Verify),
 		src.RefreshIntervalS, enabled, nullableString(src.LastSyncAt), nullableString(src.LastError),
-		src.CreatedAt, src.UpdatedAt); err != nil {
+		src.CreatedAt, src.UpdatedAt)
+	if err != nil {
 		return ThemeSource{}, fmt.Errorf("create theme source: %w", err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return ThemeSource{}, fmt.Errorf("create theme source: rows affected: %w", err)
+	}
+	if n == 0 {
+		return ThemeSource{}, ErrThemeSourceExists
 	}
 	return src, nil
 }
@@ -454,18 +452,18 @@ func (s *Store) GetThemeCatalogEntry(ctx context.Context, id int64) (ThemeCatalo
 // "dark". It returns ErrThemeNotFound for an unknown mode, an unknown entry,
 // or an entry without that preview.
 func (s *Store) GetThemeCatalogPreview(ctx context.Context, id int64, mode string) ([]byte, error) {
-	var column string
+	// Each mode has its own constant query, so no SQL is built from a variable.
+	var query string
 	switch mode {
 	case "light":
-		column = "preview_light"
+		query = `SELECT preview_light FROM theme_catalog_entries WHERE id = ?`
 	case "dark":
-		column = "preview_dark"
+		query = `SELECT preview_dark FROM theme_catalog_entries WHERE id = ?`
 	default:
 		return nil, ErrThemeNotFound
 	}
 	var data []byte
-	err := s.DB.QueryRowContext(ctx,
-		fmt.Sprintf(`SELECT %s FROM theme_catalog_entries WHERE id = ?`, column), id).Scan(&data)
+	err := s.DB.QueryRowContext(ctx, query, id).Scan(&data)
 	if errors.Is(err, sql.ErrNoRows) || (err == nil && len(data) == 0) {
 		return nil, ErrThemeNotFound
 	}

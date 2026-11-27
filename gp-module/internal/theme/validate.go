@@ -3,6 +3,7 @@ package theme
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -57,6 +58,14 @@ func Load(dir string) (map[string][]byte, error) {
 		if path == dir {
 			return nil
 		}
+		// Dotfiles and dot-folders (.git, .DS_Store, editor swap files) are
+		// not part of a package, so they are skipped without being read.
+		if strings.HasPrefix(d.Name(), ".") {
+			if d.IsDir() {
+				return fs.SkipDir
+			}
+			return nil
+		}
 		if d.Type()&fs.ModeSymlink != 0 {
 			return fmt.Errorf("symbolic link not allowed in a theme package: %s", path)
 		}
@@ -67,9 +76,9 @@ func Load(dir string) (map[string][]byte, error) {
 		if err != nil {
 			return fmt.Errorf("relative path of %s: %w", path, err)
 		}
-		data, err := os.ReadFile(filepath.Clean(path))
+		data, err := readCapped(path, rel)
 		if err != nil {
-			return fmt.Errorf("read %s: %w", rel, err)
+			return err
 		}
 		files[filepath.ToSlash(rel)] = data
 		return nil
@@ -78,6 +87,24 @@ func Load(dir string) (map[string][]byte, error) {
 		return nil, err
 	}
 	return files, nil
+}
+
+// readCapped reads one package file, refusing to hold more than the package
+// size limit in memory. A larger file cannot be part of a valid package.
+func readCapped(path, rel string) ([]byte, error) {
+	f, err := os.Open(filepath.Clean(path))
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", rel, err)
+	}
+	defer func() { _ = f.Close() }()
+	data, err := io.ReadAll(io.LimitReader(f, themepkg.MaxPackageBytes+1))
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", rel, err)
+	}
+	if len(data) > themepkg.MaxPackageBytes {
+		return nil, fmt.Errorf("%s is larger than the %d-byte package limit", rel, themepkg.MaxPackageBytes)
+	}
+	return data, nil
 }
 
 // Warning is a non-blocking finding. Only lowContrast is raised today.

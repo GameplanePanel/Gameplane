@@ -36,6 +36,19 @@ type Client struct {
 	// means no cap. The cap is checked against the manifest's declared size
 	// before any byte is fetched.
 	maxLayerBytes int64
+	// maxTotalBytes caps the sum of the declared sizes of the layers Pull reads;
+	// zero means no cap. It bounds the memory a manifest with many layers can
+	// make the caller hold.
+	maxTotalBytes int64
+}
+
+// WithMaxTotalBytes caps the total declared size of the layers Pull reads and
+// returns c. A manifest whose layers would exceed the cap makes Pull fail
+// before the next blob is read, so a hostile registry cannot force the caller
+// to hold N layers of the per-layer cap each. Zero (the default) disables it.
+func (c *Client) WithMaxTotalBytes(n int64) *Client {
+	c.maxTotalBytes = n
+	return c
 }
 
 // WithArtifactType sets the manifest artifactType that Pull accepts and returns
@@ -170,6 +183,7 @@ func (c *Client) Pull(ctx context.Context, ref, reference string) (string, map[s
 		return layers[i].Annotations[AnnotationTitle] < layers[j].Annotations[AnnotationTitle]
 	})
 	var budget LocaleBudget
+	var totalBytes int64
 	for _, layer := range layers {
 		title := layer.Annotations[AnnotationTitle]
 		if title == "" {
@@ -190,6 +204,12 @@ func (c *Client) Pull(ctx context.Context, ref, reference string) (string, map[s
 		}
 		if c.maxLayerBytes > 0 && layer.Size > c.maxLayerBytes {
 			return "", nil, fmt.Errorf("layer %s is %d bytes; limit is %d", title, layer.Size, c.maxLayerBytes)
+		}
+		if c.maxTotalBytes > 0 {
+			if layer.Size > c.maxTotalBytes-totalBytes {
+				return "", nil, fmt.Errorf("layers exceed the %d byte total limit at %s", c.maxTotalBytes, title)
+			}
+			totalBytes += layer.Size
 		}
 		blob, err := readBlob(ctx, r, layer)
 		if err != nil {

@@ -270,17 +270,19 @@ fails; otherwise runs until Ctrl+C.
 }
 
 func runThemePackage(args []string) {
-	const usage = `Usage: gp-module theme package <dir> [--out <oci-layout-dir>] [--push <registry>]
+	const usage = `Usage: gp-module theme package <dir> [--out <oci-layout-dir>] [--push <registry-prefix>] [--plain-http]
 
 Validates the package, then writes an OCI image layout (--out) or pushes it
-(--push) as <registry>/<name>:<version>. Pushing uses ORAS and the registry
+(--push) to <registry-prefix>/<name>:<version>. Pushing uses ORAS and the registry
 credentials from the Docker config. Sign the pushed artifact with cosign sign.
 
 `
 	fs := newThemeFlagSet("package", usage)
 	var out, push string
+	var plainHTTP bool
 	fs.StringVar(&out, "out", "", "Write an OCI image layout to this directory")
 	fs.StringVar(&push, "push", "", "Registry prefix to push to, for example ghcr.io/org/themes")
+	fs.BoolVar(&plainHTTP, "plain-http", false, "Allow plain HTTP registry connections")
 	pos := parseThemeFlags(fs, args, map[string]bool{"out": true, "push": true})
 	if len(pos) != 1 || (out == "" && push == "") {
 		fs.Usage()
@@ -306,7 +308,7 @@ credentials from the Docker config. Sign the pushed artifact with cosign sign.
 		fmt.Printf("Wrote OCI layout %s for %s %s (manifest %s)\n", out, bundle.Name, bundle.Version, digest)
 	}
 	if push != "" {
-		ref, err := theme.Push(bundle, pos[0], push)
+		ref, err := theme.Push(bundle, pos[0], push, theme.PushOptions{PlainHTTP: plainHTTP})
 		if err != nil {
 			failTheme(err)
 		}
