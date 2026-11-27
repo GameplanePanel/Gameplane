@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-27
 
-**Status**: Draft (OD-1 settled, OD-2 to OD-6 open, see `OPEN-DECISIONS.md`). Not v1 scope unless valgul says so.
+**Status**: Draft (OD-1 to OD-3 settled, OD-4 to OD-6 open, see `OPEN-DECISIONS.md`). Not v1 scope unless valgul says so.
 
 **Input**: User description: "https://github.com/GameplanePanel/Gameplane/issues/1006 since this would need to have multiple connector the idea is a centralised api that receive order from the main app and then send it to a "manager" sidecar this manager sidecar would be capable of communicating to one type of dns to create the record so we would have one for cloudflare, ovh, hetzner, etc... and also support zone transfer with a specific manager that would hold a full zone and be the "main" dns for the zone"
 
@@ -133,7 +133,7 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 
 - **FR-009**: A central DNS service MUST receive record orders from Gameplane (desired records per server), route each to the manager of the zone it belongs to (longest suffix match), track ownership and state, and report results back to the server's status.
 - **FR-010**: Each provider manager MUST serve exactly one provider type and expose the same small set of operations to the central service: check zone access, list owned records, create, update and delete a record. A new provider is added by shipping a new manager, without changing the central service or the dashboard beyond adding the provider's credential fields.
-- **FR-011**: The first release MUST include managers for the providers settled in OD-2.
+- **FR-011**: The first release MUST include managers for Cloudflare, OVH, Hetzner and RFC 2136 dynamic update (BIND, PowerDNS, Knot, Technitium and others), plus the hosted zone manager (OD-2).
 - **FR-012**: Managers MUST hold provider credentials only for their own zones, receive them from the cluster secret store, and never return them to the central service, the API or the dashboard.
 - **FR-013**: The central service MUST keep working when one manager is down: other zones publish normally; changes for the down zone are queued and applied when it returns; nothing is deleted because a manager is unreachable.
 - **FR-014**: Applying the same order twice MUST give the same records (orders are idempotent), so retries and restarts never create duplicates.
@@ -153,7 +153,7 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 
 **Administration and visibility**
 
-- **FR-022**: Admins MUST be able to add, test, edit and disconnect zones (provider or hosted) in the dashboard and through the API; who may do this follows OD-3.
+- **FR-022**: Admins MUST be able to add, test, edit and disconnect zones (provider or hosted) in the dashboard and through the API; only admins may do this, through the existing admin role, with no new permission (OD-3).
 - **FR-023**: Each zone MUST show its state (Connected, Manager unreachable, Credentials rejected, …), last successful sync time, and the number of records Gameplane owns in it.
 - **FR-024**: Each server's Networking view MUST list its DNS records with state (Published, Pending, Not published) and the reason for any record not published.
 - **FR-025**: Every zone change (add, edit, disconnect, credential change) and every record change MUST be written to the audit log with who or what caused it.
@@ -189,5 +189,5 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 - Provider credentials live in Kubernetes Secrets in the namespace where the managers run, like other Gameplane secrets.
 - The public port for NAT or forwarding edges comes only from mapping sources Gameplane already knows (tunnels, explicit per-server public port settings); gateway route provisioning stays out of scope, as in issue #1006.
 - The feature does not depend on issue #999 or #1001 (spec 036 port pools); it reads whatever port mapping results.
-- Permission changes are owned by spec 039 (per-server access, in progress on branch `feat/039-per-server-access`, not yet in `specs/` on `master`); any new DNS permission is coordinated with it (OD-3).
+- Permission changes are owned by spec 039 (per-server access, in progress on branch `feat/039-per-server-access`, not yet in `specs/` on `master`); this spec adds no permission (OD-3).
 - DNSSEC signing of hosted zones is out of scope for the first release.
