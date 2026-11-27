@@ -8,7 +8,7 @@ dns:
   hub:
     image: {repository: ghcr.io/gameplanepanel/dns-hub, tag: ""}   # tag defaults to the chart appVersion
     resources: {}
-  managers:                       # one Deployment per enabled manager (OD-7 option A)
+  managers:                       # one Deployment per enabled manager (OD-7, settled)
     cloudflare: {enabled: false}
     ovh: {enabled: false}
     hetzner: {enabled: false}

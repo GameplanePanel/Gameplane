@@ -36,9 +36,9 @@ Each entry: Decision, Rationale, Alternatives. Entries marked (OD-n) depend on a
 
 **Alternatives**: running Knot/BIND as the primary and writing zone files (another daemon and config format to manage); CoreDNS with the transfer plugin (no TSIG on outgoing transfer per zone in a clean way).
 
-## R5: Manager process shape (OD-7)
+## R5: Manager process shape (OD-7, settled A)
 
-**Decision (recommended)**: each enabled manager type is its own Deployment (one replica) with its own ServiceAccount; the hub is a separate Deployment whose ServiceAccount has no access to Secrets. A manager's Role can `get` Secrets in the release namespace that carry the label `gameplane.io/dns-credentials=<provider>` (enforced by the manager when it reads, since RBAC cannot filter by label; the Role is namespace-scoped and the hub cannot read any).
+**Decision**: each enabled manager type is its own Deployment (one replica) with its own ServiceAccount; the hub is a separate Deployment whose ServiceAccount has no access to Secrets. A manager's Role can `get` Secrets in the release namespace that carry the label `gameplane.io/dns-credentials=<provider>` (enforced by the manager when it reads, since RBAC cannot filter by label; the Role is namespace-scoped and the hub cannot read any).
 
 **Rationale**: FR-012 says credentials never reach the hub; Kubernetes gives one ServiceAccount per pod, so sidecars in the hub pod would share access. The zone manager needs its own Service on port 53. One broken manager does not restart the hub or the others (FR-013).
 
