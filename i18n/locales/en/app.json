@@ -4607,6 +4607,18 @@
     "defaultMessage": "{count, plural, one {# theme installed} other {# themes installed}}",
     "description": "Settings theme: summary of installed themes"
   },
+  "web.components.themes.installed_themes_card.mode_dark": {
+    "defaultMessage": "Dark",
+    "description": "Settings theme: name of the dark mode in an installed theme's mode list"
+  },
+  "web.components.themes.installed_themes_card.mode_light": {
+    "defaultMessage": "Light",
+    "description": "Settings theme: name of the light mode in an installed theme's mode list"
+  },
+  "web.components.themes.installed_themes_card.modes_version": {
+    "defaultMessage": "{modes} · v{version}",
+    "description": "Settings theme: caption under an installed theme in the theme picker; modes are the comma-separated mode names, version the installed version"
+  },
   "web.components.themes.installed_themes_card.remove": {
     "defaultMessage": "Remove",
     "description": "Settings theme: button that removes an installed theme"
@@ -4658,6 +4670,10 @@
   "web.components.themes.installed_themes_card.update_line": {
     "defaultMessage": "Update available: v{from} to v{to}",
     "description": "Settings theme: line shown under an installed theme with an update"
+  },
+  "web.components.themes.installed_themes_card.version_modes": {
+    "defaultMessage": "v{version} · {modes}",
+    "description": "Settings theme: caption of an installed theme; version is the installed version, modes the comma-separated mode names"
   },
   "web.components.themes.theme_card.badge_installed": {
     "defaultMessage": "Installed",
@@ -12555,6 +12571,10 @@
     "defaultMessage": "Light",
     "description": "Theme detail page: label of the light preview panel"
   },
+  "web.routes.theme_detail.problem_line": {
+    "defaultMessage": ":{line}",
+    "description": "Theme detail: line number appended to a validation rule name, e.g. css.url:12"
+  },
   "web.routes.theme_detail.problems_found": {
     "defaultMessage": "{count, plural, one {# problem found} other {# problems found}}",
     "description": "Theme detail page: danger notice title for an invalid theme"
@@ -13007,6 +13027,10 @@
     "defaultMessage": "Delete source",
     "description": "Theme sources: destructive confirm button for deleting a source"
   },
+  "web.routes.theme_sources.delete_for": {
+    "defaultMessage": "Delete {name}",
+    "description": "Theme sources table: screen-reader name of the delete button of a source; name is the source name"
+  },
   "web.routes.theme_sources.delete_text": {
     "defaultMessage": "The source and its catalog entries are removed. Installed copies stay with each user.",
     "description": "Theme sources: confirm dialog text for deleting a source"
@@ -13022,6 +13046,10 @@
   "web.routes.theme_sources.edit_description": {
     "defaultMessage": "Change how the API reaches and verifies this source. The type cannot be changed.",
     "description": "Theme sources dialog: text under the title when editing a source"
+  },
+  "web.routes.theme_sources.edit_for": {
+    "defaultMessage": "Edit {name}",
+    "description": "Theme sources table: screen-reader name of the edit button of a source; name is the source name"
   },
   "web.routes.theme_sources.edit_title": {
     "defaultMessage": "Edit theme source",
@@ -13155,9 +13183,73 @@
     "defaultMessage": "Use a duration such as 30m or 1h, at least 5m.",
     "description": "Theme sources dialog: validation error for the refresh interval"
   },
+  "web.routes.theme_sources.ph_allow": {
+    "defaultMessage": "aurora-*",
+    "description": "Theme sources dialog: example glob in the empty allow list field; not translated"
+  },
+  "web.routes.theme_sources.ph_git_path": {
+    "defaultMessage": "themes",
+    "description": "Theme sources dialog: example folder in the empty path field; not translated"
+  },
+  "web.routes.theme_sources.ph_git_ref": {
+    "defaultMessage": "main",
+    "description": "Theme sources dialog: example git branch in the empty ref field; not translated"
+  },
+  "web.routes.theme_sources.ph_git_secret": {
+    "defaultMessage": "gh-creds",
+    "description": "Theme sources dialog: example Secret name in the empty git credentials field; a sample value, not a default"
+  },
+  "web.routes.theme_sources.ph_git_url": {
+    "defaultMessage": "github.com/community/gp-themes",
+    "description": "Theme sources dialog: example git URL in the empty field; not translated"
+  },
+  "web.routes.theme_sources.ph_http_secret": {
+    "defaultMessage": "archive-creds",
+    "description": "Theme sources dialog: example Secret name in the empty HTTP credentials field; a sample value, not a default"
+  },
+  "web.routes.theme_sources.ph_http_url": {
+    "defaultMessage": "themes.example.org/index.json",
+    "description": "Theme sources dialog: example HTTP index URL in the empty field; not translated"
+  },
+  "web.routes.theme_sources.ph_identity": {
+    "defaultMessage": "github.com/gameplane/themes",
+    "description": "Theme sources dialog: example signer identity in the empty field; not translated"
+  },
+  "web.routes.theme_sources.ph_interval": {
+    "defaultMessage": "1h",
+    "description": "Theme sources dialog: example refresh interval in the empty field; h means hours"
+  },
+  "web.routes.theme_sources.ph_issuer": {
+    "defaultMessage": "https://token.actions.githubusercontent.com",
+    "description": "Theme sources dialog: example OIDC issuer URL in the empty field; not translated"
+  },
+  "web.routes.theme_sources.ph_local_path": {
+    "defaultMessage": "/srv/gameplane/themes",
+    "description": "Theme sources dialog: example folder path in the empty local path field; not translated"
+  },
+  "web.routes.theme_sources.ph_name": {
+    "defaultMessage": "community",
+    "description": "Theme sources dialog: example source name shown in the empty name field; a sample value, not a default"
+  },
+  "web.routes.theme_sources.ph_pull_secret": {
+    "defaultMessage": "registry-creds",
+    "description": "Theme sources dialog: example Secret name in the empty pull secret field; a sample value, not a default"
+  },
+  "web.routes.theme_sources.ph_registry_url": {
+    "defaultMessage": "ghcr.io/gameplane/themes",
+    "description": "Theme sources dialog: example registry URL in the empty field; not translated"
+  },
+  "web.routes.theme_sources.ph_themes": {
+    "defaultMessage": "aurora-night, paper-light",
+    "description": "Theme sources dialog: example theme names in the empty field; not translated"
+  },
   "web.routes.theme_sources.refresh_action": {
     "defaultMessage": "Refresh",
     "description": "Theme sources table: icon button label that refreshes a source now"
+  },
+  "web.routes.theme_sources.refresh_for": {
+    "defaultMessage": "Refresh {name}",
+    "description": "Theme sources table: screen-reader name of the refresh button of a source; name is the source name"
   },
   "web.routes.theme_sources.status_failed": {
     "defaultMessage": "Sync failed: {error}",
@@ -13178,6 +13270,10 @@
   "web.routes.theme_sources.submit_save": {
     "defaultMessage": "Save changes",
     "description": "Theme sources dialog: submit button when editing a source"
+  },
+  "web.routes.theme_sources.toggle_for": {
+    "defaultMessage": "{name}: On",
+    "description": "Theme sources table: screen-reader name of a source's enabled switch; name is the source name"
   },
   "web.routes.theme_sources.type_git": {
     "defaultMessage": "Git repository",

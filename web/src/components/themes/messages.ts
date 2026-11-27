@@ -42,6 +42,7 @@ export const themeCardMessages = defineMessages({
 });
 
 export const themeDetailMessages = defineMessages({
+  problemLine: { id: "web.routes.theme_detail.problem_line", defaultMessage: ":{line}", description: "Theme detail: line number appended to a validation rule name, e.g. css.url:12" },
   title: { id: "web.routes.theme_detail.title", defaultMessage: "Theme details", description: "Theme detail page: page heading" },
   description: { id: "web.routes.theme_detail.description", defaultMessage: "Preview a theme, then install it for your account.", description: "Theme detail page: intro text under the heading" },
   back: { id: "web.routes.theme_detail.back_to_catalog", defaultMessage: "Back to catalog", description: "Theme detail page: link back to the theme catalog" },
@@ -81,9 +82,32 @@ export const installedThemesMessages = defineMessages({
   removeTitle: { id: "web.components.themes.installed_themes_card.remove_title", defaultMessage: "Remove “{name}”?", description: "Settings theme: confirm dialog title for removing an installed theme" },
   removeText: { id: "web.components.themes.installed_themes_card.remove_text", defaultMessage: "The theme is removed from your account. You can install it again from the catalog.", description: "Settings theme: confirm dialog text for removing an installed theme" },
   removeConfirm: { id: "web.components.themes.installed_themes_card.remove_confirm", defaultMessage: "Remove theme", description: "Settings theme: destructive confirm button for removing an installed theme" },
+  modeDark: { id: "web.components.themes.installed_themes_card.mode_dark", defaultMessage: "Dark", description: "Settings theme: name of the dark mode in an installed theme's mode list" },
+  modeLight: { id: "web.components.themes.installed_themes_card.mode_light", defaultMessage: "Light", description: "Settings theme: name of the light mode in an installed theme's mode list" },
+  versionModes: { id: "web.components.themes.installed_themes_card.version_modes", defaultMessage: "v{version} · {modes}", description: "Settings theme: caption of an installed theme; version is the installed version, modes the comma-separated mode names" },
+  modesVersion: { id: "web.components.themes.installed_themes_card.modes_version", defaultMessage: "{modes} · v{version}", description: "Settings theme: caption under an installed theme in the theme picker; modes are the comma-separated mode names, version the installed version" },
 });
 
 export const themeSourcesMessages = defineMessages({
+  toggleFor: { id: "web.routes.theme_sources.toggle_for", defaultMessage: "{name}: On", description: "Theme sources table: screen-reader name of a source's enabled switch; name is the source name" },
+  refreshFor: { id: "web.routes.theme_sources.refresh_for", defaultMessage: "Refresh {name}", description: "Theme sources table: screen-reader name of the refresh button of a source; name is the source name" },
+  editFor: { id: "web.routes.theme_sources.edit_for", defaultMessage: "Edit {name}", description: "Theme sources table: screen-reader name of the edit button of a source; name is the source name" },
+  deleteFor: { id: "web.routes.theme_sources.delete_for", defaultMessage: "Delete {name}", description: "Theme sources table: screen-reader name of the delete button of a source; name is the source name" },
+  phName: { id: "web.routes.theme_sources.ph_name", defaultMessage: "community", description: "Theme sources dialog: example source name shown in the empty name field; a sample value, not a default" },
+  phRegistryUrl: { id: "web.routes.theme_sources.ph_registry_url", defaultMessage: "ghcr.io/gameplane/themes", description: "Theme sources dialog: example registry URL in the empty field; not translated" },
+  phThemes: { id: "web.routes.theme_sources.ph_themes", defaultMessage: "aurora-night, paper-light", description: "Theme sources dialog: example theme names in the empty field; not translated" },
+  phPullSecret: { id: "web.routes.theme_sources.ph_pull_secret", defaultMessage: "registry-creds", description: "Theme sources dialog: example Secret name in the empty pull secret field; a sample value, not a default" },
+  phIssuer: { id: "web.routes.theme_sources.ph_issuer", defaultMessage: "https://token.actions.githubusercontent.com", description: "Theme sources dialog: example OIDC issuer URL in the empty field; not translated" },
+  phIdentity: { id: "web.routes.theme_sources.ph_identity", defaultMessage: "github.com/gameplane/themes", description: "Theme sources dialog: example signer identity in the empty field; not translated" },
+  phGitUrl: { id: "web.routes.theme_sources.ph_git_url", defaultMessage: "github.com/community/gp-themes", description: "Theme sources dialog: example git URL in the empty field; not translated" },
+  phGitRef: { id: "web.routes.theme_sources.ph_git_ref", defaultMessage: "main", description: "Theme sources dialog: example git branch in the empty ref field; not translated" },
+  phGitPath: { id: "web.routes.theme_sources.ph_git_path", defaultMessage: "themes", description: "Theme sources dialog: example folder in the empty path field; not translated" },
+  phGitSecret: { id: "web.routes.theme_sources.ph_git_secret", defaultMessage: "gh-creds", description: "Theme sources dialog: example Secret name in the empty git credentials field; a sample value, not a default" },
+  phHttpUrl: { id: "web.routes.theme_sources.ph_http_url", defaultMessage: "themes.example.org/index.json", description: "Theme sources dialog: example HTTP index URL in the empty field; not translated" },
+  phHttpSecret: { id: "web.routes.theme_sources.ph_http_secret", defaultMessage: "archive-creds", description: "Theme sources dialog: example Secret name in the empty HTTP credentials field; a sample value, not a default" },
+  phLocalPath: { id: "web.routes.theme_sources.ph_local_path", defaultMessage: "/srv/gameplane/themes", description: "Theme sources dialog: example folder path in the empty local path field; not translated" },
+  phAllow: { id: "web.routes.theme_sources.ph_allow", defaultMessage: "aurora-*", description: "Theme sources dialog: example glob in the empty allow list field; not translated" },
+  phInterval: { id: "web.routes.theme_sources.ph_interval", defaultMessage: "1h", description: "Theme sources dialog: example refresh interval in the empty field; h means hours" },
   adminTitle: { id: "web.routes.theme_sources.admin_title", defaultMessage: "Admin settings", description: "Theme sources page: page heading" },
   adminDescription: { id: "web.routes.theme_sources.admin_description", defaultMessage: "Platform-wide configuration for this Gameplane instance.", description: "Theme sources page: intro text under the heading" },
   cardTitle: { id: "web.routes.theme_sources.card_title", defaultMessage: "Theme sources", description: "Theme sources page: heading of the sources card" },

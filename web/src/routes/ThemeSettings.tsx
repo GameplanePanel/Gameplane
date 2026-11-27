@@ -624,7 +624,10 @@ export function ThemeSettingsPage() {
                             <div className="mt-1.5 text-xs text-muted">
                               {t.sourceRemoved
                                 ? formatThemeMessage(intl, installedThemesMessages.sourceRemovedCaption, { version: String(t.version) })
-                                : `${t.modes.map((m) => intl.formatMessage(m === "dark" ? LABELS.modeDark : LABELS.modeLight)).join(", ")} · v${t.version}`}
+                                : formatThemeMessage(intl, installedThemesMessages.modesVersion, {
+                                    modes: t.modes.map((m) => intl.formatMessage(m === "dark" ? LABELS.modeDark : LABELS.modeLight)).join(", "),
+                                    version: String(t.version),
+                                  })}
                             </div>
                           </div>
                         </Radio.Content>

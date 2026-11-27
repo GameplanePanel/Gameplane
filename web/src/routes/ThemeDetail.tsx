@@ -238,7 +238,7 @@ export function ThemeDetailPage() {
                 <li key={`${p.rule}-${index}`} className="flex flex-col gap-1 sm:flex-row sm:gap-4">
                   <span className="font-mono text-xs text-danger">
                     {p.rule}
-                    {p.line !== undefined ? `:${p.line}` : ""}
+                    {p.line !== undefined ? formatWith(intl, themeDetailMessages.problemLine, { line: String(p.line) }) : null}
                   </span>
                   <span className="text-sm text-muted">{p.detail}</span>
                 </li>

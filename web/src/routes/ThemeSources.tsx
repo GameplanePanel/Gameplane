@@ -16,7 +16,8 @@ import { themeErrorText } from "@/components/themes/useThemeActions";
 import { formatThemeMessage, themeSourcesMessages as M } from "@/components/themes/messages";
 import { can, useMe } from "@/lib/auth";
 import { ThemeSources as ThemeSourcesApi } from "@/lib/endpoints";
-import { useFormat, useOptionalIntl } from "@/lib/i18n/format";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import { formatRelative } from "@/lib/utils";
 import type { ThemeSource, ThemeSourceInput, ThemeSourceType } from "@/types";
 
 const SOURCES_KEY = "theme-sources";
@@ -42,7 +43,6 @@ function asInput(s: ThemeSource, patch: Partial<ThemeSourceInput> = {}): ThemeSo
 
 export function ThemeSourcesPage() {
   const intl = useOptionalIntl();
-  const fmt = useFormat();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: me } = useMe();
@@ -118,13 +118,8 @@ export function ThemeSourcesPage() {
     setDialogOpen(true);
   };
 
-  const lastSyncText = (iso: string | null): string => {
-    if (!iso) return "—";
-    const minutes = Math.round((new Date(iso).getTime() - Date.now()) / 60000);
-    if (Math.abs(minutes) < 60) return fmt.relative(minutes, "minute");
-    if (Math.abs(minutes) < 60 * 48) return fmt.relative(Math.round(minutes / 60), "hour");
-    return fmt.relative(Math.round(minutes / (60 * 24)), "day");
-  };
+  // "5m ago", as in the design; formatRelative owns the clock read.
+  const lastSyncText = (iso: string | null): string => formatRelative(iso ?? undefined, intl);
 
   const statusNode = (s: ThemeSource) => {
     if (s.lastError) {
@@ -202,7 +197,7 @@ export function ThemeSourcesPage() {
                       <td className="px-3 py-3">{s.themeCount}</td>
                       <td className="px-3 py-3">
                         <Switch
-                          aria-label={`${s.name}: ${intl.formatMessage(M.colEnabled)}`}
+                          aria-label={formatThemeMessage(intl, M.toggleFor, { name: s.name })}
                           isSelected={s.enabled}
                           isDisabled={toggle.isPending}
                           onChange={() => toggle.mutate(s)}
@@ -218,7 +213,7 @@ export function ThemeSourcesPage() {
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            aria-label={`${intl.formatMessage(M.refreshAction)} ${s.name}`}
+                            aria-label={formatThemeMessage(intl, M.refreshFor, { name: s.name })}
                             title={intl.formatMessage(M.refreshAction)}
                             disabled={refresh.isPending}
                             onClick={() => refresh.mutate(s)}
@@ -228,7 +223,7 @@ export function ThemeSourcesPage() {
                           </button>
                           <button
                             type="button"
-                            aria-label={`${intl.formatMessage(M.editAction)} ${s.name}`}
+                            aria-label={formatThemeMessage(intl, M.editFor, { name: s.name })}
                             title={intl.formatMessage(M.editAction)}
                             onClick={() => openEdit(s)}
                             className="rounded p-1.5 text-muted hover:bg-surface hover:text-fg"
@@ -238,7 +233,7 @@ export function ThemeSourcesPage() {
                           {!s.builtin && (
                             <button
                               type="button"
-                              aria-label={`${intl.formatMessage(M.deleteAction)} ${s.name}`}
+                              aria-label={formatThemeMessage(intl, M.deleteFor, { name: s.name })}
                               title={intl.formatMessage(M.deleteAction)}
                               onClick={() => setPendingDelete(s)}
                               className="rounded p-1.5 text-danger hover:bg-danger/10"
