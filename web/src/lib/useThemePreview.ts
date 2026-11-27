@@ -1,8 +1,9 @@
 // In-memory preview of a catalog or installed theme (spec 043 T026). The
 // preview goes through the same DOM injection as saved prefs
 // (applyThemePreferences) and never writes localStorage or calls the API.
-// Exit, leaving the theme pages, or a reload all restore the saved theme:
-// nothing is persisted, so the saved cache is what gets re-applied.
+// The preview stays on across pages (valgul 2026-11-27, as in the design).
+// Exit or a reload restores the saved theme: nothing is persisted, so the
+// saved cache is what gets re-applied.
 
 import { useSyncExternalStore } from "react";
 import {
@@ -75,11 +76,6 @@ export function exitThemePreview(): void {
  */
 export function dropThemePreview(): void {
   setCurrent(null);
-}
-
-/** True for /settings/theme and its sub-pages (catalog and detail). */
-export function isThemePagePath(pathname: string): boolean {
-  return pathname === "/settings/theme" || pathname.startsWith("/settings/theme/");
 }
 
 function subscribe(listener: () => void): () => void {

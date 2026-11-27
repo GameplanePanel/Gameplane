@@ -12,7 +12,6 @@ import {
 import {
   exitThemePreview,
   getThemePreview,
-  isThemePagePath,
   startThemePreview,
   type ThemePreviewTheme,
 } from "@/lib/useThemePreview";
@@ -154,15 +153,5 @@ describe("reload", () => {
     prefs.applyThemePreferences(prefs.readThemePreferences());
     expect(document.documentElement.dataset.themeType).toBe("preset");
     expect(document.getElementById(INSTALLED_THEME_CSS_ELEMENT_ID)).toBeNull();
-  });
-});
-
-describe("isThemePagePath", () => {
-  it("matches the theme pages only", () => {
-    expect(isThemePagePath("/settings/theme")).toBe(true);
-    expect(isThemePagePath("/settings/theme/catalog")).toBe(true);
-    expect(isThemePagePath("/settings/theme/catalog/12")).toBe(true);
-    expect(isThemePagePath("/settings/theme-sources")).toBe(false);
-    expect(isThemePagePath("/servers")).toBe(false);
   });
 });

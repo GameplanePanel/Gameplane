@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { MessageDescriptor } from "react-intl";
 import { Eye } from "lucide-react";
@@ -13,7 +12,6 @@ import {
 import {
   dropThemePreview,
   exitThemePreview,
-  isThemePagePath,
   useThemePreview,
   type ThemePreviewTheme,
 } from "@/lib/useThemePreview";
@@ -39,20 +37,18 @@ async function keepTheme(theme: ThemePreviewTheme): Promise<void> {
 
 /**
  * Preview banner (design: "Theme preview — banner"). Mounted at the top of the
- * app shell. It shows while a theme is previewed, and the preview ends on
- * Exit, on leaving the theme pages, or on unmount. Nothing is written until Keep.
+ * app shell. It shows while a theme is previewed and stays on while the user
+ * browses other pages, so the theme can be judged across the dashboard
+ * (valgul 2026-11-27: "Keep it across pages (design)"). The preview ends on
+ * Exit, Keep, a reload, or unmount. Nothing is written until Keep.
  */
 export function ThemePreviewBanner() {
   const intl = useOptionalIntl();
-  const location = useLocation();
   const { preview } = useThemePreview();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
-  // Restore the saved theme when the user leaves the theme pages, and on unmount.
-  useEffect(() => {
-    if (preview !== null && !isThemePagePath(location.pathname)) exitThemePreview();
-  }, [preview, location.pathname]);
+  // Restore the saved theme when the app shell unmounts (sign-out).
   useEffect(() => () => exitThemePreview(), []);
 
   const keep = useMutation({
