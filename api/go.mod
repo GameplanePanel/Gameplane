@@ -60,8 +60,8 @@ require (
 	k8s.io/api v0.37.2
 	k8s.io/apimachinery v0.37.2
 	k8s.io/client-go v0.37.2
-	k8s.io/streaming v0.37.2
-	modernc.org/sqlite v1.62.0
+	k8s.io/streaming v0.37.3
+	modernc.org/sqlite v1.63.0
 	oras.land/oras-go/v2 v2.7.0
 	sigs.k8s.io/controller-runtime v0.25.3
 	sigs.k8s.io/yaml v1.6.0
