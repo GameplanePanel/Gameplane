@@ -58,11 +58,11 @@
 
 ### API skeleton (PR-D)
 
-- [ ] T015 Migration `api/internal/db/migrations/common/028_theme_marketplace.sql` per `data-model.md`: tables `theme_sources`, `theme_catalog_entries`, `user_installed_themes`; `user_preferences.installed_theme_id` (nullable FK, ON DELETE SET NULL); `theme_type` accepts `installed`; portable SQL only (README rules). If 028 is taken when this lands, use the next free number.
-- [ ] T016 [P] Store layer `api/internal/db/themes.go`: CRUD for the three tables with Go-bound timestamps; credential column encrypted with the panel key via the existing kubeconfig credential helper; tests `api/internal/db/themes_test.go` on SQLite and PostgreSQL like `preferences_test.go`.
-- [ ] T017 [P] Permission `themes:manage` ("Manage theme sources", not namespaced) in `api/internal/rbac/catalog.go`, granted to the built-in admin role; route rules for `/themes/sources` in `api/internal/rbac/rbac.go`; new cases in a new `api/internal/rbac/themes_test.go`.
-- [ ] T018 [P] Audit event names from `data-model.md` in `api/internal/audit/` (new constants only) with a new test.
-- [ ] T019 Package `api/internal/themes/` with `Service` (store, bundlefetch, themepkg, clock); wire it in `api/cmd/main.go` (constructed in combined and standalone modes, no cluster dependency); mount an empty router under `/themes` and `/users/me/themes`.
+- [X] T015 Migration `api/internal/db/migrations/common/028_theme_marketplace.sql` per `data-model.md`: tables `theme_sources`, `theme_catalog_entries`, `user_installed_themes`; `user_preferences.installed_theme_id` (nullable FK, ON DELETE SET NULL); `theme_type` accepts `installed`; portable SQL only (README rules). If 028 is taken when this lands, use the next free number.
+- [X] T016 [P] Store layer `api/internal/db/themes.go`: CRUD for the three tables with Go-bound timestamps; credential column encrypted with the panel key via the existing kubeconfig credential helper; tests `api/internal/db/themes_test.go` on SQLite and PostgreSQL like `preferences_test.go`.
+- [X] T017 [P] Permission `themes:manage` ("Manage theme sources", not namespaced) in `api/internal/rbac/catalog.go`, granted to the built-in admin role; route rules for `/themes/sources` in `api/internal/rbac/rbac.go`; new cases in a new `api/internal/rbac/themes_test.go`.
+- [X] T018 [P] Audit event names from `data-model.md` in `api/internal/audit/` (new constants only) with a new test.
+- [X] T019 Package `api/internal/themes/` with `Service` (store, bundlefetch, themepkg, clock); wire it in `api/cmd/main.go` (constructed in combined and standalone modes, no cluster dependency); mount an empty router under `/themes` and `/users/me/themes`.
 
 **Checkpoint**: `go build ./...` for themepkg, bundlefetch, operator, api; CI green on PR-A and PR-B with operator module tests unchanged apart from T013 import paths.
 
@@ -74,11 +74,12 @@
 
 **Independent test**: with one seeded source, the catalog lists its themes, search and tag filter narrow it, Preview switches the dashboard and Exit preview restores the saved theme exactly; with a second source down, the first still lists and the down one is flagged.
 
-- [ ] T020 [US1] Indexer `api/internal/themes/indexer.go`: per enabled source on `refresh_interval_s` and on demand; list versions via `bundlefetch/source`, pull the latest version only when its digest changed, verify with `bundlefetch/verify` when `verify` is set, validate with `themepkg.Validate`, upsert `theme_catalog_entries` (`valid` / `invalid` / `unverified`, problems, low_contrast); one source failing sets only its `last_error`; dial through `netguard` like module sources.
-- [ ] T021 [P] [US1] Seed migration-time `official` source (`type=oci`, `ghcr.io/gameplanepanel/gameplane-themes`, keyless verify pinned to the `GameplanePanel/themes` release workflow identity) in `api/internal/themes/seed.go`, skipped when env `GAMEPLANE_THEMES_OFFICIAL_SOURCE=false`; Helm value `themes.officialSource.enabled` (default true) wired to that env in `charts/gameplane/values.yaml`, `values.schema.json` and the API Deployment template.
+- [X] T020 [US1] Indexer `api/internal/themes/indexer.go`: per enabled source on `refresh_interval_s` and on demand; list versions via `bundlefetch/source`, pull the latest version only when its digest changed, verify with `bundlefetch/verify` when `verify` is set, validate with `themepkg.Validate`, upsert `theme_catalog_entries` (`valid` / `invalid` / `unverified`, problems, low_contrast); one source failing sets only its `last_error`; dial through `netguard` like module sources.
+- [X] T021 [P] [US1] Seed migration-time `official` source (`type=oci`, `ghcr.io/gameplanepanel/gameplane-themes`, keyed verify with the project public key `signing/cosign.pub`, the same key as the official modules, and the theme list in the chart; OD-6 settled 2026-11-27) in `api/internal/themes/seed.go`, skipped when env `GAMEPLANE_THEMES_OFFICIAL_SOURCE=false`; Helm value `themes.officialSource.enabled` (default true) wired to that env in `charts/gameplane/values.yaml`, `values.schema.json` and the API Deployment template.
 - [ ] T022 [US1] Catalog handlers `api/internal/handlers/themes_catalog.go`: `GET /themes/catalog` (q, tag, source filters; hidden entries of disabled sources; unreachable sources list), `GET /themes/catalog/{id}` (tokens and css only for `valid`), `GET /themes/catalog/{id}/preview/{mode}` (stored content type, `nosniff`, private cache) per `contracts/themes-api.md`; client methods in `web/src/lib/endpoints.ts` and types in `web/src/types.ts`.
-- [ ] T023 [P] [US1] Envtest `api/internal/handlers/themes_catalog_envtest_test.go`: fake OCI registry with one valid, one invalid and one unsigned theme; filters; unreachable second source still lists the first (SC-006); preview headers; signed-in non-admin can read.
-- [ ] T024 [P] [US1] Unit tests `api/internal/themes/indexer_test.go`: unchanged digest skipped, changed digest re-pulled, per-source failure isolation, refresh interval floor.
+  - PR-D note: API side done; the web client methods land with PR-F.
+- [X] T023 [P] [US1] Envtest `api/internal/handlers/themes_catalog_envtest_test.go`: fake OCI registry with one valid, one invalid and one unsigned theme; filters; unreachable second source still lists the first (SC-006); preview headers; signed-in non-admin can read.
+- [X] T024 [P] [US1] Unit tests `api/internal/themes/indexer_test.go`: unchanged digest skipped, changed digest re-pulled, per-source failure isolation, refresh interval floor.
 - [ ] T025 [US1] i18n strings for catalog, detail and preview in `i18n/locales/` (English source pack; other packs follow the spec 019 flow).
 - [ ] T026 [US1] Preview state in `web/src/lib/useThemePreview.ts`: apply catalog tokens and css in memory through the same injection path as `useThemePreferences.ts`, restore saved preferences on Exit, route change away from theme pages, or reload; nothing written server-side.
 - [ ] T027 [P] [US1] Vitest `web/src/lib/useThemePreview.test.ts`: apply, exit restores exactly, reload restores, safe mode blocks preview CSS.
@@ -98,10 +99,12 @@
 
 **Independent test**: user A installs and selects a theme, it follows A to another browser and switches with Light/Dark/System; A's own CSS overlay stays on top; user B sees nothing new; login and share pages stay Modern Pink.
 
-- [ ] T033 [US2] Install service `api/internal/themes/install.go`: copy the cached `valid` entry (tokens, re-sanitized css, metadata, version, digest, `source_id`, `source_name`) into `user_installed_themes`; refuse `already_installed`, `entry_not_valid`, `source_disabled`; max 50 installs per user; audit `theme.install`.
+- [X] T033 [US2] Install service `api/internal/themes/install.go`: copy the cached `valid` entry (tokens, re-sanitized css, metadata, version, digest, `source_id`, `source_name`) into `user_installed_themes`; refuse `already_installed`, `entry_not_valid`, `source_disabled`; max 50 installs per user; audit `theme.install`.
 - [ ] T034 [US2] Handlers `api/internal/handlers/themes_installed.go`: `GET /users/me/themes`, `POST /users/me/themes` (optional `select`), `GET /users/me/themes/{id}`; another user's id → 404; derived `updateAvailable` and `sourceRemoved` by `source_id`; client methods in `web/src/lib/endpoints.ts`.
+  - PR-D note: API side done; the web client methods land with PR-F.
 - [ ] T035 [US2] Preferences: `PUT /users/me/preferences` accepts `themeType: "installed"` + `installedThemeId` (422 if not the caller's) in `api/internal/handlers/users.go`; profile preferences gain `installedThemeId` and `installedTheme {tokens, css, version}`; `api/internal/db/preferences.go` reads and writes the new column.
-- [ ] T036 [P] [US2] Envtest `api/internal/handlers/themes_installed_envtest_test.go`: install, select, isolation between two users, 404 on another user's id, limit, refusal codes, audit row, profile carries the rendered theme.
+  - PR-D note: API side done; the web client methods land with PR-F.
+- [X] T036 [P] [US2] Envtest `api/internal/handlers/themes_installed_envtest_test.go`: install, select, isolation between two users, 404 on another user's id, limit, refusal codes, audit row, profile carries the rendered theme.
 - [ ] T037 [US2] Render installed themes in `web/src/lib/useThemePreferences.ts`: tokens for the active mode into `gameplane-custom-theme-vars`, theme css into new `<style id="gameplane-installed-theme-css">` placed before the user overlay; single-mode themes used for both modes; safe mode skips both and renders Modern Pink; `web/src/lib/enforceUnauthenticatedTheme.ts` also removes the new style element.
 - [ ] T038 [US2] Settings → Theme in `web/src/routes/ThemeSettings.tsx`: "Installed themes" section and the installed option in the preset picker from the T004 export, "Browse themes" link to the catalog; Install and Keep wired in `ThemeDetail.tsx` and `ThemePreviewBanner.tsx`.
 - [ ] T039 [US2] `web/src/lib/theme-export.ts`: an installed theme exports as `{source, name, version}`; import onto an instance without it falls back to Pink with a notice.
@@ -117,9 +120,10 @@
 
 **Independent test**: version 1 installed, version 2 published, "Update available" appears for that user only, update applies 2 for that user only; disable the source and the installed copy keeps working as "Source removed"; remove the selected theme and the user is on Modern Pink.
 
-- [ ] T041 [US3] `api/internal/themes/install.go`: `Update` moves to the newer `valid` entry with the same `source_id` and name (409 `no_update`, `source_disabled`, `source_removed`); `Remove` deletes the row and, if selected, sets `theme_type=preset`, `preset_id=pink`, `installed_theme_id=NULL` in the same transaction; audit `theme.update` and `theme.remove` with from/to versions.
+- [X] T041 [US3] `api/internal/themes/install.go`: `Update` moves to the newer `valid` entry with the same `source_id` and name (409 `no_update`, `source_disabled`, `source_removed`); `Remove` deletes the row and, if selected, sets `theme_type=preset`, `preset_id=pink`, `installed_theme_id=NULL` in the same transaction; audit `theme.update` and `theme.remove` with from/to versions.
 - [ ] T042 [US3] Handlers `POST /users/me/themes/{id}/update` and `DELETE /users/me/themes/{id}` in `api/internal/handlers/themes_installed.go`; client methods.
-- [ ] T043 [P] [US3] Envtest `api/internal/handlers/themes_update_envtest_test.go`: two users on different versions, update affects one; remove selected → Pink; source deleted and recreated with the same name does not offer updates to old installs; disabled source refuses update.
+  - PR-D note: API side done; the web client methods land with PR-F.
+- [X] T043 [P] [US3] Envtest `api/internal/handlers/themes_update_envtest_test.go`: two users on different versions, update affects one; remove selected → Pink; source deleted and recreated with the same name does not offer updates to old installs; disabled source refuses update.
 - [ ] T044 [US3] Web: Update and Remove buttons in `ThemeDetail.tsx` and the Installed themes section, "Update available" with changelog, "Source removed" state with placeholder preview, one-time notice after a removal fallback.
 - [ ] T045 [P] [US3] Vitest `web/src/routes/ThemeSettings.update.test.tsx`: update, remove fallback, source-removed state.
 
@@ -131,9 +135,10 @@
 
 **Independent test**: add a second source and see its theme; require a key and see "Signature not verified" until signed; disable it and its themes leave the catalog while installed copies keep working.
 
-- [ ] T046 [US4] Source service `api/internal/themes/sources.go`: validation mirroring the `ModuleSource` CEL rules (type-specific spec, verify only for oci, interval ≥ 5m, name rules, `official` reserved); editing `verify` re-checks every entry of that source at once (failures → `unverified`); delete cascades catalog entries and nulls `user_installed_themes.source_id`; audit `theme_source.*`.
+- [X] T046 [US4] Source service `api/internal/themes/sources.go`: validation mirroring the `ModuleSource` CEL rules (type-specific spec, verify only for oci, interval ≥ 5m, name rules, `official` reserved); editing `verify` re-checks every entry of that source at once (failures → `unverified`); delete cascades catalog entries and nulls `user_installed_themes.source_id`; audit `theme_source.*`.
 - [ ] T047 [US4] Handlers `api/internal/handlers/theme_sources.go`: `GET/POST /themes/sources`, `PUT/DELETE /themes/sources/{name}`, `POST /themes/sources/{name}/refresh` per `contracts/themes-api.md`; credentials never returned; client methods.
-- [ ] T048 [P] [US4] Envtest `api/internal/handlers/theme_sources_envtest_test.go`: RBAC (non-admin 403), validation errors, verify edit re-check, disable hides entries and refuses installs, delete keeps installed copies, credential never in responses.
+  - PR-D note: API side done; the web client methods land with PR-F.
+- [X] T048 [P] [US4] Envtest `api/internal/handlers/theme_sources_envtest_test.go`: RBAC (non-admin 403), validation errors, verify edit re-check, disable hides entries and refuses installs, delete keeps installed copies, credential never in responses.
 - [ ] T049 [US4] `web/src/routes/ThemeSources.tsx` at `/settings/theme-sources` from the T004 export (list, add/edit dialog, refresh, delete confirm), shown in the settings nav only with `themes:manage`; route in `web/src/router/tree.tsx`.
 - [ ] T050 [P] [US4] Vitest `web/src/routes/ThemeSources.test.tsx`.
 
@@ -165,7 +170,7 @@
 ## Phase 9: Official themes repository (`GameplanePanel/themes`, after T003)
 
 - [ ] T060 Scaffold `themes/` like `GameplanePanel/module`: `README.md`, `CLAUDE.md`, `AGENTS.md`, `themes/<name>/{theme.yaml,theme.css,previews/}` layout, `build.sh` (`gp-module theme validate` then `gp-module theme package --push ghcr.io/gameplanepanel/gameplane-themes/<name>:<version>`), CI workflow that validates every theme on PRs.
-- [ ] T061 Release workflow `themes/.github/workflows/release.yaml`: on tag, push changed themes and keyless-sign each with cosign (GitHub OIDC); the workflow identity must match the one pinned in T021.
+- [ ] T061 Release workflow `themes/.github/workflows/release.yaml`: on tag, push changed themes and sign each with cosign using the project key pair (the module key; the public half is `signing/cosign.pub`, which T021 pins); the workflow signs with the key, not keyless. OD-6 settled 2026-11-27.
 - [ ] T062 Seed themes from `example/custom-css/*.css` on branch `feat/example-theme-gallery`: run each through `gp-module theme validate`, keep those that pass, write `theme.yaml` with tokens taken from each overlay's CSS variables, capture light and dark previews with a Playwright script against the dev cluster (`themes/hack/capture-previews.ts`); at least 10 themes (SC-002).
 - [ ] T063 First release tag in `themes`; confirm the `official` source on a fresh install lists every seeded theme as `valid` and signed.
 

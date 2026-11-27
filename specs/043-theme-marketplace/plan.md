@@ -88,7 +88,7 @@ test/e2e/api_themes_e2e_test.go, test/e2e/buckets.sh
 design.fig + assets/design-export/   new screens (local agent)
 docs/themes.md                 NEW how-to (sources, authoring); website docs page via the website refresh
 changelog/unreleased/<PR>-theme-marketplace.md
-GameplanePanel/themes          NEW repo (valgul creates): themes/<name>/, build.sh, release workflow (cosign keyless), seeded from feat/example-theme-gallery overlays
+GameplanePanel/themes          NEW repo (valgul creates): themes/<name>/, build.sh, release workflow (cosign, project key), seeded from feat/example-theme-gallery overlays
 ```
 
 **Structure Decision**: Theme marketplace lives in the API and web (panel data, OD-1 and OD-4 A); validation is one shared module so CLI and panel agree; fetch/verify is shared with module sources rather than duplicated.

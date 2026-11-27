@@ -32,6 +32,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 	"github.com/GameplanePanel/gameplane/api/internal/steam"
 	"github.com/GameplanePanel/gameplane/api/internal/telemetry"
+	"github.com/GameplanePanel/gameplane/api/internal/themes"
 	"github.com/GameplanePanel/gameplane/api/internal/ws"
 )
 
@@ -238,6 +239,19 @@ func main() {
 	reg.SetControlPlaneNamespace(moduleConfigMapNS)
 	authRegistry := auth.NewRegistry(store,
 		auth.NewK8sSecretReader(k8s, credentialsNS), oidcAuth, cfg.oidcDisplayName, helmPolicy)
+	// Theme marketplace (spec 043): the reserved official source is seeded
+	// and reconciled from the chart on every start. Same code path in combined and standalone mode.
+	themeSvc := themes.New(themes.Deps{
+		Store:         store,
+		Logger:        logger,
+		LocalRoot:     cfg.themesLocalRoot,
+		Kube:          k8s,
+		CredentialsNS: credentialsNS,
+	})
+	if err := themeSvc.SeedOfficial(ctx, cfg.themesOfficial); err != nil {
+		logger.Error("seed theme sources", "err", err)
+		os.Exit(1)
+	}
 
 	var auditOpts []audit.Option
 	var webhookDone <-chan struct{}
@@ -438,6 +452,8 @@ func main() {
 		handlers.MountShareLinks(p, reg, store)
 		handlers.MountOwnership(p, reg, store)
 		handlers.MountUsers(p, store, sessions, reg)
+		handlers.MountThemes(p, store, themeSvc)
+		handlers.MountInstalledThemes(p, store, themeSvc)
 		handlers.MountSFTPServers(p, fileAccess)
 		handlers.MountRolesWithHelm(p, store, helmPolicy)
 		handlers.MountAudit(p, auditor)
@@ -549,6 +565,8 @@ func main() {
 			jobs.Go(func() { notify.New(store, k8s, credentialsNS).RunWithRegistry(leaderCtx, reg) })
 			jobs.Go(func() { reporter.Run(leaderCtx) })
 			jobs.Go(func() { handlers.RunModpackAdoptSweep(leaderCtx, reg, agentLister, logger) })
+			// Theme sources refresh on their schedule, on the leader only (spec 043).
+			jobs.Go(func() { themeSvc.Run(leaderCtx) })
 			jobs.Go(func() {
 				auditor.RunRetention(leaderCtx, time.Duration(cfg.auditRetentionDays)*24*time.Hour, 24*time.Hour, logger)
 			})
@@ -659,6 +677,8 @@ type config struct {
 	telemetryBundled       bool
 	telemetryInterval      time.Duration
 	officialModuleSource   string
+	themesOfficial         themes.OfficialConfig
+	themesLocalRoot        string
 	clusterOps             bool
 	clusterExternalAddress string
 	updateChannel          string
@@ -759,6 +779,20 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	// credential and only comes from the environment (a mounted Secret),
 	// never a flag.
 	c.telemetryAuth = envOr("GAMEPLANE_TELEMETRY_AUTH", "")
+	// Env-only, like GAMEPLANE_TELEMETRY_BUNDLED: the chart sets these from
+	// themes.officialSource. Anything but "false" enables the source. The list
+	// is comma separated; the key is the PEM public key, set when verify is on.
+	c.themesOfficial = themes.OfficialConfig{
+		Enabled:         envOr("GAMEPLANE_THEMES_OFFICIAL_SOURCE", "true") != "false",
+		URL:             envOr("GAMEPLANE_THEMES_OFFICIAL_URL", ""),
+		Themes:          splitCommaList(envOr("GAMEPLANE_THEMES_OFFICIAL_THEMES", "")),
+		VerifyEnabled:   envOr("GAMEPLANE_THEMES_OFFICIAL_VERIFY", "false") == "true",
+		CosignPublicKey: envOr("GAMEPLANE_THEMES_OFFICIAL_COSIGN_KEY", ""),
+	}
+	// Local theme sources read only under this directory. Empty (the default)
+	// disables local sources, so an admin cannot point the API at any host path.
+	fs.StringVar(&c.themesLocalRoot, "themes-local-root", envOr("GAMEPLANE_THEMES_LOCAL_ROOT", ""),
+		"directory that local theme sources may read from; empty disables local theme sources")
 	fs.BoolVar(&c.clusterOps, "cluster-ops", envOr("GAMEPLANE_CLUSTER_OPS", "") == "true", "enable credential-minting cluster ops (Add node, Download kubeconfig)")
 	fs.StringVar(&c.clusterExternalAddress, "cluster-external-address", envOr("GAMEPLANE_CLUSTER_EXTERNAL_ADDRESS", ""),
 		"external (node-routable) API server address, e.g. \"1.2.3.4:6443\" or \"https://k8s.example.com:6443\", used in the join command and downloaded kubeconfig instead of the in-cluster ClusterIP; empty = use the in-cluster address (may be unreachable from outside the cluster)")
@@ -828,6 +862,17 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	// This must happen in main() after flag parsing, not here, so we can
 	// apply error handling.
 	c.trustedProxies = strings.Split(trustedProxiesStr, ",")
+}
+
+// splitCommaList splits a comma-separated env value into trimmed, non-empty items.
+func splitCommaList(v string) []string {
+	var out []string
+	for _, item := range strings.Split(v, ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			out = append(out, item)
+		}
+	}
+	return out
 }
 
 func envOr(key, fallback string) string {

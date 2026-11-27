@@ -227,6 +227,7 @@ jobs:
               - 'gp-module/**'
               - 'telemetryschema/**'
               - 'themepkg/**'
+              - 'bundlefetch/**'
               - 'web/**'
               - 'deploy/standalone/compose*.yaml'
               - 'deploy/standalone/smoke.py'
