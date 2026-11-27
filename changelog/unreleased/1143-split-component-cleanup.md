@@ -1,0 +1,3 @@
+# Smaller attack surface in the split components and module validator
+
+The tunnel, capture-sidecar, sftp and MCP server images drop dead code, and the tunnel images no longer declare an unused `25565` port. The capture sidecar no longer accepts the `-listen`, `-tls-*`, `-capture-dir` and `-capture-volume-budget-bytes` flags, which the operator never passed; it keeps reading the same environment variables and defaults. The module repository's `validate.py` drops its unused `--json`, `--strict` and `--skip-offline` flags. Nothing changes for installs managed by the chart. [PR #1143](https://github.com/GameplanePanel/Gameplane/pull/1143)
