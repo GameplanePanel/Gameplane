@@ -158,7 +158,8 @@ func (s *Service) RunDue(ctx context.Context) {
 }
 
 // newSourceSettle is how long after its creation the scheduler leaves a source
-// alone, so the credential Secret written by CreateSource is in place first.
+// alone, so a scheduled pass does not run beside the first index that
+// CreateSource starts.
 const newSourceSettle = 10 * time.Second
 
 // isDue reports whether an enabled source should be refreshed at now. A source
@@ -167,9 +168,8 @@ func isDue(src db.ThemeSource, now time.Time) bool {
 	if !src.Enabled {
 		return false
 	}
-	// CreateSource inserts the row before it writes the credential Secret, so a
-	// scheduled pass in that gap would read a Secret that is not there yet. A
-	// source is left alone for newSourceSettle after its creation.
+	// CreateSource starts the first index itself, so a scheduled pass leaves a
+	// source alone for newSourceSettle after its creation.
 	if created, err := time.Parse(time.RFC3339, src.CreatedAt); err == nil {
 		if age := now.Sub(created); age >= 0 && age < newSourceSettle {
 			return false
