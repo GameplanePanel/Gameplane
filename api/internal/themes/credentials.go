@@ -14,8 +14,8 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"oras.land/oras-go/v2/registry/remote/auth"
 
 	"github.com/GameplanePanel/gameplane/api/internal/db"
@@ -23,43 +23,34 @@ import (
 	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
 )
 
-// Theme source credentials (spec 043, OD-5). A credential is stored as a labelled
-// Secret in the credentials namespace, through kube.Client.Secrets: a Kubernetes
-// Secret in combined mode, a panel-encrypted management object in standalone
-// mode. The source row keeps only the Secret name (credential_ref). The value is
-// never returned by the API and never written to a log, an error text or the
-// audit target.
+// Theme source credentials (spec 043, OD-5, settled 2026-11-27: "Secret name,
+// like modules"). An admin creates the credential Secret in the credentials
+// namespace and names it on the source, the way a ModuleSource names its
+// pullSecretRef or secretRef. The panel never writes, changes or deletes that
+// Secret: the source row keeps only its name (credential_ref) and the indexer
+// reads it through kube.Client.Secrets (a Kubernetes Secret in combined mode, a
+// panel-encrypted management object in standalone mode) for each pull. The
+// Secret's values are never returned by the API and never written to a log, an
+// error text or the audit target.
+//
+// The Secret holds, as for module sources:
+//   - oci: a docker config JSON under .dockerconfigjson (the
+//     kubernetes.io/dockerconfigjson shape);
+//   - git, http: "token", or "username" and "password".
 
 const (
-	// ThemeSourceSecretLabel marks the credential Secrets of theme sources. The
-	// service reads and deletes only Secrets that carry it.
-	ThemeSourceSecretLabel = "gameplane.local/theme-source"
-
-	// credentialSecretPrefix starts every credential Secret name. A source name
-	// is at most 40 characters (maxSourceNameLen), so the prefix plus the name
-	// fits the 63-character limit of a Kubernetes object name.
-	credentialSecretPrefix = "gameplane-theme-source-"
-
-	// managedByLabel and managedByValue match the labels the API sets on the
-	// Secrets it creates for admins (handlers.ManagedByLabel).
-	managedByLabel = "gameplane.local/managed-by"
-	managedByValue = "gameplane-api"
-
 	// gitHTTPUsername is the user name sent with a token for git sources. Forges
 	// accept a token as the password with any user name.
 	gitHTTPUsername = "gameplane"
 )
 
-// errCredentialNotManaged reports a Secret with the credential name that the
-// theme service did not create. It is never read or deleted.
-var errCredentialNotManaged = errors.New("theme source credential Secret is not managed by Gameplane")
-
 // errCredentialEmpty reports a credential Secret that holds no data.
 var errCredentialEmpty = errors.New("theme source credential Secret has no data")
 
-// errNoCredentialStore is returned when credentials are needed but the panel has
-// no credential store (no Kubernetes client and no management store).
-var errNoCredentialStore = &SourceError{Msg: "theme source credentials cannot be stored on this panel"}
+// errNoCredentialStore is returned when a source names a credential Secret but
+// the panel has no credential store (no Kubernetes client and no management
+// store).
+var errNoCredentialStore = &SourceError{Msg: "theme source credentials cannot be read on this panel"}
 
 // dockerConfig is the docker config JSON an oci source credential carries. It is
 // the same shape as a module source pull secret (kubernetes.io/dockerconfigjson).
@@ -75,90 +66,33 @@ type dockerAuth struct {
 	IdentityToken string `json:"identitytoken,omitempty"`
 }
 
-// tokenCredential is the credential of a git or http source: a token, or a user
-// name and password.
-type tokenCredential struct {
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
-	Token    string `json:"token,omitempty"`
-}
-
-// hasCredentialInput reports whether a request carried a credential value. An
-// absent field and a JSON null are both "no value".
-func hasCredentialInput(raw json.RawMessage) bool {
+// checkCredentialSecret reads the credentialSecret field of a request. It
+// returns set=false when the field is absent (none on create, keep on update),
+// and set=true with a nil name for a JSON null or an empty string (clear on
+// update). A name must be a Kubernetes object name (DNS-1123 subdomain), and a
+// local source takes none.
+func checkCredentialSecret(typ string, raw json.RawMessage) (name *string, set bool, err error) {
 	t := bytes.TrimSpace(raw)
-	return len(t) > 0 && string(t) != "null"
-}
-
-// isCredentialNull reports whether a request sent an explicit JSON null, which
-// clears the credential on update.
-func isCredentialNull(raw json.RawMessage) bool {
-	return string(bytes.TrimSpace(raw)) == "null"
-}
-
-// checkCredential validates a credential for a source type and returns the
-// Secret data to store. Error texts are generic: they never echo the input,
-// because a malformed credential may still contain a secret value.
-func checkCredential(typ string, raw json.RawMessage) (map[string][]byte, error) {
-	switch typ {
-	case "oci":
-		var cfg dockerConfig
-		if err := decodeCredentialStrict(raw, &cfg); err != nil {
-			return nil, sourceErrf("credential for an oci source must be docker config JSON with an auths object")
-		}
-		if len(cfg.Auths) == 0 {
-			return nil, sourceErrf("credential needs an auths object with at least one registry")
-		}
-		for _, a := range cfg.Auths {
-			if a.Username == "" && a.Password == "" && a.Auth == "" && a.IdentityToken == "" {
-				return nil, sourceErrf("an auths entry has no username, password, auth or identitytoken")
-			}
-		}
-		canonical, err := json.Marshal(cfg)
-		if err != nil {
-			return nil, fmt.Errorf("encode credential: %w", err)
-		}
-		return map[string][]byte{corev1.DockerConfigJsonKey: canonical}, nil
-	case "git", "http":
-		var tc tokenCredential
-		if err := decodeCredentialStrict(raw, &tc); err != nil {
-			return nil, sourceErrf("credential for a %s source must be {\"token\"} or {\"username\",\"password\"}", typ)
-		}
-		if tc.Token != "" {
-			if tc.Username != "" || tc.Password != "" {
-				return nil, sourceErrf("credential takes a token or a username and password, not both")
-			}
-			return map[string][]byte{"token": []byte(tc.Token)}, nil
-		}
-		if tc.Username == "" || tc.Password == "" {
-			return nil, sourceErrf("credential needs a token or a username and password")
-		}
-		return map[string][]byte{"username": []byte(tc.Username), "password": []byte(tc.Password)}, nil
-	case "local":
-		return nil, sourceErrf("local theme sources take no credential")
-	default:
-		return nil, sourceErrf("unknown source type %q", typ)
+	if len(t) == 0 {
+		return nil, false, nil
 	}
-}
-
-// decodeCredentialStrict decodes a credential object, refusing unknown fields
-// and trailing data. Its error is discarded by callers: it is never shown.
-func decodeCredentialStrict(raw json.RawMessage, v any) error {
-	dec := json.NewDecoder(bytes.NewReader(bytes.TrimSpace(raw)))
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(v); err != nil {
-		return err
+	if string(t) == "null" {
+		return nil, true, nil
 	}
-	if dec.More() {
-		return errors.New("trailing data after credential")
+	var v string
+	if err := json.Unmarshal(t, &v); err != nil {
+		return nil, false, sourceErrf("credentialSecret must be a Secret name or null")
 	}
-	return nil
-}
-
-// credentialSecretName returns the name of the Secret that holds the credential
-// of the source named source.
-func credentialSecretName(source string) string {
-	return credentialSecretPrefix + source
+	if v == "" {
+		return nil, true, nil
+	}
+	if typ == "local" {
+		return nil, false, sourceErrf("local theme sources take no credential Secret")
+	}
+	if msgs := validation.IsDNS1123Subdomain(v); len(msgs) > 0 {
+		return nil, false, sourceErrf("credentialSecret must be a Kubernetes Secret name: %s", strings.Join(msgs, "; "))
+	}
+	return &v, true, nil
 }
 
 // secretStore returns the credential store, or errNoCredentialStore when the
@@ -174,79 +108,10 @@ func (s *Service) secretStore() (kube.SecretStore, error) {
 	return st, nil
 }
 
-// writeCredential creates or replaces the credential Secret of source with data
-// (named by credentialSecretName). An existing Secret that is not labelled as a theme source
-// credential is refused, so this path cannot overwrite another Secret.
-func (s *Service) writeCredential(ctx context.Context, source string, data map[string][]byte) error {
-	st, err := s.secretStore()
-	if err != nil {
-		return err
-	}
-	name := credentialSecretName(source)
-	labels := map[string]string{ThemeSourceSecretLabel: "true", managedByLabel: managedByValue}
-	desired := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: s.credentialsNS, Labels: labels},
-		Type:       corev1.SecretTypeOpaque,
-		Data:       data,
-	}
-	_, err = st.Create(ctx, desired, metav1.CreateOptions{})
-	if err == nil {
-		return nil
-	}
-	if !apierrors.IsAlreadyExists(err) {
-		return fmt.Errorf("store theme source credential: %w", err)
-	}
-	existing, err := st.Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return fmt.Errorf("read theme source credential: %w", err)
-	}
-	if existing.Labels[ThemeSourceSecretLabel] != "true" {
-		// A foreign Secret with the same name is a conflict the admin can fix by
-		// renaming the source, so it is a 422 refusal, not a server error.
-		return sourceErrf("a Secret named %s already exists and is not a theme source credential", name)
-	}
-	if existing.Labels == nil {
-		existing.Labels = map[string]string{}
-	}
-	for k, v := range labels {
-		existing.Labels[k] = v
-	}
-	existing.Data = data
-	existing.StringData = nil
-	if _, err := st.Update(ctx, existing, metav1.UpdateOptions{}); err != nil {
-		return fmt.Errorf("update theme source credential: %w", err)
-	}
-	return nil
-}
-
-// deleteCredential removes the credential Secret of source. A missing Secret, or
-// one that is not labelled as a theme source credential, is not an error.
-func (s *Service) deleteCredential(ctx context.Context, source string) error {
-	st, err := s.secretStore()
-	if err != nil {
-		return err
-	}
-	name := credentialSecretName(source)
-	existing, err := st.Get(ctx, name, metav1.GetOptions{})
-	if apierrors.IsNotFound(err) {
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("read theme source credential: %w", err)
-	}
-	if existing.Labels[ThemeSourceSecretLabel] != "true" {
-		return nil
-	}
-	if err := st.Delete(ctx, name, metav1.DeleteOptions{}); err != nil && !apierrors.IsNotFound(err) {
-		return fmt.Errorf("delete theme source credential: %w", err)
-	}
-	return nil
-}
-
 // readCredential returns the Secret data of the credential of src. It returns
-// nil when the source has no credential. A referenced credential that cannot be
-// read, or is not a theme source credential, is an error; the error names the
-// Secret but never its value.
+// nil when the source names no Secret. A named Secret that cannot be read, holds
+// no data, or lacks the keys its source type needs is an error; the error names
+// the Secret but never its values.
 func (s *Service) readCredential(ctx context.Context, src db.ThemeSource) (map[string][]byte, error) {
 	if src.CredentialRef == nil || *src.CredentialRef == "" {
 		return nil, nil
@@ -255,15 +120,25 @@ func (s *Service) readCredential(ctx context.Context, src db.ThemeSource) (map[s
 	if err != nil {
 		return nil, err
 	}
-	existing, err := st.Get(ctx, *src.CredentialRef, metav1.GetOptions{})
+	name := *src.CredentialRef
+	existing, err := st.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("read credential of theme source %q: %w", src.Name, err)
-	}
-	if existing.Labels[ThemeSourceSecretLabel] != "true" {
-		return nil, errCredentialNotManaged
+		return nil, fmt.Errorf("read credential Secret %s of theme source %q: %w", name, src.Name, err)
 	}
 	if len(existing.Data) == 0 {
-		return nil, errCredentialEmpty
+		return nil, fmt.Errorf("credential Secret %s: %w", name, errCredentialEmpty)
+	}
+	switch src.Type {
+	case "oci":
+		if len(existing.Data[corev1.DockerConfigJsonKey]) == 0 {
+			return nil, fmt.Errorf("credential Secret %s has no %s key", name, corev1.DockerConfigJsonKey)
+		}
+	case "git", "http":
+		hasToken := len(existing.Data["token"]) > 0
+		hasBasic := len(existing.Data["username"]) > 0 && len(existing.Data["password"]) > 0
+		if !hasToken && !hasBasic {
+			return nil, fmt.Errorf("credential Secret %s needs a token key, or username and password keys", name)
+		}
 	}
 	return existing.Data, nil
 }
