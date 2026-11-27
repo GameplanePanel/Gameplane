@@ -22,6 +22,8 @@
     { "tests": "^(TestPanel_OfflineRecovery|TestAPIClient_DoContextResponseBody|TestAPIClient_ExtractIntField)$", "components": ["operator", "api", "agent"],
       "paths": ["test/e2e/testdata/recovery/"] },
     { "tests": "^TestStandalone_HelmPanelLifecycle$", "components": ["operator", "api", "agent"] },
+    { "tests": "^TestStandalone_ThemeSourceInstall$", "components": ["api", "bundlefetch", "themepkg", "netguard"],
+      "paths": ["test/e2e/fixtures/theme-oras-push-job.yaml"] },
 
     { "tests": "^TestNetworkIsolation_", "components": ["operator", "api", "agent", "tunnel"],
       "paths": ["test/e2e/fixtures/frps.yaml"] },

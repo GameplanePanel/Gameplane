@@ -531,9 +531,13 @@ bucket_network_isolation() {
 # installs the chart's panel-only profile as a second Helm release in the fixed
 # namespace e2e-standalone-panel and registers this Kind cluster as its remote.
 # Zero shared panel logins; the standalone panel has its own login limiter
-# (3 logins).
+# (3 logins). TestStandalone_ThemeSourceInstall (spec 043) installs a second
+# panel-only release e2e-standalone-themes in its own namespace, pushes theme
+# packages to the in-cluster test registry and signs in once against that
+# panel's own limiter.
 bucket_standalone() { cat <<'EOF'
 TestStandalone_HelmPanelLifecycle
+TestStandalone_ThemeSourceInstall
 EOF
 }
 

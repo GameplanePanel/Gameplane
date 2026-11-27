@@ -2003,8 +2003,8 @@ jobs:
             job_timeout: 60 # Boots kind, loads images and installs the chart before the bounded recovery drill.
           - bucket: standalone
             parallel: 1
-            test_timeout: 20m # panel-only Helm release, remote registration, kubeconfig swap, restart and removal
-            job_timeout: 60 # Boots kind, loads images and installs the chart before the standalone panel drill.
+            test_timeout: 30m # panel-only Helm release, remote registration, kubeconfig swap, restart and removal; then a second panel-only release for theme sources (spec 043)
+            job_timeout: 75 # Boots kind, loads images and installs the chart before the standalone panel drills.
           - bucket: restricted-workloads
             parallel: 1
             test_timeout: 25m # Includes real projected-token rotation and node capture cleanup.
@@ -2089,7 +2089,7 @@ jobs:
         uses: ./.github/actions/dump-cluster-state
         with:
           context: ${{ env.CTX }}
-          namespaces: "${{ matrix.bucket == 'monitoring' && 'gameplane-system,gameplane-games,monitoring' || matrix.bucket == 'standalone' && 'gameplane-system,gameplane-games,e2e-standalone-panel' || 'gameplane-system,gameplane-games' }}"
+          namespaces: "${{ matrix.bucket == 'monitoring' && 'gameplane-system,gameplane-games,monitoring' || matrix.bucket == 'standalone' && 'gameplane-system,gameplane-games,e2e-standalone-panel,e2e-standalone-themes' || 'gameplane-system,gameplane-games' }}"
           include-previous-logs: "true"
 
   e2e-go-arm64:

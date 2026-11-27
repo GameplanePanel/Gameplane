@@ -441,6 +441,8 @@ class E2ESelectionTests(unittest.TestCase):
                 values = self.select(path)
                 self.assertIn("TestAPI_ThemeMarketplaceLifecycle",
                               values["e2e-run"].get("themes", ""))
+                self.assertIn("TestStandalone_ThemeSourceInstall",
+                              values["e2e-run"].get("standalone", ""))
 
     def test_audit_network_isolation_has_a_run_pattern(self):
         """Affected components and the owning test file select the audit bucket."""
