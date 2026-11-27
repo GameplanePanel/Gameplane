@@ -3,7 +3,7 @@
   "name": "Screen/Server Detail — Modpacks (Active pack)",
   "type": "FRAME",
   "x": 1640,
-  "y": 35101,
+  "y": 37375,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
