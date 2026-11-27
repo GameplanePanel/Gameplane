@@ -40,6 +40,8 @@ interface FormState {
   secretName: string;
   verify: VerifyMode;
   publicKey: string;
+  // Not shown in the dialog; kept so an edit does not drop a stored policy.
+  requireTransparencyLog: boolean;
   issuer: string;
   identity: string;
   allow: string;
@@ -64,17 +66,22 @@ const VERIFY_OPTIONS: Array<{ value: VerifyMode; label: MessageDescriptor }> = [
   { value: "keyless", label: M.verifyKeyless },
 ];
 
-// The API stores refreshInterval in seconds (minimum 300).
+// The API stores refreshInterval in seconds (minimum 300). The dialog shows
+// hours or minutes when the value divides evenly, and seconds otherwise, so
+// every stored value round-trips through an unchanged edit.
 const MIN_INTERVAL_SECONDS = 300;
+const UNIT_SECONDS: Record<string, number> = { s: 1, m: 60, h: 3600 };
 
 export function intervalToText(seconds: number): string {
-  return seconds % 3600 === 0 ? `${seconds / 3600}h` : `${seconds / 60}m`;
+  if (seconds % 3600 === 0) return `${seconds / 3600}h`;
+  if (seconds % 60 === 0) return `${seconds / 60}m`;
+  return `${seconds}s`;
 }
 
 export function parseInterval(text: string): number | null {
-  const m = /^(\d+)([mh])$/.exec(text.trim());
+  const m = /^(\d+)([smh])$/.exec(text.trim());
   if (!m) return null;
-  const seconds = Number(m[1]) * (m[2] === "h" ? 3600 : 60);
+  const seconds = Number(m[1]) * (UNIT_SECONDS[m[2]] ?? 0);
   return seconds >= MIN_INTERVAL_SECONDS ? seconds : null;
 }
 
@@ -94,6 +101,7 @@ function initialForm(source: ThemeSource | null): FormState {
     secretName: source?.credentialSecret ?? "",
     verify: mode,
     publicKey: verify?.key ?? "",
+    requireTransparencyLog: verify?.requireTransparencyLog ?? false,
     issuer: verify?.keyless?.issuer ?? "",
     identity: verify?.keyless?.identity ?? "",
     allow: (source?.spec.allow ?? []).join(", "),
@@ -133,7 +141,9 @@ export function buildInput(f: FormState, editing: ThemeSource | null): ThemeSour
   let spec: ThemeSourceInput["spec"];
   switch (f.type) {
     case "oci":
-      if (f.verify === "key") verify = { key: f.publicKey.trim() };
+      if (f.verify === "key") {
+        verify = { key: f.publicKey.trim(), ...(f.requireTransparencyLog ? { requireTransparencyLog: true } : {}) };
+      }
       if (f.verify === "keyless") verify = { keyless: { issuer: f.issuer.trim(), identity: f.identity.trim() } };
       spec = { oci: { url: f.ociUrl.trim(), themes: splitList(f.ociThemes), insecure: f.ociInsecure } };
       break;

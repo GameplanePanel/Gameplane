@@ -89,6 +89,15 @@ export function resetUrlSafeModeForTests(): void {
  * `gameplane-safe-mode` sessionStorage flag set by the keyboard shortcut
  * and the login-page safe-mode link.
  */
+// Re-applies an active in-memory theme preview, returning false when there is
+// none. Registered by useThemePreview (which imports this module), so an OS
+// appearance change keeps showing the previewed theme.
+let previewReapplier: (() => boolean) | null = null;
+
+export function setThemePreviewReapplier(fn: (() => boolean) | null): void {
+  previewReapplier = fn;
+}
+
 export function isSafeModeActive(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -494,6 +503,8 @@ export function useThemePreferences(
     if (!cached || !themePreferencesEqual(cached, mePreferences)) {
       writeThemePreferences(mePreferences);
     }
+    // An active preview stays on screen over the refreshed saved theme.
+    if (previewReapplier?.()) return;
     applyThemePreferences(mePreferences);
   }, [mePreferences]);
 
@@ -507,7 +518,10 @@ export function useThemePreferences(
     if (preferences?.themeType === "custom_colors" && preferences.customColors) return;
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => applyThemePreferences(readThemePreferences());
+    const handleChange = () => {
+      if (previewReapplier?.()) return;
+      applyThemePreferences(readThemePreferences());
+    };
     mq.addEventListener("change", handleChange);
     return () => mq.removeEventListener("change", handleChange);
   }, [preferences?.appearanceMode, preferences?.themeType, preferences?.customColors]);

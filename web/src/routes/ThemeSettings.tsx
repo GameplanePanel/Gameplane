@@ -314,9 +314,14 @@ export function ThemeSettingsPage() {
 
   // Installed-theme selection: fetch the render data first so the live preview
   // and the saved draft carry the same tokens (never client-supplied).
+  // Every base change bumps the revision, so a slow detail fetch for an earlier
+  // pick never overwrites a later choice.
+  const baseRevision = useRef(0);
   const pickInstalled = async (id: number) => {
+    const revision = baseRevision.current;
     try {
       const detail = await Themes.installedDetail(id);
+      if (baseRevision.current !== revision) return;
       // Server render data is validated before it reaches the DOM; malformed data leaves the selection unchanged.
       const render = normalizeInstalledRender({ tokens: detail.tokens, css: detail.css, version: detail.version });
       if (render === null) return;
@@ -326,8 +331,30 @@ export function ThemeSettingsPage() {
         installedTheme: render,
       });
     } catch (err) {
+      if (baseRevision.current !== revision) return;
       setInstalledError(themeErrorText(err));
     }
+  };
+
+  // Updating the installed copy the draft uses refreshes the draft's render,
+  // keeping every other unsaved draft field.
+  const updateInstalled = (target: InstalledTheme) => {
+    themeActions.update.mutate(target.id, {
+      onSuccess: () => {
+        if (draft?.themeType !== "installed" || draft.installedThemeId !== target.id) return;
+        void (async () => {
+          const revision = baseRevision.current;
+          try {
+            const detail = await Themes.installedDetail(target.id);
+            if (baseRevision.current !== revision) return;
+            const render = normalizeInstalledRender({ tokens: detail.tokens, css: detail.css, version: detail.version });
+            if (render !== null) update({ installedTheme: render });
+          } catch (err) {
+            setInstalledError(themeErrorText(err));
+          }
+        })();
+      },
+    });
   };
 
   const confirmRemove = async () => {
@@ -340,11 +367,14 @@ export function ThemeSettingsPage() {
       return;
     }
     setPendingRemove(null);
-    if (target.selected) {
-      // The server reset the saved preferences to Modern Pink; mirror that in the draft.
+    // The draft falls back to Modern Pink only when it uses the removed copy;
+    // an unsaved pick of another theme is kept. The saved preferences follow
+    // the server (it resets a removed selection to Modern Pink).
+    if (draft?.themeType === "installed" && draft.installedThemeId === target.id) {
+      baseRevision.current += 1;
       update({ themeType: "preset", presetId: "pink", installedThemeId: null, installedTheme: null });
-      setRemovedNotice(target.displayName || target.name);
     }
+    if (target.selected) setRemovedNotice(target.displayName || target.name);
   };
 
   // Base-theme selection (contracts/theme-ui.md §3.1): the third radio card
@@ -354,6 +384,7 @@ export function ThemeSettingsPage() {
   const colorsActive = draft?.themeType === "custom_colors";
   const pickBase = (value: string) => {
     setRemovedNotice(null);
+    baseRevision.current += 1;
     if (value.startsWith("installed:")) {
       void pickInstalled(Number(value.slice("installed:".length)));
       return;
@@ -400,6 +431,10 @@ export function ThemeSettingsPage() {
     return JSON.stringify(buildThemeExport(exportSource, installed), null, 2);
   }, [exportSource, installedThemes]);
 
+  // A saved installed theme is named from the installed list, so export waits
+  // until that list has loaded (otherwise it would silently export a preset).
+  const exportWaitsForInstalled = exportSource.themeType === "installed" && !themeActions.installedReady;
+
   const [copyNote, setCopyNote] = useState<string | null>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -439,18 +474,24 @@ export function ThemeSettingsPage() {
   // An installed theme this instance does not have falls back to Modern Pink, with a notice.
   const importFallback = useMemo(
     () =>
-      importResult?.ok
+      importResult?.ok && (importResult.export.preferences.themeType !== "installed" || themeActions.installedReady)
         ? fallbackInstalledImport(
             importResult.export,
             (ref) => installedThemes.some((t) => t.source === ref.source && t.name === ref.name),
             intl,
           )
         : null,
-    [importResult, installedThemes, intl],
+    [importResult, installedThemes, intl, themeActions.installedReady],
   );
   const importPreview = importFallback?.export ?? null;
   const importNotice = importFallback?.notice ?? null;
   const importClientError = importResult && !importResult.ok ? importResult.error : null;
+  // An import naming an installed theme is matched against the installed list,
+  // so Apply waits until that list has loaded (no false Modern Pink fallback).
+  const importWaitsForInstalled =
+    importResult?.ok === true &&
+    importResult.export.preferences.themeType === "installed" &&
+    !themeActions.installedReady;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const onFilePicked = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -657,7 +698,7 @@ export function ThemeSettingsPage() {
                 <InstalledThemesCard
                   installed={installedThemes}
                   busy={themeActions.install.isPending || themeActions.update.isPending || themeActions.remove.isPending}
-                  onUpdate={(t) => themeActions.update.mutate(t.id)}
+                  onUpdate={updateInstalled}
                   onRemove={(t) => setPendingRemove(t)}
                 />
               )}
@@ -900,9 +941,9 @@ export function ThemeSettingsPage() {
                 subtitle={intl.formatMessage({ id: "web.routes.theme_settings.copy_or_download_your_saved_theme", defaultMessage: "Copy or download your saved theme profile, or apply a gameplane-theme v1 document.", description: "Theme settings: subtitle under the export and import title: copy or download the saved theme, or apply a theme document" })}
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button variant="outline" size="sm" onPress={() => void copyExport()}>
+                  <Button variant="outline" size="sm" isDisabled={exportWaitsForInstalled} onPress={() => void copyExport()}>
                     <Copy className="mr-1.5 h-4 w-4" />{intl.formatMessage({ id: "web.routes.theme_settings.copy_to_clipboard", defaultMessage: "Copy to clipboard", description: "Theme settings: button that copies the theme export to the clipboard; keep it short" })}</Button>
-                  <Button variant="outline" size="sm" onPress={downloadExport}>
+                  <Button variant="outline" size="sm" isDisabled={exportWaitsForInstalled} onPress={downloadExport}>
                     <Download className="mr-1.5 h-4 w-4" />{intl.formatMessage({ id: "web.routes.theme_settings.download_gameplane_theme_json", defaultMessage: "Download gameplane-theme.json", description: "Theme settings: button that downloads the theme export as a gameplane-theme.json file; keep it short, the file name is usually left untranslated" })}</Button>
                 </div>
                 {copyNote && (
@@ -980,7 +1021,7 @@ export function ThemeSettingsPage() {
                       <Button
                         variant="primary"
                         size="sm"
-                        isDisabled={isUpdating}
+                        isDisabled={isUpdating || importWaitsForInstalled}
                         onPress={applyImport}
                       >{intl.formatMessage({ id: "web.routes.theme_settings.apply_import", defaultMessage: "Apply import", description: "Theme settings: button that applies the imported theme; keep it short" })}</Button>
                     </div>

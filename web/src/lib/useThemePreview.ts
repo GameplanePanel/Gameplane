@@ -12,6 +12,7 @@ import {
   isSafeModeActive,
   normalizeInstalledRender,
   readThemePreferences,
+  setThemePreviewReapplier,
 } from "@/lib/useThemePreferences";
 import type { ThemeModeTokens } from "@/types";
 
@@ -20,6 +21,12 @@ export interface ThemePreviewTheme {
   catalogId: number;
   /** Installed id when the theme is already installed; null otherwise. */
   installedId: number | null;
+  /**
+   * True when the installed copy is an older version than the previewed one:
+   * Keep then updates that copy before selecting it, so the saved theme is
+   * the version that was previewed.
+   */
+  updateOnKeep?: boolean;
   displayName: string;
   version: string;
   tokens: ThemeModeTokens;
@@ -44,6 +51,14 @@ export function getThemePreview(): ThemePreviewTheme | null {
  * mode is active (safe mode suspends installed themes entirely).
  */
 export function startThemePreview(theme: ThemePreviewTheme): boolean {
+  if (!applyPreview(theme)) return false;
+  setCurrent(theme);
+  return true;
+}
+
+// Applies the theme over the saved base preferences (appearance mode, custom
+// CSS). Returns false, changing nothing, in safe mode or on invalid tokens.
+function applyPreview(theme: ThemePreviewTheme): boolean {
   if (isSafeModeActive()) return false;
   // Server tokens are validated here, so malformed data never reaches the DOM.
   const render = normalizeInstalledRender({
@@ -59,9 +74,11 @@ export function startThemePreview(theme: ThemePreviewTheme): boolean {
     installedThemeId: theme.installedId,
     installedTheme: render,
   });
-  setCurrent(theme);
   return true;
 }
+
+// The OS appearance handler re-applies the preview instead of the saved theme.
+setThemePreviewReapplier(() => current !== null && applyPreview(current));
 
 /** Ends the preview and re-applies the saved theme from the local cache. */
 export function exitThemePreview(): void {
@@ -74,7 +91,10 @@ export function exitThemePreview(): void {
  * Clears the preview state without touching the DOM. Used after Keep, when
  * the server-backed preferences are about to be re-applied on refetch.
  */
-export function dropThemePreview(): void {
+export function dropThemePreview(theme?: ThemePreviewTheme): void {
+  // After Keep, only clear the preview that was kept: a newer preview started
+  // while the request ran stays on.
+  if (theme !== undefined && current !== theme) return;
   setCurrent(null);
 }
 

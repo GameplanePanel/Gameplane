@@ -110,13 +110,13 @@ export function SettingsNav({
   onSelect: (key: SettingsSectionKey) => void;
   /** false hides the Server group (it needs config:manage), leaving only the Account group. */
   showAdminSections: boolean;
-  /** true (themes:manage) lists the Theme sources entry in the Server group, even without showAdminSections. */
+  /** true (themes:manage) lists the Theme sources entry in the Server group, with or without showAdminSections. */
   showThemeSources?: boolean;
 }) {
   const intl = useOptionalIntl();
-  // Without the admin sections only the Theme sources entry is listed (themes:manage alone).
-  const visibleServerItems = serverItems.filter(
-    (item) => showAdminSections || (showThemeSources && item.key === "themeSources"),
+  // Theme sources follows themes:manage only; the other Server entries follow config:manage.
+  const visibleServerItems = serverItems.filter((item) =>
+    item.key === "themeSources" ? showThemeSources : showAdminSections,
   );
   const renderItem = ({ key, label, icon: Icon }: NavItem) =>
     isRouted(key) ? (

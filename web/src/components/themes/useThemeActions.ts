@@ -26,9 +26,10 @@ export function findInstalled(
   return installed?.find((t) => t.source === theme.source && t.name === theme.name);
 }
 
-// useThemeActions loads the signed-in user's installed themes (failing soft:
-// an error leaves installed undefined, so no installed badges are shown) and
-// exposes the install, update and remove mutations. onError receives the
+// useThemeActions loads the signed-in user's installed themes and exposes the
+// install, update and remove mutations. Update and Remove need the installed
+// row id, so the pages treat a pending or failed installed list like a pending
+// or failed page load (skeleton, or the error card with Retry). onError receives the
 // message to show on the page, or null once an action succeeds.
 export function useThemeActions(onError: (message: string | null) => void) {
   const qc = useQueryClient();
@@ -76,6 +77,10 @@ export function useThemeActions(onError: (message: string | null) => void) {
 
   return {
     installed: installedQuery.data,
+    installedLoading: installedQuery.isLoading,
+    installedReady: installedQuery.isSuccess,
+    installedError: installedQuery.isError ? installedQuery.error : null,
+    retryInstalled: () => void installedQuery.refetch(),
     install,
     update,
     remove,
