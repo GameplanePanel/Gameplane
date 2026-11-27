@@ -1,0 +1,3 @@
+# FiveM, Farming Simulator 25 and Euro Truck Simulator 2 servers start again
+
+The FiveM, Farming Simulator 25 and Euro Truck Simulator 2 modules now use images that install or find the game instead of idling or crash-looping. FiveM downloads a pinned, checksum-verified FXServer build on first start. Euro Truck Simulator 2 installs the dedicated server with SteamCMD into its volume, now mounted at `/data` and run as UID 10000; its logon token uses App ID 227300. Farming Simulator 25 needs your licensed server files uploaded into the volume with the Files tab or SFTP before the first start. [PR #1145](https://github.com/GameplanePanel/Gameplane/pull/1145)
