@@ -24,7 +24,7 @@ const (
 )
 
 func printThemeUsage(w io.Writer) {
-	fmt.Fprint(w, `Usage: gp-module theme <command> [arguments] [options]
+	_, _ = fmt.Fprint(w, `Usage: gp-module theme <command> [arguments] [options]
 
 Theme packages (spec 043): colors plus an optional sanitized CSS overlay.
 
@@ -61,7 +61,7 @@ func runTheme(args []string) {
 	case "package":
 		runThemePackage(rest)
 	default:
-		fmt.Fprintf(os.Stderr, "error: unknown theme command %q\n\n", sub)
+		_, _ = fmt.Fprintf(os.Stderr, "error: unknown theme command %q\n\n", sub)
 		printThemeUsage(os.Stderr)
 		os.Exit(exitUsage)
 	}
@@ -72,7 +72,7 @@ func newThemeFlagSet(name string, usage string) *flag.FlagSet {
 	fs := flag.NewFlagSet(themeFlagTag+" "+name, flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
 	fs.Usage = func() {
-		fmt.Fprint(os.Stderr, usage)
+		_, _ = fmt.Fprint(os.Stderr, usage)
 		fs.PrintDefaults()
 	}
 	return fs
@@ -114,7 +114,7 @@ func parseThemeFlags(fs *flag.FlagSet, args []string, valueFlags map[string]bool
 
 // failTheme prints a runtime error and exits with the failure code.
 func failTheme(err error) {
-	fmt.Fprintf(os.Stderr, "error: %v\n", err)
+	_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
 	os.Exit(exitFailure)
 }
 
@@ -144,7 +144,7 @@ theme.css. With neither --dark nor --light both modes are written.
 		modes = []string{"light"}
 	}
 	if preset != theme.PresetPink && preset != theme.PresetLegacy {
-		fmt.Fprintf(os.Stderr, "unknown --from-preset %q (want %s or %s)\n", preset, theme.PresetPink, theme.PresetLegacy)
+		_, _ = fmt.Fprintf(os.Stderr, "unknown --from-preset %q (want %s or %s)\n", preset, theme.PresetPink, theme.PresetLegacy)
 		os.Exit(exitUsage)
 	}
 	name := pos[0]
@@ -246,11 +246,11 @@ fails; otherwise runs until Ctrl+C.
 		os.Exit(exitUsage)
 	}
 	if mode != "" && mode != "light" && mode != "dark" {
-		fmt.Fprintf(os.Stderr, "error: --mode must be light or dark, got %q\n", mode)
+		_, _ = fmt.Fprintf(os.Stderr, "error: --mode must be light or dark, got %q\n", mode)
 		os.Exit(exitUsage)
 	}
 	if port < 1 || port > 65535 {
-		fmt.Fprintf(os.Stderr, "error: --port must be between 1 and 65535, got %d\n", port)
+		_, _ = fmt.Fprintf(os.Stderr, "error: --port must be between 1 and 65535, got %d\n", port)
 		os.Exit(exitUsage)
 	}
 	pkg, err := theme.Inspect(pos[0])

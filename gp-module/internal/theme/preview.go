@@ -69,9 +69,9 @@ func tokensCSS(m themepkg.Manifest) string {
 		if mode == "dark" {
 			tokens = m.Tokens.Dark
 		}
-		fmt.Fprintf(&b, "html[data-mode=%q] {\n", mode)
+		_, _ = fmt.Fprintf(&b, "html[data-mode=%q] {\n", mode)
 		for _, name := range themepkg.TokenNames {
-			fmt.Fprintf(&b, "  --%s: %s;\n", name, tokens[name])
+			_, _ = fmt.Fprintf(&b, "  --%s: %s;\n", name, tokens[name])
 		}
 		b.WriteString("}\n")
 	}
@@ -152,7 +152,7 @@ func Serve(ctx context.Context, p *Package, port int, requestedMode string, out 
 	}
 	srv := &http.Server{Handler: handler, ReadHeaderTimeout: 5 * time.Second}
 	mode, _ := ChooseMode(p.Result.Manifest.Modes(), requestedMode)
-	fmt.Fprintf(out, "theme preview: http://%s/ (mode %s; press Ctrl+C to stop)\n", addr, mode)
+	_, _ = fmt.Fprintf(out, "theme preview: http://%s/ (mode %s; press Ctrl+C to stop)\n", addr, mode)
 
 	errCh := make(chan error, 1)
 	go func() { errCh <- srv.Serve(ln) }()
@@ -163,7 +163,7 @@ func Serve(ctx context.Context, p *Package, port int, requestedMode string, out 
 		}
 		return fmt.Errorf("serve preview: %w", err)
 	case <-ctx.Done():
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(shutdownCtx); err != nil {
 			return fmt.Errorf("shut down preview: %w", err)

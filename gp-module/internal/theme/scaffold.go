@@ -136,7 +136,7 @@ func renderManifest(m themepkg.Manifest) []byte {
 	var b bytes.Buffer
 	b.WriteString("# Theme package (spec 043). Run `gp-module theme validate <dir>` after editing.\n")
 	field := func(key, value string) {
-		fmt.Fprintf(&b, "%s: %s\n", key, yamlScalar(value))
+		_, _ = fmt.Fprintf(&b, "%s: %s\n", key, yamlScalar(value))
 	}
 	field("apiVersion", m.APIVersion)
 	field("name", m.Name)
@@ -151,7 +151,7 @@ func renderManifest(m themepkg.Manifest) []byte {
 		for i, t := range m.Tags {
 			quoted[i] = yamlScalar(t)
 		}
-		fmt.Fprintf(&b, "tags: [%s]\n", strings.Join(quoted, ", "))
+		_, _ = fmt.Fprintf(&b, "tags: [%s]\n", strings.Join(quoted, ", "))
 	}
 	field("license", m.License)
 	if m.Homepage != "" {
@@ -165,9 +165,9 @@ func renderManifest(m themepkg.Manifest) []byte {
 		if mode.tokens == nil {
 			continue
 		}
-		fmt.Fprintf(&b, "  %s:\n", mode.name)
+		_, _ = fmt.Fprintf(&b, "  %s:\n", mode.name)
 		for _, name := range themepkg.TokenNames {
-			fmt.Fprintf(&b, "    %s: %s\n", name, yamlScalar(mode.tokens[name]))
+			_, _ = fmt.Fprintf(&b, "    %s: %s\n", name, yamlScalar(mode.tokens[name]))
 		}
 	}
 	return b.Bytes()
