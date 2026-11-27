@@ -222,12 +222,14 @@ func (r *BackupReconciler) runForgetJob(ctx context.Context, b *gameplanev1alpha
 			deadline := forgetJobDeadlineSeconds
 			job.Spec.BackoffLimit = &backoff
 			job.Spec.ActiveDeadlineSeconds = &deadline
-			job.Labels = map[string]string{forgetBackupLabel: b.Name}
+			// Label values stop at 63 characters; backupJobName keeps short
+			// names as they are and hashes long ones.
+			job.Labels = map[string]string{forgetBackupLabel: backupJobName(b.Name)}
 			// The pod label is what the chart's allow-backup-restore-egress
 			// NetworkPolicy selects on; without it the pod cannot reach the repo.
 			job.Spec.Template.Labels = map[string]string{
 				backupRestoreJobLabel: backupRestoreJobValue,
-				forgetBackupLabel:     b.Name,
+				forgetBackupLabel:     backupJobName(b.Name),
 			}
 			job.Spec.Template.Spec = r.buildForgetPodSpec(b)
 		}
@@ -290,6 +292,11 @@ func (r *BackupReconciler) clearBackupJob(ctx context.Context, b *gameplanev1alp
 			return false, nil
 		}
 		return false, fmt.Errorf("get backup job %s: %w", b.Name, err)
+	}
+	// A Backup literally named like another one's shortened Job name shares
+	// the key: never wait on or delete a Job another object controls.
+	if owner := metav1.GetControllerOf(&job); owner != nil && owner.UID != b.UID {
+		return false, nil
 	}
 	if !job.DeletionTimestamp.IsZero() {
 		return true, nil

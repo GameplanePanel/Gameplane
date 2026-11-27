@@ -649,7 +649,10 @@ func (x *extractor) hardlink(dst, rawTarget string, lay layout) error {
 	defer func() { _ = unix.Close(pfd) }()
 	tbase := path.Base(td)
 	var st unix.Stat_t
-	if err := unix.Fstatat(tfd, tbase, &st, unix.AT_SYMLINK_NOFOLLOW); err != nil || st.Mode&unix.S_IFMT != unix.S_IFREG {
+	if err := unix.Fstatat(tfd, tbase, &st, unix.AT_SYMLINK_NOFOLLOW); err != nil {
+		return fmt.Errorf("hard link target %q is not a regular file: %w", rawTarget, err)
+	}
+	if st.Mode&unix.S_IFMT != unix.S_IFREG {
 		return fmt.Errorf("hard link target %q is not a regular file", rawTarget)
 	}
 	err = unix.Linkat(tfd, tbase, pfd, base, 0)
@@ -766,9 +769,16 @@ func (s *tarStream) next() (rawEntry, error) {
 		if errors.Is(err, io.EOF) {
 			// Read the gzip stream to its end so the CRC32 and size
 			// trailer are verified, and refuse non-zero trailing data.
+			// The drain is capped: zero runs compress about 1000:1, so an
+			// unbounded drain would let a small upload cost gigabytes of
+			// decompression before extraction even starts.
 			var zc zeroChecker
-			if _, derr := io.Copy(&zc, s.gz); derr != nil {
+			n, derr := io.Copy(&zc, io.LimitReader(s.gz, maxTarTrailerBytes+1))
+			if derr != nil {
 				return rawEntry{}, fmt.Errorf("read archive: %w", derr)
+			}
+			if n > maxTarTrailerBytes {
+				return rawEntry{}, fmt.Errorf("read archive: more than %d bytes after tar end marker", maxTarTrailerBytes)
 			}
 			if zc.dirty {
 				return rawEntry{}, errors.New("read archive: unexpected data after tar end marker")
@@ -801,6 +811,11 @@ func (s *tarStream) next() (rawEntry, error) {
 	}
 	return e, nil
 }
+
+// maxTarTrailerBytes caps the zero padding accepted after the tar end
+// marker. tar writers pad to their record size (10 KiB by default); 1 MiB
+// leaves room for large blocking factors.
+const maxTarTrailerBytes = 1 << 20
 
 // zeroChecker discards writes and records whether any byte was non-zero.
 type zeroChecker struct{ dirty bool }

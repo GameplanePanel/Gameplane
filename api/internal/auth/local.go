@@ -258,4 +258,3 @@ func setLoginDeviceCookie(w http.ResponseWriter, req *http.Request, username str
 		SameSite: http.SameSiteStrictMode,
 	})
 }
-

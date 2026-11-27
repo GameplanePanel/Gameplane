@@ -68,3 +68,27 @@ func TestReconcileRCONSecret_ReusesOwnedSecret(t *testing.T) {
 		t.Fatal("owned password was rotated")
 	}
 }
+
+// A template that references its own Secret named <gs>-rcon keeps using it:
+// the operator neither refuses, adopts nor rewrites it.
+func TestReconcileRCONSecret_LeavesReferencedSecretWithGeneratedName(t *testing.T) {
+	gs, tmpl := rconForeignFixture()
+	tmpl.Spec.RCON.PasswordSecretRef = &gameplanev1alpha1.SecretKeySelector{Name: "srv-rcon", Key: "pw"}
+	mine := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "srv-rcon", Namespace: "ns"},
+		Data:       map[string][]byte{"pw": []byte("chosen")},
+	}
+	s := scrapeScheme(t)
+	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(mine).Build()
+	r := &GameServerReconciler{Client: cl, Scheme: s}
+	if err := r.reconcileRCONSecret(context.Background(), gs, tmpl); err != nil {
+		t.Fatalf("reconcile: %v", err)
+	}
+	var got corev1.Secret
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: "ns", Name: "srv-rcon"}, &got); err != nil {
+		t.Fatal(err)
+	}
+	if len(got.OwnerReferences) != 0 || string(got.Data["pw"]) != "chosen" || len(got.Data["password"]) != 0 {
+		t.Fatal("referenced Secret was modified")
+	}
+}

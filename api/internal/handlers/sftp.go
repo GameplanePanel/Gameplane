@@ -251,6 +251,9 @@ func (h *sftpSelfHandler) generatePassword(w http.ResponseWriter, req *http.Requ
 	}
 	pw, err := h.sessions.GenerateAndStoreSFTPPassword(req.Context(), uid, body.Length)
 	if err != nil {
+		if auth.WriteIfPasswordBusy(w, req, err) {
+			return
+		}
 		writeSFTPErr(w, req, err)
 		return
 	}

@@ -122,3 +122,11 @@ func TestHardlinkRefusesNonRegularTarget(t *testing.T) {
 		t.Fatalf("err = %v, want not a regular file", err)
 	}
 }
+
+func TestUnpackTarGzOversizedPaddingRefused(t *testing.T) {
+	data := tarGzWithTrailer(t, make([]byte, maxTarTrailerBytes+1024))
+	_, err := Unpack(writeArchive(t, data), t.TempDir(), UnpackOptions{Format: "tar.gz", MaxBytes: 1 << 20})
+	if err == nil || !strings.Contains(err.Error(), "after tar end marker") {
+		t.Fatalf("err = %v, want oversized padding refusal", err)
+	}
+}

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
@@ -13,4 +14,14 @@ import (
 func writePasswordBusy(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Retry-After", "5")
 	httperr.WriteMessage(w, req, messages.New("server.generic.503", nil))
+}
+
+// WriteIfPasswordBusy answers the generic 503 with Retry-After and returns
+// true when err is ErrPasswordBusy; otherwise it writes nothing.
+func WriteIfPasswordBusy(w http.ResponseWriter, req *http.Request, err error) bool {
+	if !errors.Is(err, ErrPasswordBusy) {
+		return false
+	}
+	writePasswordBusy(w, req)
+	return true
 }

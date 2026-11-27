@@ -262,6 +262,10 @@ unknown/missing routes never fall back locally. HTTP/WebSocket agent operations,
 RCON module actions and internal mod-update reads use the versioned gateway
 protocol. Stdin actions use the selected Kubernetes client with workload ownership
 preflight. Existing installations retain their direct local adapter.
+A stdin action succeeds only once its input has drained into the attach: an
+attach that ends first (cancelled, past its deadline, or closed without an error)
+reports an error instead of "sent", and input that drained before a
+cancellation or deadline still counts as sent.
 
 See [remote agent access](../docs/multicluster-agent-gateway.md) for registration,
 trust assumptions, rotation behavior and surfaces outside this protocol.

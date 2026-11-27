@@ -10,11 +10,13 @@ import (
 	"crypto/x509/pkix"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -302,9 +304,29 @@ func (h *clusterActions) signClientCert(ctx context.Context, username string, cs
 	}
 }
 
+// yamlPlainName matches usernames that are safe as a plain YAML scalar.
+var yamlPlainName = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9._@-]*$`)
+
+// yamlName renders a username as a YAML string scalar. SSO usernames are not
+// character-checked, so anything outside yamlPlainName, or a word YAML 1.1
+// reads as a bool or null, is double-quoted (JSON string syntax is valid
+// YAML).
+func yamlName(username string) string {
+	switch strings.ToLower(username) {
+	case "y", "n", "yes", "no", "on", "off", "true", "false", "null":
+	default:
+		if yamlPlainName.MatchString(username) {
+			return username
+		}
+	}
+	q, _ := json.Marshal(username)
+	return string(q)
+}
+
 // renderKubeconfig assembles a minimal client-cert kubeconfig.
 func renderKubeconfig(server string, caPEM, certPEM, keyPEM []byte, username string) string {
 	b64 := base64.StdEncoding.EncodeToString
+	name := yamlName(username)
 	return fmt.Sprintf(`apiVersion: v1
 kind: Config
 clusters:
@@ -323,5 +345,5 @@ users:
   user:
     client-certificate-data: %s
     client-key-data: %s
-`, server, b64(caPEM), username, username, b64(certPEM), b64(keyPEM))
+`, server, b64(caPEM), name, name, b64(certPEM), b64(keyPEM))
 }

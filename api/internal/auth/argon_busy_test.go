@@ -27,12 +27,7 @@ func TestLimiterSourceKey(t *testing.T) {
 }
 
 func TestAcquireArgon_FailsFastWhenQueueFull(t *testing.T) {
-	if err := argonSem.Acquire(context.Background(), argonConcurrency); err != nil {
-		t.Fatalf("acquire: %v", err)
-	}
-	defer argonSem.Release(argonConcurrency)
-	argonWaiters.Add(maxArgonWaiters)
-	defer argonWaiters.Add(-maxArgonWaiters)
+	SaturateArgonQueue(t)
 
 	if err := acquireArgon(context.Background()); !errors.Is(err, ErrPasswordBusy) {
 		t.Fatalf("err = %v, want ErrPasswordBusy", err)
@@ -44,25 +39,12 @@ func TestAcquireArgon_FailsFastWhenQueueFull(t *testing.T) {
 	}
 }
 
-func fillArgon(t *testing.T) func() {
-	t.Helper()
-	if err := argonSem.Acquire(context.Background(), argonConcurrency); err != nil {
-		t.Fatalf("acquire: %v", err)
-	}
-	argonWaiters.Add(maxArgonWaiters)
-	return func() {
-		argonWaiters.Add(-maxArgonWaiters)
-		argonSem.Release(argonConcurrency)
-	}
-}
-
 func TestLogin_Busy_IdenticalForKnownAndUnknownUser(t *testing.T) {
 	s := newAuthDB(t)
 	seedUser(t, s, "alice", "rightpw-123456", "admin")
 	// Compute the dummy hash before the queue is saturated.
 	dummyHash()
-	release := fillArgon(t)
-	defer release()
+	SaturateArgonQueue(t)
 
 	post := func(user string) *httptest.ResponseRecorder {
 		body := strings.NewReader(`{"username":"` + user + `","password":"whatever"}`)
@@ -91,10 +73,7 @@ func TestVerifyDummy_FailsFastWhileQueueFullThenRecovers(t *testing.T) {
 	// Hold the slot and fill the waiter queue, as during a flood. The deny
 	// path must fail fast (not block on the lazy dummy hash), and work again
 	// once the slot frees.
-	if err := argonSem.Acquire(context.Background(), argonConcurrency); err != nil {
-		t.Fatal(err)
-	}
-	argonWaiters.Add(maxArgonWaiters)
+	release := SaturateArgonQueue(t)
 	done := make(chan error, 1)
 	go func() { done <- VerifyDummy(context.Background(), "x") }()
 	select {
@@ -105,8 +84,7 @@ func TestVerifyDummy_FailsFastWhileQueueFullThenRecovers(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("VerifyDummy blocked while the queue was full")
 	}
-	argonWaiters.Add(-maxArgonWaiters)
-	argonSem.Release(argonConcurrency)
+	release()
 	if err := VerifyDummy(context.Background(), "x"); err != nil {
 		t.Fatalf("VerifyDummy after release: %v", err)
 	}

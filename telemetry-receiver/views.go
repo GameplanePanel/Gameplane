@@ -446,7 +446,7 @@ func buildExtended(ctx context.Context, st *store, rangeDays int, from, to strin
 		return nil, err
 	}
 	e.Env = EnvViews{
-		K8s:        sortedShares(foldTopShares(dims[dimK8s], topVersions), nil),
+		K8s:        foldTopShares(dims[dimK8s], topVersions),
 		Distro:     sortedShares(dims[dimDistro], nil),
 		Arch:       sortedShares(dims[dimArch], nil),
 		Nodes:      sortedShares(dims[dimNodes], telemetryschema.NodeBands),

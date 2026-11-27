@@ -36,6 +36,9 @@ type resolvedRCON struct {
 	// into, "" when the template doesn't declare one or when using passwordFile.
 	passwordEnv string
 	port        int32
+	// external is true when the template names its own Secret through
+	// PasswordSecretRef; the operator never adopts, writes or deletes it.
+	external bool
 }
 
 // resolveRCON computes effective RCON configuration and credentials for a game server.
@@ -63,6 +66,7 @@ func resolveRCON(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameT
 	if ref := tmpl.Spec.RCON.PasswordSecretRef; ref != nil {
 		r.secretName = ref.Name
 		r.secretKey = ref.Key
+		r.external = true
 	} else if tmpl.Spec.RCON.PasswordFile != "" {
 		r.passwordFile = tmpl.Spec.RCON.PasswordFile
 		r.passwordEnv = ""
@@ -105,6 +109,11 @@ func (r *GameServerReconciler) reconcileRCONSecret(
 	rc := resolveRCON(gs, tmpl)
 	sec := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: rconSecretName(gs), Namespace: gs.Namespace},
+	}
+	// A template-referenced Secret belongs to whoever created it, even when
+	// it happens to be named <gs>-rcon: leave it alone.
+	if rc.external && rc.secretName == rconSecretName(gs) {
+		return nil
 	}
 	// Only manage <gs>-rcon ourselves when RCON is enabled, no external
 	// PasswordSecretRef is set, and no game-managed password file is used.
