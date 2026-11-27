@@ -10,6 +10,8 @@ import { Button, Card, Chip, Switch } from "@heroui/react";
 import { Pencil, Plus, RefreshCcw, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { ErrorCard } from "@/components/ui/ErrorCard";
+import { LoadingCard } from "@/components/ui/LoadingCard";
 import { SettingsNav } from "@/components/ui/SettingsNav";
 import { ThemeSourceDialog } from "@/components/themes/ThemeSourceDialog";
 import { themeErrorText } from "@/components/themes/useThemeActions";
@@ -164,90 +166,96 @@ export function ThemeSourcesPage() {
                 {pageError}
               </div>
             )}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="text-xs text-muted">
-                  <tr className="border-b border-border">
-                    <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colName)}</th>
-                    <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colType)}</th>
-                    <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colStatus)}</th>
-                    <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colLastSync)}</th>
-                    <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colThemes)}</th>
-                    <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colEnabled)}</th>
-                    <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colActions)}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sources.map((s) => (
-                    <tr key={s.name} className="border-b border-border last:border-0" data-testid="theme-source-row">
-                      <td className="px-3 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{s.name}</span>
-                          {s.builtin && (
-                            <Chip color="accent" size="sm" variant="soft" className="font-mono text-[10px] uppercase font-normal">
-                              {intl.formatMessage(M.builtin)}
-                            </Chip>
-                          )}
-                        </div>
-                        <div className="font-mono text-[11px] text-muted">{locationOf(s)}</div>
-                      </td>
-                      <td className="px-3 py-3 font-mono text-xs">{TYPE_LABEL[s.type]}</td>
-                      <td className="px-3 py-3 text-xs">{statusNode(s)}</td>
-                      <td className="px-3 py-3 text-xs text-muted">{lastSyncText(s.lastSyncAt)}</td>
-                      <td className="px-3 py-3">{s.themeCount}</td>
-                      <td className="px-3 py-3">
-                        <Switch
-                          aria-label={formatThemeMessage(intl, M.toggleFor, { name: s.name })}
-                          isSelected={s.enabled}
-                          isDisabled={toggle.isPending}
-                          onChange={() => toggle.mutate(s)}
-                        >
-                          <Switch.Content>
-                            <Switch.Control>
-                              <Switch.Thumb />
-                            </Switch.Control>
-                          </Switch.Content>
-                        </Switch>
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            aria-label={formatThemeMessage(intl, M.refreshFor, { name: s.name })}
-                            title={intl.formatMessage(M.refreshAction)}
-                            disabled={refresh.isPending}
-                            onClick={() => refresh.mutate(s)}
-                            className="rounded p-1.5 text-muted hover:bg-surface hover:text-fg disabled:opacity-50"
+            {sourcesQuery.isLoading ? (
+              <LoadingCard />
+            ) : sourcesQuery.isError ? (
+              <ErrorCard message={themeErrorText(sourcesQuery.error)} onRetry={() => void sourcesQuery.refetch()} />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-xs text-muted">
+                    <tr className="border-b border-border">
+                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colName)}</th>
+                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colType)}</th>
+                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colStatus)}</th>
+                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colLastSync)}</th>
+                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colThemes)}</th>
+                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colEnabled)}</th>
+                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colActions)}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sources.map((s) => (
+                      <tr key={s.name} className="border-b border-border last:border-0" data-testid="theme-source-row">
+                        <td className="px-3 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{s.name}</span>
+                            {s.builtin && (
+                              <Chip color="accent" size="sm" variant="soft" className="font-mono text-[10px] uppercase font-normal">
+                                {intl.formatMessage(M.builtin)}
+                              </Chip>
+                            )}
+                          </div>
+                          <div className="font-mono text-[11px] text-muted">{locationOf(s)}</div>
+                        </td>
+                        <td className="px-3 py-3 font-mono text-xs">{TYPE_LABEL[s.type]}</td>
+                        <td className="px-3 py-3 text-xs">{statusNode(s)}</td>
+                        <td className="px-3 py-3 text-xs text-muted">{lastSyncText(s.lastSyncAt)}</td>
+                        <td className="px-3 py-3">{s.themeCount}</td>
+                        <td className="px-3 py-3">
+                          <Switch
+                            aria-label={formatThemeMessage(intl, M.toggleFor, { name: s.name })}
+                            isSelected={s.enabled}
+                            isDisabled={toggle.isPending}
+                            onChange={() => toggle.mutate(s)}
                           >
-                            <RefreshCcw className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={formatThemeMessage(intl, M.editFor, { name: s.name })}
-                            title={intl.formatMessage(M.editAction)}
-                            onClick={() => openEdit(s)}
-                            className="rounded p-1.5 text-muted hover:bg-surface hover:text-fg"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          {!s.builtin && (
+                            <Switch.Content>
+                              <Switch.Control>
+                                <Switch.Thumb />
+                              </Switch.Control>
+                            </Switch.Content>
+                          </Switch>
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="flex items-center gap-1">
                             <button
                               type="button"
-                              aria-label={formatThemeMessage(intl, M.deleteFor, { name: s.name })}
-                              title={intl.formatMessage(M.deleteAction)}
-                              onClick={() => setPendingDelete(s)}
-                              className="rounded p-1.5 text-danger hover:bg-danger/10"
+                              aria-label={formatThemeMessage(intl, M.refreshFor, { name: s.name })}
+                              title={intl.formatMessage(M.refreshAction)}
+                              disabled={refresh.isPending}
+                              onClick={() => refresh.mutate(s)}
+                              className="rounded p-1.5 text-muted hover:bg-surface hover:text-fg disabled:opacity-50"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <RefreshCcw className="h-4 w-4" />
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                            <button
+                              type="button"
+                              aria-label={formatThemeMessage(intl, M.editFor, { name: s.name })}
+                              title={intl.formatMessage(M.editAction)}
+                              onClick={() => openEdit(s)}
+                              className="rounded p-1.5 text-muted hover:bg-surface hover:text-fg"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            {!s.builtin && (
+                              <button
+                                type="button"
+                                aria-label={formatThemeMessage(intl, M.deleteFor, { name: s.name })}
+                                title={intl.formatMessage(M.deleteAction)}
+                                onClick={() => setPendingDelete(s)}
+                                className="rounded p-1.5 text-danger hover:bg-danger/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <p className="text-xs text-muted">{intl.formatMessage(M.footer)}</p>
           </Card.Content>
         </Card>

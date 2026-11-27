@@ -88,6 +88,7 @@ export function ThemeDetailPage() {
     const started = startPreview({
       catalogId: item.id,
       installedId: installed?.id ?? null,
+      updateOnKeep: installed !== undefined && installed.version !== item.version,
       displayName: item.displayName,
       version: item.version,
       tokens: item.tokens,
@@ -118,10 +119,18 @@ export function ThemeDetailPage() {
   let body: ReactNode = null;
   if (!validId) {
     body = null;
-  } else if (detail.isLoading) {
+  } else if (detail.isLoading || actions.installedLoading) {
     body = <LoadingCard />;
-  } else if (detail.isError) {
-    body = <ErrorCard message={themeErrorText(detail.error)} onRetry={() => void detail.refetch()} />;
+  } else if (detail.isError || actions.installedError) {
+    body = (
+      <ErrorCard
+        message={themeErrorText(detail.isError ? detail.error : actions.installedError)}
+        onRetry={() => {
+          if (detail.isError) void detail.refetch();
+          if (actions.installedError) actions.retryInstalled();
+        }}
+      />
+    );
   } else if (item) {
     const versionText =
       installed && installed.version !== item.version

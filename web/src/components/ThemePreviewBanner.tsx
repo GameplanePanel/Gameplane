@@ -18,13 +18,15 @@ import {
 import { themePreviewBannerMessages } from "@/components/themes/messages";
 
 // Keep saves the previewed theme: install and select it when it is not
-// installed yet, otherwise select the installed copy. Either way the server
-// copy is refetched and becomes the applied theme.
+// installed yet, otherwise select the installed copy (updated first when it is
+// older than the previewed version). Either way the server copy is refetched
+// and becomes the applied theme.
 async function keepTheme(theme: ThemePreviewTheme): Promise<void> {
   if (theme.installedId === null) {
     await Themes.install({ catalogId: theme.catalogId, select: true });
     return;
   }
+  if (theme.updateOnKeep) await Themes.updateInstalled(theme.installedId);
   const prefs = readThemePreferences() ?? DEFAULT_THEME_PREFERENCES;
   await Users.updatePreferences({
     themeType: "installed",
@@ -53,9 +55,9 @@ export function ThemePreviewBanner() {
 
   const keep = useMutation({
     mutationFn: keepTheme,
-    onSuccess: () => {
+    onSuccess: (_data, kept) => {
       setError(null);
-      dropThemePreview();
+      dropThemePreview(kept);
       void queryClient.invalidateQueries({ queryKey: ["me"] });
       void queryClient.invalidateQueries({ queryKey: ["installed-themes"] });
       void queryClient.invalidateQueries({ queryKey: ["theme-catalog"] });

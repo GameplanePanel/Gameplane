@@ -92,9 +92,11 @@ export function ThemeCatalogPage() {
       const detail = await Themes.catalogEntry(item.id);
       // Invalid entries carry no tokens and cannot be previewed.
       if (!detail.tokens) return;
+      const installedCopy = findInstalled(actions.installed, detail);
       const started = startPreview({
         catalogId: detail.id,
-        installedId: findInstalled(actions.installed, detail)?.id ?? null,
+        installedId: installedCopy?.id ?? null,
+        updateOnKeep: installedCopy !== undefined && installedCopy.version !== detail.version,
         displayName: detail.displayName,
         version: detail.version,
         tokens: detail.tokens,
@@ -124,7 +126,7 @@ export function ThemeCatalogPage() {
   };
 
   let content: ReactNode;
-  if (catalog.isLoading) {
+  if (catalog.isLoading || actions.installedLoading) {
     content = (
       <div className={GRID_CLASS} aria-busy="true" data-testid="theme-catalog-skeleton">
         {Array.from({ length: 6 }, (_, i) => (
@@ -132,11 +134,14 @@ export function ThemeCatalogPage() {
         ))}
       </div>
     );
-  } else if (catalog.isError) {
+  } else if (catalog.isError || actions.installedError) {
     content = (
       <ErrorCard
-        message={themeErrorText(catalog.error)}
-        onRetry={() => void catalog.refetch()}
+        message={themeErrorText(catalog.isError ? catalog.error : actions.installedError)}
+        onRetry={() => {
+          if (catalog.isError) void catalog.refetch();
+          if (actions.installedError) actions.retryInstalled();
+        }}
       />
     );
   } else if (themes.length === 0 && !filtersActive) {

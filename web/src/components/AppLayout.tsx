@@ -30,10 +30,13 @@ import {
   applyThemePreferences,
   DEFAULT_THEME_PREFERENCES,
   isSafeModeActive,
+  markSafeModeActive,
+  readThemePreferences,
   SAFE_MODE_SESSION_KEY,
   unmountCustomCssOverlay,
   useThemePreferences,
 } from "@/lib/useThemePreferences";
+import { exitThemePreview } from "@/lib/useThemePreview";
 import { SafeModeBanner } from "@/components/ui/SafeModeBanner";
 import { ThemePreviewBanner } from "@/components/ThemePreviewBanner";
 import { TelemetryNotice } from "@/components/ui/TelemetryNotice";
@@ -138,11 +141,17 @@ export function AppLayout() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // Suspension is overlay-only: unmountCustomCssOverlay flips
-  // data-custom-css="off" and removes the mounted <style> element — the
-  // stored stylesheet in preferences/localStorage is never deleted.
+  // Safe mode ends any theme preview, re-applies the saved preferences (an
+  // installed theme then renders Modern Pink) and unmounts the custom CSS
+  // overlay: unmountCustomCssOverlay flips data-custom-css="off" and removes
+  // the mounted <style> element. Stored preferences, the stored stylesheet
+  // and localStorage are never deleted.
   useEffect(() => {
-    if (safeMode) unmountCustomCssOverlay();
+    if (!safeMode) return;
+    markSafeModeActive();
+    exitThemePreview();
+    applyThemePreferences(readThemePreferences());
+    unmountCustomCssOverlay();
   }, [safeMode]);
 
   // The custom CSS overlay is authenticated-only surface: unmount it when
