@@ -350,15 +350,15 @@ func TestGitLoader(t *testing.T) {
 		{
 			name:       "unclean subPath rejected",
 			subPath:    "a/../b",
-			wantRef:    "main",
-			wantPrefix: "git:" + repo + "@main/a/../b",
+			wantRef:    "master",
+			wantPrefix: "git:" + repo + "@master/a/../b",
 			wantErr:    "subPath",
 		},
 		{
 			name:       "clone failure propagates",
 			cloneErr:   errors.New("upstream exploded"),
-			wantRef:    "main",
-			wantPrefix: "git:" + repo + "@main",
+			wantRef:    "master",
+			wantPrefix: "git:" + repo + "@master",
 			wantErr:    "upstream exploded",
 		},
 	}

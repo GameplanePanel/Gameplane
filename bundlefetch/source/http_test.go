@@ -101,12 +101,12 @@ func httptManyEntries(n int) []httptEntry {
 
 func httptWantErr(t *testing.T, err error, want string) {
 	t.Helper()
-	switch {
-	case want == "":
+	switch want {
+	case "":
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-	case want == httptAnyErr:
+	case httptAnyErr:
 		if err == nil {
 			t.Fatal("want an error, got nil")
 		}
