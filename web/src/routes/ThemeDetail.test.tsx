@@ -173,7 +173,7 @@ describe("ThemeDetailPage", () => {
     await screen.findByRole("heading", { name: "Aurora Night" });
 
     await user.click(screen.getByRole("button", { name: "Remove" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     await user.click(within(dialog).getByRole("button", { name: "Remove theme" }));
 
     await waitFor(() => expect(removeInstalled).toHaveBeenCalledWith(10));
