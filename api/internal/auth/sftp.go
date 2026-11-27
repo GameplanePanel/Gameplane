@@ -169,7 +169,9 @@ func (s *SessionStore) VerifySFTPPassword(ctx context.Context, username, pw stri
 		WHERE u.username = ?`, username,
 	).Scan(&id, &ep, &hash)
 	if errors.Is(err, sql.ErrNoRows) || (err == nil && !hash.Valid) {
-		VerifyDummy(ctx, pw)
+		if derr := VerifyDummy(ctx, pw); errors.Is(derr, ErrPasswordBusy) {
+			return 0, 0, false, fmt.Errorf("verify sftp password: %w", derr)
+		}
 		return 0, 0, false, nil
 	}
 	if err != nil {

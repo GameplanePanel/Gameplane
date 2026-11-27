@@ -1,0 +1,123 @@
+{
+  "file": "1578494357-322",
+  "name": "Screen/Dialog/Upload Backup — Uploading (Light)",
+  "type": "FRAME",
+  "x": 15200,
+  "y": 40233,
+  "width": 760,
+  "height": 340,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "cornerRadius": 16,
+  "clips": true,
+  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+  "children": [
+    {
+      "name": "Wizard Modal Header",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 760,
+      "height": 83,
+      "component": "Gameplane/Wizard Modal Header",
+      "componentId": "1:1889",
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [20, 28, 20, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Upload backup", "Step 2 of 4 · Upload"]
+    },
+    {
+      "id": "1:59156",
+      "name": "Backup name",
+      "type": "TEXT",
+      "x": 28,
+      "y": 107,
+      "width": 180,
+      "height": 17,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "survival-nightly.tar.gz",
+      "font": ["JetBrains Mono", 400, 13],
+      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "id": "1:59157",
+      "name": "Hint",
+      "type": "TEXT",
+      "x": 536,
+      "y": 108,
+      "width": 130,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#6E5262"}],
+      "text": "812 MiB of 1.4 GiB · 58%",
+      "font": ["Geist", 400, 12],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+    },
+    {
+      "id": "1:59158",
+      "name": "Progress track",
+      "type": "RECTANGLE",
+      "x": 28,
+      "y": 140,
+      "width": 704,
+      "height": 4,
+      "fills": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "variables": {"fills/0/color": "border/border"}
+    },
+    {
+      "id": "1:59159",
+      "name": "Progress fill",
+      "type": "RECTANGLE",
+      "x": 28,
+      "y": 140,
+      "width": 408,
+      "height": 4,
+      "fills": [{"type": "SOLID", "color": "#DB2777"}],
+      "variables": {"fills/0/color": "accent/accent"}
+    },
+    {
+      "id": "1:59160",
+      "name": "desc",
+      "type": "TEXT",
+      "x": 28,
+      "y": 162,
+      "width": 580,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "The server keeps running while the file is uploaded and checked.",
+      "font": ["Geist", 400, 12],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "Wizard Modal Footer",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 272,
+      "width": 760,
+      "height": 68,
+      "component": "Gameplane/Wizard Modal Footer",
+      "componentId": "1:2019",
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [16, 28, 16, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Cancel"]
+    }
+  ]
+}

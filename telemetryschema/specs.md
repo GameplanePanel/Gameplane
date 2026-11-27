@@ -88,7 +88,7 @@ JSON tags are the camelCase names in the contract (`installId`, `wakeOnConnect`,
 `Decode(body) (Report, DecodeInfo, error)` accepts exactly one JSON object and nothing after it except whitespace.
 
 - **Rejected** (the error wraps `ErrInvalidPayload`), at every nesting level: unknown keys, duplicate keys, `null` values, wrongly typed values, keys with the wrong case, and missing required keys. `version`, `servers` and `templates` are required; `ext` is optional; every `ext` field is required.
-- **Range rules:** `servers`, `templates` and `games.custom` are at least 0; `games.official` counts are at least 1; `env.arch`, `env.k8s` and `env.distro` are non-empty; `ext.schema` is 1 or 2; `ext.key` is unpadded base64url of exactly 32 bytes; `ext.sentAt` parses as RFC 3339 and is returned in UTC.
+- **Range rules:** `servers`, `templates` and `games.custom` are at least 0; `games.official` counts are at least 1; `env.arch`, `env.k8s` and `env.distro` are non-empty; `ext.schema` is 1 or 2; `ext.key` is unpadded base64url of exactly 32 bytes; `ext.sentAt` parses as RFC 3339 and is returned in UTC. A schema 2 `env.k8s` set with more than 32 distinct values after folding (`MaxK8sVersions`) is rejected.
 - **Folded, not rejected:** out-of-set enumeration values become `other`. `env.arch`, `env.k8s`, `env.distro` and `features.tunnels` are returned sorted, de-duplicated after folding, and never nil.
 - **Catalog:** `games.official` keys outside the embedded catalog add their count to `games.custom`; the returned `Official` map holds catalog names only.
 - **Schema gate:** `ext.schema` above 2 returns `ErrUnsupportedSchema`, checked before the other `ext` rules. It wraps `ErrInvalidPayload`, so one `errors.Is` check covers both.

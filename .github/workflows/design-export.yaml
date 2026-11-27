@@ -80,7 +80,7 @@ jobs:
         working-directory: gameplane
         run: |
           git add -A assets/design-export telemetry-receiver/design-export
-          git diff --cached --binary > "$RUNNER_TEMP/design-export.patch"
+          git diff --cached --binary --no-renames > "$RUNNER_TEMP/design-export.patch"
           if [ -s "$RUNNER_TEMP/design-export.patch" ]; then
             git diff --cached --stat
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -111,7 +111,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.SCREENSHOT_BOT_PAT || github.token }}
 
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: design-export-patch
           path: ${{ runner.temp }}
@@ -126,13 +126,15 @@ jobs:
             exit 0
           fi
           # The patch comes from a run of the PR's own script: push nothing outside the export folders.
-          outside=$(git apply --numstat "$RUNNER_TEMP/design-export.patch" | cut -f3 |
+          # Check what the applied patch staged, not the patch's own path list: a rename lists
+          # only its destination there, so it could delete any file outside the export folders.
+          git apply --index "$RUNNER_TEMP/design-export.patch"
+          outside=$(git diff --cached --name-only --no-renames |
             grep -vE '^(assets/design-export|telemetry-receiver/design-export)/' || true)
           if [ -n "$outside" ]; then
             echo "::error::The export patch touches files outside the export folders: $outside"
             exit 1
           fi
-          git apply --index "$RUNNER_TEMP/design-export.patch"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -s -q -m "design: regenerate the design export"

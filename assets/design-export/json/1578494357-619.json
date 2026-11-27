@@ -1,0 +1,75 @@
+{
+  "file": "1578494357-619",
+  "name": "Screen/Dialog/Upload Backup — Restoring",
+  "type": "FRAME",
+  "x": 21920,
+  "y": 40233,
+  "width": 760,
+  "height": 200,
+  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+  "strokeWeight": 1,
+  "cornerRadius": 16,
+  "clips": true,
+  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+  "children": [
+    {
+      "name": "Wizard Modal Header",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 760,
+      "height": 83,
+      "component": "Gameplane/Wizard Modal Header",
+      "componentId": "1:1889",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [20, 28, 20, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Restoring mc-survival", "Restore running"]
+    },
+    {
+      "id": "1:59167",
+      "name": "Progress track",
+      "type": "RECTANGLE",
+      "x": 28,
+      "y": 107,
+      "width": 704,
+      "height": 4,
+      "fills": [{"type": "SOLID", "color": "#2C2932"}],
+      "variables": {"fills/0/color": "border/border"}
+    },
+    {
+      "id": "1:59168",
+      "name": "Progress fill",
+      "type": "RECTANGLE",
+      "x": 28,
+      "y": 107,
+      "width": 282,
+      "height": 4,
+      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+      "variables": {"fills/0/color": "accent/accent"}
+    },
+    {
+      "id": "1:59169",
+      "name": "desc",
+      "type": "TEXT",
+      "x": 28,
+      "y": 130,
+      "width": 580,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "The server is stopped. Keep this window open until the restore finishes.",
+      "font": ["Geist", 400, 12],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    }
+  ]
+}

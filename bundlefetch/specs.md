@@ -10,7 +10,7 @@ The shared code that gets a bundle (a module or a theme) from where it lives and
 
 ## Responsibilities
 
-1. `oci`: list the semver tags of a repository and pull an artifact. Every byte returned is checked against a digest (the manifest against the returned digest, each layer against the digest the manifest lists), so a signature check on the returned digest covers all returned content. Locale layers (`locales/<tag>.json`) are size-capped per file (`MaxLocaleLayerSize`) and per bundle (`MaxLocaleTotalSize`); a layer over a bound is not read and is recorded with the `OversizedLocale` marker so the caller can report the language.
+1. `oci`: list the semver tags of a repository and pull an artifact. Every byte returned is checked against a digest (the manifest against the returned digest, each layer against the digest the manifest lists), so a signature check on the returned digest covers all returned content. Locale layers (`locales/<tag>.json`) are size-capped per file (`MaxLocaleLayerSize`) and per bundle (`MaxLocaleTotalSize`); a layer over a bound is not read and is recorded with the `OversizedLocale` marker so the caller can report the language. For module bundles (the default artifact type) only the known files are read (`module.yaml`, `template.yaml`, `README.md`, `icon.png`, plus locales), each under its own cap, and all layers together under `MaxBundleSize`; a known layer over its cap fails the pull before any byte is fetched. Other artifact types (theme packages) are bounded by `WithMaxLayerBytes` and `WithMaxTotalBytes`. A negative declared size always fails.
 2. `verify`: a `Verifier` that checks the cosign signature of `ref@digest` under a keyed policy (`NewKeyed`: a PEM public key, optional Rekor inclusion) or a keyless one (`NewKeyless`: Fulcio issuer and identity, trust material from the Sigstore TUF root). `Nop` accepts everything and stands for "no policy". Keys and registry credentials are resolved by the caller and passed in.
 3. `source`: fetch the raw files of a bundle source and return them as a filesystem (`Loader`) or a map of file name to bytes, never as CRD types. Git (`GitLoader`, `GitClone`, `CheckGitURL`), HTTP(S) archive (`ArchiveLoader`, `ExtractArchive`, `CheckHTTPURL`), local directory (`LocalLoader`), directory scanning (`FindDirs`, `ReadDir`, `ReadLocaleFiles`, `ContentDigest`, `DigestFiles`, `Allowed`) and OCI listing (`OCIClient`, `OCIRef`, `ListVersions`, `SortVersionsDesc`, `PullFiles`).
 
@@ -32,7 +32,7 @@ The shared code that gets a bundle (a module or a theme) from where it lives and
 
 ## netguard at dial time
 
-Every outbound dial goes through `netguard` with the permissive `IsAllowed` policy: the OCI client's HTTP transport, the git HTTPS transport (plus a host pre-flight for ssh), and the archive download client. Cloud-metadata, link-local and multicast addresses are refused at dial time, so a DNS name that rebinds to one is caught too; loopback and private registries stay reachable.
+Every outbound dial goes through `netguard` with the permissive `IsAllowed` policy: the OCI client's HTTP transport, the cosign signature fetches in `verify` (registry and token realm), the git HTTPS transport (plus a host pre-flight for ssh), and the archive download client. Cloud-metadata, link-local and multicast addresses are refused at dial time, so a DNS name that rebinds to one is caught too; loopback and private registries stay reachable.
 
 ## Non-goals / boundaries
 

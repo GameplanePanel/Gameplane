@@ -870,3 +870,18 @@ func TestClassifyMinecraftErrorShape(t *testing.T) {
 		t.Errorf("expected nil result alongside error, got %v", result)
 	}
 }
+
+// TestClassifyMinecraftTransferIsJoin checks that next state 3 (Transfer,
+// 1.20.5+) classifies as a join, like Login.
+func TestClassifyMinecraftTransferIsJoin(t *testing.T) {
+	t.Parallel()
+
+	data := buildMinecraftHandshake(766, "localhost", 25565, 3)
+	result, err := (&MinecraftClassifier{}).Classify(bufio.NewReader(bytes.NewReader(data)))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Kind != Join {
+		t.Errorf("expected Join, got %v", result.Kind)
+	}
+}

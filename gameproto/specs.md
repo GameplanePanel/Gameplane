@@ -10,7 +10,7 @@ Shared wire-protocol parser for game server handshakes (Minecraft Java Edition a
 
 ## Responsibilities
 
-1. Parse Minecraft Java Edition handshake frames (VarInt-framed packets) and classify them by next-state (Status vs. Login).
+1. Parse Minecraft Java Edition handshake frames (VarInt-framed packets) and classify them by next-state (Status vs. Login or Transfer).
 2. Parse Terraria connection frames and identify ConnectRequest messages as join attempts.
 3. Preserve consumed bytes for replay to the real game pod, via a `Consumed` field that tracks exactly what was read, enabling lossless hand-off once the upstream connection is established.
 4. Distinguish a genuine join from a server-list status ping or other probe without consuming more of the connection than necessary.
@@ -172,7 +172,7 @@ type Detail interface {
 
 **Concrete Implementations:**
 
-- **`MinecraftDetail`**: Holds ProtocolVersion (int32), NextState (int32: 1=Status, 2=Login), and ServerAddr (string). ProtocolName() returns "minecraft".
+- **`MinecraftDetail`**: Holds ProtocolVersion (int32), NextState (int32: 1=Status, 2=Login, 3=Transfer; 2 and 3 classify as Join), and ServerAddr (string). ProtocolName() returns "minecraft".
 - **`TerrariaDetail`**: Holds Version (string from ConnectRequest). ProtocolName() returns "terraria".
 
 ### Stream Replay Contract
@@ -294,12 +294,12 @@ To add a new game protocol (e.g., "factorio"):
   [VarInt] protocol_version
   [String] server_address (VarInt length + UTF-8 bytes)
   [UInt16 BE] server_port
-  [VarInt] next_state (1 = Status, 2 = Login)
+  [VarInt] next_state (1 = Status, 2 = Login, 3 = Transfer since 1.20.5; 2 and 3 classify as Join)
 ```
 
 **Parsing:** Read the frame length (VarInt, 5 bytes max), reject if > 512 (minecraftMaxPacketSize), read the frame data, then parse packet fields inside. Strings are bounded at 32KB (Minecraft protocol limit). The packet ID must be 0x00; any other value is a parse error (`Classify` returns `nil, err`, matching the `Classifier` interface contract, not a non-nil Unknown result).
 
-**Classification:** next_state == 2 → Join; next_state == 1 → Status; anything else → Unknown.
+**Classification:** next_state == 2 or 3 (Transfer, 1.20.5+) → Join; next_state == 1 → Status; anything else → Unknown.
 
 ### Terraria
 

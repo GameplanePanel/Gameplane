@@ -93,6 +93,12 @@ func buildArchiveWorkerPod(p archiveWorkerParams) *corev1.Pod {
 		archiveWorkerLabel:    p.Mode,
 		archiveWorkerUIDLabel: p.UID,
 	}
+	if p.NeedsRestic {
+		// A worker that reads the restic repository needs the same egress as
+		// the Backup and Restore Jobs; the chart's backup egress policy
+		// selects this label.
+		labels[backupRestoreJobLabel] = backupRestoreJobValue
+	}
 
 	volumes := []corev1.Volume{
 		{

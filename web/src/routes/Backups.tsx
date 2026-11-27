@@ -33,8 +33,10 @@ import { ManageDestinationsLink } from "@/components/backups/ManageDestinationsL
 import { BackupDestinationsPanel } from "@/components/clusters/BackupDestinationsPanel";
 import { ScheduleForm } from "@/components/backups/ScheduleForm";
 import { RestoreDialog } from "@/components/backups/RestoreDialog";
+import { BackupDownloadDialog } from "@/components/backups/BackupDownloadDialog";
 import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
 import { BackupRow } from "@/components/backups/BackupRow";
+import { restoreSourceName } from "@/lib/backupArchives";
 import { BackupFilters } from "@/components/backups/BackupFilters";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { Backup, BackupSchedule } from "@/types";
@@ -68,7 +70,7 @@ const TRAILING_COUNT: Record<"backups" | "schedules" | "restores", MessageDescri
 });
 
 const BACKUP_PHASES = ["Pending", "Running", "Succeeded", "Failed"];
-const RESTORE_PHASES = ["Pending", "Suspending", "Running", "Resuming", "Succeeded", "Failed"];
+const RESTORE_PHASES = ["Pending", "Receiving", "AwaitingConfirmation", "Suspending", "Running", "Resuming", "Succeeded", "Failed"];
 
 export function BackupsPage() {
   const intl = useOptionalIntl();
@@ -141,6 +143,7 @@ function BackupsTabPanel({ location, onLocationChange, locations }: LocationFilt
   const [server, setServer] = useState("");
   const [phase, setPhase] = useState("");
   const [restoringBackup, setRestoringBackup] = useState<Located<Backup> | null>(null);
+  const [downloadingBackup, setDownloadingBackup] = useState<Located<Backup> | null>(null);
   const [selectedBackup, setSelectedBackup] = useState<Located<Backup> | null>(null);
 
   const { data: backupsFleet, error: fleetError, isLoading: fleetLoading } = useQuery({
@@ -219,6 +222,7 @@ function BackupsTabPanel({ location, onLocationChange, locations }: LocationFilt
                     showServer
                     onSelect={() => setSelectedBackup(b)}
                     onRestore={() => setRestoringBackup(b)}
+                    onDownload={() => setDownloadingBackup(b)}
                   />
                 ))}
               </Table.Body>
@@ -226,6 +230,11 @@ function BackupsTabPanel({ location, onLocationChange, locations }: LocationFilt
           </Table.ScrollContainer>
         </Table.Root>
 
+      <BackupDownloadDialog
+        backup={downloadingBackup}
+        target={downloadingBackup?.fleetTarget}
+        onClose={() => setDownloadingBackup(null)}
+      />
       <RestoreDialog
         backup={restoringBackup}
         target={restoringBackup?.fleetTarget}
@@ -576,7 +585,7 @@ function RestoresTabPanel({ location, onLocationChange, locations }: LocationFil
       if (server && !matchesServer(r, server, serversList.items)) return false;
       if (phase && r.status?.phase !== phase) return false;
       if (q) {
-        const hay = `${r.metadata.name} ${r.spec.serverRef.name} ${r.spec.backupRef.name}`.toLowerCase();
+        const hay = `${r.metadata.name} ${r.spec.serverRef.name} ${restoreSourceName(r)}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -629,7 +638,7 @@ function RestoresTabPanel({ location, onLocationChange, locations }: LocationFil
                       <span className="font-mono text-xs">{r.metadata.name}</span><div className="text-xs text-muted">{targetLabel(r.fleetTarget)}</div>
                     </Table.Cell>
                     <Table.Cell>
-                      <span className="font-mono text-xs">{r.spec.backupRef.name}</span>
+                      <span className="font-mono text-xs">{restoreSourceName(r)}</span>
                     </Table.Cell>
                     <Table.Cell>{r.spec.serverRef.name}</Table.Cell>
                     <Table.Cell>

@@ -451,7 +451,7 @@ func (r *BackupReconciler) backupWorkersLive(ctx context.Context, namespace stri
 		job := &jobs.Items[i]
 		owner := metav1.GetControllerOf(job)
 		// Only the copy Job, never the repository forget Job.
-		if job.Name != id.Name || owner == nil || owner.Kind != "Backup" || owner.UID != id.UID {
+		if job.Name != backupJobName(id.Name) || owner == nil || owner.Kind != "Backup" || owner.UID != id.UID {
 			continue
 		}
 		jobUIDs[job.UID] = true

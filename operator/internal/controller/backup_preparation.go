@@ -257,7 +257,7 @@ func (r *BackupReconciler) backupSourceDrained(ctx context.Context, b *gameplane
 	copyJobs := map[types.UID]bool{}
 	for i := range jobs.Items {
 		job := &jobs.Items[i]
-		if job.Name == b.Name && metav1.IsControlledBy(job, b) {
+		if job.Name == backupJobName(b.Name) && metav1.IsControlledBy(job, b) {
 			copyJobs[job.UID] = true
 			continue
 		}

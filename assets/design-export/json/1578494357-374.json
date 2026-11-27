@@ -1,0 +1,101 @@
+{
+  "file": "1578494357-374",
+  "name": "Screen/Dialog/Upload Backup — Checking (Light)",
+  "type": "FRAME",
+  "x": 17120,
+  "y": 40233,
+  "width": 760,
+  "height": 280,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "cornerRadius": 16,
+  "clips": true,
+  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+  "children": [
+    {
+      "name": "Wizard Modal Header",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 760,
+      "height": 83,
+      "component": "Gameplane/Wizard Modal Header",
+      "componentId": "1:1889",
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [20, 28, 20, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Upload backup", "Step 3 of 4 · Check"]
+    },
+    {
+      "id": "1:59164",
+      "name": "Spinner",
+      "type": "ELLIPSE",
+      "x": 28,
+      "y": 108,
+      "width": 20,
+      "height": 20,
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 2,
+      "variables": {"strokes/0/color": "field/border"}
+    },
+    {
+      "id": "1:59165",
+      "name": "title",
+      "type": "TEXT",
+      "x": 60,
+      "y": 110,
+      "width": 580,
+      "height": 18,
+      "fills": [{"type": "SOLID", "color": "#92400E"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "Checking archive…",
+      "font": ["Geist", 600, 14],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
+    },
+    {
+      "id": "1:59166",
+      "name": "desc",
+      "type": "TEXT",
+      "x": 28,
+      "y": 146,
+      "width": 580,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "Checks format, completeness, paths, links, device files and size. Nothing is written to the server.",
+      "font": ["Geist", 400, 12],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "Wizard Modal Footer",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 212,
+      "width": 760,
+      "height": 68,
+      "component": "Gameplane/Wizard Modal Footer",
+      "componentId": "1:2019",
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [16, 28, 16, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Cancel"]
+    }
+  ]
+}

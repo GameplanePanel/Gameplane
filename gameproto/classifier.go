@@ -95,7 +95,8 @@ type MinecraftDetail struct {
 	ProtocolVersion int32
 
 	// NextState is the requested next protocol state after handshake.
-	// 1 = Status (server-list ping), 2 = Login (player join attempt).
+	// 1 = Status (server-list ping), 2 = Login (player join attempt),
+	// 3 = Transfer (transferred player join, 1.20.5+).
 	NextState int32
 
 	// ServerAddr is the server address (host:port) the client sent in the handshake.

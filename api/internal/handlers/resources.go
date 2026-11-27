@@ -247,6 +247,10 @@ func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource, auditor 
 			httperr.Write(w, req, err)
 			return
 		}
+		// A client-set ownerReference can make the Kubernetes garbage collector
+		// delete the object, and client finalizers can block deletion. Neither
+		// is ever taken from the client.
+		protectOwnership(obj, nil)
 		// Record the creating user as the server's owner (informational).
 		if gvr.Resource == "gameservers" {
 			if !validServerName(obj.GetName()) {
@@ -356,6 +360,7 @@ func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource, auditor 
 				return
 			}
 			protectServerAnnotations(obj, live)
+			protectOwnership(obj, live)
 			// The dashboard sends spec back wholesale, so password config values
 			// arrive as the redaction marker: keep the stored value for those.
 			cfgRules = newConfigRuleCache(k)
@@ -376,6 +381,25 @@ func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource, auditor 
 				return
 			}
 			changeReason = securityChangeReason(req.Context(), k, obj, live)
+		}
+		if gvr.Resource != "gameservers" {
+			// Other kinds: keep the stored ownerReferences and finalizers too.
+			var liveOther *unstructured.Unstructured
+			var getErr error
+			if cluster(gvr) {
+				liveOther, getErr = k.Dynamic.Resource(gvr).Get(req.Context(), name, metav1.GetOptions{})
+			} else {
+				ns, ok := resolveNS(w, req)
+				if !ok {
+					return
+				}
+				liveOther, getErr = k.Dynamic.Resource(gvr).Namespace(ns).Get(req.Context(), name, metav1.GetOptions{})
+			}
+			if getErr != nil && !apierrors.IsNotFound(getErr) {
+				httperr.Write(w, req, getErr)
+				return
+			}
+			protectOwnership(obj, liveOther)
 		}
 		var updated *unstructured.Unstructured
 		if cluster(gvr) {
@@ -882,4 +906,17 @@ func isServerOwnedConfigMap(ctx context.Context, k *kube.Client, ns, serverName 
 		}
 	}
 	return false
+}
+
+// protectOwnership never takes metadata.ownerReferences or metadata.finalizers
+// from the client: it keeps the live object's values, or clears them when
+// there is no live object (create, or a PUT that creates).
+func protectOwnership(obj, live *unstructured.Unstructured) {
+	if live == nil {
+		obj.SetOwnerReferences(nil)
+		obj.SetFinalizers(nil)
+		return
+	}
+	obj.SetOwnerReferences(live.GetOwnerReferences())
+	obj.SetFinalizers(live.GetFinalizers())
 }

@@ -28,6 +28,39 @@ spec:
     - hosts: [{{ .Values.ingress.host }}]
       secretName: gameplane-tls
   {{- end }}
+---
+# Dashboard file uploads send one whole file as the PUT body of
+# /servers/<name>/files/stream. This Ingress carries only that route so the
+# body-size limit can follow files.maxUploadSize without raising it for every
+# other (including unauthenticated) route. ingress-nginx merges it into the
+# same server as the Ingress above; the regex path needs use-regex, which
+# ingress-nginx applies to every path of this host (plain prefixes keep
+# matching).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gameplane-files-stream
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml (merge (dict "nginx.ingress.kubernetes.io/proxy-body-size" (include "gameplane.quantityBytes" ((.Values.files | default dict).maxUploadSize | default "20Gi")) "nginx.ingress.kubernetes.io/proxy-request-buffering" "off" "nginx.ingress.kubernetes.io/use-regex" "true") (omit .Values.ingress.annotations "nginx.ingress.kubernetes.io/proxy-body-size")) | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /servers/[^/]+/files/stream
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ if .Values.web.enabled }}gameplane-web{{ else }}gameplane-api{{ end }}
+                port: { name: http }
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts: [{{ .Values.ingress.host }}]
+      secretName: gameplane-tls
+  {{- end }}
 {{- /* dig: values reused from a release before shareLinks existed lack the key. */}}
 {{- if dig "shareLinks" "disableAccessLog" true .Values.ingress }}
 ---

@@ -5,6 +5,7 @@
 //   - cluster query param threading for multi-cluster support
 
 import type {
+  ArchiveFormat,
   CaptureStatus,
   NetworkCapture,
   NetworkCaptureList,
@@ -690,3 +691,100 @@ export const createClusterSftpToken = (cluster: string) =>
 // DELETE /clusters/{name}/sftp-token/{id} (cluster:manage) — 204.
 export const revokeClusterSftpToken = (cluster: string, tokenId: number) =>
   api<void>(`${clusterSftpPath(cluster)}-token/${encodeURIComponent(String(tokenId))}`, { method: "DELETE" });
+
+// ---------------------------------------------------------------------
+// Backup archives (spec 041, contracts/api.md): download as a plain browser
+// link, upload with XHR progress, confirm an uploaded archive.
+// ---------------------------------------------------------------------
+
+// backupDownloadURL is the link target for a browser download. Authentication
+// is the session cookie, so a plain navigation works and the browser streams
+// the archive to disk without the page holding it in memory.
+export function backupDownloadURL(cluster: string, ns: string | undefined, name: string, format: ArchiveFormat): string {
+  return withClusterParam(withNS(`/backups/${encodeURIComponent(name)}:download?format=${format}`, ns), cluster);
+}
+
+export interface UploadRestoreOptions {
+  format: ArchiveFormat;
+  /** GameTemplate the user says a plain archive is for; omitted for Gameplane archives. */
+  template?: string;
+  /** Aborting cancels the request; the API then deletes the restore. */
+  signal?: AbortSignal;
+}
+
+export interface UploadRestoreResult {
+  restore: string;
+}
+
+// uploadRestore sends the raw file as the body of POST /restores:upload with
+// XMLHttpRequest, because fetch cannot report upload progress. It rejects with
+// an APIError for an HTTP error, a plain Error when no response arrives and an
+// AbortError DOMException when the signal fires.
+export function uploadRestore(
+  cluster: string,
+  ns: string | undefined,
+  server: string,
+  file: File,
+  opts: UploadRestoreOptions,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<UploadRestoreResult> {
+  return new Promise<UploadRestoreResult>((resolve, reject) => {
+    if (opts.signal?.aborted) {
+      reject(new DOMException("upload cancelled", "AbortError"));
+      return;
+    }
+    const query = new URLSearchParams({ server, format: opts.format, fileName: file.name });
+    if (opts.template) query.set("template", opts.template);
+    const url = withClusterParam(withNS(`/restores:upload?${query.toString()}`, ns), cluster);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader("Accept", "application/json, application/problem+json");
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    for (const [key, value] of Object.entries(csrfHeaders())) xhr.setRequestHeader(key, value);
+    xhr.upload.onprogress = (e: ProgressEvent) => {
+      if (e.lengthComputable) onProgress?.(e.loaded, e.total);
+    };
+    const onAbort = () => xhr.abort();
+    const settle = () => opts.signal?.removeEventListener("abort", onAbort);
+    xhr.onload = () => {
+      settle();
+      const contentType = xhr.getResponseHeader("Content-Type") ?? undefined;
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new APIError(xhr.status, xhr.responseText, xhr.statusText, contentType, xhr.getResponseHeader("Retry-After")));
+        return;
+      }
+      try {
+        const parsed: unknown = JSON.parse(xhr.responseText);
+        if (isRecord(parsed) && typeof parsed.restore === "string" && parsed.restore !== "") {
+          resolve({ restore: parsed.restore });
+          return;
+        }
+      } catch {
+        // fall through to the unexpected-response error below
+      }
+      reject(new APIError(xhr.status, "unexpected upload response", xhr.statusText, contentType));
+    };
+    xhr.onerror = () => {
+      settle();
+      reject(new Error("connection lost"));
+    };
+    xhr.ontimeout = () => {
+      settle();
+      reject(new Error("connection lost"));
+    };
+    xhr.onabort = () => {
+      settle();
+      reject(new DOMException("upload cancelled", "AbortError"));
+    };
+    opts.signal?.addEventListener("abort", onAbort, { once: true });
+    xhr.send(file);
+  });
+}
+
+// confirmRestore confirms a checked upload restore. `generation` is the
+// restore's metadata.generation as the user reviewed it; the API refuses a
+// stale value so a changed restore cannot be confirmed by accident.
+export function confirmRestore(cluster: string, ns: string | undefined, name: string, generation: number): Promise<void> {
+  return api<void>(withNS(`/restores/${encodeURIComponent(name)}:confirm`, ns), { method: "POST", body: { generation }, cluster });
+}

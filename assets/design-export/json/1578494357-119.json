@@ -1,0 +1,111 @@
+{
+  "file": "1578494357-119",
+  "name": "Screen/Dialog/Backup Download (Preparing) (Light)",
+  "type": "FRAME",
+  "x": 9440,
+  "y": 40233,
+  "width": 760,
+  "height": 300,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "cornerRadius": 16,
+  "clips": true,
+  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+  "children": [
+    {
+      "name": "Wizard Modal Header",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 760,
+      "height": 83,
+      "component": "Gameplane/Wizard Modal Header",
+      "componentId": "1:1889",
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [20, 28, 20, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Download backup", "survival-nightly · mc-survival"]
+    },
+    {
+      "id": "1:59129",
+      "name": "title",
+      "type": "TEXT",
+      "x": 28,
+      "y": 107,
+      "width": 580,
+      "height": 18,
+      "fills": [{"type": "SOLID", "color": "#92400E"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "Preparing download…",
+      "font": ["Geist", 600, 14],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
+    },
+    {
+      "id": "1:59130",
+      "name": "Progress track",
+      "type": "RECTANGLE",
+      "x": 28,
+      "y": 140,
+      "width": 704,
+      "height": 4,
+      "fills": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "variables": {"fills/0/color": "border/border"}
+    },
+    {
+      "id": "1:59131",
+      "name": "Progress fill",
+      "type": "RECTANGLE",
+      "x": 28,
+      "y": 140,
+      "width": 352,
+      "height": 4,
+      "fills": [{"type": "SOLID", "color": "#DB2777"}],
+      "variables": {"fills/0/color": "accent/accent"}
+    },
+    {
+      "id": "1:59132",
+      "name": "desc",
+      "type": "TEXT",
+      "x": 28,
+      "y": 160,
+      "width": 580,
+      "height": 16,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "layoutAlignSelf": "STRETCH",
+      "text": "The backup worker can take up to about 30 seconds before bytes flow.",
+      "font": ["Geist", 400, 12],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "Wizard Modal Footer",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 232,
+      "width": 760,
+      "height": 68,
+      "component": "Gameplane/Wizard Modal Footer",
+      "componentId": "1:2019",
+      "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [16, 28, 16, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Cancel"]
+    }
+  ]
+}

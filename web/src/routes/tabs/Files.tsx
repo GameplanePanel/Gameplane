@@ -95,6 +95,11 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
   });
   const drafts = cachedDrafts!; // Synchronous initialData, never fetched or undefined.
   useSyncExternalStore(drafts.subscribe, drafts.snapshot);
+  const canControlRef = useRef(canControl);
+  useEffect(() => { canControlRef.current = canControl; }, [canControl]);
+  // Declared before the enable effect so its cleanup runs first on unmount:
+  // pending autosaves are flushed (not dropped) when the tab is left.
+  useEffect(() => () => { if (canControlRef.current) drafts.flushAll(); }, [drafts]);
   useEffect(() => {
     drafts.setEnabled(canControl);
     return () => drafts.setEnabled(false);

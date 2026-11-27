@@ -153,11 +153,18 @@ func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerF
 		// is a username-enumeration oracle.
 		u, hash, err := l.fetchUser(req.Context(), body.Username)
 		if err != nil || hash == "" {
-			VerifyDummy(req.Context(), body.Password)
+			if derr := VerifyDummy(req.Context(), body.Password); errors.Is(derr, ErrPasswordBusy) {
+				writePasswordBusy(w, req)
+				return
+			}
 			httperr.WriteMessage(w, req, messages.New("server.auth.invalid_credentials", nil))
 			return
 		}
 		ok, err := VerifyPassword(req.Context(), body.Password, hash)
+		if errors.Is(err, ErrPasswordBusy) {
+			writePasswordBusy(w, req)
+			return
+		}
 		if err != nil || !ok {
 			httperr.WriteMessage(w, req, messages.New("server.auth.invalid_credentials", nil))
 			return

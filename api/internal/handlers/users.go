@@ -151,6 +151,9 @@ func (h *userHandler) create(w http.ResponseWriter, req *http.Request) {
 		}
 		h2, err := auth.HashPassword(req.Context(), body.Password)
 		if err != nil {
+			if auth.WriteIfPasswordBusy(w, req, err) {
+				return
+			}
 			httperr.Write(w, req, err)
 			return
 		}
@@ -834,6 +837,9 @@ func (h *userHandler) resetPassword(w http.ResponseWriter, req *http.Request) {
 	}
 	hash, err := auth.HashPassword(req.Context(), body.Password)
 	if err != nil {
+		if auth.WriteIfPasswordBusy(w, req, err) {
+			return
+		}
 		httperr.Write(w, req, err)
 		return
 	}

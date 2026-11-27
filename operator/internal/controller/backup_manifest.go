@@ -23,7 +23,11 @@ func (r *BackupReconciler) captureWorker(ctx context.Context, b *gameplanev1alph
 	if b.Spec.Strategy == "volume-snapshot" {
 		worker = &snapshotv1.VolumeSnapshot{}
 	}
-	if err := r.backupAPIReader().Get(ctx, client.ObjectKeyFromObject(b), worker); err != nil {
+	key := client.ObjectKeyFromObject(b)
+	if _, isJob := worker.(*batchv1.Job); isJob {
+		key = backupJobKey(b)
+	}
+	if err := r.backupAPIReader().Get(ctx, key, worker); err != nil {
 		return nil, client.IgnoreNotFound(err)
 	}
 	if !metav1.IsControlledBy(worker, b) {

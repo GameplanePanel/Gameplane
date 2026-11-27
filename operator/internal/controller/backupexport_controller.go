@@ -134,6 +134,10 @@ func (r *BackupExportReconciler) reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, r.failExport(ctx, &export, reason, now)
 	}
 
+	backup, err = r.withServerTemplate(ctx, backup)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 	manifest, err := buildExportManifest(backup, r.WriterVersion, export.Annotations[backupExportClusterAnnotation])
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("build archive manifest for %s/%s: %w", export.Namespace, export.Name, err)
@@ -234,6 +238,37 @@ func (r *BackupExportReconciler) validateExport(
 		return nil, fmt.Sprintf("repository secret %s is missing keys: %s", repoName, strings.Join(missing, ", ")), nil
 	}
 	return &backup, "", nil
+}
+
+// withServerTemplate fills the archive's template name from the Backup's
+// GameServer when the capture manifest does not record it, as for backups that
+// are not all-data captures, so an upload of the archive can be matched to its
+// game. Only the template is taken: the server's current revision and game
+// version may differ from the captured ones. It returns backup unchanged when
+// the manifest already names a template, when there is no manifest or it
+// records no server UID, or when the server is gone or is not the one the
+// backup captured.
+func (r *BackupExportReconciler) withServerTemplate(
+	ctx context.Context, backup *gameplanev1alpha1.Backup,
+) (*gameplanev1alpha1.Backup, error) {
+	cm := backup.Status.CaptureManifest
+	if cm == nil || cm.TemplateName != "" || cm.ServerUID == "" {
+		return backup, nil
+	}
+	var gs gameplanev1alpha1.GameServer
+	err := r.apiReader().Get(ctx, types.NamespacedName{Namespace: backup.Namespace, Name: backup.Spec.ServerRef.Name}, &gs)
+	if apierrors.IsNotFound(err) {
+		return backup, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get game server %s/%s: %w", backup.Namespace, backup.Spec.ServerRef.Name, err)
+	}
+	if string(gs.UID) != cm.ServerUID {
+		return backup, nil
+	}
+	out := backup.DeepCopy()
+	out.Status.CaptureManifest.TemplateName = gs.Spec.TemplateRef.Name
+	return out, nil
 }
 
 // exportBackupProblem returns why the Backup cannot be exported, or "" when it

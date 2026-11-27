@@ -3,6 +3,7 @@ import { Button, Table } from "@heroui/react";
 import { formatRelative } from "@/lib/utils";
 import { BackupSize } from "@/components/backups/BackupSize";
 import type { Backup } from "@/types";
+import { DownloadAction } from "@/components/backups/DownloadAction";
 import { PhaseChip, backupAwaitingSnapshot } from "@/components/ui/PhaseChip";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
@@ -13,9 +14,11 @@ interface Props {
   showServer: boolean;
   onSelect: (b: Backup) => void;
   onRestore: (b: Backup) => void;
+  // When set, the row offers Download (spec 041); omitted where downloads are not wired.
+  onDownload?: (b: Backup) => void;
 }
 
-export function BackupRow({ backup, showServer, onSelect, onRestore, target, permissions: explicitPermissions }: Props) {
+export function BackupRow({ backup, showServer, onSelect, onRestore, onDownload, target, permissions: explicitPermissions }: Props) {
   const intl = useOptionalIntl();
   const permissions = useResourcePermissions(explicitPermissions);
   const restorable =
@@ -37,12 +40,15 @@ export function BackupRow({ backup, showServer, onSelect, onRestore, target, per
         {formatRelative(backup.status?.completionTime, intl)}
       </Table.Cell>
       <Table.Cell className="text-right">
-        <Button
-          size="sm"
-          variant="outline"
-          isDisabled={!restorable || !resourceCan(permissions, "backups:restore")}
-          onPress={() => onRestore(backup)}
-        >{intl.formatMessage({ id: "web.components.backups.backup_row.restore", defaultMessage: "Restore", description: "Backup row: button in each backup table row that starts restoring that backup; keep it short" })}</Button>
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            isDisabled={!restorable || !resourceCan(permissions, "backups:restore")}
+            onPress={() => onRestore(backup)}
+          >{intl.formatMessage({ id: "web.components.backups.backup_row.restore", defaultMessage: "Restore", description: "Backup row: button in each backup table row that starts restoring that backup; keep it short" })}</Button>
+          {onDownload && <DownloadAction backup={backup} permissions={permissions} onDownload={onDownload} />}
+        </div>
       </Table.Cell>
     </Table.Row>
   );

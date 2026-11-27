@@ -33,7 +33,7 @@ operator/            controller-runtime operator
   internal/controller/  reconcilers + envtest suites
   cmd/main.go        entrypoint;  config/{crd,rbac}/ GENERATED
 api/                 REST + WebSocket gateway (chi); cmd/main.go: `serve`, `gateway`, `bootstrap-admin`, `rotate-panel-key`
-  internal/{audit,auth,controlplane,db,gateway,gatewayprotocol,handlers,httperr,kube,kubeconfig,messages,notify,rbac,registry,scope,steam,telemetry,ws}/
+  internal/{audit,auth,controlplane,db,gateway,gatewayprotocol,handlers,httperr,kube,kubeconfig,messages,notify,rbac,registry,scope,steam,telemetry,workerconn,ws}/
 agent/               in-pod sidecar; internal/{a2s,actions,auth,caps,console,files,heartbeat,httpjson,lifecycle,logs,metrics,mods,players,quiesce,rcon,status,target,usage}/
 audit-syslog-bridge/ SUBMODULE GameplanePanel/audit-syslog-bridge (RFC 5424 HTTP→syslog forwarder; own go.mod, not in go.work; image still built here)
 telemetry-receiver/  usage telemetry ingest
@@ -64,7 +64,7 @@ After cloning: `git submodule update --init modules` (required for `make dev-up`
 - **Build:** `make build` (all Go + web), `make build-go` (13 modules in GO_MODULES, all but test/e2e), `make build-web` (`npm ci && npm run build`), `make images`.
 - **Codegen:** `make generate` (deepcopy), `make manifests` (CRD/RBAC YAML, synced to `charts/gameplane/charts/gameplane-crds/crds/` and `charts/gameplane/crd-manifests/`), `make modules-push`, `make tidy`.
 - **Dev containers:** `make devcontainers` (regenerate every profile and the `website/` and `modules/` copies after editing `.devcontainer/versions.toml`, `.devcontainer/profiles.toml`, `.devcontainer/devcontainer-lock.json`, `.devcontainer/setup.sh` or a `system-deps.toml`), `make check-devcontainers` (drift check). Profile table: `docs/contributing.md`.
-- **Tests (CI only — never run locally, see Rule 8):** `make test`, `make test-integration` (envtest operator+api), `make test-e2e` (~10–20 min), `make test-e2e-bucket BUCKET=(operator|api-auth|api-roles|api-rbac|api-agent|api-mods|ratelimit|bot-fast|bot-heavy|multicluster|upgrade|postgres-availability|postgres-pitr|postgres-ha|telemetry|capture-overhead|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery|standalone|sftp|themes)`.
+- **Tests (CI only — never run locally, see Rule 8):** `make test`, `make test-integration` (envtest operator+api), `make test-e2e` (~10–20 min), `make test-e2e-bucket BUCKET=(operator|api-auth|api-roles|api-rbac|api-agent|api-mods|ratelimit|bot-fast|bot-heavy|multicluster|upgrade|postgres-availability|postgres-pitr|postgres-ha|telemetry|capture-overhead|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|backup-archives|monitoring|recovery|standalone|sftp|themes)`.
 - **E2E conventions:** register new tests in `test/e2e/buckets.sh`; `t.Parallel()` + unique names; guard shared resources (`ociPushMu` for module pushes, `ensureResticRepo(t)` for shared backup repos). Rate limits per cluster: IP burst 10 (5/min), user burst 6 (3/min) — cap an API bucket at ~7 admin logins.
 - **Lint:** `make lint` runs `check-doc-versions`, `check-links`, `check-features-sync`, `check-specs`, `check-telemetry-catalog`, `check-i18n`, `check-dev-load-images`, `check-coverage-gaps`, `check-devcontainers`, `test-up-registry`, `lint-go` and `lint-web`.
 
@@ -114,7 +114,7 @@ After cloning: `git submodule update --init modules` (required for `make dev-up`
 | bundlefetch | Go | shared bundle fetching: OCI client, cosign verifier core, git/HTTP/local/OCI sources, no Kubernetes imports (operator, api) |
 | i18n | Go | shared language packs (`go:embed`), ICU MessageFormat subset, pack validator, `i18n-check` CI tool (api, web, operator, gp-module) |
 | gp-module | Go | module CLI: scaffold, offline validate, dry-run preview, OCI package |
-| operator | Go, controller-runtime | authoritative reconciler for 9 CRDs (`GameServer`, `GameTemplate`, …) |
+| operator | Go, controller-runtime | authoritative reconciler for 10 CRDs (`GameServer`, `GameTemplate`, `BackupExport`, …) |
 | api | Go, chi | REST/WS UX gateway; SQLite, experimental PostgreSQL |
 | agent | Go | pod sidecar: console (PTY/RCON), files, logs, heartbeats |
 | audit-syslog-bridge | Go (submodule GameplanePanel/audit-syslog-bridge) | webhook audit events → RFC 5424 syslog |

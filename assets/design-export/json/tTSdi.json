@@ -401,7 +401,7 @@
               "x": 24,
               "y": 213,
               "width": 1132,
-              "height": 168,
+              "height": 232,
               "fills": [{"type": "SOLID", "color": "#17151A"}],
               "cornerRadius": 20,
               "layout": {
@@ -410,7 +410,7 @@
                 "padding": [0, 4, 4, 4],
                 "primary": "MIN",
                 "counter": "MIN",
-                "sizing": ["HUG", "FIXED"]
+                "sizing": ["FIXED", "FIXED"]
               },
               "layoutAlignSelf": "STRETCH",
               "clips": true,
@@ -580,7 +580,7 @@
                   "x": 4,
                   "y": 36,
                   "width": 1124,
-                  "height": 128,
+                  "height": 192,
                   "cornerRadius": 16,
                   "layout": {
                     "mode": "VERTICAL",
@@ -588,7 +588,7 @@
                     "padding": [0, 0, 0, 0],
                     "primary": "MIN",
                     "counter": "MIN",
-                    "sizing": ["HUG", "FIXED"]
+                    "sizing": ["FIXED", "FIXED"]
                   },
                   "layoutAlignSelf": "STRETCH",
                   "clips": true,
@@ -975,6 +975,192 @@
                           "layoutAlignSelf": "STRETCH",
                           "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                           "texts": ["snapshot not found in repository"]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:59222",
+                      "name": "Row 3",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 128,
+                      "width": 1124,
+                      "height": 64,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "name": "c",
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 234,
+                          "height": 64,
+                          "component": "Table Cell",
+                          "componentId": "1:824",
+                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [12, 16, 12, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                          "texts": ["restore-mc-survival-7b2c"]
+                        },
+                        {
+                          "name": "c",
+                          "type": "INSTANCE",
+                          "x": 234,
+                          "y": 0,
+                          "width": 220,
+                          "height": 64,
+                          "component": "Table Cell",
+                          "componentId": "1:824",
+                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [12, 16, 12, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                          "texts": ["Uploaded: survival.tar.gz"]
+                        },
+                        {
+                          "name": "c",
+                          "type": "INSTANCE",
+                          "x": 454,
+                          "y": 0,
+                          "width": 160,
+                          "height": 64,
+                          "component": "Table Cell",
+                          "componentId": "1:824",
+                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [12, 16, 12, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                          "texts": ["mc-survival"]
+                        },
+                        {
+                          "id": "1:59273",
+                          "name": "c4",
+                          "type": "FRAME",
+                          "x": 614,
+                          "y": 0,
+                          "width": 130,
+                          "height": 64,
+                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [12, 16, 12, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                          "children": [
+                            {
+                              "name": "phase",
+                              "type": "INSTANCE",
+                              "x": 16,
+                              "y": 22,
+                              "width": 99,
+                              "height": 20,
+                              "component": "Status=Running",
+                              "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
+                              "cornerRadius": 9999,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 6,
+                                "padding": [2, 8, 2, 8],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "variables": {"fills/0/color": "success/soft"},
+                              "texts": ["Succeeded"]
+                            }
+                          ]
+                        },
+                        {
+                          "name": "c",
+                          "type": "INSTANCE",
+                          "x": 744,
+                          "y": 0,
+                          "width": 150,
+                          "height": 64,
+                          "component": "Table Cell",
+                          "componentId": "1:824",
+                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [12, 16, 12, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                          "texts": ["just now"]
+                        },
+                        {
+                          "name": "c",
+                          "type": "INSTANCE",
+                          "x": 894,
+                          "y": 0,
+                          "width": 230,
+                          "height": 64,
+                          "component": "Table Cell",
+                          "componentId": "1:824",
+                          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [12, 16, 12, 16],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
+                          "texts": ["—"]
                         }
                       ]
                     }

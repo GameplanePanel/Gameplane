@@ -13,7 +13,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/google/go-containerregistry/pkg/authn"
@@ -24,6 +26,8 @@ import (
 	cosignsig "github.com/sigstore/cosign/v3/pkg/signature"
 	"github.com/sigstore/sigstore-go/pkg/root"
 	sgtuf "github.com/sigstore/sigstore-go/pkg/tuf"
+
+	"github.com/GameplanePanel/gameplane/netguard"
 )
 
 // Verifier checks that the OCI artifact at ref@digest carries a valid cosign
@@ -61,6 +65,13 @@ func (cv *cosignVerifier) Verify(ctx context.Context, ref, digest string) error 
 	return nil
 }
 
+// guardedTransport is shared by every signature fetch: registry and token-realm
+// dials go through the same netguard guard as oci.Client, so a hostile registry
+// cannot aim the verifier at metadata or link-local addresses.
+var guardedTransport http.RoundTripper = &http.Transport{
+	DialContext: netguard.Dialer(30*time.Second, netguard.IsAllowed).DialContext,
+}
+
 func baseCheckOpts(ctx context.Context, auth authn.Authenticator) *cosign.CheckOpts {
 	return &cosign.CheckOpts{
 		ClaimVerifier: cosign.SimpleClaimVerifier,
@@ -68,6 +79,7 @@ func baseCheckOpts(ctx context.Context, auth authn.Authenticator) *cosign.CheckO
 			ociremote.WithRemoteOptions(
 				ggcrremote.WithAuth(auth),
 				ggcrremote.WithContext(ctx),
+				ggcrremote.WithTransport(guardedTransport),
 			),
 		},
 	}

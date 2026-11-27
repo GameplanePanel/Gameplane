@@ -1911,6 +1911,62 @@
     "defaultMessage": "Started",
     "description": "Backup details drawer: field label above the time the backup started, shown in relative time"
   },
+  "web.components.backups.backup_download_dialog.cancel": {
+    "defaultMessage": "Cancel",
+    "description": "Download dialog: button that closes the dialog; keep it short"
+  },
+  "web.components.backups.backup_download_dialog.contains_everything": {
+    "defaultMessage": "This archive contains every server file",
+    "description": "Download dialog: warning heading saying the archive holds all server files"
+  },
+  "web.components.backups.backup_download_dialog.contains_everything_hint": {
+    "defaultMessage": "It includes configs that may hold passwords. Keep it private.",
+    "description": "Download dialog: warning text under the heading; anyone who can view backups can download them"
+  },
+  "web.components.backups.backup_download_dialog.download": {
+    "defaultMessage": "Download",
+    "description": "Download dialog: button that starts the download; keep it short"
+  },
+  "web.components.backups.backup_download_dialog.estimated_size": {
+    "defaultMessage": "Estimated size",
+    "description": "Download dialog: label before the estimated size of the archive"
+  },
+  "web.components.backups.backup_download_dialog.format": {
+    "defaultMessage": "Format",
+    "description": "Download dialog: label of the archive format choice (.tar.gz or .zip)"
+  },
+  "web.components.backups.backup_download_dialog.preparing": {
+    "defaultMessage": "Preparing download…",
+    "description": "Download dialog: heading shown after Download was pressed while the backup worker starts"
+  },
+  "web.components.backups.backup_download_dialog.preparing_failure_hint": {
+    "defaultMessage": "If the download fails, your browser's download list shows the reason.",
+    "description": "Download dialog: tells the user where to look when the download fails, because the page cannot see the error"
+  },
+  "web.components.backups.backup_download_dialog.preparing_hint": {
+    "defaultMessage": "The backup worker can take up to about 30 seconds before bytes flow.",
+    "description": "Download dialog: explains why the download has not started yet"
+  },
+  "web.components.backups.backup_download_dialog.tar_gz": {
+    "defaultMessage": ".tar.gz (default)",
+    "description": "Download dialog: option label for the .tar.gz archive format; keep the .tar.gz extension as is"
+  },
+  "web.components.backups.backup_download_dialog.tar_gz_hint": {
+    "defaultMessage": "Keeps file permissions",
+    "description": "Download dialog: hint under the .tar.gz option"
+  },
+  "web.components.backups.backup_download_dialog.title": {
+    "defaultMessage": "Download backup",
+    "description": "Download dialog: title of the dialog for downloading one backup as an archive file"
+  },
+  "web.components.backups.backup_download_dialog.zip": {
+    "defaultMessage": ".zip",
+    "description": "Download dialog: option label for the .zip archive format; keep the .zip extension as is"
+  },
+  "web.components.backups.backup_download_dialog.zip_hint": {
+    "defaultMessage": "Opens everywhere. Permissions reset on restore.",
+    "description": "Download dialog: hint under the .zip option; a zip archive loses file permissions when it is restored"
+  },
   "web.components.backups.backup_filters.all_phases": {
     "defaultMessage": "All phases",
     "description": "Backup filters: first phase dropdown option that clears the phase filter so backups in every phase show; keep it short"
@@ -2002,6 +2058,14 @@
   "web.components.backups.backup_row.restore": {
     "defaultMessage": "Restore",
     "description": "Backup row: button in each backup table row that starts restoring that backup; keep it short"
+  },
+  "web.components.backups.download_action.download": {
+    "defaultMessage": "Download",
+    "description": "Backups list: row button that opens the download dialog for one backup; keep it short"
+  },
+  "web.components.backups.download_action.snapshot_note": {
+    "defaultMessage": "Snapshot backups stay inside the storage system.",
+    "description": "Backups list: tooltip on the dash shown instead of a Download button for a volume snapshot backup"
   },
   "web.components.backups.restore_dialog.a_server_named_target_already_exists": {
     "defaultMessage": "A server named \"{target}\" already exists — choose a new name.",
@@ -2174,6 +2238,266 @@
   "web.components.backups.schedule_form.volume_snapshot_csi": {
     "defaultMessage": "Volume snapshot (CSI)",
     "description": "Schedule form: option in the backup type dropdown for a cluster volume snapshot that needs no repository; CSI is a technical term, usually left untranslated; keep it short"
+  },
+  "web.components.backups.upload_backup_dialog.bad_file": {
+    "defaultMessage": "Choose a .tar.gz or .zip file.",
+    "description": "Upload dialog: error when the chosen file is not a .tar.gz or .zip archive; keep the extensions as is"
+  },
+  "web.components.backups.upload_backup_dialog.cancel": {
+    "defaultMessage": "Cancel",
+    "description": "Upload dialog: button that closes the dialog without restoring; keep it short"
+  },
+  "web.components.backups.upload_backup_dialog.cancel_failed": {
+    "defaultMessage": "The upload could not be cancelled. Try again.",
+    "description": "Upload dialog: fallback error when deleting the unconfirmed upload fails"
+  },
+  "web.components.backups.upload_backup_dialog.cannot_check": {
+    "defaultMessage": "Gameplane cannot check the contents",
+    "description": "Upload dialog: warning heading for a plain archive"
+  },
+  "web.components.backups.upload_backup_dialog.cannot_check_archive": {
+    "defaultMessage": "Gameplane cannot check this archive",
+    "description": "Upload dialog: warning heading for a plain archive before upload"
+  },
+  "web.components.backups.upload_backup_dialog.cannot_check_archive_hint": {
+    "defaultMessage": "Only the safety checks run: paths, links, device files and size.",
+    "description": "Upload dialog: warning text for a plain archive before upload"
+  },
+  "web.components.backups.upload_backup_dialog.cannot_check_hint": {
+    "defaultMessage": "Only the safety checks ran. The archive is written onto the primary data volume as-is.",
+    "description": "Upload dialog: warning text for a plain archive"
+  },
+  "web.components.backups.upload_backup_dialog.captured_at": {
+    "defaultMessage": "Captured at",
+    "description": "Upload dialog: review row label for when the archive was captured"
+  },
+  "web.components.backups.upload_backup_dialog.checking": {
+    "defaultMessage": "Checking archive…",
+    "description": "Upload dialog: heading while the archive is checked"
+  },
+  "web.components.backups.upload_backup_dialog.checking_hint": {
+    "defaultMessage": "Checks format, completeness, paths, links, device files and size. Nothing is written to the server.",
+    "description": "Upload dialog: text while the archive is checked"
+  },
+  "web.components.backups.upload_backup_dialog.choose": {
+    "defaultMessage": "Choose a .tar.gz or .zip file",
+    "description": "Upload dialog: file picker label; keep the .tar.gz and .zip extensions as is"
+  },
+  "web.components.backups.upload_backup_dialog.choose_hint": {
+    "defaultMessage": "Gameplane backups or plain data-folder archives.",
+    "description": "Upload dialog: hint under the file picker"
+  },
+  "web.components.backups.upload_backup_dialog.close": {
+    "defaultMessage": "Close",
+    "description": "Upload dialog: button that closes the dialog after an outcome; keep it short"
+  },
+  "web.components.backups.upload_backup_dialog.confirm": {
+    "defaultMessage": "Confirm restore",
+    "description": "Upload dialog: button that confirms and starts the restore; keep it short"
+  },
+  "web.components.backups.upload_backup_dialog.confirm_failed": {
+    "defaultMessage": "The restore could not be confirmed.",
+    "description": "Upload dialog: fallback error when confirming fails"
+  },
+  "web.components.backups.upload_backup_dialog.done": {
+    "defaultMessage": "Done",
+    "description": "Upload dialog: button that closes the dialog after the restore finished; keep it short"
+  },
+  "web.components.backups.upload_backup_dialog.failed": {
+    "defaultMessage": "Restore failed",
+    "description": "Upload dialog: title of the screen shown when the restore failed after it started"
+  },
+  "web.components.backups.upload_backup_dialog.failed_heading": {
+    "defaultMessage": "The restore failed",
+    "description": "Upload dialog: fallback heading when a restore failed without a reason"
+  },
+  "web.components.backups.upload_backup_dialog.failed_hint": {
+    "defaultMessage": "The server's data may be partly replaced and the server stays stopped.",
+    "description": "Upload dialog: text under the failed heading, after the copy onto the server began"
+  },
+  "web.components.backups.upload_backup_dialog.failed_subtitle": {
+    "defaultMessage": "Data may be partly replaced",
+    "description": "Upload dialog: subtitle saying the server's data may have been partly overwritten"
+  },
+  "web.components.backups.upload_backup_dialog.finished": {
+    "defaultMessage": "Restore finished",
+    "description": "Upload dialog: title of the screen shown when the restore finished"
+  },
+  "web.components.backups.upload_backup_dialog.game": {
+    "defaultMessage": "Game",
+    "description": "Upload dialog: review row label for the game the archive is for"
+  },
+  "web.components.backups.upload_backup_dialog.game_version": {
+    "defaultMessage": "Game version",
+    "description": "Upload dialog: review row label for the game version the archive was captured with"
+  },
+  "web.components.backups.upload_backup_dialog.keeps_running": {
+    "defaultMessage": "The server keeps running while the file is uploaded and checked.",
+    "description": "Upload dialog: note during the upload that the server is not stopped"
+  },
+  "web.components.backups.upload_backup_dialog.next": {
+    "defaultMessage": "Next",
+    "description": "Upload dialog: button that uploads the chosen file and moves to the next step; keep it short"
+  },
+  "web.components.backups.upload_backup_dialog.no_storage_class": {
+    "defaultMessage": "No staging storage class is set",
+    "description": "Upload dialog: heading when the cluster has no storage class for the temporary upload volume"
+  },
+  "web.components.backups.upload_backup_dialog.no_storage_class_hint": {
+    "defaultMessage": "Set backups.uploadStagingStorageClass in the Helm values, then try again.",
+    "description": "Upload dialog: text under the no-storage-class heading; backups.uploadStagingStorageClass is a Helm value name and stays as is"
+  },
+  "web.components.backups.upload_backup_dialog.not_gameplane": {
+    "defaultMessage": "This is not a Gameplane backup",
+    "description": "Upload dialog: checkbox for an archive made outside Gameplane, which has no manifest"
+  },
+  "web.components.backups.upload_backup_dialog.not_restored": {
+    "defaultMessage": "Restore not started",
+    "description": "Upload dialog: title of the screen shown when the restore never started"
+  },
+  "web.components.backups.upload_backup_dialog.not_started": {
+    "defaultMessage": "Upload not started",
+    "description": "Upload dialog: title of an outcome screen shown when the upload was refused before it began"
+  },
+  "web.components.backups.upload_backup_dialog.nothing_changed": {
+    "defaultMessage": "Nothing was changed",
+    "description": "Upload dialog: subtitle of an outcome screen saying the server was not touched"
+  },
+  "web.components.backups.upload_backup_dialog.nothing_uploaded": {
+    "defaultMessage": "Nothing was uploaded",
+    "description": "Upload dialog: subtitle saying no data was uploaded"
+  },
+  "web.components.backups.upload_backup_dialog.primary_volume": {
+    "defaultMessage": "Primary data volume",
+    "description": "Upload dialog: review value, the server's main data volume"
+  },
+  "web.components.backups.upload_backup_dialog.progress": {
+    "defaultMessage": "{loaded} of {total} · {percent}%",
+    "description": "Upload dialog: upload progress; {loaded} and {total} are sizes with units and {percent} is a whole number"
+  },
+  "web.components.backups.upload_backup_dialog.refused": {
+    "defaultMessage": "Upload refused",
+    "description": "Upload dialog: title of the screen shown when the archive failed its checks"
+  },
+  "web.components.backups.upload_backup_dialog.refused_heading": {
+    "defaultMessage": "Refused: {reason}",
+    "description": "Upload dialog: heading with the reason the archive was refused; {reason} is the checker's message"
+  },
+  "web.components.backups.upload_backup_dialog.refused_hint": {
+    "defaultMessage": "Nothing was written to {server} and the server was not stopped.",
+    "description": "Upload dialog: text under the refused heading; {server} is the server name"
+  },
+  "web.components.backups.upload_backup_dialog.refused_unknown": {
+    "defaultMessage": "the archive failed its checks",
+    "description": "Upload dialog: fallback reason when the checker gave none"
+  },
+  "web.components.backups.upload_backup_dialog.replaces": {
+    "defaultMessage": "This replaces all data on {server}",
+    "description": "Upload dialog: danger heading before confirming; {server} is the server name"
+  },
+  "web.components.backups.upload_backup_dialog.replaces_partial": {
+    "defaultMessage": "If the copy fails partway, data may be partly replaced and the server stays stopped.",
+    "description": "Upload dialog: second line of the danger note; the risk of a failed copy"
+  },
+  "web.components.backups.upload_backup_dialog.replaces_stop": {
+    "defaultMessage": "The server stops during the restore.",
+    "description": "Upload dialog: first line of the danger note"
+  },
+  "web.components.backups.upload_backup_dialog.restore_running": {
+    "defaultMessage": "Restore running",
+    "description": "Upload dialog: subtitle while the restore runs"
+  },
+  "web.components.backups.upload_backup_dialog.restored": {
+    "defaultMessage": "{server} restored",
+    "description": "Upload dialog: heading when the restore finished; {server} is the server name"
+  },
+  "web.components.backups.upload_backup_dialog.restored_hint": {
+    "defaultMessage": "Data was replaced from {file}. The server is running again.",
+    "description": "Upload dialog: text under the restored heading; {file} is the uploaded file name"
+  },
+  "web.components.backups.upload_backup_dialog.restores_onto": {
+    "defaultMessage": "Restores onto",
+    "description": "Upload dialog: review row label for where the archive is written"
+  },
+  "web.components.backups.upload_backup_dialog.restoring": {
+    "defaultMessage": "Restoring {server}",
+    "description": "Upload dialog: title while the restore runs; {server} is the server name"
+  },
+  "web.components.backups.upload_backup_dialog.restoring_hint": {
+    "defaultMessage": "The server is stopped. Keep this window open until the restore finishes.",
+    "description": "Upload dialog: text while the restore runs"
+  },
+  "web.components.backups.upload_backup_dialog.result": {
+    "defaultMessage": "Result",
+    "description": "Upload dialog: subtitle of the finished screen"
+  },
+  "web.components.backups.upload_backup_dialog.select_game": {
+    "defaultMessage": "Select a game…",
+    "description": "Upload dialog: placeholder of the game dropdown"
+  },
+  "web.components.backups.upload_backup_dialog.source": {
+    "defaultMessage": "Source",
+    "description": "Upload dialog: review row label for where the archive came from"
+  },
+  "web.components.backups.upload_backup_dialog.source_plain": {
+    "defaultMessage": "Plain archive, no Gameplane manifest",
+    "description": "Upload dialog: review value for an archive without a Gameplane manifest"
+  },
+  "web.components.backups.upload_backup_dialog.source_server": {
+    "defaultMessage": "Source server",
+    "description": "Upload dialog: review row label for the server the archive was taken from"
+  },
+  "web.components.backups.upload_backup_dialog.status_failed": {
+    "defaultMessage": "The restore status could not be read.",
+    "description": "Upload dialog: fallback heading when the restore cannot be read after the upload"
+  },
+  "web.components.backups.upload_backup_dialog.step": {
+    "defaultMessage": "Step {n} of 4 · {label}",
+    "description": "Upload dialog: subtitle naming the current step; {n} is the step number from 1 to 4 and {label} its name (File, Upload, Check or Review)"
+  },
+  "web.components.backups.upload_backup_dialog.step_check": {
+    "defaultMessage": "Check",
+    "description": "Upload dialog: name of step 3, checking the archive"
+  },
+  "web.components.backups.upload_backup_dialog.step_file": {
+    "defaultMessage": "File",
+    "description": "Upload dialog: name of step 1, choosing the archive file"
+  },
+  "web.components.backups.upload_backup_dialog.step_review": {
+    "defaultMessage": "Review",
+    "description": "Upload dialog: name of step 4, reviewing the checked archive"
+  },
+  "web.components.backups.upload_backup_dialog.step_upload": {
+    "defaultMessage": "Upload",
+    "description": "Upload dialog: name of step 2, sending the file"
+  },
+  "web.components.backups.upload_backup_dialog.timed_out": {
+    "defaultMessage": "Confirmation timed out",
+    "description": "Upload dialog: subtitle when the user did not confirm in time"
+  },
+  "web.components.backups.upload_backup_dialog.timed_out_hint": {
+    "defaultMessage": "Nothing was restored. The partial upload was deleted and the server is running as before.",
+    "description": "Upload dialog: text under the timed-out heading"
+  },
+  "web.components.backups.upload_backup_dialog.title": {
+    "defaultMessage": "Upload backup",
+    "description": "Upload dialog: title of the dialog for restoring a server from an uploaded archive file"
+  },
+  "web.components.backups.upload_backup_dialog.too_large": {
+    "defaultMessage": "File is larger than the upload limit",
+    "description": "Upload dialog: heading when the chosen file is bigger than the configured upload limit"
+  },
+  "web.components.backups.upload_backup_dialog.too_large_hint": {
+    "defaultMessage": "This file is {size}. Ask an administrator to raise backups.maxUploadSize in the Helm values, or use a smaller archive.",
+    "description": "Upload dialog: text under the too-large heading; {size} is the file size including its unit; backups.maxUploadSize is a Helm value name and stays as is"
+  },
+  "web.components.backups.upload_backup_dialog.upload_failed": {
+    "defaultMessage": "The upload failed. Try again.",
+    "description": "Upload dialog: fallback error when the upload fails"
+  },
+  "web.components.backups.upload_backup_dialog.volumes": {
+    "defaultMessage": "Volumes",
+    "description": "Upload dialog: review row label for the volumes inside the archive"
   },
   "web.components.capture_widget.actions": {
     "defaultMessage": "Actions",
@@ -5307,6 +5631,10 @@
     "defaultMessage": "Asleep",
     "description": "Phase badge: label for a suspended server that is asleep (derived display state)"
   },
+  "web.components.ui.phase_chip.awaiting_confirmation": {
+    "defaultMessage": "Awaiting confirmation",
+    "description": "Phase badge: label for an uploaded restore that was checked and waits for the user to confirm it"
+  },
   "web.components.ui.phase_chip.awaiting_snapshot": {
     "defaultMessage": "Awaiting snapshot ID",
     "description": "Phase badge: label for a backup whose copy finished but whose snapshot ID is not recorded yet, so it cannot be restored yet (derived display state)"
@@ -5318,6 +5646,10 @@
   "web.components.ui.phase_chip.pending": {
     "defaultMessage": "Pending",
     "description": "Phase badge: label for a resource that is waiting to start"
+  },
+  "web.components.ui.phase_chip.receiving": {
+    "defaultMessage": "Receiving",
+    "description": "Phase badge: label for a restore that is receiving an uploaded archive"
   },
   "web.components.ui.phase_chip.resuming": {
     "defaultMessage": "Resuming",
@@ -9874,6 +10206,10 @@
   "web.routes.tabs.backups.unavailable": {
     "defaultMessage": "Unavailable",
     "description": "Backups: stat value shown when the backup or schedule data could not be loaded"
+  },
+  "web.routes.tabs.backups.upload_backup": {
+    "defaultMessage": "Upload backup",
+    "description": "Backups tab: button that opens the dialog for restoring this server from an uploaded .tar.gz or .zip archive; keep it short"
   },
   "web.routes.tabs.console.loading_console": {
     "defaultMessage": "Loading console…",
