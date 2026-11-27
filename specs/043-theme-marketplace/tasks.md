@@ -161,7 +161,7 @@
 
 - [ ] T055 New bucket `themes` in `test/e2e/buckets.sh` and `test/e2e/api_themes_e2e_test.go` (`t.Parallel()`, unique names, `ociPushMu` around pushes, ≤ 7 logins): push a signed and an unsigned theme to the Kind registry, add a source, catalog lists both with the unsigned one flagged after enabling verify, user A installs and selects, user B unaffected, update, disable source (installed copy keeps working), remove (fallback to Pink).
 - [ ] T056 [P] Standalone case in `test/e2e/standalone_panel_e2e_test.go` (new test function): add a local or OCI theme source and install a theme with no operator (OD-4).
-- [X] T057 [P] Update `api/specs.md` (themes service, routes, indexer, tables) and `web/specs.md` (catalog, preview, installed render order, safe mode).
+- [X] T057 [P] Update `api/specs.md` (themes service, routes, indexer, tables) and `web/specs.md` (catalog, preview, installed render order, safe mode). Done: `api/specs.md` "Theme marketplace (spec 043)", `web/specs.md` "Theme marketplace (spec 043)".
 - [ ] T058 [P] `changelog/unreleased/<PR>-theme-marketplace.md` per `changelog/unreleased/README.md` (feature, new Helm value `themes.officialSource.enabled`, new permission `themes:manage`).
 - [ ] T059 Run `quickstart.md` sections 1–6 on a dev cluster and a standalone panel (valgul's manual walk); record results in `specs/043-theme-marketplace/quickstart-results.md`.
 
