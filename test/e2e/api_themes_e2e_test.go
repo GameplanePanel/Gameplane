@@ -82,6 +82,8 @@ func themeCall(t *testing.T, cli *APIClient, method, path string, body any, want
 	if err != nil {
 		t.Fatalf("%s %s: %v", method, path, err)
 	}
+	// DoContext has read and closed the body already; this satisfies bodyclose.
+	_ = resp.Body.Close()
 	if resp.StatusCode != want {
 		t.Fatalf("%s %s: status=%d want=%d body=%s", method, path, resp.StatusCode, want, string(data))
 	}
