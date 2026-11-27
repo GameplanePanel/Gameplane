@@ -89,9 +89,8 @@ dns/                            # SUBMODULE GameplanePanel/dns (own go.mod, not 
 
 api/internal/handlers/dns_zones.go        # admin zone CRUD, test, hosted records, import
 api/internal/handlers/dns_zones_envtest_test.go
-web/src/routes/settings.dns.tsx           # admin zones page (after design)
-web/src/routes/settings.dns.$zone.tsx     # zone detail + hosted records
-web/src/components/server/DnsRecordsCard.tsx
+web/src/routes/AdminSettings.tsx          # + DNS zones section (after design)
+web/src/components/dns/                   # ZoneList, AddZoneDialog, ZoneDetail, hosted records, DnsRecordsCard
 charts/gameplane/templates/dns.yaml       # hub, managers, RBAC, NetworkPolicies, mTLS
 modules (GameplanePanel/module): minecraft-java, minecraft-proxy template.yaml + srv
 gp-module/                                # validate srv declarations
