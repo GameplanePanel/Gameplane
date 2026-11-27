@@ -75,7 +75,10 @@ export function InstalledThemesCard({ installed, busy, onUpdate, onRemove }: Ins
                 <div className="font-mono text-[11px] text-muted">
                   {theme.sourceRemoved
                     ? formatThemeMessage(intl, M.sourceRemovedCaption, { version: String(theme.version) })
-                    : `v${theme.version} · ${theme.modes.map((m) => (m === "dark" ? "Dark" : "Light")).join(", ")}`}
+                    : formatThemeMessage(intl, M.versionModes, {
+                        version: String(theme.version),
+                        modes: theme.modes.map((m) => intl.formatMessage(m === "dark" ? M.modeDark : M.modeLight)).join(", "),
+                      })}
                 </div>
               </div>
               <div className="flex items-center gap-2">

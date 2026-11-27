@@ -214,7 +214,7 @@ function ThemeSourceForm({ onOpenChange, source, busy, error, onSubmit }: Omit<T
               <p className="text-xs text-muted">{label(editing ? M.editDescription : M.addDescription)}</p>
             </ModalHeader>
             <ModalBody className="gap-4 max-h-[80vh] overflow-y-auto">
-              {!editing && field("ts-name", M.fieldName, <Input id="ts-name" value={f.name} onChange={(e) => set({ name: e.target.value.toLowerCase() })} placeholder="community" />, M.hintName)}
+              {!editing && field("ts-name", M.fieldName, <Input id="ts-name" value={f.name} onChange={(e) => set({ name: e.target.value.toLowerCase() })} placeholder={label(M.phName)} />, M.hintName)}
 
               <div className="flex flex-col gap-1.5">
                 <Select
@@ -241,9 +241,9 @@ function ThemeSourceForm({ onOpenChange, source, busy, error, onSubmit }: Omit<T
 
               {f.type === "oci" && (
                 <>
-                  {field("ts-oci-url", M.fieldRegistryUrl, <Input id="ts-oci-url" value={f.ociUrl} onChange={(e) => set({ ociUrl: e.target.value })} placeholder="ghcr.io/gameplane/themes" />)}
-                  {field("ts-oci-themes", M.fieldThemes, <Input id="ts-oci-themes" value={f.ociThemes} onChange={(e) => set({ ociThemes: e.target.value })} placeholder="aurora-night, paper-light" />, M.hintThemes)}
-                  {field("ts-secret", M.fieldPullSecret, <Input id="ts-secret" value={f.secretName} onChange={(e) => set({ secretName: e.target.value })} placeholder="registry-creds" />, M.hintPullSecret)}
+                  {field("ts-oci-url", M.fieldRegistryUrl, <Input id="ts-oci-url" value={f.ociUrl} onChange={(e) => set({ ociUrl: e.target.value })} placeholder={label(M.phRegistryUrl)} />)}
+                  {field("ts-oci-themes", M.fieldThemes, <Input id="ts-oci-themes" value={f.ociThemes} onChange={(e) => set({ ociThemes: e.target.value })} placeholder={label(M.phThemes)} />, M.hintThemes)}
+                  {field("ts-secret", M.fieldPullSecret, <Input id="ts-secret" value={f.secretName} onChange={(e) => set({ secretName: e.target.value })} placeholder={label(M.phPullSecret)} />, M.hintPullSecret)}
                   <Switch isSelected={f.ociInsecure} onChange={(v) => set({ ociInsecure: v })} aria-label={label(M.fieldInsecure)}>
                     <Switch.Content>
                       <span className="text-xs text-muted">{label(M.fieldInsecure)}</span>
@@ -272,8 +272,8 @@ function ThemeSourceForm({ onOpenChange, source, busy, error, onSubmit }: Omit<T
                   {f.verify === "key" && field("ts-public-key", M.fieldPublicKey, <TextArea id="ts-public-key" value={f.publicKey} onChange={(e) => set({ publicKey: e.target.value })} rows={4} />, M.hintPublicKey)}
                   {f.verify === "keyless" && (
                     <>
-                      {field("ts-issuer", M.fieldIssuer, <Input id="ts-issuer" value={f.issuer} onChange={(e) => set({ issuer: e.target.value })} placeholder="https://token.actions.githubusercontent.com" />, M.hintIssuer)}
-                      {field("ts-identity", M.fieldIdentity, <Input id="ts-identity" value={f.identity} onChange={(e) => set({ identity: e.target.value })} placeholder="github.com/gameplane/themes" />, M.hintIdentity)}
+                      {field("ts-issuer", M.fieldIssuer, <Input id="ts-issuer" value={f.issuer} onChange={(e) => set({ issuer: e.target.value })} placeholder={label(M.phIssuer)} />, M.hintIssuer)}
+                      {field("ts-identity", M.fieldIdentity, <Input id="ts-identity" value={f.identity} onChange={(e) => set({ identity: e.target.value })} placeholder={label(M.phIdentity)} />, M.hintIdentity)}
                     </>
                   )}
                 </>
@@ -281,24 +281,24 @@ function ThemeSourceForm({ onOpenChange, source, busy, error, onSubmit }: Omit<T
 
               {f.type === "git" && (
                 <>
-                  {field("ts-git-url", M.fieldGitUrl, <Input id="ts-git-url" value={f.gitUrl} onChange={(e) => set({ gitUrl: e.target.value })} placeholder="github.com/community/gp-themes" />)}
-                  {field("ts-git-ref", M.fieldRef, <Input id="ts-git-ref" value={f.gitRef} onChange={(e) => set({ gitRef: e.target.value })} placeholder="main" />)}
-                  {field("ts-git-path", M.fieldPath, <Input id="ts-git-path" value={f.gitPath} onChange={(e) => set({ gitPath: e.target.value })} placeholder="themes" />)}
-                  {field("ts-secret", M.fieldCredentialsSecret, <Input id="ts-secret" value={f.secretName} onChange={(e) => set({ secretName: e.target.value })} placeholder="gh-creds" />, M.hintGitSecret)}
+                  {field("ts-git-url", M.fieldGitUrl, <Input id="ts-git-url" value={f.gitUrl} onChange={(e) => set({ gitUrl: e.target.value })} placeholder={label(M.phGitUrl)} />)}
+                  {field("ts-git-ref", M.fieldRef, <Input id="ts-git-ref" value={f.gitRef} onChange={(e) => set({ gitRef: e.target.value })} placeholder={label(M.phGitRef)} />)}
+                  {field("ts-git-path", M.fieldPath, <Input id="ts-git-path" value={f.gitPath} onChange={(e) => set({ gitPath: e.target.value })} placeholder={label(M.phGitPath)} />)}
+                  {field("ts-secret", M.fieldCredentialsSecret, <Input id="ts-secret" value={f.secretName} onChange={(e) => set({ secretName: e.target.value })} placeholder={label(M.phGitSecret)} />, M.hintGitSecret)}
                 </>
               )}
 
               {f.type === "http" && (
                 <>
-                  {field("ts-http-url", M.fieldHttpUrl, <Input id="ts-http-url" value={f.httpUrl} onChange={(e) => set({ httpUrl: e.target.value })} placeholder="themes.example.org/index.json" />)}
-                  {field("ts-secret", M.fieldCredentialsSecret, <Input id="ts-secret" value={f.secretName} onChange={(e) => set({ secretName: e.target.value })} placeholder="archive-creds" />, M.hintHttpSecret)}
+                  {field("ts-http-url", M.fieldHttpUrl, <Input id="ts-http-url" value={f.httpUrl} onChange={(e) => set({ httpUrl: e.target.value })} placeholder={label(M.phHttpUrl)} />)}
+                  {field("ts-secret", M.fieldCredentialsSecret, <Input id="ts-secret" value={f.secretName} onChange={(e) => set({ secretName: e.target.value })} placeholder={label(M.phHttpSecret)} />, M.hintHttpSecret)}
                 </>
               )}
 
-              {f.type === "local" && field("ts-local-path", M.fieldLocalPath, <Input id="ts-local-path" value={f.localPath} onChange={(e) => set({ localPath: e.target.value })} placeholder="/srv/gameplane/themes" />)}
+              {f.type === "local" && field("ts-local-path", M.fieldLocalPath, <Input id="ts-local-path" value={f.localPath} onChange={(e) => set({ localPath: e.target.value })} placeholder={label(M.phLocalPath)} />)}
 
-              {field("ts-allow", M.fieldAllow, <Input id="ts-allow" value={f.allow} onChange={(e) => set({ allow: e.target.value })} placeholder="aurora-*" />, M.hintAllow)}
-              {field("ts-interval", M.fieldInterval, <Input id="ts-interval" value={f.interval} onChange={(e) => set({ interval: e.target.value })} placeholder="1h" />, touched && parseInterval(f.interval) === null ? M.intervalInvalid : M.hintInterval)}
+              {field("ts-allow", M.fieldAllow, <Input id="ts-allow" value={f.allow} onChange={(e) => set({ allow: e.target.value })} placeholder={label(M.phAllow)} />, M.hintAllow)}
+              {field("ts-interval", M.fieldInterval, <Input id="ts-interval" value={f.interval} onChange={(e) => set({ interval: e.target.value })} placeholder={label(M.phInterval)} />, touched && parseInterval(f.interval) === null ? M.intervalInvalid : M.hintInterval)}
 
               {touched && !filled && <p role="alert" className="text-xs text-danger">{label(M.fieldRequired)}</p>}
               {error && <p role="alert" className="text-xs text-danger">{error}</p>}
