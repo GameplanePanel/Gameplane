@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@heroui/react";
 import type { MessageDescriptor } from "react-intl";
 import { Eye } from "lucide-react";
 import { APIError } from "@/lib/api";
@@ -85,27 +86,29 @@ export function ThemePreviewBanner() {
         ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <button
-          type="button"
-          disabled={keep.isPending}
-          onClick={() => {
+        <Button
+          variant="primary"
+          size="sm"
+          isDisabled={keep.isPending}
+          onPress={() => {
             setError(null);
             keep.mutate(preview);
           }}
-          className="rounded-full bg-accent px-3.5 py-1.5 text-sm font-medium text-accent-foreground disabled:opacity-60"
+          className="rounded-full px-3.5"
         >
           {intl.formatMessage(themePreviewBannerMessages.keep)}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onPress={() => {
             setError(null);
             exitThemePreview();
           }}
-          className="rounded-full border border-border px-3.5 py-1.5 text-sm font-medium text-foreground"
+          className="rounded-full px-3.5"
         >
           {intl.formatMessage(themePreviewBannerMessages.exit)}
-        </button>
+        </Button>
       </div>
     </div>
   );
