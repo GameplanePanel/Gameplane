@@ -722,8 +722,11 @@ func Middleware(a *Auditor) func(http.Handler) http.Handler {
 			}
 			// Requests the router did not route (404/405 from NotFound or
 			// MethodNotAllowed, at the root or in a mounted subrouter) carry
-			// attacker-chosen paths and no business action; skip them so an
-			// unauthenticated flood cannot fill the audit table.
+			// attacker-chosen paths and no business action; skip them so a
+			// flood of unknown paths cannot fill the audit table. An
+			// unauthenticated request under an authenticated group is
+			// answered 401 by Authenticate before routing and is still
+			// recorded as an anonymous attempt.
 			if unrouted.Load() {
 				return
 			}

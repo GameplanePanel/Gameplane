@@ -77,6 +77,11 @@ fi
 # Keep the profile (server_config.sii, logs, packages) on the volume: the
 # game reads it from ~/.local/share/Euro Truck Simulator 2.
 PROFILE_DIR="${DATA}/profile"
+# Volumes from older templates keep the profile at the volume root: keep
+# using it there so an existing server_config.sii is not ignored.
+if [ -f "${DATA}/server_config.sii" ] && [ ! -f "${PROFILE_DIR}/server_config.sii" ]; then
+    PROFILE_DIR="$DATA"
+fi
 CONFIG_DIR="${HOME}/.local/share/Euro Truck Simulator 2"
 mkdir -p "$PROFILE_DIR" "$(dirname "$CONFIG_DIR")"
 case "$(realpath -m "$DATA")/" in

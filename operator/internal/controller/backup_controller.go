@@ -198,6 +198,12 @@ func (r *BackupReconciler) retrySnapshotScrape(
 		}
 		return r.failUnrestorable(ctx, b)
 	}
+	// A Job at this name that another object controls (a Backup literally
+	// named like this one's shortened Job name) is not ours: mirroring it
+	// would record the other Backup's status and snapshot id here.
+	if owner := metav1.GetControllerOf(&job); owner != nil && owner.UID != b.UID {
+		return r.failUnrestorable(ctx, b)
+	}
 	return r.mirrorJobStatus(ctx, b, &job)
 }
 
