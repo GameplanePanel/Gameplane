@@ -180,16 +180,24 @@ func copyVolume(src, dst string) error {
 		return err
 	}
 	// Deepest directories first, so a read-only parent is fixed after its children.
+	// The mount point itself is often owned by root rather than the worker, so a
+	// refused mode or time change there keeps the mount as it is.
 	for i := len(dirs) - 1; i >= 0; i-- {
 		dt := dirs[i]
-		if err := dstRoot.Chmod(dt.path, dt.info.Mode().Perm()); err != nil {
+		if err := dstRoot.Chmod(dt.path, dt.info.Mode().Perm()); err != nil && !mountPointRefused(dt.path, err) {
 			return fmt.Errorf("set directory mode: %w", err)
 		}
-		if err := dstRoot.Chtimes(dt.path, dt.info.ModTime(), dt.info.ModTime()); err != nil {
+		if err := dstRoot.Chtimes(dt.path, dt.info.ModTime(), dt.info.ModTime()); err != nil && !mountPointRefused(dt.path, err) {
 			return fmt.Errorf("set directory times: %w", err)
 		}
 	}
 	return nil
+}
+
+// mountPointRefused reports whether err is a permission refusal on the target
+// mount point (".").
+func mountPointRefused(path string, err error) bool {
+	return path == "." && errors.Is(err, fs.ErrPermission)
 }
 
 // clearDir removes every entry inside dir but keeps dir itself, the mount point.
