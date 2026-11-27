@@ -1,10 +1,9 @@
 {
   "file": "1578494357-630",
-  "id": "1:59097",
   "name": "Screen/Dialog/Upload Backup — Restoring (Light)",
   "type": "FRAME",
-  "x": 21240,
-  "y": 37959,
+  "x": 22880,
+  "y": 40233,
   "width": 760,
   "height": 200,
   "fills": [{"type": "SOLID", "color": "#FFF7FB"}],

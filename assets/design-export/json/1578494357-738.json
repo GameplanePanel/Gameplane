@@ -1,10 +1,9 @@
 {
   "file": "1578494357-738",
-  "id": "1:59101",
   "name": "Screen/Dialog/Upload Backup — Refused (Light)",
   "type": "FRAME",
-  "x": 25080,
-  "y": 37959,
+  "x": 26720,
+  "y": 40233,
   "width": 760,
   "height": 260,
   "fills": [{"type": "SOLID", "color": "#FFF7FB"}],

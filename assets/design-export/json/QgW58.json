@@ -498,7 +498,7 @@
                               "componentId": "1:633",
                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                               "strokeWeight": 1,
-                              "cornerRadius": 24,
+                              "cornerRadius": 12,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 5,
@@ -508,9 +508,12 @@
                                 "sizing": ["HUG", "FIXED"]
                               },
                               "variables": {
-                                "cornerRadius": "radius/3xl",
                                 "paddingRight": "spacing/3",
                                 "paddingLeft": "spacing/3",
+                                "topLeftRadius": "radius/xl",
+                                "topRightRadius": "radius/xl",
+                                "bottomLeftRadius": "radius/xl",
+                                "bottomRightRadius": "radius/xl",
                                 "strokes/0/color": "border-2"
                               },
                               "texts": ["Add provider"]
@@ -1449,7 +1452,7 @@
                                           "componentId": "1:633",
                                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                           "strokeWeight": 1,
-                                          "cornerRadius": 24,
+                                          "cornerRadius": 12,
                                           "layout": {
                                             "mode": "HORIZONTAL",
                                             "gap": 5,
@@ -1459,9 +1462,12 @@
                                             "sizing": ["HUG", "FIXED"]
                                           },
                                           "variables": {
-                                            "cornerRadius": "radius/3xl",
                                             "paddingRight": "spacing/3",
                                             "paddingLeft": "spacing/3",
+                                            "topLeftRadius": "radius/xl",
+                                            "topRightRadius": "radius/xl",
+                                            "bottomLeftRadius": "radius/xl",
+                                            "bottomRightRadius": "radius/xl",
                                             "strokes/0/color": "border-2"
                                           },
                                           "texts": ["Reset to Helm default"]
@@ -1723,7 +1729,7 @@
                                           "componentId": "1:633",
                                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                           "strokeWeight": 1,
-                                          "cornerRadius": 24,
+                                          "cornerRadius": 12,
                                           "layout": {
                                             "mode": "HORIZONTAL",
                                             "gap": 5,
@@ -1733,9 +1739,12 @@
                                             "sizing": ["HUG", "FIXED"]
                                           },
                                           "variables": {
-                                            "cornerRadius": "radius/3xl",
                                             "paddingRight": "spacing/3",
                                             "paddingLeft": "spacing/3",
+                                            "topLeftRadius": "radius/xl",
+                                            "topRightRadius": "radius/xl",
+                                            "bottomLeftRadius": "radius/xl",
+                                            "bottomRightRadius": "radius/xl",
                                             "strokes/0/color": "border-2"
                                           },
                                           "texts": ["Add"]
@@ -2054,7 +2063,7 @@
                                           "componentId": "1:633",
                                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                           "strokeWeight": 1,
-                                          "cornerRadius": 24,
+                                          "cornerRadius": 12,
                                           "layout": {
                                             "mode": "HORIZONTAL",
                                             "gap": 5,
@@ -2064,9 +2073,12 @@
                                             "sizing": ["HUG", "FIXED"]
                                           },
                                           "variables": {
-                                            "cornerRadius": "radius/3xl",
                                             "paddingRight": "spacing/3",
                                             "paddingLeft": "spacing/3",
+                                            "topLeftRadius": "radius/xl",
+                                            "topRightRadius": "radius/xl",
+                                            "bottomLeftRadius": "radius/xl",
+                                            "bottomRightRadius": "radius/xl",
                                             "strokes/0/color": "border-2"
                                           },
                                           "texts": ["Add"]
@@ -2223,7 +2235,7 @@
                                           "componentId": "1:633",
                                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                           "strokeWeight": 1,
-                                          "cornerRadius": 24,
+                                          "cornerRadius": 12,
                                           "layout": {
                                             "mode": "HORIZONTAL",
                                             "gap": 5,
@@ -2233,9 +2245,12 @@
                                             "sizing": ["HUG", "FIXED"]
                                           },
                                           "variables": {
-                                            "cornerRadius": "radius/3xl",
                                             "paddingRight": "spacing/3",
                                             "paddingLeft": "spacing/3",
+                                            "topLeftRadius": "radius/xl",
+                                            "topRightRadius": "radius/xl",
+                                            "bottomLeftRadius": "radius/xl",
+                                            "bottomRightRadius": "radius/xl",
                                             "strokes/0/color": "border-2"
                                           },
                                           "texts": ["Reset to Helm default"]
@@ -2394,7 +2409,7 @@
                                           "componentId": "1:633",
                                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                           "strokeWeight": 1,
-                                          "cornerRadius": 24,
+                                          "cornerRadius": 12,
                                           "layout": {
                                             "mode": "HORIZONTAL",
                                             "gap": 5,
@@ -2404,9 +2419,12 @@
                                             "sizing": ["HUG", "FIXED"]
                                           },
                                           "variables": {
-                                            "cornerRadius": "radius/3xl",
                                             "paddingRight": "spacing/3",
                                             "paddingLeft": "spacing/3",
+                                            "topLeftRadius": "radius/xl",
+                                            "topRightRadius": "radius/xl",
+                                            "bottomLeftRadius": "radius/xl",
+                                            "bottomRightRadius": "radius/xl",
                                             "strokes/0/color": "border-2"
                                           },
                                           "texts": ["Add"]
@@ -2520,7 +2538,7 @@
                                   "componentId": "1:1794",
                                   "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                   "strokeWeight": 1,
-                                  "cornerRadius": 24,
+                                  "cornerRadius": 12,
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 8,
@@ -2531,9 +2549,12 @@
                                   },
                                   "variables": {
                                     "itemSpacing": "spacing/2",
-                                    "cornerRadius": "radius/3xl",
                                     "paddingRight": "spacing/4",
                                     "paddingLeft": "spacing/4",
+                                    "topLeftRadius": "radius/xl",
+                                    "topRightRadius": "radius/xl",
+                                    "bottomLeftRadius": "radius/xl",
+                                    "bottomRightRadius": "radius/xl",
                                     "strokes/0/color": "border-2"
                                   },
                                   "texts": ["Save role mappings"]

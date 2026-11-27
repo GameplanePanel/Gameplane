@@ -1,10 +1,9 @@
 {
   "file": "1578494357-460",
-  "id": "1:59093",
   "name": "Screen/Dialog/Upload Backup — Review (Gameplane archive, zip) (Light)",
   "type": "FRAME",
-  "x": 17400,
-  "y": 37959,
+  "x": 19040,
+  "y": 40233,
   "width": 760,
   "height": 560,
   "fills": [{"type": "SOLID", "color": "#FFF7FB"}],

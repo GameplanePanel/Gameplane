@@ -64,6 +64,7 @@ AREA_BY_DIR = {
     "telemetry-receiver": "area: optional-components",
     "telemetryschema": "area: shared",
     "themepkg": "area: shared",
+    "bundlefetch": "area: shared",
     "i18n": "area: shared",
 }
 

@@ -348,7 +348,7 @@ function ServerDetailView({ lookupTarget, file }: { lookupTarget: ResourceTarget
             onSelectionChange={(key) => selectTab(key as TabKey)}
             className="w-full"
           >
-            <Tabs.List aria-label={intl.formatMessage({ id: "web.routes.server_detail.server_detail_tabs", defaultMessage: "Server detail tabs", description: "Server detail: accessible label of the row of server tabs, read by screen readers; not shown as text" })} className="flex w-full gap-1 overflow-x-auto">
+            <Tabs.List aria-label={intl.formatMessage({ id: "web.routes.server_detail.server_detail_tabs", defaultMessage: "Server detail tabs", description: "Server detail: accessible label of the row of server tabs, read by screen readers; not shown as text" })} className="server-detail-tabs flex w-full gap-1 overflow-x-auto">
               {visibleTabs.map((t) => (
                 <Tab key={t.key} id={t.key}>
                   {intl.formatMessage(t.label)}

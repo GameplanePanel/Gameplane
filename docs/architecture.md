@@ -431,7 +431,7 @@ can be loaded from anywhere:
   hand).
 - The **ModuleSource controller** indexes each source through a
   `modsrc.Fetcher` (operator/internal/modsrc — one implementation per
-  type over a shared fs scanner) and caches the catalog into
+  type; the fetch code lives in `bundlefetch/source`, spec 043) and caches the catalog into
   `status.modules`, each entry carrying a content digest (OCI manifest
   digest, git commit, or sha256 over the module dir).
 - A **Module** CR installs one entry: the controller pulls the bundle

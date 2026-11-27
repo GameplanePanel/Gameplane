@@ -1,10 +1,9 @@
 {
   "file": "1578494357-145",
-  "id": "1:59084",
   "name": "Screen/Dialog/Upload Backup — Pick file",
   "type": "FRAME",
-  "x": 8760,
-  "y": 37959,
+  "x": 10400,
+  "y": 40233,
   "width": 760,
   "height": 360,
   "fills": [{"type": "SOLID", "color": "#1C1A20"}],

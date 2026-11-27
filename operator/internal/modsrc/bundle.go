@@ -10,8 +10,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/GameplanePanel/gameplane/operator/internal/oci"
 	"sigs.k8s.io/yaml"
+
+	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
 )
 
 // Canonical file names inside a module bundle, regardless of transport:

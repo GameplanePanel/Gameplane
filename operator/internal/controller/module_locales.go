@@ -21,11 +21,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/yaml"
 
+	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
 	"github.com/GameplanePanel/gameplane/i18n/modlocale"
 	"github.com/GameplanePanel/gameplane/i18n/pack"
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 	"github.com/GameplanePanel/gameplane/operator/internal/modsrc"
-	"github.com/GameplanePanel/gameplane/operator/internal/oci"
 )
 
 const (

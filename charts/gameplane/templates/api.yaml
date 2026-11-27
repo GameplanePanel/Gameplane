@@ -458,6 +458,23 @@ spec:
             - name: GAMEPLANE_CLUSTER_OPS
               value: "true"
             {{- end }}
+            {{- /* Theme marketplace (spec 043): the official source is seeded and reconciled on every start unless themes.officialSource.enabled is false. */}}
+            {{- $themes := .Values.themes | default dict }}
+            {{- $official := $themes.officialSource | default dict }}
+            {{- $officialVerify := $official.verify | default dict }}
+            {{- if and $officialVerify.enabled (not $officialVerify.cosignPublicKey) }}
+            {{- fail "themes.officialSource.verify.enabled is true but themes.officialSource.verify.cosignPublicKey is empty — provide the signing public key (PEM)" }}
+            {{- end }}
+            - name: GAMEPLANE_THEMES_OFFICIAL_SOURCE
+              value: {{ ne (toString $official.enabled) "false" | ternary "true" "false" | quote }}
+            - name: GAMEPLANE_THEMES_OFFICIAL_URL
+              value: {{ $official.url | default "" | quote }}
+            - name: GAMEPLANE_THEMES_OFFICIAL_THEMES
+              value: {{ $official.themes | default list | join "," | quote }}
+            - name: GAMEPLANE_THEMES_OFFICIAL_VERIFY
+              value: {{ ternary "true" "false" (eq (toString $officialVerify.enabled) "true") | quote }}
+            - name: GAMEPLANE_THEMES_OFFICIAL_COSIGN_KEY
+              value: {{ $officialVerify.cosignPublicKey | default "" | quote }}
             {{- /* Local SFTP endpoint (spec 040): the API seeds this service token so the in-cluster pod can log in. */}}
             {{- if and (.Values.sftp | default dict).enabled (not (.Values.sftp | default dict).apiURL) }}
             - name: GAMEPLANE_SFTP_LOCAL_SERVICE_TOKEN

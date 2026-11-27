@@ -2,18 +2,16 @@ package modsrc
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"io"
 	"sort"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
+	"github.com/GameplanePanel/gameplane/bundlefetch/source"
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
-	"github.com/GameplanePanel/gameplane/operator/internal/oci"
 )
 
 // newUpload builds a Fetcher over uploaded module bundles: ConfigMaps
@@ -154,18 +152,4 @@ func uploadBundleFiles(files map[string][]byte) map[string][]byte {
 
 // digestFiles is the map-shaped sibling of contentDigest: a
 // deterministic hash over sorted filename+content pairs.
-func digestFiles(files map[string][]byte) string {
-	names := make([]string, 0, len(files))
-	for name := range files {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	h := sha256.New()
-	for _, name := range names {
-		_, _ = io.WriteString(h, "/"+name)
-		_, _ = h.Write([]byte{0})
-		_, _ = h.Write(files[name])
-		_, _ = h.Write([]byte{0})
-	}
-	return "sha256:" + hex.EncodeToString(h.Sum(nil))
-}
+func digestFiles(files map[string][]byte) string { return source.DigestFiles(files) }

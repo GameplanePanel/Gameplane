@@ -36,6 +36,15 @@ vi.mock("@tanstack/react-router", () => ({
 
 import { ServersPage } from "./Servers";
 
+// Summary card = the element two levels above its uppercase label span.
+function summaryCard(label: string): HTMLElement {
+  const span = screen.getAllByText(label).find((el) => el.className.includes("uppercase"));
+  return span!.parentElement!.parentElement as HTMLElement;
+}
+function summaryIcon(label: string): HTMLElement {
+  return summaryCard(label).firstElementChild!.lastElementChild as HTMLElement;
+}
+
 describe("ServersPage", () => {
   it("renders the server list and cluster stats", async () => {
     server.use(
@@ -792,6 +801,94 @@ describe("ServersPage", () => {
     const row = (await screen.findByText("sleepy")).closest("tr") as HTMLElement;
     expect(within(row).getByTitle("Stop")).not.toBeDisabled();
   });
+
+  it("gives each summary card its own icon colour", async () => {
+    server.use(
+      http.get("/servers", () => HttpResponse.json({ items: [makeServer({ metadata: { name: "alpha", namespace: "gameplane-games" }, status: { phase: "Running" } })] })),
+      http.get("/cluster/stats", () => HttpResponse.json(makeClusterStats())),
+    );
+    renderWithQuery(<ServersPage />);
+    await screen.findByText("alpha");
+    expect(summaryIcon("Running").className).toContain("text-success");
+    expect(summaryIcon("Players online").className).toContain("text-stat-players");
+    expect(summaryIcon("vCPUs").className).toContain("text-chart-stat");
+    expect(summaryIcon("Storage provisioned").className).toContain("text-stat-storage");
+    expect(summaryIcon("Inventory nodes").className).toContain("text-stat-nodes");
+  });
+
+  it("shows an amber Overcommitted badge and keeps the Storage icon teal", async () => {
+    server.use(
+      http.get("/servers", () => HttpResponse.json({ items: [] })),
+      http.get("/cluster/stats", () =>
+        HttpResponse.json(makeClusterStats({ usedStorageBytes: 102_000_000_000, totalStorageBytes: 86_000_000_000 })),
+      ),
+    );
+    renderWithQuery(<ServersPage />);
+    await screen.findByText("Storage provisioned");
+    const badge = await within(summaryCard("Storage provisioned")).findByText("Overcommitted");
+    expect(badge.className).toContain("text-warning");
+    const icon = summaryIcon("Storage provisioned");
+    expect(icon.className).toContain("text-stat-storage");
+    expect(icon.className).not.toContain("text-warning");
+  });
+
+  it("shows an amber Unavailable badge on the Running card when server status fails", async () => {
+    server.use(
+      http.get("/servers", () => HttpResponse.json({ message: "boom" }, { status: 500 })),
+    );
+    renderWithQuery(<ServersPage />);
+    const badge = await within(summaryCard("Running")).findByText("Unavailable");
+    expect(badge.className).toContain("text-warning");
+    expect(summaryIcon("Running").className).toContain("text-success");
+  });
+
+  it("draws exactly one frame around the server table", async () => {
+    server.use(
+      http.get("/servers", () => HttpResponse.json({ items: [makeServer({ metadata: { name: "alpha", namespace: "gameplane-games" } })] })),
+    );
+    const { container } = renderWithQuery(<ServersPage />);
+    await screen.findByText("alpha");
+    const grid = screen.getByRole("grid", { name: "Server list" });
+    const root = grid.closest('[class*="table-root"]') as HTMLElement;
+    expect(root).toBeInstanceOf(HTMLElement);
+    for (let n = root.parentElement; n && n !== container; n = n.parentElement) {
+      expect(n.className).not.toMatch(/(^|\s)(border|bg-card)(\s|$)/);
+    }
+  });
+
+  it("renders row actions at full contrast with Start green, Stop red and Restart neutral on hover", async () => {
+    server.use(
+      http.get("/servers", () => HttpResponse.json({ items: [makeServer({ metadata: { name: "alpha", namespace: "gameplane-games" }, status: { phase: "Stopped" } })] })),
+    );
+    renderWithQuery(<ServersPage />);
+    const row = (await screen.findByText("alpha")).closest("tr") as HTMLElement;
+    const start = within(row).getByRole("button", { name: "Start" });
+    const stop = within(row).getByRole("button", { name: "Stop" });
+    const restart = within(row).getByRole("button", { name: "Restart" });
+    for (const b of [start, stop, restart]) {
+      expect(b.className).not.toContain("text-foreground/60");
+      expect(b.className).toMatch(/(^|\s)text-foreground(\s|$)/);
+    }
+    expect(start.className).toContain("hover:text-success");
+    expect(stop.className).toContain("hover:text-danger");
+    expect(restart.className).toContain("hover:text-foreground");
+  });
+
+  it("renders Filter as a real, keyboard-operable button with 12 px corners", async () => {
+    server.use(
+      http.get("/servers", () => HttpResponse.json({ items: [makeServer({ metadata: { name: "alpha", namespace: "gameplane-games" }, spec: { templateRef: { name: "minecraft-java" } } })] })),
+    );
+    renderWithQuery(<ServersPage />);
+    await screen.findByText("alpha");
+    const filterButton = screen.getByRole("button", { name: /^Filter(?:\s*\d+)?$/i });
+    expect(filterButton.tagName).toBe("BUTTON");
+    expect(filterButton.className).toContain("filter-trigger"); // globals.css: .button.filter-trigger { border-radius: 12px }
+    expect(filterButton.className).not.toContain("rounded-[6px]");
+    filterButton.focus();
+    expect(filterButton).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    expect(await screen.findByRole("checkbox", { name: "minecraft-java" })).toBeInTheDocument();
+  });
 });
 
 // The page renders either a <table> (desktop) or a stacked card list
@@ -909,5 +1006,17 @@ describe("ServersPage mobile layout", () => {
     const row = (await screen.findByText("locked")).closest("tr") as HTMLElement;
     await userEvent.click(within(row).getByTitle("Start"));
     expect(await screen.findByText(/forbidden: viewers cannot start servers/i)).toBeInTheDocument();
+  });
+
+  it("renders the mobile Filter as a real button named Filter", async () => {
+    setMobileViewport();
+    server.use(
+      http.get("/servers", () => HttpResponse.json({ items: [makeServer({ metadata: { name: "mobile-alpha", namespace: "gameplane-games" } })] })),
+    );
+    renderWithQuery(<ServersPage />);
+    await screen.findByText("mobile-alpha");
+    const filterButton = screen.getByRole("button", { name: /^Filter(?:\s*\d+)?$/i });
+    expect(filterButton.tagName).toBe("BUTTON");
+    expect(filterButton.className).toContain("filter-trigger");
   });
 });

@@ -22,7 +22,10 @@ type UserPreferences struct {
 	CustomCSSEnabled bool    // whether the custom CSS overlay is injected
 	CustomCSS        *string // nullable sanitized CSS text (max 32 KiB)
 	Language         *string // nullable BCP 47 tag; nil = no saved choice (follow the instance default)
-	UpdatedAt        string  // RFC3339 UTC, application-generated in Go
+	// InstalledThemeID selects one of the user's installed themes (spec 043).
+	// Non-nil only when ThemeType is "installed"; nil otherwise.
+	InstalledThemeID *int64
+	UpdatedAt        string // RFC3339 UTC, application-generated in Go
 }
 
 // DefaultUserPreferences returns the configuration for a user with no stored
@@ -44,11 +47,12 @@ func DefaultUserPreferences() UserPreferences {
 func (s *Store) GetPreferences(ctx context.Context, userID int64) (UserPreferences, error) {
 	var p UserPreferences
 	var accent, surface, css, language sql.NullString
+	var installedID sql.NullInt64
 	var cssEnabled int
 	err := s.DB.QueryRowContext(ctx,
-		`SELECT theme_type, preset_id, appearance_mode, custom_accent, custom_surface, custom_css_enabled, custom_css, language, updated_at
+		`SELECT theme_type, preset_id, appearance_mode, custom_accent, custom_surface, custom_css_enabled, custom_css, language, installed_theme_id, updated_at
 		   FROM user_preferences WHERE user_id = ?`, userID).
-		Scan(&p.ThemeType, &p.PresetID, &p.AppearanceMode, &accent, &surface, &cssEnabled, &css, &language, &p.UpdatedAt)
+		Scan(&p.ThemeType, &p.PresetID, &p.AppearanceMode, &accent, &surface, &cssEnabled, &css, &language, &installedID, &p.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return DefaultUserPreferences(), nil
 	}
@@ -67,6 +71,10 @@ func (s *Store) GetPreferences(ctx context.Context, userID int64) (UserPreferenc
 	}
 	if language.Valid {
 		p.Language = &language.String
+	}
+	if installedID.Valid {
+		v := installedID.Int64
+		p.InstalledThemeID = &v
 	}
 	p.UpdatedAt = NormalizeTimestamp(p.UpdatedAt)
 	return p, nil
@@ -88,8 +96,8 @@ func (s *Store) UpsertPreferences(ctx context.Context, userID int64, p UserPrefe
 	}
 	_, err := s.DB.ExecContext(ctx,
 		`INSERT INTO user_preferences
-		    (user_id, theme_type, preset_id, appearance_mode, custom_accent, custom_surface, custom_css_enabled, custom_css, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		    (user_id, theme_type, preset_id, appearance_mode, custom_accent, custom_surface, custom_css_enabled, custom_css, installed_theme_id, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		 ON CONFLICT (user_id) DO UPDATE SET
 		    theme_type = excluded.theme_type,
 		    preset_id = excluded.preset_id,
@@ -98,10 +106,11 @@ func (s *Store) UpsertPreferences(ctx context.Context, userID int64, p UserPrefe
 		    custom_surface = excluded.custom_surface,
 		    custom_css_enabled = excluded.custom_css_enabled,
 		    custom_css = excluded.custom_css,
+		    installed_theme_id = excluded.installed_theme_id,
 		    updated_at = excluded.updated_at`,
 		userID, p.ThemeType, p.PresetID, p.AppearanceMode,
 		nullableString(p.CustomAccent), nullableString(p.CustomSurface), cssEnabled, nullableString(p.CustomCSS),
-		p.UpdatedAt)
+		nullableInt64(p.InstalledThemeID), p.UpdatedAt)
 	if err != nil {
 		return UserPreferences{}, fmt.Errorf("upsert preferences: %w", err)
 	}
@@ -123,8 +132,8 @@ func (s *Store) ResetPreferences(ctx context.Context, userID int64, presetID, ap
 	}
 	_, err := s.DB.ExecContext(ctx,
 		`INSERT INTO user_preferences
-		    (user_id, theme_type, preset_id, appearance_mode, custom_accent, custom_surface, custom_css_enabled, custom_css, updated_at)
-		 VALUES (?, 'preset', ?, ?, NULL, NULL, 0, NULL, ?)
+		    (user_id, theme_type, preset_id, appearance_mode, custom_accent, custom_surface, custom_css_enabled, custom_css, installed_theme_id, updated_at)
+		 VALUES (?, 'preset', ?, ?, NULL, NULL, 0, NULL, NULL, ?)
 		 ON CONFLICT (user_id) DO UPDATE SET
 		    theme_type = 'preset',
 		    preset_id = excluded.preset_id,
@@ -133,6 +142,7 @@ func (s *Store) ResetPreferences(ctx context.Context, userID int64, presetID, ap
 		    custom_surface = NULL,
 		    custom_css_enabled = 0,
 		    custom_css = NULL,
+		    installed_theme_id = NULL,
 		    updated_at = excluded.updated_at`,
 		userID, presetID, appearanceMode, p.UpdatedAt)
 	if err != nil {

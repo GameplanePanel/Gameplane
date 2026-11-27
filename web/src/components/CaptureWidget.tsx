@@ -321,7 +321,7 @@ export function CaptureWidget({ name, ns, gs }: Props) {
         <div className="flex items-center gap-3">
           <Chip
             color={activeCapture ? "warning" : "success"}
-            size="sm"
+            dot
           >
             {activeCapture ? intl.formatMessage({ id: "web.components.capture_widget.capturing", defaultMessage: "Capturing…", description: "Capture widget: status while a capture is running" }) : intl.formatMessage({ id: "web.components.capture_widget.ready", defaultMessage: "Ready", description: "Capture widget: status when no capture is running" })}
           </Chip>
@@ -430,7 +430,6 @@ export function CaptureWidget({ name, ns, gs }: Props) {
         <section className="space-y-3">
           <h2 className="text-sm text-default-500 font-medium">{intl.formatMessage({ id: "web.components.capture_widget.captures", defaultMessage: "Captures", description: "Capture widget: section heading above the table of completed and failed captures for this server" })}</h2>
           {fileMut.error && <ErrorBanner err={fileMut.error} />}
-          <div className="overflow-x-auto rounded-lg border border-default-200">
             <Table.Root className="w-full">
               <Table.ScrollContainer>
                 <Table.Content
@@ -458,7 +457,7 @@ export function CaptureWidget({ name, ns, gs }: Props) {
                           <TableCell>
                             <Chip
                               color={phaseColorMap[c.phase] ?? "default"}
-                              size="sm"
+                              dot
                             >
                               {phaseLabel(intl, c.phase)}
                             </Chip>
@@ -534,7 +533,6 @@ export function CaptureWidget({ name, ns, gs }: Props) {
                 </Table.Content>
               </Table.ScrollContainer>
             </Table.Root>
-          </div>
           <p className="pt-2 text-xs text-default-500">{intl.formatMessage({ id: "web.components.capture_widget.showing_length_of", defaultMessage: "Showing {length} of {total} {total, plural, one {capture} other {captures}}", description: "Capture widget: count line under the capture table; {length} is the rows shown, {total} is the total capture count" }, { length: completed.length, total: captures?.total ?? items.length })}
           </p>
         </section>

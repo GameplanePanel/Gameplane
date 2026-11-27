@@ -110,7 +110,7 @@
           "x": 0,
           "y": 64,
           "width": 1180,
-          "height": 936,
+          "height": 1016,
           "fills": [{"type": "SOLID", "color": "#121114"}],
           "layout": {
             "mode": "VERTICAL",

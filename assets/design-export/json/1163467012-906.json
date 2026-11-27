@@ -798,7 +798,7 @@
                               "type": "FRAME",
                               "x": 0,
                               "y": 20,
-                              "width": 318,
+                              "width": 305.5,
                               "height": 36,
                               "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
@@ -810,8 +810,9 @@
                                 "padding": [4, 4, 4, 4],
                                 "primary": "MIN",
                                 "counter": "CENTER",
-                                "sizing": ["HUG", "HUG"]
+                                "sizing": ["FIXED", "HUG"]
                               },
+                              "layoutAlignSelf": "STRETCH",
                               "variables": {"strokes/0/color": "border/border"},
                               "children": [
                                 {
@@ -820,7 +821,7 @@
                                   "type": "FRAME",
                                   "x": 4,
                                   "y": 4,
-                                  "width": 117,
+                                  "width": 96.5,
                                   "height": 28,
                                   "fills": [{"type": "SOLID", "color": "#2C1926"}],
                                   "cornerRadius": 4,
@@ -830,20 +831,21 @@
                                     "padding": [0, 12, 0, 12],
                                     "primary": "CENTER",
                                     "counter": "CENTER",
-                                    "sizing": ["HUG", "FIXED"]
+                                    "sizing": ["FIXED", "FIXED"]
                                   },
+                                  "layoutGrow": 1,
                                   "variables": {"fills/0/color": "accent/soft"},
                                   "children": [
                                     {
                                       "id": "1:40349",
                                       "name": "Label",
                                       "type": "TEXT",
-                                      "x": 12,
+                                      "x": 34.75,
                                       "y": 6,
-                                      "width": 93,
+                                      "width": 27,
                                       "height": 16,
                                       "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
-                                      "text": "Auto (scheduler)",
+                                      "text": "Auto",
                                       "font": ["Geist", 500, 12],
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                                     }
@@ -853,9 +855,9 @@
                                   "id": "1:40339",
                                   "name": "Seg",
                                   "type": "FRAME",
-                                  "x": 125,
+                                  "x": 104.5,
                                   "y": 4,
-                                  "width": 87,
+                                  "width": 96.5,
                                   "height": 28,
                                   "cornerRadius": 4,
                                   "layout": {
@@ -864,14 +866,15 @@
                                     "padding": [0, 12, 0, 12],
                                     "primary": "CENTER",
                                     "counter": "CENTER",
-                                    "sizing": ["HUG", "FIXED"]
+                                    "sizing": ["FIXED", "FIXED"]
                                   },
+                                  "layoutGrow": 1,
                                   "children": [
                                     {
                                       "id": "1:40350",
                                       "name": "Label",
                                       "type": "TEXT",
-                                      "x": 12,
+                                      "x": 16.75,
                                       "y": 6,
                                       "width": 63,
                                       "height": 16,
@@ -886,9 +889,9 @@
                                   "id": "1:40340",
                                   "name": "Seg",
                                   "type": "FRAME",
-                                  "x": 216,
+                                  "x": 205,
                                   "y": 4,
-                                  "width": 98,
+                                  "width": 96.5,
                                   "height": 28,
                                   "cornerRadius": 4,
                                   "layout": {
@@ -897,14 +900,15 @@
                                     "padding": [0, 12, 0, 12],
                                     "primary": "CENTER",
                                     "counter": "CENTER",
-                                    "sizing": ["HUG", "FIXED"]
+                                    "sizing": ["FIXED", "FIXED"]
                                   },
+                                  "layoutGrow": 1,
                                   "children": [
                                     {
                                       "id": "1:40351",
                                       "name": "Label",
                                       "type": "TEXT",
-                                      "x": 12,
+                                      "x": 11.25,
                                       "y": 6,
                                       "width": 74,
                                       "height": 16,

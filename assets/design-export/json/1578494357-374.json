@@ -1,10 +1,9 @@
 {
   "file": "1578494357-374",
-  "id": "1:59091",
   "name": "Screen/Dialog/Upload Backup — Checking (Light)",
   "type": "FRAME",
-  "x": 15480,
-  "y": 37959,
+  "x": 17120,
+  "y": 40233,
   "width": 760,
   "height": 280,
   "fills": [{"type": "SOLID", "color": "#FFF7FB"}],

@@ -1,10 +1,9 @@
 {
   "file": "1578494357-641",
-  "id": "1:59098",
   "name": "Screen/Dialog/Upload Backup — Succeeded",
   "type": "FRAME",
-  "x": 22200,
-  "y": 37959,
+  "x": 23840,
+  "y": 40233,
   "width": 760,
   "height": 260,
   "fills": [{"type": "SOLID", "color": "#1C1A20"}],

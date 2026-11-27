@@ -791,6 +791,8 @@ export interface Backup {
     snapshotID?: string;
     size?: string;
     bytesAdded?: string;
+    // Bytes of server data at capture; absent = unknown (spec 042).
+    dataSize?: string;
     captureManifest?: BackupCaptureManifest;
     conditions?: Array<{ type: string; status: string; reason?: string; message?: string }>;
   };

@@ -170,6 +170,13 @@ type BackupStatus struct {
 	// +optional
 	BytesAdded *resource.Quantity `json:"bytesAdded,omitempty"`
 
+	// DataSize is the size of the server's data when the backup was
+	// captured: Restic's total bytes processed, or the agent's game data
+	// directory usage for a CSI snapshot. Absent means unknown; it is never
+	// the volume capacity.
+	// +optional
+	DataSize *resource.Quantity `json:"dataSize,omitempty"`
+
 	// Message is a human-readable reason when Phase=Failed.
 	// +optional
 	Message string `json:"message,omitempty"`

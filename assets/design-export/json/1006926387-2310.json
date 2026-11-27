@@ -28,7 +28,7 @@
   },
   "children": [
     {
-      "id": "0:48811",
+      "id": "0:49008",
       "name": "cdTitle",
       "type": "TEXT",
       "x": 20,
@@ -43,7 +43,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
     {
-      "id": "0:48812",
+      "id": "0:49009",
       "name": "cdDescWrap",
       "type": "FRAME",
       "x": 20,
@@ -63,7 +63,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "0:48813",
+          "id": "0:49010",
           "name": "cdDesc",
           "type": "TEXT",
           "x": 0,
@@ -82,7 +82,7 @@
       ]
     },
     {
-      "id": "0:48814",
+      "id": "0:49011",
       "name": "cdPhrase",
       "type": "FRAME",
       "x": 20,
@@ -103,7 +103,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "0:48815",
+          "id": "0:49012",
           "name": "cdPhraseRow",
           "type": "FRAME",
           "x": 0,
@@ -122,7 +122,7 @@
           },
           "children": [
             {
-              "id": "0:48816",
+              "id": "0:49013",
               "name": "cdPhraseType",
               "type": "TEXT",
               "x": 0,
@@ -137,7 +137,7 @@
               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
             },
             {
-              "id": "0:48817",
+              "id": "0:49014",
               "name": "cdPhraseValue",
               "type": "TEXT",
               "x": 30,
@@ -152,7 +152,7 @@
               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "0:48818",
+              "id": "0:49015",
               "name": "cdPhraseConfirm",
               "type": "TEXT",
               "x": 114,
@@ -169,7 +169,7 @@
           ]
         },
         {
-          "id": "0:48819",
+          "id": "0:49016",
           "name": "cdInput",
           "type": "FRAME",
           "x": 0,
@@ -198,7 +198,7 @@
           },
           "children": [
             {
-              "id": "0:48820",
+              "id": "0:49017",
               "name": "cdInputValue",
               "type": "TEXT",
               "x": 12,
@@ -217,7 +217,7 @@
       ]
     },
     {
-      "id": "0:48821",
+      "id": "0:49018",
       "name": "cdFooter",
       "type": "FRAME",
       "x": 20,
@@ -237,7 +237,7 @@
       "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "0:48822",
+          "id": "0:49019",
           "name": "btnCancel",
           "type": "FRAME",
           "x": 249,
@@ -258,7 +258,7 @@
           "variables": {"cornerRadius": "radius/md"},
           "children": [
             {
-              "id": "0:48823",
+              "id": "0:49020",
               "name": "cdCancelLabel",
               "type": "TEXT",
               "x": 12,
@@ -275,7 +275,7 @@
           ]
         },
         {
-          "id": "0:48824",
+          "id": "0:49021",
           "name": "btnConfirm",
           "type": "FRAME",
           "x": 327,
@@ -297,7 +297,7 @@
           "variables": {"cornerRadius": "radius/md", "fills/0/color": "danger/danger"},
           "children": [
             {
-              "id": "0:48825",
+              "id": "0:49022",
               "name": "cdConfirmLabel",
               "type": "TEXT",
               "x": 12,

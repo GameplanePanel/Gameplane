@@ -3,7 +3,7 @@
   "id": "1:2622",
   "name": "Screen/Backups — Index (Empty)",
   "type": "FRAME",
-  "x": 1640,
+  "x": 3280,
   "y": 66197,
   "width": 1440,
   "height": 900,
@@ -265,7 +265,7 @@
                   "componentId": "1:965",
                   "fills": [{"type": "SOLID", "color": "#1D1B22"}],
                   "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -274,7 +274,13 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl",
+                    "fills/0/color": "segment"
+                  },
                   "texts": ["Backups"]
                 },
                 {
@@ -287,7 +293,7 @@
                   "height": 32,
                   "component": "Tab/Inactive",
                   "componentId": "1:967",
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -296,7 +302,12 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl"
+                  },
                   "texts": ["Schedules"]
                 },
                 {
@@ -309,7 +320,7 @@
                   "height": 32,
                   "component": "Tab/Inactive",
                   "componentId": "1:967",
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -318,7 +329,12 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl"
+                  },
                   "texts": ["Restores"]
                 },
                 {
@@ -330,7 +346,7 @@
                   "height": 32,
                   "component": "Tab/Inactive",
                   "componentId": "1:967",
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -339,7 +355,12 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl"
+                  },
                   "texts": ["Destinations"]
                 }
               ]

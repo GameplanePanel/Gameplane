@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" data-mode="{{.Mode}}" class="{{.Mode}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{.DisplayName}} theme preview</title>
+<link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/theme.css">
+<style>
+  html { color-scheme: light; }
+  html[data-mode="dark"] { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  a { color: var(--link); }
+  .nav {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+    padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  .brand { font-weight: 700; margin-right: auto; }
+  .nav nav { display: flex; flex-wrap: wrap; gap: 12px; }
+  .nav nav a { color: var(--foreground); text-decoration: none; padding: 4px 8px; border-radius: 6px; }
+  .nav nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent-soft-foreground); }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 32px 0 12px; }
+  .muted { color: var(--muted); }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn {
+    font: inherit; cursor: pointer; padding: 8px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface-secondary); color: var(--foreground);
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-foreground); }
+  .btn-ghost { background: transparent; }
+  .btn:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--focus); outline-offset: 2px;
+  }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+  }
+  .card h3 { margin: 0 0 6px; font-size: 16px; }
+  .badge {
+    display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent-soft-foreground);
+  }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  thead th { background: var(--surface-tertiary); font-size: 13px; color: var(--muted); }
+  form { display: grid; gap: 12px; max-width: 420px; }
+  label { display: grid; gap: 4px; font-size: 14px; }
+  input, select {
+    font: inherit; padding: 8px 10px; border-radius: 8px; color: var(--foreground);
+    background: var(--surface); border: 1px solid var(--border);
+  }
+  .check { display: flex; align-items: center; gap: 8px; }
+  .alert {
+    padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+    border-left: 4px solid var(--accent); background: var(--accent-soft); color: var(--accent-soft-foreground);
+  }
+  .alert strong { color: var(--foreground); }
+  .overlay-sample { background: var(--overlay); border-radius: 12px; padding: 12px 14px; }
+  .tablewrap { overflow-x: auto; }
+</style>
+</head>
+<body data-modes="{{.ModesCSV}}">
+<header class="nav">
+  <span class="brand">{{.DisplayName}} <span class="muted">{{.Version}}</span></span>
+  <nav aria-label="Sample navigation">
+    <a href="#" aria-current="page">Servers</a>
+    <a href="#">Files</a>
+    <a href="#">Backups</a>
+    <a href="#">Settings</a>
+  </nav>
+  <button type="button" class="btn btn-ghost" id="mode-switch" hidden>Switch mode</button>
+</header>
+
+<main>
+  <h1>Sample page</h1>
+  <p class="muted">Static sample for a theme package. Nothing here is published or sent anywhere.</p>
+
+  <h2>Buttons and text</h2>
+  <div class="row">
+    <button type="button" class="btn btn-primary">Primary</button>
+    <button type="button" class="btn">Secondary</button>
+    <button type="button" class="btn btn-ghost">Ghost</button>
+    <button type="button" class="btn" disabled>Disabled</button>
+  </div>
+  <p>Body text uses <em>foreground</em>, helper text uses <span class="muted">muted</span>, and <a href="#">links</a> use the link color.</p>
+
+  <h2>Cards</h2>
+  <div class="grid">
+    <article class="card">
+      <span class="badge">Running</span>
+      <h3>Survival server</h3>
+      <p class="muted">4 of 20 players online.</p>
+      <button type="button" class="btn btn-primary">Open</button>
+    </article>
+    <article class="card">
+      <span class="badge">Asleep</span>
+      <h3>Creative build</h3>
+      <p class="muted">Wakes on the next connection.</p>
+      <button type="button" class="btn">Wake</button>
+    </article>
+    <article class="card">
+      <h3>Overlay surface</h3>
+      <div class="overlay-sample">Nested panel on the overlay token.</div>
+    </article>
+  </div>
+
+  <h2>Table</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Name</th><th>Status</th><th>Players</th><th>Updated</th></tr></thead>
+      <tbody>
+        <tr><td>Survival</td><td>Running</td><td>4 / 20</td><td class="muted">2 min ago</td></tr>
+        <tr><td>Creative</td><td>Asleep</td><td>0 / 10</td><td class="muted">yesterday</td></tr>
+        <tr><td>Lobby</td><td>Stopped</td><td>&mdash;</td><td class="muted">last week</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Form</h2>
+  <form onsubmit="return false">
+    <label>Server name
+      <input type="text" value="my-server" aria-label="Server name">
+    </label>
+    <label>Region
+      <select aria-label="Region"><option>Europe</option><option>North America</option></select>
+    </label>
+    <label class="check"><input type="checkbox" checked> Enable backups</label>
+    <div class="row"><button type="submit" class="btn btn-primary">Save</button><button type="button" class="btn">Cancel</button></div>
+  </form>
+
+  <h2>Alerts</h2>
+  <div class="grid">
+    <div class="alert" role="status"><strong>Info.</strong> A new version is available.</div>
+    <div class="alert" role="note"><strong>Tip.</strong> Press Ctrl+K to search servers.</div>
+  </div>
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var modes = (document.body.getAttribute("data-modes") || "").split(",").filter(Boolean);
+  var button = document.getElementById("mode-switch");
+  if (!button || modes.length < 2) { return; }
+  button.hidden = false;
+  function label() {
+    var next = root.getAttribute("data-mode") === modes[0] ? modes[1] : modes[0];
+    button.textContent = "Switch to " + next;
+  }
+  button.addEventListener("click", function () {
+    var next = root.getAttribute("data-mode") === modes[0] ? modes[1] : modes[0];
+    root.setAttribute("data-mode", next);
+    root.className = next;
+    label();
+  });
+  label();
+})();
+</script>
+</body>
+</html>

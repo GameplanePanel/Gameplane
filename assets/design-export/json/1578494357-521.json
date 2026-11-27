@@ -1,10 +1,9 @@
 {
   "file": "1578494357-521",
-  "id": "1:59094",
   "name": "Screen/Dialog/Upload Backup — Review (plain archive)",
   "type": "FRAME",
-  "x": 18360,
-  "y": 37959,
+  "x": 20000,
+  "y": 40233,
   "width": 760,
   "height": 430,
   "fills": [{"type": "SOLID", "color": "#1C1A20"}],

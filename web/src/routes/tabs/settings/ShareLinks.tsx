@@ -604,8 +604,8 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
             <Link2 className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.create_link", defaultMessage: "Create link", description: "Button that opens the create-link dialog" })}</Button>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-divider">
           <Table.Root className="table--mono">
+            <Table.ScrollContainer>
             <Table.Content aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.share_links.share_links", defaultMessage: "Share links", description: "Share links: section heading and table label for the list of share links; the table name is read by screen readers" })} keyboardNavigationBehavior="arrow">
               <Table.Header>
                 <Table.Column isRowHeader>{intl.formatMessage(LINK_ID_LABEL)}</Table.Column>
@@ -674,8 +674,8 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
                 ))}
               </Table.Body>
             </Table.Content>
+            </Table.ScrollContainer>
           </Table.Root>
-        </div>
       )}
 
       {changeStart.isError && (

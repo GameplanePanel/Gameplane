@@ -3,7 +3,7 @@
   "id": "1:8440",
   "name": "Screen/Backups — Restores filters open",
   "type": "FRAME",
-  "x": 3280,
+  "x": 4920,
   "y": 69047,
   "width": 1440,
   "height": 900,
@@ -273,7 +273,7 @@
                   "componentId": "1:965",
                   "fills": [{"type": "SOLID", "color": "#1D1B22"}],
                   "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -282,7 +282,13 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl",
+                    "fills/0/color": "segment"
+                  },
                   "texts": ["Backups"]
                 },
                 {
@@ -295,7 +301,7 @@
                   "height": 32,
                   "component": "Tab/Inactive",
                   "componentId": "1:967",
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -304,7 +310,12 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl"
+                  },
                   "texts": ["Schedules"]
                 },
                 {
@@ -317,7 +328,7 @@
                   "height": 32,
                   "component": "Tab/Inactive",
                   "componentId": "1:967",
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -326,7 +337,12 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl"
+                  },
                   "texts": ["Restores"]
                 },
                 {
@@ -338,7 +354,7 @@
                   "height": 32,
                   "component": "Tab/Inactive",
                   "componentId": "1:967",
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -347,7 +363,12 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl"
+                  },
                   "texts": ["Destinations"]
                 }
               ]
@@ -694,22 +715,21 @@
                               "name": "phase",
                               "type": "INSTANCE",
                               "x": 16,
-                              "y": 22.5,
-                              "width": 81,
-                              "height": 19,
-                              "component": "Chip/Soft/Success/MD",
-                              "componentId": "1:2868",
+                              "y": 22,
+                              "width": 99,
+                              "height": 20,
+                              "component": "Status=Running",
                               "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
-                              "cornerRadius": 16,
+                              "cornerRadius": 9999,
                               "layout": {
                                 "mode": "HORIZONTAL",
-                                "gap": 2,
+                                "gap": 6,
                                 "padding": [2, 8, 2, 8],
-                                "primary": "MIN",
+                                "primary": "CENTER",
                                 "counter": "CENTER",
                                 "sizing": ["HUG", "HUG"]
                               },
-                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                              "variables": {"fills/0/color": "success/soft"},
                               "texts": ["Succeeded"]
                             }
                           ]
@@ -887,22 +907,21 @@
                               "name": "phase",
                               "type": "INSTANCE",
                               "x": 16,
-                              "y": 22.5,
-                              "width": 51,
-                              "height": 19,
-                              "component": "Chip/Soft/Danger/MD",
-                              "componentId": "1:2878",
+                              "y": 22,
+                              "width": 65,
+                              "height": 20,
+                              "component": "Status=Failed",
                               "fills": [{"type": "SOLID", "color": "#2E1317"}],
-                              "cornerRadius": 16,
+                              "cornerRadius": 9999,
                               "layout": {
                                 "mode": "HORIZONTAL",
-                                "gap": 2,
+                                "gap": 6,
                                 "padding": [2, 8, 2, 8],
-                                "primary": "MIN",
+                                "primary": "CENTER",
                                 "counter": "CENTER",
                                 "sizing": ["HUG", "HUG"]
                               },
-                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                              "variables": {"fills/0/color": "danger/soft"},
                               "texts": ["Failed"]
                             }
                           ]

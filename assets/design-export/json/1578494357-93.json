@@ -1,10 +1,9 @@
 {
   "file": "1578494357-93",
-  "id": "1:59082",
   "name": "Screen/Dialog/Backup Download (Preparing)",
   "type": "FRAME",
-  "x": 6840,
-  "y": 37959,
+  "x": 8480,
+  "y": 40233,
   "width": 760,
   "height": 300,
   "fills": [{"type": "SOLID", "color": "#1C1A20"}],

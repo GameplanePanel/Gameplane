@@ -1,10 +1,9 @@
 {
   "file": "742824-234",
-  "id": "1:59076",
   "name": "Screen/Backups — Restores (Light)",
   "type": "FRAME",
   "x": 1640,
-  "y": 66773,
+  "y": 69047,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
@@ -62,7 +61,6 @@
       ]
     },
     {
-      "id": "1:59114",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -107,7 +105,6 @@
           "texts": ["gameplane", "Backups", "Search servers…", "AD"]
         },
         {
-          "id": "1:59178",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -128,7 +125,6 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "1:59194",
               "name": "Page Header",
               "type": "FRAME",
               "x": 24,
@@ -148,7 +144,6 @@
               "variables": {"fills/0/color": "background/background"},
               "children": [
                 {
-                  "id": "1:59206",
                   "name": "Title Col",
                   "type": "FRAME",
                   "x": 0,
@@ -165,7 +160,6 @@
                   },
                   "children": [
                     {
-                      "id": "1:59229",
                       "name": "phTitle",
                       "type": "TEXT",
                       "x": 0,
@@ -178,7 +172,6 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "id": "1:59230",
                       "name": "phSubtitle",
                       "type": "TEXT",
                       "x": 0,
@@ -193,7 +186,6 @@
                   ]
                 },
                 {
-                  "id": "1:59207",
                   "name": "phActions",
                   "type": "FRAME",
                   "x": 991,
@@ -242,7 +234,6 @@
               ]
             },
             {
-              "id": "1:59195",
               "name": "tabsBar",
               "type": "FRAME",
               "x": 24,
@@ -272,7 +263,7 @@
                   "componentId": "1:965",
                   "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
                   "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -281,7 +272,13 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl",
+                    "fills/0/color": "segment"
+                  },
                   "texts": ["Backups"]
                 },
                 {
@@ -293,7 +290,7 @@
                   "height": 32,
                   "component": "Tab/Inactive",
                   "componentId": "1:967",
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -302,7 +299,12 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl"
+                  },
                   "texts": ["Schedules"]
                 },
                 {
@@ -314,7 +316,7 @@
                   "height": 32,
                   "component": "Tab/Inactive",
                   "componentId": "1:967",
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -323,7 +325,12 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl"
+                  },
                   "texts": ["Restores"]
                 },
                 {
@@ -335,7 +342,7 @@
                   "height": 32,
                   "component": "Tab/Inactive",
                   "componentId": "1:967",
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -344,7 +351,12 @@
                     "counter": "CENTER",
                     "sizing": ["HUG", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl"},
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl"
+                  },
                   "texts": ["Destinations"]
                 }
               ]
@@ -370,7 +382,6 @@
               "texts": ["Search by name or server…", "2 of 2 restores", "Filter"]
             },
             {
-              "id": "1:59196",
               "name": "Restores Table",
               "type": "FRAME",
               "x": 24,
@@ -392,7 +403,6 @@
               "variables": {"fills/0/color": "surface/secondary"},
               "children": [
                 {
-                  "id": "1:59208",
                   "name": "Head Row",
                   "type": "FRAME",
                   "x": 4,
@@ -543,7 +553,6 @@
                   ]
                 },
                 {
-                  "id": "1:59209",
                   "name": "Body",
                   "type": "FRAME",
                   "x": 4,
@@ -564,7 +573,6 @@
                   "variables": {"cornerRadius": "radius/2xl"},
                   "children": [
                     {
-                      "id": "1:59231",
                       "name": "Row 1",
                       "type": "FRAME",
                       "x": 0,
@@ -655,7 +663,6 @@
                           "texts": ["mc-survival"]
                         },
                         {
-                          "id": "1:59292",
                           "name": "c4",
                           "type": "FRAME",
                           "x": 614,
@@ -680,22 +687,21 @@
                               "name": "phase",
                               "type": "INSTANCE",
                               "x": 16,
-                              "y": 22.5,
-                              "width": 81,
-                              "height": 19,
-                              "component": "Chip/Soft/Success/MD",
-                              "componentId": "1:2868",
+                              "y": 22,
+                              "width": 99,
+                              "height": 20,
+                              "component": "Status=Running",
                               "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                              "cornerRadius": 16,
+                              "cornerRadius": 9999,
                               "layout": {
                                 "mode": "HORIZONTAL",
-                                "gap": 2,
+                                "gap": 6,
                                 "padding": [2, 8, 2, 8],
-                                "primary": "MIN",
+                                "primary": "CENTER",
                                 "counter": "CENTER",
                                 "sizing": ["HUG", "HUG"]
                               },
-                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                              "variables": {"fills/0/color": "success/soft"},
                               "texts": ["Succeeded"]
                             }
                           ]
@@ -751,7 +757,6 @@
                       ]
                     },
                     {
-                      "id": "1:59232",
                       "name": "Row 2",
                       "type": "FRAME",
                       "x": 0,
@@ -842,7 +847,6 @@
                           "texts": ["valheim-prod"]
                         },
                         {
-                          "id": "1:59293",
                           "name": "c4",
                           "type": "FRAME",
                           "x": 614,
@@ -867,22 +871,21 @@
                               "name": "phase",
                               "type": "INSTANCE",
                               "x": 16,
-                              "y": 22.5,
-                              "width": 51,
-                              "height": 19,
-                              "component": "Chip/Soft/Danger/MD",
-                              "componentId": "1:2878",
+                              "y": 22,
+                              "width": 65,
+                              "height": 20,
+                              "component": "Status=Failed",
                               "fills": [{"type": "SOLID", "color": "#FEE2E2"}],
-                              "cornerRadius": 16,
+                              "cornerRadius": 9999,
                               "layout": {
                                 "mode": "HORIZONTAL",
-                                "gap": 2,
+                                "gap": 6,
                                 "padding": [2, 8, 2, 8],
-                                "primary": "MIN",
+                                "primary": "CENTER",
                                 "counter": "CENTER",
                                 "sizing": ["HUG", "HUG"]
                               },
-                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                              "variables": {"fills/0/color": "danger/soft"},
                               "texts": ["Failed"]
                             }
                           ]
@@ -938,7 +941,6 @@
                       ]
                     },
                     {
-                      "id": "1:59233",
                       "name": "Row 3",
                       "type": "FRAME",
                       "x": 0,
@@ -1029,7 +1031,6 @@
                           "texts": ["mc-survival"]
                         },
                         {
-                          "id": "1:59294",
                           "name": "c4",
                           "type": "FRAME",
                           "x": 614,
@@ -1054,22 +1055,21 @@
                               "name": "phase",
                               "type": "INSTANCE",
                               "x": 16,
-                              "y": 22.5,
-                              "width": 81,
-                              "height": 19,
-                              "component": "Chip/Soft/Success/MD",
-                              "componentId": "1:2868",
+                              "y": 22,
+                              "width": 99,
+                              "height": 20,
+                              "component": "Status=Running",
                               "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                              "cornerRadius": 16,
+                              "cornerRadius": 9999,
                               "layout": {
                                 "mode": "HORIZONTAL",
-                                "gap": 2,
+                                "gap": 6,
                                 "padding": [2, 8, 2, 8],
-                                "primary": "MIN",
+                                "primary": "CENTER",
                                 "counter": "CENTER",
                                 "sizing": ["HUG", "HUG"]
                               },
-                              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                              "variables": {"fills/0/color": "success/soft"},
                               "texts": ["Succeeded"]
                             }
                           ]

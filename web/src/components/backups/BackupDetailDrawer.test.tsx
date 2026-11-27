@@ -103,6 +103,39 @@ describe("BackupDetailDrawer", () => {
     await waitFor(() => expect(screen.getByText("Succeeded")).toBeInTheDocument());
   });
 
+  it("shows the data size and the volume-size label for older backups", async () => {
+    server.use(
+      http.get("/backups/alpha-1", () =>
+        HttpResponse.json(
+          makeBackup({
+            metadata: { name: "alpha-1" },
+            status: { phase: "Succeeded", snapshotID: "abc123", size: "200Gi", dataSize: "15032385536" },
+          }),
+        ),
+      ),
+      http.get("/backups/alpha-old", () =>
+        HttpResponse.json(
+          makeBackup({
+            metadata: { name: "alpha-old" },
+            spec: { serverRef: { name: "alpha" }, strategy: "volume-snapshot" },
+            status: { phase: "Succeeded", snapshotID: "abc123", size: "200Gi" },
+          }),
+        ),
+      ),
+    );
+    const { unmount } = renderWithQuery(
+      <BackupDetailDrawer permissions={["*"]} name="alpha-1" onClose={() => {}} onRestore={() => {}} />,
+    );
+    expect(await screen.findByText("14 GB")).toBeInTheDocument();
+    expect(screen.queryByText("volume size")).not.toBeInTheDocument();
+    unmount();
+    renderWithQuery(
+      <BackupDetailDrawer permissions={["*"]} name="alpha-old" onClose={() => {}} onRestore={() => {}} />,
+    );
+    expect(await screen.findByText("volume size")).toBeInTheDocument();
+    expect(screen.getByText("200Gi")).toBeInTheDocument();
+  });
+
   it("Close button calls onClose", async () => {
     server.use(
       http.get("/backups/alpha-1", () =>

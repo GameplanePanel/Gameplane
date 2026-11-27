@@ -1,3 +1,5 @@
+// Package oci holds the operator's Secret-based registry credentials for the
+// OCI client in bundlefetch/oci.
 package oci
 
 import (
@@ -10,6 +12,7 @@ import (
 
 	"oras.land/oras-go/v2/registry/remote/auth"
 
+	bfoci "github.com/GameplanePanel/gameplane/bundlefetch/oci"
 	"github.com/GameplanePanel/gameplane/operator/internal/secretscope"
 )
 
@@ -26,10 +29,10 @@ type dockerAuthEntry struct {
 	Token    string `json:"identitytoken,omitempty"`
 }
 
-// CredentialFunc returns the oras-go credential resolver to attach to a
-// remote.Repository's Client. registry is the registry hostname (e.g.
-// "ghcr.io"), looked up against the secret's auth map.
-type CredentialFunc = func(ctx context.Context, registry string) (auth.Credential, error)
+// CredentialFunc is bundlefetch's credential resolver: it returns the oras-go
+// credential for one registry hostname (e.g. "ghcr.io"), looked up against the
+// secret's auth map.
+type CredentialFunc = bfoci.CredentialFunc
 
 // CredentialFromSecret resolves dockerconfigjson credentials for one
 // registry. ns/name addresses a Secret in the cluster; cli is the
