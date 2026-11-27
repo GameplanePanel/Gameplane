@@ -212,6 +212,22 @@ Spec: `specs/done_016-user-theme-customization/`. Both the non-UI plumbing and t
 
 **Client endpoints:** `Users.updatePreferences` / `Users.resetPreferences` (Layer 2 above); `Users.me()` returns `preferences` embedded (types.ts `User.preferences`)
 
+### Theme marketplace (spec 043)
+
+Spec: `specs/043-theme-marketplace/`; API contract `contracts/themes-api.md`. Client: `Themes` in `web/src/lib/endpoints.ts`; types in `src/types.ts` (`ThemeCatalogItem`, installed themes, `themeType: "installed"` with `installedThemeId` / `installedTheme` on `UserThemePreferences`).
+
+**Screens (`router/tree.tsx`, under the app layout):**
+- `/settings/theme/catalog` (`routes/ThemeCatalog.tsx`) — any signed-in user. One `Themes.catalog()` fetch; search, source and tag filters run client-side so the filter options stay complete. Cards (`components/themes/ThemeCard.tsx`) offer Preview, Install, Update and Remove for the user's own copy; sources the API reports as failing are listed with their error.
+- `/settings/theme/catalog/$id` (`routes/ThemeDetail.tsx`) — both previews, metadata, description and changelog (text only, never HTML; the homepage link only for http(s)), the problems list of an invalid or unverified entry, and the same actions.
+- `/settings/theme` (`routes/ThemeSettings.tsx`) — lists the installed themes (select, update, remove; "Source removed" when the API says so) next to the spec 016 presets and custom colors.
+- `/settings/theme-sources` (`routes/ThemeSources.tsx`) — admin page behind `RequirePermission` with `themes:manage`: list, add, edit, enable/disable, refresh and delete sources. The built-in `official` source can be disabled and edited but not deleted. The source dialog takes a credential Secret by name (`credentialSecret`), like module sources; it never asks for or shows a credential value.
+
+**Preview (`lib/useThemePreview.ts`, `components/ThemePreviewBanner.tsx`):** a preview applies a catalog or installed theme in memory through `applyThemePreferences` and never writes localStorage or calls the API. It stays on while the user moves between pages (valgul 2026-11-27, as in the design), with the banner mounted in `AppLayout`. It ends on Exit (re-applies the saved preferences from the cache), Keep (installs and selects the theme, or selects the installed copy, then the refetched preferences apply), a reload, or the banner unmounting. In safe mode a preview is refused with a message.
+
+**Installed theme render order (`lib/useThemePreferences.ts`):** with `themeType: "installed"`, the theme's tokens for the resolved mode go into `#gameplane-custom-theme-vars` under `html[data-theme-type="installed"][data-theme]` (beats every preset block), then the theme's own sanitized CSS in `#gameplane-installed-theme-css`, then the user's custom CSS overlay `#gameplane-custom-css` last, so the user's overlay still wins. A theme with tokens for one mode only pins the page to that mode. Server tokens pass `normalizeInstalledRender` before they reach the DOM. The pre-paint boot script in `index.html` does not render installed themes; they apply once the app loads the cached or fetched preferences.
+
+**Safe mode and unauthenticated views:** safe mode (`?safe-mode=1`, or the `gameplane-safe-mode` session flag) suspends the installed theme as well as the overlay and renders Modern Pink, so Settings → Theme stays reachable. `enforceUnauthenticatedTheme()` also strips `#gameplane-installed-theme-css` on `/login` and `/share/*`. The spec 016 export records an installed theme as `{source, name, version}` only; importing it where that theme is not installed falls back to Modern Pink with a notice (`lib/theme-export.ts`).
+
 ### Test Count Rule (FR-010)
 
 Each rewritten test file must maintain or exceed the original test count:

@@ -64,6 +64,7 @@ api/
 │   ├── steam/            # Steam Workshop ID resolver: cache + singleflight-deduped upstream lookups
 │   ├── scope/            # namespace + cluster resolution from request context
 │   ├── telemetry/        # optional anonymous usage metrics collection
+│   ├── themes/           # theme marketplace (spec 043): theme sources, indexer, install/update/remove
 │   ├── messages/         # localizable error registry (ids, English ICU, status)
 │   ├── httperr/          # error -> HTTP status classification (safe message for client, full error logged)
 │   └── [test files]
@@ -83,6 +84,7 @@ api/
 - **registry:** provider types (each implements Search, Details, Manifest, Download), Set (versioned provider pool with key fallback)
 - **scope:** ResolveNamespace (extract from path or default), ResolveCluster (validate `?cluster=` against registry)
 - **httperr:** classify error type to safe HTTP status + message; preserve full error server-side
+- **themes:** `Service` for theme sources (create/update/delete/refresh, official source seed), the catalog indexer and its scheduler, and per-user install/update/remove (spec 043; see "Theme marketplace" below)
 - **telemetry:** destination resolution (`ResolveDestination`), consent, report collection and preview (`BuildReport`), the scheduled reporter (Ed25519 signing, proof-of-work solving, install-ID rotation on `409 id_claimed`)
 
 ## External interface / contracts
@@ -190,6 +192,9 @@ Both stats and fleet inventory emit `storageCapacitySource` (`node-ephemeral` or
 - `/users/me/servers` — GET: own GameServers (owner/collaborator)
 - `/users/me/preferences` — GET/PUT: own theme/styling preferences (feature 016)
 - `/users/me/preferences/reset` — POST: reset own theme preferences to defaults (feature 016)
+- `/users/me/themes`, `/users/me/themes/{id}`, `/users/me/themes/{id}/update` — own installed themes (spec 043, see "Theme marketplace")
+- `/themes/catalog`, `/themes/catalog/{id}`, `/themes/catalog/{id}/preview/{light|dark}` — GET: theme catalog, any signed-in user (spec 043)
+- `/themes/sources`, `/themes/sources/{name}`, `/themes/sources/{name}/refresh` — theme source admin, `themes:manage` (spec 043)
 - `/users/me/language` — PUT: set or clear own language choice (spec 019; see below)
 - `/users` — GET, POST: list and create users
 - `/users/{id}` — PATCH, DELETE: manage users (admin only). DELETE runs `db.Store.DeleteUser`: one transaction deletes the user's `oidc_links`, `user_preferences`, `sessions`, `api_tokens` and role bindings, revokes the share links the user created (sets `revoked_at`), then deletes the `users` row. It does not rely on FK cascades (off on SQLite). An SSO subject whose user was deleted is provisioned as a new user on its next login
@@ -450,6 +455,26 @@ A submitted stylesheet is rejected with 400 and a message naming the offending r
 
 **FR-012 retention invariant:** `custom_accent`, `custom_surface`, and `custom_css` survive preset switches and overlay toggles; only the reset endpoint clears them. Client contract: ordinary updates omit optional custom fields rather than sending explicit nulls.
 
+### Theme marketplace (spec 043)
+
+Per-user themes from admin-managed sources. Contract: `specs/043-theme-marketplace/contracts/themes-api.md`; data model: `specs/043-theme-marketplace/data-model.md`. Package `api/internal/themes` (`Service`), handlers `handlers/themes.go` (`MountThemes`: catalog and sources), `handlers/theme_sources.go`, `handlers/themes_catalog.go`, `handlers/themes_installed.go` (`MountInstalledThemes`), both mounted in `cmd/main.go`. Same code in combined and standalone mode: sources live in the panel database and the API fetches themes itself, with no operator (OD-4 A).
+
+**Routes:**
+- `GET|POST /themes/sources`, `PUT|DELETE /themes/sources/{name}`, `POST /themes/sources/{name}/refresh` (202, indexes in the background) — RBAC rule `/themes/sources` → `themes:manage` (OD-7). Settings errors are 422 (`themes.SourceError`); duplicate name, deleting `official` (`builtin: true`, disable only) and refreshing a disabled source are 409. Source names are DNS labels of at most 40 characters; `refreshInterval` is seconds (default 3600, minimum 300); `verify` (`{key: PEM}` or `{keyless: {issuer, identity}}`) only for `oci`; URLs carrying credentials are refused.
+- `GET /themes/catalog?q=&tag=&source=` → `{themes, sources}`: entries of enabled sources only; `sources` lists enabled sources with a `lastError` (the raw text only for `themes:manage`, a generic text otherwise). `GET /themes/catalog/{id}` adds `changelog`, `homepage`, `problems` and, for `valid` entries, `tokens` and `css`. The preview route serves the stored PNG or WebP with `Cache-Control: private, max-age=3600` and `X-Content-Type-Options: nosniff`.
+- `GET|POST /users/me/themes`, `GET|DELETE /users/me/themes/{id}`, `POST /users/me/themes/{id}/update` — the caller's own rows only (another user's id is 404). Install takes `{catalogId, select?}`: 201, 409 `already_installed`, 409 `source_disabled`, 422 `entry_not_valid` (status not `valid`), 409 `install_limit` past `themes.MaxInstalledThemes` (50). Update moves to the newer `valid` entry with the same source id and theme name: 409 `no_update`, `source_disabled` or `source_removed`. Delete of the selected theme sets the preferences to preset Pink in the same transaction (FR-011). `updateAvailable` and `sourceRemoved` (source deleted, disabled, or no entry for the theme) are derived per request.
+- `PUT /users/me/preferences` accepts `themeType: "installed"` with `installedThemeId` (422 if not the caller's); the preferences object carries `installedThemeId` and, when selected, `installedTheme: {tokens, css, version}`.
+
+**Credential Secret rule (OD-5, valgul 2026-11-27):** a source names an admin-made Secret in the credentials namespace by name (`credentialSecret`, column `credential_ref`), like a ModuleSource `pullSecretRef`/`secretRef`. The panel only reads it for each pull (`kube.Client.Secrets`: a Kubernetes Secret in combined mode, a panel-encrypted management object in standalone mode) and never creates, changes or deletes it. Keys: `.dockerconfigjson` for `oci`; `token` or `username` + `password` for `git` and `http`; a `local` source takes none (422). PUT without the field keeps it, `null` or `""` clears it, and it stays when the location changes. Responses show the name only, never values; a missing Secret or key fails the source with a `lastError` naming the Secret.
+
+**Indexer (`themes/indexer.go`):** source types `oci` (explicit theme list under a registry prefix, `<url>/<name>:<semver tag>`, plain HTTP only with `oci.insecure`), `git`, `http` (archive) and `local` (under `--themes-local-root` / `GAMEPLANE_THEMES_LOCAL_ROOT`; empty, the default and the chart's setting, disables local sources). Fetching uses `bundlefetch` (OCI artifact type `application/vnd.gameplane.theme.v1+json`, layers keyed by their title annotation, total capped at `themepkg.MaxPackageBytes`); dials go through `netguard.IsAllowed`, so in-cluster registries are reachable and link-local and metadata addresses are not. Each package is validated with `themepkg.Validate` (name and version must match the published ones) and, when the source has a verify policy, checked with the `bundlefetch/verify` cosign verifier; a failed check stores status `unverified` with problem rule `signature`. The latest version is the highest semver tag without a pre-release part, else the highest pre-release. An unchanged digest skips re-validation unless the verify policy changed (then every entry is re-checked). A theme that fails keeps its previous row; a source where every theme fails records `last_error` and keeps its catalog. Errors are redacted (no URL userinfo or query). `Service.Run` runs on the leader replica only (`runPanelWorkers`): every 30 s it refreshes due sources one at a time, each bounded by 2 minutes; create, edit and refresh start an index at once.
+
+**Official source:** `SeedOfficial` creates and, on every start, reconciles the reserved `official` row (`oci`) from `GAMEPLANE_THEMES_OFFICIAL_SOURCE` (anything but `false` enables it), `GAMEPLANE_THEMES_OFFICIAL_URL`, `GAMEPLANE_THEMES_OFFICIAL_THEMES` (comma list) and, when `GAMEPLANE_THEMES_OFFICIAL_VERIFY=true`, the keyed policy `GAMEPLANE_THEMES_OFFICIAL_COSIGN_KEY`, all set by the chart from `themes.officialSource` (OD-6). The URL, theme list, insecure flag and verify policy are chart-owned (a PUT keeps them; its allow globs and the enabled flag and refresh interval apply); a restart keeps the admin's enabled flag and refresh interval. An empty theme list indexes nothing.
+
+**Tables (migration `common/028_theme_marketplace.sql`):** `theme_sources`, `theme_catalog_entries` (unique `(source_id, name)`, preview bytes as `BYTEA`/BLOB), `user_installed_themes` (a snapshot: tokens, sanitized CSS, version, digest; `source_id` set to NULL when its source is deleted, so the copy stays and reads as source removed), and `user_preferences.installed_theme_id`. Ids are generated in Go; there are no `REFERENCES`, so dependent rows are deleted or nulled in Go transactions (`DeleteThemeSource`, `DeleteInstalledTheme`, `DeleteUser` also deletes the user's installed themes).
+
+**Audit:** `theme_source.create|update|delete|refresh` and `theme.install|update|remove`. Reads are not audited.
+
 ### Capture operation auditing
 
 **Scope — which operations are audited** (per T010, specs/done_003-network-capture-sidecar/research.md):
@@ -635,7 +660,7 @@ Verify from `/api/go.mod`.
 - Runtime SQL is written once with `?` placeholders; the Postgres connector rewrites them to `$n` (`db.Rebind`). Timestamps that used SQLite's `datetime('now')` are generated in Go (`db.NowTimestamp()`, same `YYYY-MM-DD HH:MM:SS` UTC text) and bound as parameters; inserted ids come from `RETURNING id` (pgx has no `LastInsertId`)
 - Postgres legacy migrations declare the text columns the API sorts or range-compares (`roles.name`, role-binding scope columns, `audit_events.ts`, `sessions.expires_at`, `share_links.created_at`/`expires_at`) `COLLATE "C"` so ordering matches SQLite's byte-wise collation
 
-### Schema (migrations 001-014 detailed here; 015-027 in `migrations/common/`)
+### Schema (migrations 001-014 detailed here; 015-028 in `migrations/common/`; 028 is described under "Theme marketplace")
 
 **001_init.sql:**
 - `users` — username (unique), email, display_name, pw_hash (argon2id), role (legacy, now via role_bindings), created_at, updated_at
