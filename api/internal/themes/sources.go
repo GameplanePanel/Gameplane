@@ -90,14 +90,6 @@ type checkedSettings struct {
 	refreshS int
 }
 
-// sourceSpecOf decodes a stored spec. A spec that does not decode yields the
-// zero value; stored specs were validated on write, so this is only a guard.
-func sourceSpecOf(raw string) sourceSpec {
-	var sp sourceSpec
-	_ = json.Unmarshal([]byte(raw), &sp)
-	return sp
-}
-
 // decodeSpec parses the spec JSON strictly: unknown keys are an error, so a
 // misspelled setting never silently has no effect.
 func decodeSpec(raw json.RawMessage) (sourceSpec, error) {
