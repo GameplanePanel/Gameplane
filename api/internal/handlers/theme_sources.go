@@ -26,13 +26,15 @@ type themeSourceHandler struct {
 	svc   *themes.Service
 }
 
-// themeSourceBody is the POST and PUT request. Unknown fields are refused, so a
-// credential sent before it is supported (OD-5) is an error, not silently
-// dropped. On PUT the name comes from the path and the body name is ignored.
+// themeSourceBody is the POST and PUT request. Unknown fields are refused. On PUT
+// the name comes from the path and the body name is ignored. Credential is kept
+// as raw JSON so an absent field (keep, or none on create) and a JSON null (clear,
+// on PUT) can be told apart.
 type themeSourceBody struct {
 	Name            string          `json:"name"`
 	Type            string          `json:"type"`
 	Spec            json.RawMessage `json:"spec"`
+	Credential      json.RawMessage `json:"credential"`
 	Verify          json.RawMessage `json:"verify"`
 	RefreshInterval *int            `json:"refreshInterval"`
 	Enabled         *bool           `json:"enabled"`
@@ -58,6 +60,7 @@ func (b themeSourceBody) settings() themes.SourceSettings {
 	return themes.SourceSettings{
 		Type:             b.Type,
 		Spec:             b.Spec,
+		Credential:       b.Credential,
 		Verify:           b.Verify,
 		RefreshIntervalS: b.RefreshInterval,
 		Enabled:          b.Enabled,

@@ -12,7 +12,7 @@ One admin-managed source (FR-001, FR-002). Mirrors `ModuleSourceSpec`.
 | `name` | text, unique | DNS-1123 label, max 63; `official` reserved for the seeded source |
 | `type` | text | `oci` \| `git` \| `http` \| `local` |
 | `spec` | text (JSON) | type-specific settings: `oci {url, themes[], insecure}`, `git {url, ref, path}`, `http {url}`, `local {path}`; plus `allow[]` globs |
-| `credential` | blob, nullable | encrypted with the panel key (same scheme as kubeconfig credentials, spec 025); never returned by the API |
+| `credential_ref` | text, nullable | name of a labelled credential Secret (Kubernetes Secret in combined mode, panel-encrypted `management_objects` row in standalone mode, covered by key rotation); the credential itself is never stored in the row or returned by the API (OD-5) |
 | `verify` | text (JSON), nullable | `{key: PEM}` or `{keyless: {issuer, identity}}`, `requireTransparencyLog`; only for `oci` |
 | `refresh_interval_s` | integer | default 3600, min 300 |
 | `enabled` | integer (0/1) | default 1 |
@@ -20,7 +20,7 @@ One admin-managed source (FR-001, FR-002). Mirrors `ModuleSourceSpec`.
 | `last_error` | text, nullable | human-readable, no credentials |
 | `created_at`, `updated_at` | text | RFC 3339 |
 
-Seed: one row `official`, `type=oci`, `url=ghcr.io/gameplanepanel/gameplane-themes`, keyless verify pinned to the `GameplanePanel/themes` release workflow; skipped when Helm `themes.officialSource.enabled=false`.
+Seed: one row `official`, `type=oci`, `url` and `themes` from Helm `themes.officialSource`, keyed verify with `signing/cosign.pub` when `themes.officialSource.verify.enabled`; reconciled on every start (url, themes, verify), keeping the admin's `enabled`, refresh interval, credential and other spec fields; skipped when `themes.officialSource.enabled=false`.
 
 ## theme_catalog_entries
 

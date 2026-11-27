@@ -157,11 +157,23 @@ func (s *Service) RunDue(ctx context.Context) {
 	}
 }
 
+// newSourceSettle is how long after its creation the scheduler leaves a source
+// alone, so the credential Secret written by CreateSource is in place first.
+const newSourceSettle = 10 * time.Second
+
 // isDue reports whether an enabled source should be refreshed at now. A source
 // that never synced is due. The interval is never below MinRefreshInterval.
 func isDue(src db.ThemeSource, now time.Time) bool {
 	if !src.Enabled {
 		return false
+	}
+	// CreateSource inserts the row before it writes the credential Secret, so a
+	// scheduled pass in that gap would read a Secret that is not there yet. A
+	// source is left alone for newSourceSettle after its creation.
+	if created, err := time.Parse(time.RFC3339, src.CreatedAt); err == nil {
+		if age := now.Sub(created); age >= 0 && age < newSourceSettle {
+			return false
+		}
 	}
 	if src.LastSyncAt == nil {
 		return true
@@ -246,10 +258,14 @@ func (s *Service) index(ctx context.Context, src db.ThemeSource, known map[strin
 	if err := json.Unmarshal([]byte(src.Spec), &sp); err != nil {
 		return indexResult{}, fmt.Errorf("decode source settings: %w", err)
 	}
-	if src.Type == "oci" {
-		return s.indexOCI(ctx, src, sp, known, recheck)
+	cred, err := s.readCredential(ctx, src)
+	if err != nil {
+		return indexResult{}, err
 	}
-	loader, err := s.treeLoader(src.Type, sp)
+	if src.Type == "oci" {
+		return s.indexOCI(ctx, src, sp, cred, known, recheck)
+	}
+	loader, err := s.treeLoader(src.Type, sp, cred)
 	if err != nil {
 		return indexResult{}, err
 	}
@@ -259,11 +275,18 @@ func (s *Service) index(ctx context.Context, src db.ThemeSource, known map[strin
 // indexOCI lists the configured themes of an OCI source, pulls the latest
 // version of each and indexes it. A theme whose pull fails keeps its catalog
 // row and adds a failure. When every theme fails, the source fails.
-func (s *Service) indexOCI(ctx context.Context, src db.ThemeSource, sp sourceSpec, known map[string]string, recheck bool) (indexResult, error) {
+func (s *Service) indexOCI(ctx context.Context, src db.ThemeSource, sp sourceSpec, cred map[string][]byte, known map[string]string, recheck bool) (indexResult, error) {
 	if sp.OCI == nil || sp.OCI.URL == "" {
 		return indexResult{}, errors.New("oci source has no url")
 	}
-	cli := s.ociFor(sp.OCI.Insecure)
+	var creds oci.CredentialFunc
+	if src.CredentialRef != nil {
+		var err error
+		if creds, err = ociCredentialFunc(cred, ociHost(sp.OCI.URL)); err != nil {
+			return indexResult{}, err
+		}
+	}
+	cli := s.ociFor(creds, sp.OCI.Insecure)
 	verifier, err := s.verifier(ctx, src, sp.OCI.Insecure)
 	if err != nil {
 		return indexResult{}, err
@@ -329,7 +352,7 @@ func isPrerelease(v string) bool {
 }
 
 // treeLoader returns the loader of a git, http or local source.
-func (s *Service) treeLoader(typ string, sp sourceSpec) (source.Loader, error) {
+func (s *Service) treeLoader(typ string, sp sourceSpec, cred map[string][]byte) (source.Loader, error) {
 	switch typ {
 	case "git":
 		if sp.Git == nil || sp.Git.URL == "" {
@@ -338,7 +361,7 @@ func (s *Service) treeLoader(typ string, sp sourceSpec) (source.Loader, error) {
 		if err := source.CheckGitURL(sp.Git.URL); err != nil {
 			return nil, fmt.Errorf("git url: %w", err)
 		}
-		loader, _ := source.GitLoader(sp.Git.URL, sp.Git.Ref, sp.Git.Path, nil, source.GitClone)
+		loader, _ := source.GitLoader(sp.Git.URL, sp.Git.Ref, sp.Git.Path, gitAuth(cred), source.GitClone)
 		return loader, nil
 	case "http":
 		if sp.HTTP == nil || sp.HTTP.URL == "" {
@@ -347,7 +370,7 @@ func (s *Service) treeLoader(typ string, sp sourceSpec) (source.Loader, error) {
 		if err := source.CheckHTTPURL(sp.HTTP.URL, false); err != nil {
 			return nil, fmt.Errorf("http url: %w", err)
 		}
-		return source.ArchiveLoader(sp.HTTP.URL, ""), nil
+		return source.ArchiveLoader(sp.HTTP.URL, httpAuthHeader(cred)), nil
 	case "local":
 		if sp.Local == nil {
 			return nil, errors.New("local source has no path")
@@ -577,7 +600,9 @@ func (s *Service) verifier(ctx context.Context, src db.ThemeSource, insecure boo
 }
 
 // defaultVerifier builds the bundlefetch verifier for a verify JSON policy. The
-// pull is anonymous: registry credentials come with the source settings.
+// The signature check pulls anonymously: the source credential authenticates the
+// theme pull only, so a signature policy on a private registry needs a public
+// signature artifact.
 func defaultVerifier(ctx context.Context, raw string, insecure bool) (verify.Verifier, error) {
 	var vs verifySpec
 	if err := json.Unmarshal([]byte(raw), &vs); err != nil {
@@ -593,10 +618,11 @@ func defaultVerifier(ctx context.Context, raw string, insecure bool) (verify.Ver
 	}
 }
 
-// defaultOCI is the production registry client: anonymous, plain HTTP only when
-// the source says so, dialing through netguard, and bounded to theme packages.
-func defaultOCI(insecure bool) source.OCIClient {
-	return oci.New(nil, insecure).WithArtifactType(ThemeArtifactType).WithMaxLayerBytes(themepkg.MaxPackageBytes)
+// defaultOCI is the production registry client: creds (nil for anonymous) are
+// used for the source's registry only, plain HTTP only when the source says so,
+// dialing through netguard, and bounded to theme packages.
+func defaultOCI(creds oci.CredentialFunc, insecure bool) source.OCIClient {
+	return oci.New(creds, insecure).WithArtifactType(ThemeArtifactType).WithMaxLayerBytes(themepkg.MaxPackageBytes)
 }
 
 // userinfoPattern matches the "user:password@" part of a URL in an error text.

@@ -59,11 +59,15 @@ func sourceErrf(format string, args ...any) error {
 }
 
 // SourceSettings is the admin-editable part of a theme source as the API
-// receives it (contracts/themes-api.md, theme sources). Credentials are not
-// accepted yet: OD-5 is open, and the handler refuses unknown fields.
+// receives it (contracts/themes-api.md, theme sources).
 type SourceSettings struct {
 	// Type is "oci", "git", "http" or "local".
 	Type string
+	// Credential is the optional credential JSON, in the shape checkCredential
+	// reads for Type. Absent (nil) means none on create and keep on update. The
+	// JSON null clears it on update. The value is stored as a labelled Secret and
+	// is never echoed back.
+	Credential json.RawMessage
 	// Spec is the type-specific JSON in the shape the indexer reads: one of
 	// {"oci": {...}}, {"git": {...}}, {"http": {...}} or {"local": {...}}, plus an
 	// optional "allow" list of glob patterns.
@@ -311,20 +315,43 @@ func (s *Service) CreateSource(ctx context.Context, name string, in SourceSettin
 	if err != nil {
 		return db.ThemeSource{}, err
 	}
+	var data map[string][]byte
+	var ref *string
+	if hasCredentialInput(in.Credential) {
+		if data, err = checkCredential(c.typ, in.Credential); err != nil {
+			return db.ThemeSource{}, err
+		}
+		if _, err := s.secretStore(); err != nil {
+			return db.ThemeSource{}, err
+		}
+		secret := credentialSecretName(name)
+		ref = &secret
+	}
 	enabled := true
 	if in.Enabled != nil {
 		enabled = *in.Enabled
 	}
+	// The row is inserted before the Secret is written, so a duplicate name is
+	// refused without touching the existing source's credential.
 	created, err := s.store.CreateThemeSource(ctx, db.ThemeSource{
 		Name:             name,
 		Type:             c.typ,
 		Spec:             c.spec,
+		CredentialRef:    ref,
 		Verify:           c.verify,
 		RefreshIntervalS: c.refreshS,
 		Enabled:          enabled,
 	})
 	if err != nil {
 		return db.ThemeSource{}, fmt.Errorf("create theme source %q: %w", name, err)
+	}
+	if data != nil {
+		if _, err := s.writeCredential(ctx, name, data); err != nil {
+			if derr := s.store.DeleteThemeSource(ctx, created.ID); derr != nil {
+				s.logger.ErrorContext(ctx, "remove theme source after credential failure", "source", name, "error", derr)
+			}
+			return db.ThemeSource{}, err
+		}
 	}
 	return created, nil
 }
@@ -343,6 +370,13 @@ func (s *Service) UpdateSource(ctx context.Context, name string, in SourceSettin
 	if err != nil {
 		return db.ThemeSource{}, err
 	}
+	var data map[string][]byte
+	if hasCredentialInput(in.Credential) {
+		if data, err = checkCredential(c.typ, in.Credential); err != nil {
+			return db.ThemeSource{}, err
+		}
+	}
+	urlChanged := specURL(old.Spec) != specURL(c.spec) || old.Type != c.typ
 	next := old
 	next.Type = c.typ
 	next.Spec = c.spec
@@ -351,14 +385,42 @@ func (s *Service) UpdateSource(ctx context.Context, name string, in SourceSettin
 	if in.Enabled != nil {
 		next.Enabled = *in.Enabled
 	}
-	if specURL(old.Spec) != specURL(c.spec) || old.Type != c.typ {
+	// The row is written before the Secret. If the row write fails, the stored
+	// credential is left untouched and the source keeps working; a failed Secret
+	// write after the row write is logged and returned, and a failed delete only
+	// leaves an orphaned Secret.
+	var writeData map[string][]byte
+	deleteSecret := false
+	switch {
+	case data != nil:
+		// A new credential replaces the stored one, even when the location changed.
+		writeData = data
+		ref := credentialSecretName(name)
+		next.CredentialRef = &ref
+	case (isCredentialNull(in.Credential) || urlChanged) && old.CredentialRef != nil:
+		// Clearing, or a moved location, drops the credential: it must not follow
+		// the source to a new host.
+		deleteSecret = true
 		next.CredentialRef = nil
 	}
 	if err := s.store.UpdateThemeSource(ctx, next); err != nil {
 		return db.ThemeSource{}, fmt.Errorf("update theme source %q: %w", name, err)
 	}
+	credChanged := writeData != nil || deleteSecret
+	if writeData != nil {
+		if _, err := s.writeCredential(ctx, name, writeData); err != nil {
+			s.logger.ErrorContext(ctx, "write theme source credential after row update", "source", name, "error", err)
+			return db.ThemeSource{}, err
+		}
+	}
+	if deleteSecret {
+		if err := s.deleteCredential(ctx, name); err != nil {
+			s.logger.ErrorContext(ctx, "delete theme source credential after row update", "source", name, "error", err)
+			return db.ThemeSource{}, err
+		}
+	}
 	verifyChanged := !equalStringPtr(old.Verify, next.Verify)
-	if verifyChanged || old.Spec != next.Spec || old.Type != next.Type {
+	if verifyChanged || credChanged || old.Spec != next.Spec || old.Type != next.Type {
 		s.startJob(ctx, name, verifyChanged)
 	}
 	updated, err := s.store.GetThemeSource(ctx, name)
@@ -394,6 +456,13 @@ func (s *Service) DeleteSource(ctx context.Context, name string) (db.ThemeSource
 	defer unlock()
 	if err := s.store.DeleteThemeSource(ctx, src.ID); err != nil {
 		return db.ThemeSource{}, fmt.Errorf("delete theme source %q: %w", name, err)
+	}
+	if src.CredentialRef != nil {
+		// The row is gone, so a Secret that outlives it is only clutter. Log the
+		// failure rather than report a delete that did happen as failed.
+		if err := s.deleteCredential(ctx, name); err != nil {
+			s.logger.WarnContext(ctx, "remove theme source credential", "source", name, "error", err)
+		}
 	}
 	return src, nil
 }
