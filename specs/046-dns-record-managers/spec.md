@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-27
 
-**Status**: Draft (OD-1 to OD-6 open, see `OPEN-DECISIONS.md`). Not v1 scope unless valgul says so.
+**Status**: Draft (OD-1 settled, OD-2 to OD-6 open, see `OPEN-DECISIONS.md`). Not v1 scope unless valgul says so.
 
 **Input**: User description: "https://github.com/GameplanePanel/Gameplane/issues/1006 since this would need to have multiple connector the idea is a centralised api that receive order from the main app and then send it to a "manager" sidecar this manager sidecar would be capable of communicating to one type of dns to create the record so we would have one for cloudflare, ovh, hetzner, etc... and also support zone transfer with a specific manager that would hold a full zone and be the "main" dns for the zone"
 
@@ -51,7 +51,7 @@ An admin opens the DNS settings, adds a zone, picks its provider (Cloudflare, OV
 
 1. **Given** valid credentials, **When** the admin adds a zone, **Then** the zone shows "Connected" after a write test that creates and deletes a temporary record.
 2. **Given** wrong credentials or a zone the credentials cannot reach, **When** the admin adds the zone, **Then** it shows the provider's error in plain words and nothing is published to it.
-3. **Given** a hostname that matches no connected zone, **When** a server uses it, **Then** the server shows "Not published: no connected zone for play.other.net", and existing ExternalDNS hint behaviour is unchanged (OD-1).
+3. **Given** a hostname that matches no connected zone, **When** a server uses it, **Then** the server shows "Not published: no connected zone for play.other.net"; no ExternalDNS hint is written for it (OD-1).
 4. **Given** provider credentials, **When** anyone reads them back through the dashboard or API, **Then** only "set" or "not set" is shown; the secret value never leaves the panel.
 
 ---
@@ -111,7 +111,7 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 - Several clusters (multi-cluster panel): each cluster's servers publish through the same zones; ownership is tracked per server across clusters so one cluster cannot remove another's records.
 - A sleeping server (wake-on-connect): records stay published while asleep, because the sentinel keeps the port.
 - IPv6: an AAAA record is published when the endpoint has an IPv6 address; both A and AAAA when it has both.
-- Existing ExternalDNS users: nothing changes for a server whose hostname is in no connected zone (OD-1).
+- Existing ExternalDNS users: once the DNS layer is enabled, the operator stops writing the ExternalDNS hint on every Service (OD-1). Records ExternalDNS already made are not Gameplane's (FR-007): ExternalDNS removes them itself under `--policy=sync`, otherwise the admin removes them; until then the server shows "Not published: record exists and is not owned by Gameplane". The upgrade note says so.
 
 ## Requirements *(mandatory)*
 
@@ -126,6 +126,7 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 - **FR-005**: Gameplane MUST update its records when the hostname, external address, external port, template revision or SRV declaration changes, and MUST remove them when the hostname is cleared, publication is turned off for the server, or the server is deleted.
 - **FR-006**: Server owners MUST be able to turn DNS publication off per server; it is on by default when the hostname is in a connected zone.
 - **FR-007**: Gameplane MUST only change or remove records it created, and MUST mark ownership so it can tell them apart after a restart or a lost database (ownership marker kept at the provider, or in the hosted zone).
+- **FR-007a**: With the DNS layer enabled, the server's effective hostname MUST be a publish order to the central DNS service, not an ExternalDNS hint: the operator MUST stop writing `external-dns.alpha.kubernetes.io/hostname` on game Services (OD-1). This is a breaking change for installs that relied on the hint and MUST get a `Breaking:` changelog entry and an upgrade note.
 - **FR-008**: The address the server advertises (`status.endpoints[].host`) and the assigned Service address (`serviceAddress`) MUST keep their current meaning; DNS publication reads them and does not change them.
 
 **Central DNS service and managers**
@@ -156,8 +157,8 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 - **FR-023**: Each zone MUST show its state (Connected, Manager unreachable, Credentials rejected, …), last successful sync time, and the number of records Gameplane owns in it.
 - **FR-024**: Each server's Networking view MUST list its DNS records with state (Published, Pending, Not published) and the reason for any record not published.
 - **FR-025**: Every zone change (add, edit, disconnect, credential change) and every record change MUST be written to the audit log with who or what caused it.
-- **FR-026**: The whole DNS layer MUST be optional: an install that does not enable it behaves exactly as today, including the ExternalDNS hostname hint.
-- **FR-027**: Documentation MUST list supported providers, supported exposure modes and mapping sources, the hosted-zone transfer setup, and how this relates to ExternalDNS.
+- **FR-026**: The whole DNS layer MUST be optional: an install that does not enable it behaves exactly as today, including the ExternalDNS hostname hint. Enabling it replaces the hint (FR-007a).
+- **FR-027**: Documentation MUST list supported providers, supported exposure modes and mapping sources, the hosted-zone transfer setup, and how to move from ExternalDNS (the hint is replaced, existing ExternalDNS records must be removed before Gameplane publishes the name).
 
 ### Key Entities
 

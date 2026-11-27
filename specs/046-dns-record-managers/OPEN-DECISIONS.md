@@ -1,14 +1,16 @@
 # Open decisions: spec 046 DNS records through provider managers
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-6 were raised on 2026-11-27 with the first spec draft and asked as decision cards. No decision is settled yet; no planning or build work starts until all are.
+Only a decision valgul answers is written here as settled. OD-1 to OD-6 were raised on 2026-11-27 with the first spec draft and asked as decision cards. OD-1 is settled; OD-2 to OD-6 are open. No planning or build work starts until all are.
 
-## OD-1: How does this live next to ExternalDNS? (OPEN)
+## OD-1: How does this live next to ExternalDNS? (SETTLED: own answer, valgul 2026-11-27)
 
 Today the operator writes the ExternalDNS hostname hint on every Service with a hostname (`docs/networking.md`). Issue #1006 asked for ExternalDNS to keep all DNS writes.
 
 - A. Both stay. The ExternalDNS hint is unchanged; a hostname in a zone connected to Gameplane is published by Gameplane, and for that server the operator stops writing the hint so the two never fight over one name. (Recommended: no change for current ExternalDNS users, no double writers.) Moving a name that ExternalDNS already published: Gameplane never touches a record it did not create (FR-007), so it publishes the name only once the ExternalDNS record is gone. ExternalDNS removes it itself when the hint disappears if it runs with `--policy=sync`; with `upsert-only` the admin removes it. How Gameplane guides that removal is left to planning.
 - B. Gameplane's DNS layer replaces the hint: the hint is removed for every server once the layer is enabled. Simpler, but breaks setups that rely on ExternalDNS for names outside connected zones.
 - C. Gameplane's layer only does SRV records and leaves address records to ExternalDNS.
+
+**Settled (valgul, thread 2026-11-27):** "hint became a real info that publish to the manager not a simple info". The hostname stops being an ExternalDNS hint: with the DNS layer enabled, a server's effective hostname is a publish order that Gameplane sends to the central DNS service, which hands it to the zone's manager. Read as: the operator no longer writes the `external-dns.alpha.kubernetes.io/hostname` annotation once the layer is enabled, and a hostname in no connected zone is reported "Not published" instead of being handed to ExternalDNS. Options A to C above are superseded.
 
 ## OD-2: Which providers ship in the first release? (OPEN)
 
