@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-27
 
-**Status**: Draft (OD-1 to OD-4 settled, OD-5 and OD-6 open, see `OPEN-DECISIONS.md`). Not v1 scope unless valgul says so.
+**Status**: Ready for planning (OD-1 to OD-6 settled, see `OPEN-DECISIONS.md`). Not v1 scope unless valgul says so.
 
 **Input**: User description: "https://github.com/GameplanePanel/Gameplane/issues/1006 since this would need to have multiple connector the idea is a centralised api that receive order from the main app and then send it to a "manager" sidecar this manager sidecar would be capable of communicating to one type of dns to create the record so we would have one for cloudflare, ovh, hetzner, etc... and also support zone transfer with a specific manager that would hold a full zone and be the "main" dns for the zone"
 
@@ -144,10 +144,11 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 - **FR-016**: The zone manager MUST serve full and incremental zone transfers to the secondaries on the zone's allowed list, authenticated by shared transfer key, and MUST refuse and log any other transfer request.
 - **FR-017**: The zone manager MUST send a change notice to every allowed secondary when the zone serial increases, and MUST increase the serial on every change.
 - **FR-018**: Hosted zone content and serial MUST survive a restart of the zone manager.
-- **FR-019**: The zone manager MUST be a hidden primary: it serves zone transfers and change notices only to the zone's allowed secondaries and MUST NOT answer public DNS queries; the zone's NS records name the secondaries (OD-4). Whether admins can add records of their own to a hosted zone follows OD-5.
+- **FR-019**: The zone manager MUST be a hidden primary: it serves zone transfers and change notices only to the zone's allowed secondaries and MUST NOT answer public DNS queries; the zone's NS records name the secondaries (OD-4).
 
 **Templates**
 
+- **FR-019a**: Admins MUST be able to add, edit and delete records of any type (MX, TXT, CNAME, …) in a hosted zone from the dashboard and API, and to import an existing zone file once when creating the zone. Records Gameplane owns MUST NOT be editable by hand (OD-5).
 - **FR-020**: Game templates MUST be able to declare SRV services (service name, protocol tcp or udp, named port, optional priority and weight). Validation (`gp-module validate` and the operator) MUST reject declarations naming a missing port or an invalid service name.
 - **FR-021**: The official Minecraft Java module MUST declare `_minecraft._tcp` on its `game` port. Other official modules get SRV declarations only where their game clients look SRV records up.
 
@@ -190,4 +191,5 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 - The public port for NAT or forwarding edges comes only from mapping sources Gameplane already knows (tunnels, explicit per-server public port settings); gateway route provisioning stays out of scope, as in issue #1006.
 - The feature does not depend on issue #999 or #1001 (spec 036 port pools); it reads whatever port mapping results.
 - Permission changes are owned by spec 039 (per-server access, in progress on branch `feat/039-per-server-access`, not yet in `specs/` on `master`); this spec adds no permission (OD-3).
+- The central DNS service and all managers live in a new split repository `GameplanePanel/dns` (submodule `dns/`, own Go module, images built from the Gameplane root), which valgul creates (OD-6).
 - DNSSEC signing of hosted zones is out of scope for the first release.

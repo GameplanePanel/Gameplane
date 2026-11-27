@@ -1,6 +1,6 @@
 # Open decisions: spec 046 DNS records through provider managers
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-6 were raised on 2026-11-27 with the first spec draft and asked as decision cards. OD-1 to OD-4 are settled; OD-5 and OD-6 are open. No planning or build work starts until all are.
+Only a decision valgul answers is written here as settled. OD-1 to OD-6 were raised on 2026-11-27 with the first spec draft and asked as decision cards. All decisions (OD-1 to OD-6) are settled; the spec is ready for planning.
 
 ## OD-1: How does this live next to ExternalDNS? (SETTLED: own answer, valgul 2026-11-27)
 
@@ -38,14 +38,18 @@ Permission changes are owned by spec 039 (per-server access, in progress on bran
 
 **Settled (valgul, decision card 2026-11-27):** A, "Hidden primary only": the zone manager only serves zone transfers and change notices to the allowed secondaries; it does not answer public queries.
 
-## OD-5: Can admins keep their own records in a hosted zone? (OPEN)
+## OD-5: Can admins keep their own records in a hosted zone? (SETTLED: A, valgul 2026-11-27)
 
 - A. Yes: admins can add, edit and delete any record type (MX, TXT, CNAME, …) in the dashboard, and can import an existing zone file once. Gameplane-owned records cannot be edited by hand. (Recommended: a primary DNS for a whole zone has to hold more than game records.)
 - B. No: a hosted zone only holds SOA, NS and Gameplane's server records; other names go in a different zone.
 - C. Import a zone file only, no editing in the dashboard.
 
-## OD-6: Where do the DNS service and managers live? (OPEN)
+**Settled (valgul, decision card 2026-11-27):** A, "Yes, edit + one-time import": admins add, edit and delete any record type in a hosted zone from the dashboard and can import an existing zone file once; Gameplane-owned records cannot be edited by hand.
+
+## OD-6: Where do the DNS service and managers live? (SETTLED: A, valgul 2026-11-27)
 
 - A. A new split repository `GameplanePanel/dns` (submodule `dns/`, own Go module, images built from the Gameplane root, like `tunnel`), holding the central service and every manager. (Recommended: same shape as other optional components; providers' SDKs stay out of the main `go.work`.) Sessions cannot create repositories, so valgul would create it.
 - B. Inside the main repository, as new Go modules (`dns/` with one sub-module per manager).
 - C. The central service in the main API, managers in a new split repository.
+
+**Settled (valgul, decision card 2026-11-27):** A, "New repo GameplanePanel/dns": a new split repository holds the central DNS service and every manager, checked out as the `dns/` submodule with its own Go module, images built from the Gameplane root like `tunnel`. valgul creates the repository before build work starts.

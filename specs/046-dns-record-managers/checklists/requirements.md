@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (no markers in spec.md, OD-1 to OD-4 settled 2026-11-27, OD-5 and OD-6 in `OPEN-DECISIONS.md` are open)
+- [x] No [NEEDS CLARIFICATION] markers remain (OD-1 to OD-6 settled by valgul 2026-11-27)
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -32,4 +32,4 @@
 ## Notes
 
 - Repository paths and existing references (issue #1006, `docs/networking.md`, `status.endpoints`, spec 036 in `specs/done_036-port-pools/`, spec 039 still on branch `feat/039-per-server-access`) are kept on purpose: they tie the spec to what exists today, per this repo's spec convention.
-- Open decisions must be settled by valgul before `/speckit-plan`.
+- All open decisions settled; ready for `/speckit-plan`.
