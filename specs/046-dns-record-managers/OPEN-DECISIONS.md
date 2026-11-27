@@ -10,7 +10,7 @@ Today the operator writes the ExternalDNS hostname hint on every Service with a 
 - B. Gameplane's DNS layer replaces the hint: the hint is removed for every server once the layer is enabled. Simpler, but breaks setups that rely on ExternalDNS for names outside connected zones.
 - C. Gameplane's layer only does SRV records and leaves address records to ExternalDNS.
 
-**Settled (valgul, thread 2026-11-27):** "hint became a real info that publish to the manager not a simple info". The hostname stops being an ExternalDNS hint: with the DNS layer enabled, a server's effective hostname is a publish order that Gameplane sends to the central DNS service, which hands it to the zone's manager. Read as: the operator no longer writes the `external-dns.alpha.kubernetes.io/hostname` annotation once the layer is enabled, and a hostname in no connected zone is reported "Not published" instead of being handed to ExternalDNS. Options A to C above are superseded.
+**Settled (valgul, thread 2026-11-27):** "the hint remain in any case, but if there is a manager this hint also get published to DNS and it not only a view thing" (correcting his earlier "hint became a real info that publish to the manager not a simple info", which was first misread as replacing the hint). The operator keeps writing the `external-dns.alpha.kubernetes.io/hostname` hint on every Service with a hostname, exactly as today, whether or not the DNS layer is enabled. When the hostname is in a zone that has a manager, Gameplane also publishes it through the DNS service, so the hostname is a real DNS record and not only the name shown in the dashboard. Options A to C above are superseded. No breaking change.
 
 ## OD-2: Which providers ship in the first release? (SETTLED: B, valgul 2026-11-27)
 
