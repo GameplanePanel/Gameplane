@@ -30,7 +30,6 @@ import {
   applyThemePreferences,
   DEFAULT_THEME_PREFERENCES,
   isSafeModeActive,
-  markSafeModeActive,
   readThemePreferences,
   SAFE_MODE_SESSION_KEY,
   unmountCustomCssOverlay,
@@ -148,7 +147,6 @@ export function AppLayout() {
   // and localStorage are never deleted.
   useEffect(() => {
     if (!safeMode) return;
-    markSafeModeActive();
     exitThemePreview();
     applyThemePreferences(readThemePreferences());
     unmountCustomCssOverlay();

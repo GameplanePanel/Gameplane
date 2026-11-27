@@ -89,15 +89,6 @@ export function resetUrlSafeModeForTests(): void {
  * `gameplane-safe-mode` sessionStorage flag set by the keyboard shortcut
  * and the login-page safe-mode link.
  */
-// Set by the keyboard shortcut, so safe mode holds for this view even when
-// sessionStorage is blocked.
-let shortcutSafeModeSeen = false;
-
-/** Marks safe mode active for the rest of this page view (keyboard shortcut). */
-export function markSafeModeActive(): void {
-  shortcutSafeModeSeen = true;
-}
-
 // Re-applies an active in-memory theme preview, returning false when there is
 // none. Registered by useThemePreview (which imports this module), so an OS
 // appearance change keeps showing the previewed theme.
@@ -109,7 +100,6 @@ export function setThemePreviewReapplier(fn: (() => boolean) | null): void {
 
 export function isSafeModeActive(): boolean {
   if (typeof window === "undefined") return false;
-  if (shortcutSafeModeSeen) return true;
   try {
     if (new URLSearchParams(window.location.search).get("safe-mode") === "1") {
       urlSafeModeSeen = true;
