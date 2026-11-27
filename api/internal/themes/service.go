@@ -52,6 +52,9 @@ type Service struct {
 
 	verifiersMu sync.Mutex
 	verifiers   map[string]verify.Verifier
+
+	// jobs counts the background refreshes started by the source service.
+	jobs sync.WaitGroup
 }
 
 // New returns a Service for the given dependencies.

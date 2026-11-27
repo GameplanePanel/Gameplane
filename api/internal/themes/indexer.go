@@ -190,6 +190,14 @@ func (s *Service) refresh(ctx context.Context, src db.ThemeSource, recheck bool)
 	unlock := s.lockSource(src.ID)
 	defer unlock()
 
+	// The source may have been deleted while this pass waited for the lock. A
+	// pass must not write catalog rows for a source id that no longer exists.
+	if _, err := s.store.GetThemeSourceByID(ctx, src.ID); errors.Is(err, db.ErrThemeNotFound) {
+		return nil
+	} else if err != nil {
+		return fmt.Errorf("refresh theme source %q: %w", src.Name, err)
+	}
+
 	now := s.clock()
 	current, err := s.store.ListThemeCatalog(ctx, db.ThemeCatalogFilter{Source: src.Name})
 	if err != nil {

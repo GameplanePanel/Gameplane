@@ -1,6 +1,6 @@
 # Open decisions: spec 043 theme marketplace
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-3 were raised on 2026-11-26 and asked as decision cards. OD-1 to OD-3 are settled. Planning raised OD-4 on 2026-11-26; it is settled. OD-5 is open (raised during implementation of T015 and T016); see the end of this file.
+Only a decision valgul answers is written here as settled. OD-1 to OD-3 were raised on 2026-11-26 and asked as decision cards. OD-1 to OD-3 are settled. Planning raised OD-4 on 2026-11-26; it is settled. OD-5, OD-6 and OD-7 are open (raised during implementation); see the end of this file.
 
 ## OD-1: Who can install themes from the catalog? (SETTLED: B, valgul 2026-11-26)
 
@@ -86,3 +86,15 @@ Blocks T061 and T062 (identity and list), and the T046 rule that reserves the na
 - A signature failure gives status `unverified` with rule `signature`; the detail is generic and the cause is logged. Verifiers are built lazily per source and policy (cache key covers the policy and the insecure flag).
 - Tests: `api/internal/themes/indexer_test.go` (new) uses an in-process registry fake and an in-memory SQLite store. It is not run locally (CI only).
 
+
+## Implementation notes (T033–T048 API, no decision needed unless valgul objects)
+
+- `DELETE /themes/sources/official` answers 409: the official source can only be disabled, as the T004 design brief says ("marked as built-in and cannot be deleted, only disabled") and FR-002 allows.
+- Install limit answers 409 `server.themes.install_limit`; a malformed or foreign installed id answers 404; refresh on a disabled source answers 409 `source_disabled`.
+- `refreshInterval` is in seconds (default 3600, floor 300). Source names are DNS labels of at most 40 characters (room for a derived Secret name, OD-5).
+- Until OD-5 is settled, no credential is accepted: a request with `credential` gets 400, and sources are pulled anonymously.
+- Source list items carry an extra `builtin` boolean (additive to `contracts/themes-api.md`).
+
+## OD-7: Permission for theme sources (OPEN, raised 2026-11-27)
+
+research.md R6 chose a new admin-only permission `themes:manage`, but valgul has not answered this exact question and spec 039 owns permission changes. Asked on a card: (A) new `themes:manage` as planned (recommended), (B) reuse `modules:manage`. The branch implements A and is not pushed until this is answered.

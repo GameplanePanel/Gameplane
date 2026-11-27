@@ -241,7 +241,7 @@ func main() {
 		auth.NewK8sSecretReader(k8s, credentialsNS), oidcAuth, cfg.oidcDisplayName, helmPolicy)
 	// Theme marketplace (spec 043): the reserved official source is seeded
 	// once on first start. Same code path in combined and standalone mode.
-	themeSvc := themes.New(themes.Deps{Store: store, Logger: logger})
+	themeSvc := themes.New(themes.Deps{Store: store, Logger: logger, LocalRoot: cfg.themesLocalRoot})
 	if err := themeSvc.SeedOfficial(ctx, cfg.themesOfficialSource); err != nil {
 		logger.Error("seed theme sources", "err", err)
 		os.Exit(1)
@@ -446,7 +446,8 @@ func main() {
 		handlers.MountShareLinks(p, reg, store)
 		handlers.MountOwnership(p, reg, store)
 		handlers.MountUsers(p, store, sessions, reg)
-		handlers.MountThemes(p, store)
+		handlers.MountThemes(p, store, themeSvc)
+		handlers.MountInstalledThemes(p, store, themeSvc)
 		handlers.MountSFTPServers(p, fileAccess)
 		handlers.MountRolesWithHelm(p, store, helmPolicy)
 		handlers.MountAudit(p, auditor)
@@ -558,6 +559,8 @@ func main() {
 			jobs.Go(func() { notify.New(store, k8s, credentialsNS).RunWithRegistry(leaderCtx, reg) })
 			jobs.Go(func() { reporter.Run(leaderCtx) })
 			jobs.Go(func() { handlers.RunModpackAdoptSweep(leaderCtx, reg, agentLister, logger) })
+			// Theme sources refresh on their schedule, on the leader only (spec 043).
+			jobs.Go(func() { themeSvc.Run(leaderCtx) })
 			jobs.Go(func() {
 				auditor.RunRetention(leaderCtx, time.Duration(cfg.auditRetentionDays)*24*time.Hour, 24*time.Hour, logger)
 			})
@@ -669,6 +672,7 @@ type config struct {
 	telemetryInterval      time.Duration
 	officialModuleSource   string
 	themesOfficialSource   bool
+	themesLocalRoot        string
 	clusterOps             bool
 	clusterExternalAddress string
 	updateChannel          string
@@ -772,6 +776,10 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	// Env-only, like GAMEPLANE_TELEMETRY_BUNDLED: the chart sets it from
 	// themes.officialSource.enabled. Anything but "false" seeds the source.
 	c.themesOfficialSource = envOr("GAMEPLANE_THEMES_OFFICIAL_SOURCE", "true") != "false"
+	// Local theme sources read only under this directory. Empty (the default)
+	// disables local sources, so an admin cannot point the API at any host path.
+	fs.StringVar(&c.themesLocalRoot, "themes-local-root", envOr("GAMEPLANE_THEMES_LOCAL_ROOT", ""),
+		"directory that local theme sources may read from; empty disables local theme sources")
 	fs.BoolVar(&c.clusterOps, "cluster-ops", envOr("GAMEPLANE_CLUSTER_OPS", "") == "true", "enable credential-minting cluster ops (Add node, Download kubeconfig)")
 	fs.StringVar(&c.clusterExternalAddress, "cluster-external-address", envOr("GAMEPLANE_CLUSTER_EXTERNAL_ADDRESS", ""),
 		"external (node-routable) API server address, e.g. \"1.2.3.4:6443\" or \"https://k8s.example.com:6443\", used in the join command and downloaded kubeconfig instead of the in-cluster ClusterIP; empty = use the in-cluster address (may be unreachable from outside the cluster)")

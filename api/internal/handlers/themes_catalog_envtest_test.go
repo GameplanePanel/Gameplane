@@ -211,7 +211,7 @@ func (env *themeCatEnv) router(role string) http.Handler {
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	})
-	MountThemes(r, env.store)
+	MountThemes(r, env.store, env.svc)
 	return r
 }
 

@@ -1311,9 +1311,45 @@
     "defaultMessage": "telemetry notice is not pending",
     "description": "API error from the telemetry API (telemetry.go:postNotice)."
   },
+  "server.themes.already_installed": {
+    "defaultMessage": "theme is already installed",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): the user already installed this theme from this source."
+  },
+  "server.themes.entry_not_valid": {
+    "defaultMessage": "theme is not valid and cannot be installed",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): the catalog entry has a status other than valid, or its CSS fails the sanitizer."
+  },
+  "server.themes.install_limit": {
+    "defaultMessage": "you have reached the limit of installed themes",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): install refused because the user already holds the maximum number of installed themes."
+  },
+  "server.themes.no_update": {
+    "defaultMessage": "no newer version of this theme is available",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): update refused because no newer valid version exists from the same source."
+  },
   "server.themes.not_found": {
     "defaultMessage": "theme not found",
     "description": "API error from the theme catalog API (handlers/themes_catalog.go): unknown or hidden catalog entry, bad id, or no preview for the mode."
+  },
+  "server.themes.source_builtin": {
+    "defaultMessage": "the built-in theme source cannot be deleted; disable it instead",
+    "description": "API error from the theme sources API (handlers/theme_sources.go): delete refused for the built-in official source, which can only be disabled."
+  },
+  "server.themes.source_disabled": {
+    "defaultMessage": "the theme source is disabled",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): install or update refused because the theme's source is disabled."
+  },
+  "server.themes.source_exists": {
+    "defaultMessage": "a theme source with this name already exists",
+    "description": "API error from the theme sources API (handlers/theme_sources.go): create refused because the name is taken."
+  },
+  "server.themes.source_not_found": {
+    "defaultMessage": "theme source not found",
+    "description": "API error from the theme sources API (handlers/theme_sources.go): no theme source has the name in the path."
+  },
+  "server.themes.source_removed": {
+    "defaultMessage": "the theme source was removed",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): update refused because the installed copy's source was deleted."
   },
   "server.tunnel.credentials_in_use": {
     "defaultMessage": "cannot delete tunnel credentials while tunnel is enabled; disable the tunnel first or use PUT to rotate credentials",
@@ -1386,6 +1422,14 @@
   "server.users.custom_surface_invalid": {
     "defaultMessage": "customColors.surface must be a #RRGGBB hex color",
     "description": "API error from the users API (users.go:putPreferences). Quoted words and tokens in the text are API keywords; keep them as written."
+  },
+  "server.users.installed_theme_id_required": {
+    "defaultMessage": "installedThemeId is required when themeType is \"installed\"",
+    "description": "API error from the users API (users.go:putPreferences). Quoted words and tokens in the text are API keywords; keep them as written."
+  },
+  "server.users.installed_theme_not_found": {
+    "defaultMessage": "installedThemeId is not one of your installed themes",
+    "description": "API error from the users API (users.go:putPreferences): the selected installed theme is missing or belongs to another user."
   },
   "server.users.invalid_email": {
     "defaultMessage": "invalid email",

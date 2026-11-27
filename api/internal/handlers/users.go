@@ -226,11 +226,13 @@ func (h *userHandler) me(w http.ResponseWriter, req *http.Request) {
 		httperr.Write(w, req, err)
 		return
 	}
+	prefsDTO := preferencesDTO(prefs)
+	h.attachInstalledTheme(req.Context(), u.ID, prefsDTO, prefs)
 	writeJSON(w, userDTO{
 		ID: u.ID, Username: u.Username, DisplayName: u.DisplayName,
 		Email: u.Email, Role: u.Role, RoleSource: source, Permissions: auth.PermsToJSON(u.Perms),
 		PermissionsByCluster: auth.PermsByClusterToJSON(u.Perms),
-		Preferences:          preferencesDTO(prefs),
+		Preferences:          prefsDTO,
 	})
 }
 
@@ -254,6 +256,36 @@ type userPreferencesDTO struct {
 	// the instance default. It is set through PUT /users/me/language.
 	Language  *string `json:"language"`
 	UpdatedAt string  `json:"updatedAt"`
+	// InstalledThemeID is the selected installed theme (spec 043), null unless
+	// themeType is "installed". InstalledTheme carries that theme's tokens, CSS
+	// and version, so the dashboard renders it without another request.
+	InstalledThemeID *int64                 `json:"installedThemeId"`
+	InstalledTheme   *installedThemeRenders `json:"installedTheme,omitempty"`
+}
+
+// installedThemeRenders is the rendering part of the selected installed theme.
+type installedThemeRenders struct {
+	Tokens  json.RawMessage `json:"tokens"`
+	CSS     *string         `json:"css"`
+	Version string          `json:"version"`
+}
+
+// attachInstalledTheme adds the rendered installed theme to dto when the
+// preferences select one. A missing or unreadable row leaves dto without it.
+func (h *userHandler) attachInstalledTheme(ctx context.Context, userID int64, dto *userPreferencesDTO, p db.UserPreferences) {
+	if p.ThemeType != "installed" || p.InstalledThemeID == nil {
+		return
+	}
+	t, err := h.db.GetInstalledTheme(ctx, userID, *p.InstalledThemeID)
+	if err != nil {
+		slog.Warn("load selected installed theme", "err", err, "user", userID)
+		return
+	}
+	dto.InstalledTheme = &installedThemeRenders{
+		Tokens:  rawJSONOrDefault(t.Tokens, "{}"),
+		CSS:     t.CSS,
+		Version: t.Version,
+	}
 }
 
 func preferencesDTO(p db.UserPreferences) *userPreferencesDTO {
@@ -265,6 +297,7 @@ func preferencesDTO(p db.UserPreferences) *userPreferencesDTO {
 		CustomCSS:        p.CustomCSS,
 		Language:         p.Language,
 		UpdatedAt:        p.UpdatedAt,
+		InstalledThemeID: p.InstalledThemeID,
 	}
 	if p.CustomAccent != nil || p.CustomSurface != nil {
 		out.CustomColors = &customColorsDTO{}
@@ -304,7 +337,9 @@ func (h *userHandler) getPreferences(w http.ResponseWriter, req *http.Request) {
 		httperr.Write(w, req, err)
 		return
 	}
-	writeJSON(w, preferencesDTO(prefs))
+	dto := preferencesDTO(prefs)
+	h.attachInstalledTheme(req.Context(), u.ID, dto, prefs)
+	writeJSON(w, dto)
 }
 
 // updatePreferencesReq carries a PUT merge: nil means "leave unchanged".
@@ -318,6 +353,9 @@ type updatePreferencesReq struct {
 	CustomColors     *customColorsReq `json:"customColors"`
 	CustomCSSEnabled *bool            `json:"customCssEnabled"`
 	CustomCSS        *string          `json:"customCss"`
+	// InstalledThemeID selects one of the caller's installed themes. It is
+	// required with themeType "installed" and ignored otherwise.
+	InstalledThemeID *int64 `json:"installedThemeId"`
 }
 
 type customColorsReq struct {
@@ -340,7 +378,7 @@ func (h *userHandler) putPreferences(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.users.theme_type_required", nil))
 		return
 	}
-	if *body.ThemeType != "preset" && *body.ThemeType != "custom_colors" {
+	if *body.ThemeType != "preset" && *body.ThemeType != "custom_colors" && *body.ThemeType != "installed" {
 		httperr.WriteMessage(w, req, messages.New("server.users.theme_type_invalid", nil))
 		return
 	}
@@ -381,6 +419,11 @@ func (h *userHandler) putPreferences(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	if *body.ThemeType == "installed" && body.InstalledThemeID == nil {
+		httperr.WriteMessage(w, req, messages.New("server.users.installed_theme_id_required", nil))
+		return
+	}
+
 	// FR-012 retention: read the stored row (or defaults), then apply only
 	// the fields present in the body. Omitted customColors/customCss ride
 	// along with their stored values; an ordinary update can never null them.
@@ -393,6 +436,21 @@ func (h *userHandler) putPreferences(w http.ResponseWriter, req *http.Request) {
 	prefs.PresetID = *body.PresetID
 	prefs.AppearanceMode = *body.AppearanceMode
 	prefs.CustomCSSEnabled = *body.CustomCSSEnabled
+	if *body.ThemeType == "installed" {
+		// The selected theme must be one of the caller's own installed themes;
+		// another user's id, or an unknown one, is refused before any write.
+		if _, err := h.db.GetInstalledTheme(req.Context(), u.ID, *body.InstalledThemeID); err != nil {
+			if errors.Is(err, db.ErrThemeNotFound) {
+				httperr.WriteMessage(w, req, messages.New("server.users.installed_theme_not_found", nil))
+				return
+			}
+			httperr.Write(w, req, err)
+			return
+		}
+		prefs.InstalledThemeID = body.InstalledThemeID
+	} else {
+		prefs.InstalledThemeID = nil
+	}
 	if body.CustomColors != nil {
 		if body.CustomColors.Accent != nil {
 			prefs.CustomAccent = body.CustomColors.Accent
@@ -409,7 +467,9 @@ func (h *userHandler) putPreferences(w http.ResponseWriter, req *http.Request) {
 		httperr.Write(w, req, err)
 		return
 	}
-	writeJSON(w, preferencesDTO(saved))
+	savedDTO := preferencesDTO(saved)
+	h.attachInstalledTheme(req.Context(), u.ID, savedDTO, saved)
+	writeJSON(w, savedDTO)
 }
 
 // resetPreferencesReq carries the optional preset/appearance to restore;
