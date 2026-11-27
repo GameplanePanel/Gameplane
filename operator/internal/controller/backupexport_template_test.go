@@ -36,14 +36,14 @@ func TestWithServerTemplateFillsMissingTemplate(t *testing.T) {
 		t.Fatalf("withServerTemplate: %v", err)
 	}
 	cm := got.Status.CaptureManifest
-	if cm.TemplateName != "minecraft-java" || cm.TemplateRevision != "rev-1" || cm.GameVersion != "1.21.4" {
-		t.Fatalf("manifest = %+v, want the server's template, revision and version", cm)
+	if cm.TemplateName != "minecraft-java" || cm.TemplateRevision != "" || cm.GameVersion != "" {
+		t.Fatalf("manifest = %+v, want only the server's template name", cm)
 	}
 	if bk.Status.CaptureManifest.TemplateName != "" {
 		t.Fatal("the source Backup was modified")
 	}
 	m := decodeExportManifest(t, mustExportManifest(t, got))
-	if m.Template.Name != "minecraft-java" || m.GameVersion != "1.21.4" {
+	if m.Template.Name != "minecraft-java" || m.GameVersion != "" {
 		t.Fatalf("archive manifest = %+v", m)
 	}
 }
@@ -70,6 +70,7 @@ func TestWithServerTemplateLeavesBackupWhenServerDoesNotMatch(t *testing.T) {
 		objs []client.Object
 	}{
 		{name: "no manifest", objs: []client.Object{exportTemplateServer("1")}},
+		{name: "no server uid", cm: &gameplanev1alpha1.BackupCaptureManifest{State: "LegacyUnknown"}, objs: []client.Object{exportTemplateServer("1")}},
 		{name: "server gone", cm: &gameplanev1alpha1.BackupCaptureManifest{ServerUID: "gs-uid"}},
 		{name: "server replaced", cm: &gameplanev1alpha1.BackupCaptureManifest{ServerUID: "old-uid"}, objs: []client.Object{exportTemplateServer("1")}},
 	}

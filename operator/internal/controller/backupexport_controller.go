@@ -240,17 +240,19 @@ func (r *BackupExportReconciler) validateExport(
 	return &backup, "", nil
 }
 
-// withServerTemplate fills the archive's template and game version from the
-// Backup's GameServer when the capture manifest does not record them, as for
-// backups that are not all-data captures, so an upload of the archive can be
-// matched to its game. It returns backup unchanged when the manifest already
-// names a template, when there is no manifest, or when the server is gone or is
-// not the one the backup captured.
+// withServerTemplate fills the archive's template name from the Backup's
+// GameServer when the capture manifest does not record it, as for backups that
+// are not all-data captures, so an upload of the archive can be matched to its
+// game. Only the template is taken: the server's current revision and game
+// version may differ from the captured ones. It returns backup unchanged when
+// the manifest already names a template, when there is no manifest or it
+// records no server UID, or when the server is gone or is not the one the
+// backup captured.
 func (r *BackupExportReconciler) withServerTemplate(
 	ctx context.Context, backup *gameplanev1alpha1.Backup,
 ) (*gameplanev1alpha1.Backup, error) {
 	cm := backup.Status.CaptureManifest
-	if cm == nil || cm.TemplateName != "" {
+	if cm == nil || cm.TemplateName != "" || cm.ServerUID == "" {
 		return backup, nil
 	}
 	var gs gameplanev1alpha1.GameServer
@@ -261,18 +263,11 @@ func (r *BackupExportReconciler) withServerTemplate(
 	if err != nil {
 		return nil, fmt.Errorf("get game server %s/%s: %w", backup.Namespace, backup.Spec.ServerRef.Name, err)
 	}
-	if cm.ServerUID != "" && string(gs.UID) != cm.ServerUID {
+	if string(gs.UID) != cm.ServerUID {
 		return backup, nil
 	}
 	out := backup.DeepCopy()
-	m := out.Status.CaptureManifest
-	m.TemplateName = gs.Spec.TemplateRef.Name
-	if m.TemplateRevision == "" && gs.Status.TemplateRevision != nil {
-		m.TemplateRevision = gs.Status.TemplateRevision.Effective
-	}
-	if m.GameVersion == "" {
-		m.GameVersion = gs.Spec.Version
-	}
+	out.Status.CaptureManifest.TemplateName = gs.Spec.TemplateRef.Name
 	return out, nil
 }
 

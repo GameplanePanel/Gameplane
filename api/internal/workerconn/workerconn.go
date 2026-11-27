@@ -71,7 +71,7 @@ func do(
 		select {
 		case <-ctx.Done():
 			timer.Stop()
-			return nil, err
+			return nil, fmt.Errorf("%w (last attempt: %w)", ctx.Err(), err)
 		case <-timer.C:
 		}
 	}
