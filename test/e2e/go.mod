@@ -16,7 +16,7 @@ require (
 	github.com/GameplanePanel/gameplane/telemetryschema v0.0.0
 	github.com/coder/websocket v1.8.15
 	github.com/gopacket/gopacket v1.8.0
-	github.com/pkg/sftp v1.13.12
+	github.com/pkg/sftp v1.13.13
 	golang.org/x/crypto v0.59.0
 	k8s.io/api v0.37.2
 	k8s.io/apiextensions-apiserver v0.37.2
