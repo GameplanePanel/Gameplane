@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
 	"github.com/GameplanePanel/gameplane/api/internal/db"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/messages"
@@ -19,6 +20,10 @@ import (
 // themeStatusValid is the catalog status of an entry that passed validation
 // and signature checks. Only valid entries expose tokens, CSS and previews.
 const themeStatusValid = "valid"
+
+// genericSourceError is the catalog text of a failing source for callers
+// without themes:manage. The raw last error names source URLs and dial targets.
+const genericSourceError = "This source could not be refreshed."
 
 // themeCatalogHandler serves the read-only theme catalog (contracts/themes-api.md,
 // "Catalog"). Every read is answered from the database cache that the indexer
@@ -134,10 +139,17 @@ func (h *themeCatalogHandler) list(w http.ResponseWriter, req *http.Request) {
 		httperr.Write(w, req, err)
 		return
 	}
+	// Only a holder of themes:manage (a control-plane permission) sees the raw
+	// last error. Everyone else gets the generic text.
+	canManage := auth.UserFromContext(req.Context()).Can("themes:manage", false, "", "")
 	failing := []themeCatalogSourceError{}
 	for _, src := range sources {
 		if src.Enabled && src.LastError != nil {
-			failing = append(failing, themeCatalogSourceError{Name: src.Name, LastError: *src.LastError})
+			msg := genericSourceError
+			if canManage {
+				msg = *src.LastError
+			}
+			failing = append(failing, themeCatalogSourceError{Name: src.Name, LastError: msg})
 		}
 	}
 	writeJSON(w, themeCatalogResp{Themes: items, Sources: failing})

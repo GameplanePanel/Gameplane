@@ -222,6 +222,11 @@ func checkSettings(name string, in SourceSettings, localRoot string) (checkedSet
 		if sp.Local == nil || sp.Local.Path == "" {
 			return c, sourceErrf("local.path is required")
 		}
+		// The same confinement check the indexer runs, so a path that would
+		// fail at index time is refused here with a 422.
+		if _, _, err := source.LocalLoader(localRoot, sp.Local.Path); err != nil {
+			return c, &SourceError{Msg: err.Error()}
+		}
 	}
 	canonical, err := json.Marshal(sp)
 	if err != nil {
@@ -229,7 +234,7 @@ func checkSettings(name string, in SourceSettings, localRoot string) (checkedSet
 	}
 	c.spec = string(canonical)
 
-	if c.verify, err = checkVerify(in.Verify, in.Type, isBuiltin); err != nil {
+	if c.verify, err = checkVerify(in.Verify, in.Type); err != nil {
 		return c, err
 	}
 
@@ -266,14 +271,11 @@ func checkOCI(o *ociSpec, isBuiltin bool) error {
 }
 
 // checkVerify validates the signature policy. A nil or null policy means none.
-// Only oci sources may carry one. The built-in source must keep one: removing
-// it would let unsigned packages into the official catalog.
-func checkVerify(raw json.RawMessage, typ string, isBuiltin bool) (*string, error) {
+// Only oci sources may carry one. The built-in source's policy is chart-owned
+// (UpdateSource keeps the stored one), so no rule applies to it here.
+func checkVerify(raw json.RawMessage, typ string) (*string, error) {
 	trimmed := bytes.TrimSpace(raw)
 	if len(trimmed) == 0 || string(trimmed) == "null" {
-		if isBuiltin {
-			return nil, sourceErrf("the built-in source must keep its signature policy")
-		}
 		return nil, nil
 	}
 	if typ != "oci" {
@@ -353,7 +355,54 @@ func (s *Service) CreateSource(ctx context.Context, name string, in SourceSettin
 			return db.ThemeSource{}, err
 		}
 	}
+	// The credential Secret is in place now, so the first index can start at once.
+	// The scheduler's settle delay (newSourceSettle) remains as a guard only.
+	if enabled {
+		s.startJob(ctx, name, false)
+	}
 	return created, nil
+}
+
+// builtinSettings reshapes a PUT on the built-in source to what an admin may
+// change. The URL, the theme list, the insecure flag and the verify policy are
+// chart-owned (themes.officialSource) and keep their stored values whatever the
+// body says, so a PUT never errors on them. The allow globs come from the body
+// when it names a spec; otherwise they are kept. Enabled and the refresh
+// interval are applied by UpdateSource.
+func builtinSettings(old db.ThemeSource, in SourceSettings) (SourceSettings, error) {
+	var stored sourceSpec
+	if err := json.Unmarshal([]byte(old.Spec), &stored); err != nil || stored.OCI == nil {
+		return in, fmt.Errorf("update theme source %q: stored built-in spec is not an oci spec", old.Name)
+	}
+	if trimmed := bytes.TrimSpace(in.Spec); len(trimmed) > 0 && string(trimmed) != "null" {
+		sp, err := decodeSpec(in.Spec)
+		if err != nil {
+			return in, err
+		}
+		stored.Allow = sp.Allow
+	}
+	raw, err := json.Marshal(stored)
+	if err != nil {
+		return in, fmt.Errorf("encode built-in source spec: %w", err)
+	}
+	in.Spec = raw
+	return in, nil
+}
+
+// locationChanged reports whether an edit moves a source to another location
+// (type, primary URL or path, or the insecure flag of an oci source). A moved
+// location drops the credential reference, since a credential must not follow
+// the source to a new host or be sent over plain HTTP.
+func locationChanged(oldSpec, oldType, newSpec, newType string) bool {
+	return oldType != newType ||
+		specURL(oldSpec) != specURL(newSpec) ||
+		insecureOf(oldSpec) != insecureOf(newSpec)
+}
+
+// insecureOf reports whether a stored spec allows plain HTTP to its registry.
+func insecureOf(raw string) bool {
+	sp := sourceSpecOf(raw)
+	return sp.OCI != nil && sp.OCI.Insecure
 }
 
 // UpdateSource replaces the settings of the source named name. An edit that
@@ -366,9 +415,18 @@ func (s *Service) UpdateSource(ctx context.Context, name string, in SourceSettin
 	if err != nil {
 		return db.ThemeSource{}, fmt.Errorf("update theme source %q: %w", name, err)
 	}
+	if name == OfficialSourceName {
+		if in, err = builtinSettings(old, in); err != nil {
+			return db.ThemeSource{}, err
+		}
+	}
 	c, err := checkSettings(name, in, s.localRoot)
 	if err != nil {
 		return db.ThemeSource{}, err
+	}
+	if name == OfficialSourceName {
+		// The built-in verify policy is chart-owned: keep the stored one.
+		c.verify = old.Verify
 	}
 	var data map[string][]byte
 	if hasCredentialInput(in.Credential) {
@@ -376,7 +434,7 @@ func (s *Service) UpdateSource(ctx context.Context, name string, in SourceSettin
 			return db.ThemeSource{}, err
 		}
 	}
-	urlChanged := specURL(old.Spec) != specURL(c.spec) || old.Type != c.typ
+	urlChanged := locationChanged(old.Spec, old.Type, c.spec, c.typ)
 	next := old
 	next.Type = c.typ
 	next.Spec = c.spec
@@ -420,7 +478,9 @@ func (s *Service) UpdateSource(ctx context.Context, name string, in SourceSettin
 		}
 	}
 	verifyChanged := !equalStringPtr(old.Verify, next.Verify)
-	if verifyChanged || credChanged || old.Spec != next.Spec || old.Type != next.Type {
+	// A source that stays disabled is not fetched. Re-enabling one indexes it.
+	reenabled := !old.Enabled && next.Enabled
+	if next.Enabled && (verifyChanged || credChanged || old.Spec != next.Spec || old.Type != next.Type || reenabled) {
 		s.startJob(ctx, name, verifyChanged)
 	}
 	updated, err := s.store.GetThemeSource(ctx, name)

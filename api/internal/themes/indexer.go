@@ -202,13 +202,21 @@ func (s *Service) refresh(ctx context.Context, src db.ThemeSource, recheck bool)
 	unlock := s.lockSource(src.ID)
 	defer unlock()
 
-	// The source may have been deleted while this pass waited for the lock. A
-	// pass must not write catalog rows for a source id that no longer exists.
-	if _, err := s.store.GetThemeSourceByID(ctx, src.ID); errors.Is(err, db.ErrThemeNotFound) {
+	// The row is read again under the lock. The caller's src may be a snapshot
+	// taken minutes earlier (RunDue takes one list for the whole pass), so its
+	// location, credential reference or enabled flag may have changed since. The
+	// fresh row is the only one this pass indexes. A deleted source writes
+	// nothing, and a disabled one is not fetched.
+	cur, err := s.store.GetThemeSourceByID(ctx, src.ID)
+	if errors.Is(err, db.ErrThemeNotFound) {
 		return nil
 	} else if err != nil {
 		return fmt.Errorf("refresh theme source %q: %w", src.Name, err)
 	}
+	if !cur.Enabled {
+		return nil
+	}
+	src = cur
 
 	now := s.clock()
 	current, err := s.store.ListThemeCatalog(ctx, db.ThemeCatalogFilter{Source: src.Name})
@@ -622,14 +630,26 @@ func defaultVerifier(ctx context.Context, raw string, insecure bool) (verify.Ver
 // used for the source's registry only, plain HTTP only when the source says so,
 // dialing through netguard, and bounded to theme packages.
 func defaultOCI(creds oci.CredentialFunc, insecure bool) source.OCIClient {
-	return oci.New(creds, insecure).WithArtifactType(ThemeArtifactType).WithMaxLayerBytes(themepkg.MaxPackageBytes)
+	// A theme package may not exceed MaxPackageBytes in total, so the layers of
+	// one manifest may not either. The total budget stops a manifest with many
+	// layers from making the indexer hold N layers of that size.
+	return oci.New(creds, insecure).
+		WithArtifactType(ThemeArtifactType).
+		WithMaxLayerBytes(themepkg.MaxPackageBytes).
+		WithMaxTotalBytes(themepkg.MaxPackageBytes)
 }
 
 // userinfoPattern matches the "user:password@" part of a URL in an error text.
 var userinfoPattern = regexp.MustCompile(`://[^/@\s]+@`)
 
-// redact removes URL userinfo from an error text before it is stored as
-// last_error or logged.
+// urlQueryPattern matches the query string and fragment of a URL in an error
+// text. Presigned and token query values are credentials too.
+var urlQueryPattern = regexp.MustCompile(`(://[^\s"?#]*)[?#][^\s"]*`)
+
+// redact removes URL userinfo, query strings and fragments from an error text
+// before it is stored as last_error or logged. Source URLs can carry tokens in
+// either place.
 func redact(msg string) string {
-	return userinfoPattern.ReplaceAllString(msg, "://")
+	msg = userinfoPattern.ReplaceAllString(msg, "://")
+	return urlQueryPattern.ReplaceAllString(msg, "$1")
 }
