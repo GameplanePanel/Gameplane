@@ -343,7 +343,7 @@ func (h *backupArchiveHandler) openLocal(req *http.Request, ns string, exp *kube
 	}
 	resp, err := h.tlsClient.Do(upReq)
 	if err != nil {
-		return nil, backupUpstreamStatus(err), errors.New("backup archive worker is unreachable")
+		return nil, backupUpstreamStatus(err), fmt.Errorf("backup archive worker is unreachable: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		_ = resp.Body.Close()
@@ -378,7 +378,7 @@ func (h *backupArchiveHandler) openRemote(req *http.Request, k *kube.Client, ns 
 	}
 	resp, err := h.gateway.BackupExportDownload(req.Context(), target, req.Header)
 	if err != nil {
-		return nil, backupUpstreamStatus(err), errors.New("backup archive worker is unreachable")
+		return nil, backupUpstreamStatus(err), fmt.Errorf("backup archive worker is unreachable: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		_ = resp.Body.Close()
