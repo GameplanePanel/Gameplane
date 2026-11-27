@@ -546,8 +546,17 @@ TestSFTP_Lifecycle
 EOF
 }
 
+# themes (spec 043): theme marketplace against the in-cluster test registry.
+# Its own cluster, so the theme pushes and cosign Jobs never wait on module
+# tests. Login tally: TestAPI_ThemeMarketplaceLifecycle = 3 (e2e-admin, user A,
+# user B), bucket total 3 of the ~7 ceiling. amd64 only, like sftp.
+bucket_themes() { cat <<'EOF'
+TestAPI_ThemeMarketplaceLifecycle
+EOF
+}
+
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery standalone sftp
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery standalone sftp themes
 }
 
 list_bucket() {
@@ -577,6 +586,7 @@ list_bucket() {
 	recovery) bucket_recovery ;;
 	standalone) bucket_standalone ;;
 	sftp) bucket_sftp ;;
+	themes) bucket_themes ;;
 	monitoring) bucket_monitoring ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2

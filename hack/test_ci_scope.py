@@ -429,6 +429,19 @@ class E2ESelectionTests(unittest.TestCase):
                 self.assertIn("TestPanel_OfflineRecovery",
                               self.select(path)["e2e-run"].get("recovery", ""))
 
+    def test_theme_inputs_select_the_themes_bucket(self):
+        """Theme service, handler, shared fetch and package code select the spec 043 e2e tests."""
+        for path in ("api/internal/themes/indexer.go",
+                     "api/internal/handlers/themes_catalog.go",
+                     "bundlefetch/oci/client.go",
+                     "themepkg/package.go",
+                     "test/e2e/api_themes_e2e_test.go",
+                     "test/e2e/fixtures/theme-oras-push-job.yaml"):
+            with self.subTest(path=path):
+                values = self.select(path)
+                self.assertIn("TestAPI_ThemeMarketplaceLifecycle",
+                              values["e2e-run"].get("themes", ""))
+
     def test_audit_network_isolation_has_a_run_pattern(self):
         """Affected components and the owning test file select the audit bucket."""
         for path in ("operator/internal/controller/gameserver_controller.go",

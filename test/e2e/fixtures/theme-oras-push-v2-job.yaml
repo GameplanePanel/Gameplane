@@ -1,0 +1,42 @@
+# Pushes e2e-theme-signed:0.2.0 for the update step of
+# TestAPI_ThemeMarketplaceLifecycle. Needs the e2e-theme-bundles ConfigMap
+# from theme-oras-push-job.yaml.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: e2e-theme-oras-push-v2
+  namespace: gameplane-system
+  labels:
+    app.kubernetes.io/component: e2e-fixture
+spec:
+  backoffLimit: 4
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: e2e-fixture
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: push-signed-v2
+          image: ghcr.io/oras-project/oras:v1.3.3
+          command: ["oras"]
+          args:
+            - push
+            - --plain-http
+            - --artifact-type=application/vnd.gameplane.theme.v1+json
+            - gameplane-test-registry.gameplane-system.svc:5000/e2e-themes/e2e-theme-signed:0.2.0
+            - theme.yaml:application/vnd.gameplane.theme.metadata.v1+yaml
+            - previews/dark.png:image/png
+          workingDir: /workspace
+          volumeMounts:
+            - { name: signed-020, mountPath: /workspace }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: signed-020
+          configMap:
+            name: e2e-theme-bundles
+            items:
+              - { key: signed-0.2.0.yaml, path: theme.yaml }
+              - { key: dark.png, path: previews/dark.png }
+        - name: tmp
+          emptyDir: {}
