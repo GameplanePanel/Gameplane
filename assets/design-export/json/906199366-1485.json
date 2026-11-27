@@ -776,7 +776,7 @@
         "Edit theme source",
         "Change how the API reaches and verifies this source. The type cannot be changed.",
         "Name",
-        "community",
+        "official",
         "DNS label identifying this source.",
         "Type",
         "OCI registry",

@@ -47,7 +47,7 @@
       "x": 0,
       "y": 64,
       "width": 390,
-      "height": 1515,
+      "height": 1544,
       "fills": [{"type": "SOLID", "color": "#121114"}],
       "layout": {
         "mode": "VERTICAL",
@@ -107,7 +107,7 @@
           "x": 16,
           "y": 224,
           "width": 358,
-          "height": 1275,
+          "height": 1304,
           "layout": {
             "mode": "VERTICAL",
             "gap": 12,
@@ -226,7 +226,7 @@
               "x": 0,
               "y": 999,
               "width": 358,
-              "height": 276,
+              "height": 305,
               "component": "Gameplane/Theme Card/Mobile/Invalid",
               "fills": [{"type": "SOLID", "color": "#1C1A20"}],
               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
@@ -247,6 +247,8 @@
                 "INVALID",
                 "by Ines Duarte · v0.3.0",
                 "Pastel accents. Three problems block installation.",
+                "Light",
+                "Dark",
                 "community",
                 "Install"
               ]

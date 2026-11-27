@@ -106,12 +106,11 @@
         },
         {
           "name": "Catalog Filters",
-          "type": "INSTANCE",
+          "type": "FRAME",
           "x": 16,
           "y": 156,
           "width": 358,
           "height": 128,
-          "component": "Gameplane/Theme Catalog Filters/Mobile",
           "layout": {
             "mode": "VERTICAL",
             "gap": 10,
@@ -121,7 +120,392 @@
             "sizing": ["HUG", "FIXED"]
           },
           "layoutAlignSelf": "STRETCH",
-          "texts": ["neon cyberpunk", "community", "All tags", "Dark", "Light", "Minimal", "High contrast", "Retro"]
+          "children": [
+            {
+              "id": "0:58936",
+              "name": "Filter Row",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 358,
+              "height": 82,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 10,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "0:58937",
+                  "name": "Search",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 358,
+                  "height": 36,
+                  "component": "Gameplane/Search Input",
+                  "componentId": "1:975",
+                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 6,
+                    "padding": [0, 12, 0, 12],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "field/background",
+                    "strokes/0/color": "field/border"
+                  },
+                  "texts": ["neon cyberpunk"]
+                },
+                {
+                  "id": "0:58942",
+                  "name": "Source Select",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 46,
+                  "width": 358,
+                  "height": 36,
+                  "component": "Gameplane/Select",
+                  "componentId": "1:311",
+                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "field/background",
+                    "strokes/0/color": "field/border"
+                  },
+                  "texts": ["community"]
+                }
+              ]
+            },
+            {
+              "id": "0:58946",
+              "name": "Tag Filters",
+              "type": "FRAME",
+              "x": 0,
+              "y": 92,
+              "width": 358,
+              "height": 36,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 6,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 4,
+                "padding": [4, 4, 4, 4],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "clips": true,
+              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+              "children": [
+                {
+                  "id": "0:58947",
+                  "name": "tag All tags",
+                  "type": "INSTANCE",
+                  "x": 4,
+                  "y": 4,
+                  "width": 66,
+                  "height": 28,
+                  "component": "Gameplane/Filter Pill/Default",
+                  "componentId": "1:732",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["All tags"]
+                },
+                {
+                  "id": "0:58949",
+                  "name": "tag All tags selected",
+                  "type": "INSTANCE",
+                  "x": 4,
+                  "y": 4,
+                  "width": 66,
+                  "height": 28,
+                  "visible": false,
+                  "component": "Gameplane/Filter Pill/Selected",
+                  "componentId": "1:729",
+                  "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "accent/soft"},
+                  "texts": ["All tags"]
+                },
+                {
+                  "id": "0:58951",
+                  "name": "tag Dark",
+                  "type": "INSTANCE",
+                  "x": 74,
+                  "y": 4,
+                  "width": 51,
+                  "height": 28,
+                  "visible": false,
+                  "component": "Gameplane/Filter Pill/Default",
+                  "componentId": "1:732",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Dark"]
+                },
+                {
+                  "id": "0:58953",
+                  "name": "tag Dark selected",
+                  "type": "INSTANCE",
+                  "x": 74,
+                  "y": 4,
+                  "width": 51,
+                  "height": 28,
+                  "component": "Gameplane/Filter Pill/Selected",
+                  "componentId": "1:729",
+                  "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "accent/soft"},
+                  "texts": ["Dark"]
+                },
+                {
+                  "id": "0:58955",
+                  "name": "tag Light",
+                  "type": "INSTANCE",
+                  "x": 129,
+                  "y": 4,
+                  "width": 52,
+                  "height": 28,
+                  "component": "Gameplane/Filter Pill/Default",
+                  "componentId": "1:732",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Light"]
+                },
+                {
+                  "id": "0:58957",
+                  "name": "tag Light selected",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 52,
+                  "height": 28,
+                  "visible": false,
+                  "component": "Gameplane/Filter Pill/Selected",
+                  "componentId": "1:729",
+                  "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "accent/soft"},
+                  "texts": ["Light"]
+                },
+                {
+                  "id": "0:58959",
+                  "name": "tag Minimal",
+                  "type": "INSTANCE",
+                  "x": 185,
+                  "y": 4,
+                  "width": 68,
+                  "height": 28,
+                  "component": "Gameplane/Filter Pill/Default",
+                  "componentId": "1:732",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Minimal"]
+                },
+                {
+                  "id": "0:58961",
+                  "name": "tag Minimal selected",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 68,
+                  "height": 28,
+                  "visible": false,
+                  "component": "Gameplane/Filter Pill/Selected",
+                  "componentId": "1:729",
+                  "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "accent/soft"},
+                  "texts": ["Minimal"]
+                },
+                {
+                  "id": "0:58963",
+                  "name": "tag High contrast",
+                  "type": "INSTANCE",
+                  "x": 257,
+                  "y": 4,
+                  "width": 98,
+                  "height": 28,
+                  "component": "Gameplane/Filter Pill/Default",
+                  "componentId": "1:732",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["High contrast"]
+                },
+                {
+                  "id": "0:58965",
+                  "name": "tag High contrast selected",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 98,
+                  "height": 28,
+                  "visible": false,
+                  "component": "Gameplane/Filter Pill/Selected",
+                  "componentId": "1:729",
+                  "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "accent/soft"},
+                  "texts": ["High contrast"]
+                },
+                {
+                  "id": "0:58967",
+                  "name": "tag Retro",
+                  "type": "INSTANCE",
+                  "x": 359,
+                  "y": 4,
+                  "width": 55,
+                  "height": 28,
+                  "component": "Gameplane/Filter Pill/Default",
+                  "componentId": "1:732",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Retro"]
+                },
+                {
+                  "id": "0:58969",
+                  "name": "tag Retro selected",
+                  "type": "INSTANCE",
+                  "x": 359,
+                  "y": 4,
+                  "width": 55,
+                  "height": 28,
+                  "visible": false,
+                  "component": "Gameplane/Filter Pill/Selected",
+                  "componentId": "1:729",
+                  "fills": [{"type": "SOLID", "color": "#2C1926"}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [6, 12, 6, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "accent/soft"},
+                  "texts": ["Retro"]
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "Gameplane/Empty State",

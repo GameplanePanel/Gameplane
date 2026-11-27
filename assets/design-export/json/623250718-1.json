@@ -5,7 +5,7 @@
   "x": 6560,
   "y": 83597,
   "width": 1440,
-  "height": 2891,
+  "height": 2928,
   "fills": [{"type": "SOLID", "color": "#121114"}],
   "layout": {
     "mode": "HORIZONTAL",
@@ -24,7 +24,7 @@
       "x": 0,
       "y": 0,
       "width": 260,
-      "height": 2891,
+      "height": 2928,
       "component": "Gameplane/App Sidebar",
       "componentId": "1:234",
       "fills": [{"type": "SOLID", "color": "#17151A"}],
@@ -66,7 +66,7 @@
       "x": 260,
       "y": 0,
       "width": 1180,
-      "height": 2891,
+      "height": 2928,
       "fills": [{"type": "SOLID", "color": "#121114"}],
       "layout": {
         "mode": "VERTICAL",
@@ -366,7 +366,7 @@
           "x": 0,
           "y": 64,
           "width": 1180,
-          "height": 2827,
+          "height": 2864,
           "layout": {
             "mode": "VERTICAL",
             "gap": 24,
@@ -406,7 +406,7 @@
               "x": 24,
               "y": 101,
               "width": 1132,
-              "height": 2702,
+              "height": 2739,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 24,

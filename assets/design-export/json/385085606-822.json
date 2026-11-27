@@ -1444,12 +1444,11 @@
                             },
                             {
                               "name": "Installed Aurora Night",
-                              "type": "INSTANCE",
+                              "type": "FRAME",
                               "x": 20,
                               "y": 48,
                               "width": 848,
                               "height": 79,
-                              "component": "Gameplane/Installed Theme Row",
                               "fills": [{"type": "SOLID", "color": "#17151A"}],
                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                               "strokeWeight": 1,
@@ -1464,13 +1463,263 @@
                               },
                               "layoutAlignSelf": "STRETCH",
                               "variables": {"fills/0/color": "field/background", "strokes/0/color": "border/border"},
-                              "texts": [
-                                "Aurora Night",
-                                "UPDATE AVAILABLE",
-                                "v1.2.0 · official · Dark only",
-                                "Update available: v1.2.0 to v1.3.0",
-                                "Update",
-                                "Remove"
+                              "children": [
+                                {
+                                  "id": "0:56368",
+                                  "name": "itrPreviews",
+                                  "type": "FRAME",
+                                  "x": 12,
+                                  "y": 17,
+                                  "width": 166,
+                                  "height": 45,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 6,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "HUG"]
+                                  },
+                                  "children": [
+                                    {
+                                      "name": "itrPreviewLight",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 80,
+                                      "height": 45,
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "cornerRadius": 6,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 3,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "clips": true,
+                                      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+                                      "children": [
+                                        {
+                                          "id": "0:56370",
+                                          "name": "icon",
+                                          "type": "INSTANCE",
+                                          "x": 33,
+                                          "y": 7.5,
+                                          "width": 14,
+                                          "height": 14,
+                                          "component": "lucide/moon/16x16"
+                                        },
+                                        {
+                                          "name": "tpUnavailableText",
+                                          "type": "TEXT",
+                                          "x": 17.5,
+                                          "y": 24.5,
+                                          "width": 45,
+                                          "height": 13,
+                                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                          "text": "Dark only",
+                                          "font": ["Geist", 500, 10],
+                                          "variables": {"fills/0/color": "foreground/muted"}
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": "0:56372",
+                                      "name": "itrPreviewDark",
+                                      "type": "INSTANCE",
+                                      "x": 86,
+                                      "y": 0,
+                                      "width": 80,
+                                      "height": 45,
+                                      "component": "Gameplane/Theme Preview/Tiny",
+                                      "fills": [{"type": "SOLID", "color": "#0B1220"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "cornerRadius": 6,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "clips": true,
+                                      "variables": {"strokes/0/color": "border/border"}
+                                    },
+                                    {
+                                      "id": "0:56390",
+                                      "name": "itrRemovedLight",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 80,
+                                      "height": 45,
+                                      "visible": false,
+                                      "component": "Gameplane/Theme Preview/Removed Tiny",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "cornerRadius": 6,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"}
+                                    },
+                                    {
+                                      "id": "0:56394",
+                                      "name": "itrRemovedDark",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 80,
+                                      "height": 45,
+                                      "visible": false,
+                                      "component": "Gameplane/Theme Preview/Removed Tiny",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "cornerRadius": 6,
+                                      "layout": {
+                                        "mode": "VERTICAL",
+                                        "gap": 0,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"}
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "0:56398",
+                                  "name": "itrInfo",
+                                  "type": "FRAME",
+                                  "x": 190,
+                                  "y": 12,
+                                  "width": 467,
+                                  "height": 34,
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 3,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "children": [
+                                    {
+                                      "id": "0:56403",
+                                      "name": "itrMeta",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 467,
+                                      "height": 15,
+                                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                      "layoutAlignSelf": "STRETCH",
+                                      "text": "v1.2.0 · official · Dark only",
+                                      "font": ["JetBrains Mono", 400, 11],
+                                      "variables": {"fills/0/color": "foreground/muted"}
+                                    },
+                                    {
+                                      "id": "0:56404",
+                                      "name": "itrUpdateNote",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 18,
+                                      "width": 467,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#F7B750"}],
+                                      "layoutAlignSelf": "STRETCH",
+                                      "text": "Update available: v1.2.0 to v1.3.0",
+                                      "font": ["Geist", 400, 12],
+                                      "variables": {"fills/0/color": "warning/soft-foreground"}
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "0:56405",
+                                  "name": "itrActions",
+                                  "type": "FRAME",
+                                  "x": 669,
+                                  "y": 23.5,
+                                  "width": 167,
+                                  "height": 32,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 8,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["HUG", "HUG"]
+                                  },
+                                  "children": [
+                                    {
+                                      "id": "0:56406",
+                                      "name": "btnUpdate",
+                                      "type": "INSTANCE",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 85,
+                                      "height": 32,
+                                      "component": "Button/Primary/SM",
+                                      "componentId": "1:629",
+                                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                      "cornerRadius": 24,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 5,
+                                        "padding": [8, 10, 8, 10],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"},
+                                      "texts": ["Update"]
+                                    },
+                                    {
+                                      "id": "0:56412",
+                                      "name": "btnRemove",
+                                      "type": "INSTANCE",
+                                      "x": 93,
+                                      "y": 0,
+                                      "width": 74,
+                                      "height": 32,
+                                      "component": "Button/Outline/SM",
+                                      "componentId": "1:633",
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "cornerRadius": 24,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 5,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "CENTER",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "FIXED"]
+                                      },
+                                      "variables": {
+                                        "cornerRadius": "radius/3xl",
+                                        "paddingRight": "spacing/3",
+                                        "paddingLeft": "spacing/3",
+                                        "strokes/0/color": "border-2"
+                                      },
+                                      "texts": ["Remove"]
+                                    }
+                                  ]
+                                }
                               ]
                             },
                             {
