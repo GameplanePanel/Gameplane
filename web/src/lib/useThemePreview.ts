@@ -1,0 +1,102 @@
+// In-memory preview of a catalog or installed theme (spec 043 T026). The
+// preview goes through the same DOM injection as saved prefs
+// (applyThemePreferences) and never writes localStorage or calls the API.
+// Exit, leaving the theme pages, or a reload all restore the saved theme:
+// nothing is persisted, so the saved cache is what gets re-applied.
+
+import { useSyncExternalStore } from "react";
+import {
+  DEFAULT_THEME_PREFERENCES,
+  applyThemePreferences,
+  isSafeModeActive,
+  normalizeInstalledRender,
+  readThemePreferences,
+} from "@/lib/useThemePreferences";
+import type { ThemeModeTokens } from "@/types";
+
+export interface ThemePreviewTheme {
+  /** Catalog entry the preview was opened from. */
+  catalogId: number;
+  /** Installed id when the theme is already installed; null otherwise. */
+  installedId: number | null;
+  displayName: string;
+  version: string;
+  tokens: ThemeModeTokens;
+  css: string | null;
+}
+
+let current: ThemePreviewTheme | null = null;
+const listeners = new Set<() => void>();
+
+function setCurrent(next: ThemePreviewTheme | null): void {
+  current = next;
+  for (const listener of listeners) listener();
+}
+
+/** Current preview, or null. Read by the banner and the detail page. */
+export function getThemePreview(): ThemePreviewTheme | null {
+  return current;
+}
+
+/**
+ * Applies the theme in memory. Returns false, changing nothing, when safe
+ * mode is active (safe mode suspends installed themes entirely).
+ */
+export function startThemePreview(theme: ThemePreviewTheme): boolean {
+  if (isSafeModeActive()) return false;
+  // Server tokens are validated here, so malformed data never reaches the DOM.
+  const render = normalizeInstalledRender({
+    tokens: theme.tokens,
+    css: theme.css,
+    version: theme.version,
+  });
+  if (render === null) return false;
+  const base = readThemePreferences() ?? DEFAULT_THEME_PREFERENCES;
+  applyThemePreferences({
+    ...base,
+    themeType: "installed",
+    installedThemeId: theme.installedId,
+    installedTheme: render,
+  });
+  setCurrent(theme);
+  return true;
+}
+
+/** Ends the preview and re-applies the saved theme from the local cache. */
+export function exitThemePreview(): void {
+  if (current === null) return;
+  setCurrent(null);
+  applyThemePreferences(readThemePreferences());
+}
+
+/**
+ * Clears the preview state without touching the DOM. Used after Keep, when
+ * the server-backed preferences are about to be re-applied on refetch.
+ */
+export function dropThemePreview(): void {
+  setCurrent(null);
+}
+
+/** True for /settings/theme and its sub-pages (catalog and detail). */
+export function isThemePagePath(pathname: string): boolean {
+  return pathname === "/settings/theme" || pathname.startsWith("/settings/theme/");
+}
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export interface UseThemePreviewResult {
+  preview: ThemePreviewTheme | null;
+  start: (theme: ThemePreviewTheme) => boolean;
+  exit: () => void;
+}
+
+/** Subscribes to the shared preview state so the banner and pages stay in step. */
+export function useThemePreview(): UseThemePreviewResult {
+  const preview = useSyncExternalStore(subscribe, getThemePreview, getThemePreview);
+  return { preview, start: startThemePreview, exit: exitThemePreview };
+}

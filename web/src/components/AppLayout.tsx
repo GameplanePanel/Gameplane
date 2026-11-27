@@ -35,6 +35,7 @@ import {
   useThemePreferences,
 } from "@/lib/useThemePreferences";
 import { SafeModeBanner } from "@/components/ui/SafeModeBanner";
+import { ThemePreviewBanner } from "@/components/ThemePreviewBanner";
 import { TelemetryNotice } from "@/components/ui/TelemetryNotice";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
@@ -216,6 +217,8 @@ export function AppLayout() {
 
   return (
     <>
+      {/* Theme preview banner (spec 043): shown only while a theme is previewed. */}
+      <ThemePreviewBanner />
       {/* Safe-mode banner: sticky at the top of the viewport so it stays
           reachable while recovering from broken custom CSS. Dismiss only
           hides it — safe mode remains active for the session. */}

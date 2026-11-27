@@ -28,10 +28,12 @@ import { LanguagePicker } from "@/components/settings/LanguagePicker";
 import { cn } from "@/lib/utils";
 import { errorTextIntl } from "@/lib/errors";
 import { can, useMe } from "@/lib/auth";
-import { Users } from "@/lib/endpoints";
+import { THEMES_MANAGE_PERM } from "@/lib/themePermissions";
+import { Themes, Users } from "@/lib/endpoints";
 import {
   applyThemePreferences,
   DEFAULT_THEME_PREFERENCES,
+  normalizeInstalledRender,
   readThemePreferences,
   themePreferencesEqual,
   useThemePreferences,
@@ -43,8 +45,11 @@ import {
   passesContrastGuard,
 } from "@/lib/theme-derivation";
 import { MAX_CUSTOM_CSS_LEN, sanitizeCustomCss, type SanitizeResult } from "@/lib/theme-sanitize";
-import { buildThemeExport, validateThemeExport } from "@/lib/theme-export";
-import type { AppearanceMode, CustomColorConfig, ThemePresetId, UserThemePreferences } from "@/types";
+import { buildThemeExport, fallbackInstalledImport, validateThemeExport } from "@/lib/theme-export";
+import type { AppearanceMode, CustomColorConfig, InstalledTheme, ThemePresetId, UserThemePreferences } from "@/types";
+import { useThemeActions, themeErrorText } from "@/components/themes/useThemeActions";
+import { InstalledThemesCard } from "@/components/themes/InstalledThemesCard";
+import { formatThemeMessage, installedThemesMessages } from "@/components/themes/messages";
 import { defineMessages, type IntlShape, type MessageDescriptor } from "react-intl";
 import { useFormat, type FormatApi } from "@/lib/i18n/format";
 import { useOptionalIntl } from "@/lib/i18n/format";
@@ -207,6 +212,14 @@ export function ThemeSettingsPage() {
 
   const { preferences, updatePreferences, isUpdating } = useThemePreferences(me, { onError });
 
+  // Installed themes (spec 043, T038): fail soft, so a load error only hides
+  // the installed rows. installedError shows action failures inline.
+  const [installedError, setInstalledError] = useState<string | null>(null);
+  const themeActions = useThemeActions(setInstalledError);
+  const installedThemes = useMemo(() => themeActions.installed ?? [], [themeActions.installed]);
+  const [pendingRemove, setPendingRemove] = useState<InstalledTheme | null>(null);
+  const [removedNotice, setRemovedNotice] = useState<string | null>(null);
+
   // Draft being edited/previewed. Initialized once from the reconciled
   // preferences; on a profile with no prefs anywhere it falls back to the
   // pink/system defaults.
@@ -299,12 +312,52 @@ export function ThemeSettingsPage() {
   const pickSurface = (hex: string) =>
     update({ themeType: "custom_colors", customColors: { accent: effectiveColors.accent, surface: hex } });
 
+  // Installed-theme selection: fetch the render data first so the live preview
+  // and the saved draft carry the same tokens (never client-supplied).
+  const pickInstalled = async (id: number) => {
+    try {
+      const detail = await Themes.installedDetail(id);
+      // Server render data is validated before it reaches the DOM; malformed data leaves the selection unchanged.
+      const render = normalizeInstalledRender({ tokens: detail.tokens, css: detail.css, version: detail.version });
+      if (render === null) return;
+      update({
+        themeType: "installed",
+        installedThemeId: id,
+        installedTheme: render,
+      });
+    } catch (err) {
+      setInstalledError(themeErrorText(err));
+    }
+  };
+
+  const confirmRemove = async () => {
+    const target = pendingRemove;
+    if (!target) return;
+    try {
+      await themeActions.remove.mutateAsync(target.id);
+    } catch {
+      // The failure is already shown through installedError; keep the dialog open.
+      return;
+    }
+    setPendingRemove(null);
+    if (target.selected) {
+      // The server reset the saved preferences to Modern Pink; mirror that in the draft.
+      update({ themeType: "preset", presetId: "pink", installedThemeId: null, installedTheme: null });
+      setRemovedNotice(target.displayName || target.name);
+    }
+  };
+
   // Base-theme selection (contracts/theme-ui.md §3.1): the third radio card
   // activates the custom-colors base; either preset restores "preset". The
   // custom-colors card's controls stay visible but disabled until the
   // custom base is active (§3.2).
   const colorsActive = draft?.themeType === "custom_colors";
   const pickBase = (value: string) => {
+    setRemovedNotice(null);
+    if (value.startsWith("installed:")) {
+      void pickInstalled(Number(value.slice("installed:".length)));
+      return;
+    }
     if (value === "custom_colors") {
       update({
         themeType: "custom_colors",
@@ -340,7 +393,12 @@ export function ThemeSettingsPage() {
   // The export reflects the saved profile state (contract theme-export.md §3),
   // including retained-but-inactive customs — not the unsaved draft.
   const exportSource = preferences ?? draft ?? DEFAULT_THEME_PREFERENCES;
-  const exportJson = useMemo(() => JSON.stringify(buildThemeExport(exportSource), null, 2), [exportSource]);
+  // The installed theme is named by its source, name and version (the prefs carry only the id).
+  const exportJson = useMemo(() => {
+    const sel = installedThemes.find((t) => t.id === exportSource.installedThemeId);
+    const installed = sel ? { source: sel.source, name: sel.name, version: sel.version } : null;
+    return JSON.stringify(buildThemeExport(exportSource, installed), null, 2);
+  }, [exportSource, installedThemes]);
 
   const [copyNote, setCopyNote] = useState<string | null>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -378,7 +436,20 @@ export function ThemeSettingsPage() {
     () => (importText.trim() === "" ? null : validateThemeExport(importText, intl)),
     [importText, intl],
   );
-  const importPreview = importResult?.ok ? importResult.export : null;
+  // An installed theme this instance does not have falls back to Modern Pink, with a notice.
+  const importFallback = useMemo(
+    () =>
+      importResult?.ok
+        ? fallbackInstalledImport(
+            importResult.export,
+            (ref) => installedThemes.some((t) => t.source === ref.source && t.name === ref.name),
+            intl,
+          )
+        : null,
+    [importResult, installedThemes, intl],
+  );
+  const importPreview = importFallback?.export ?? null;
+  const importNotice = importFallback?.notice ?? null;
   const importClientError = importResult && !importResult.ok ? importResult.error : null;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -392,14 +463,21 @@ export function ThemeSettingsPage() {
   const applyImport = () => {
     if (!importPreview) return;
     const p = importPreview.preferences;
+    // The PUT names an installed theme by its row id, matched on source and name here.
+    const ref = p.themeType === "installed" ? p.installed : undefined;
+    const installedRow = ref
+      ? installedThemes.find((t) => t.source === ref.source && t.name === ref.name)
+      : undefined;
+    const themeType = installedRow ? "installed" : p.themeType === "installed" ? "preset" : p.themeType;
     runUpdate(
       {
-        themeType: p.themeType,
+        themeType,
         presetId: p.presetId,
         appearanceMode: p.appearanceMode,
         customColors: p.customColors ?? null,
         customCssEnabled: p.customCssEnabled,
         customCss: p.customCss ?? null,
+        ...(themeType === "installed" && installedRow ? { installedThemeId: installedRow.id } : {}),
       },
       "import",
     );
@@ -438,6 +516,8 @@ export function ThemeSettingsPage() {
         customColors: draft.customColors ?? null,
         customCssEnabled: draft.customCssEnabled,
         customCss: draft.customCss ?? null,
+        // installedThemeId is sent only with themeType "installed" (the server requires it then).
+        ...(draft.themeType === "installed" ? { installedThemeId: draft.installedThemeId ?? null } : {}),
       },
       "save",
     );
@@ -456,6 +536,7 @@ export function ThemeSettingsPage() {
         <SettingsNav
           active="theme"
           showAdminSections={can(me, "config:manage")}
+          showThemeSources={can(me, THEMES_MANAGE_PERM)}
           onSelect={(key) => void navigate({ to: "/admin", search: { section: key } })}
         />
 
@@ -475,7 +556,13 @@ export function ThemeSettingsPage() {
                   <Label className="text-xs">{intl.formatMessage({ id: "web.routes.theme_settings.choose_a_preset_theme", defaultMessage: "Choose a preset theme:", description: "Theme settings: label above the preset choices in the preset theme card" })}</Label>
                   <RadioGroup
                     aria-label={intl.formatMessage({ id: "web.routes.theme_settings.preset_theme", defaultMessage: "Preset theme", description: "Theme settings: title of the preset theme card, also the accessible name of its preset choice group; keep it short" })}
-                    value={draft.themeType === "custom_colors" ? "custom_colors" : draft.presetId}
+                    value={
+                      draft.themeType === "custom_colors"
+                        ? "custom_colors"
+                        : draft.themeType === "installed"
+                          ? `installed:${draft.installedThemeId ?? ""}`
+                          : draft.presetId
+                    }
                     onChange={pickBase}
                     className="grid gap-3 sm:grid-cols-3"
                   >
@@ -524,11 +611,65 @@ export function ThemeSettingsPage() {
                         </div>
                       </Radio.Content>
                     </Radio>
+                    {installedThemes.map((t) => (
+                      <Radio key={`installed-${t.id}`} value={`installed:${t.id}`}>
+                        <Radio.Content className="flex h-full w-full items-start gap-3 rounded-lg border border-border px-4 py-3 transition-colors hover:bg-surface/60 data-[selected]:border-primary data-[selected]:bg-primary/5">
+                          <Radio.Control className="mt-1 shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-medium">{t.displayName || t.name}</div>
+                            <div className="mt-2 flex items-center gap-2">
+                              <span aria-hidden className="h-6 w-10 rounded-md border border-border bg-surface" />
+                              <span aria-hidden className="h-6 w-10 rounded-md border border-border bg-surface" />
+                            </div>
+                            <div className="mt-1.5 text-xs text-muted">
+                              {t.sourceRemoved
+                                ? formatThemeMessage(intl, installedThemesMessages.sourceRemovedCaption, { version: String(t.version) })
+                                : `${t.modes.map((m) => intl.formatMessage(m === "dark" ? LABELS.modeDark : LABELS.modeLight)).join(", ")} · v${t.version}`}
+                            </div>
+                          </div>
+                        </Radio.Content>
+                      </Radio>
+                    ))}
                   </RadioGroup>
                 </div>
+                {installedThemes.length > 0 && (
+                  <p className="flex items-center gap-2 text-xs text-muted">
+                    <Info className="h-3.5 w-3.5 shrink-0" />{intl.formatMessage(installedThemesMessages.retention)}</p>
+                )}
                 <p className="flex items-center gap-2 text-xs text-muted">
                   <Info className="h-3.5 w-3.5 shrink-0" />{intl.formatMessage({ id: "web.routes.theme_settings.your_custom_colors_and_css_are_kept_and", defaultMessage: "Your custom colors and CSS are kept and can be re-applied later.", description: "Theme settings: note under the preset choices: custom colors and CSS are kept and can be re-applied later" })}</p>
               </ThemeCard>
+
+              {removedNotice && (
+                <div role="status" className="rounded border border-accent/40 bg-accent/10 px-3 py-2 text-sm">
+                  {formatThemeMessage(intl, installedThemesMessages.selectedRemoved, { name: String(removedNotice) })}
+                </div>
+              )}
+              {installedError && (
+                <div role="alert" className="rounded border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger">
+                  {installedError}
+                </div>
+              )}
+              {installedThemes.length > 0 && (
+                <InstalledThemesCard
+                  installed={installedThemes}
+                  busy={themeActions.install.isPending || themeActions.update.isPending || themeActions.remove.isPending}
+                  onUpdate={(t) => themeActions.update.mutate(t.id)}
+                  onRemove={(t) => setPendingRemove(t)}
+                />
+              )}
+              <ConfirmDialog
+                open={pendingRemove !== null}
+                onOpenChange={(open) => {
+                  if (!open) setPendingRemove(null);
+                }}
+                title={pendingRemove ? formatThemeMessage(intl, installedThemesMessages.removeTitle, { name: String(pendingRemove.displayName || pendingRemove.name) }) : ""}
+                description={intl.formatMessage(installedThemesMessages.removeText)}
+                confirmLabel={intl.formatMessage(installedThemesMessages.removeConfirm)}
+                destructive
+                busy={themeActions.remove.isPending}
+                onConfirm={() => void confirmRemove()}
+              />
 
               {/* Appearance mode */}
               <ThemeCard title={intl.formatMessage({ id: "web.routes.theme_settings.appearance_mode", defaultMessage: "Appearance mode", description: "Theme settings: title of the appearance mode card, also its accessible group name; keep it short" })} subtitle={intl.formatMessage({ id: "web.routes.theme_settings.light_dark_or_follow_your_system", defaultMessage: "Light, dark, or follow your system preference.", description: "Theme settings: subtitle under the appearance mode title: light, dark, or follow the system preference" })}>
@@ -799,6 +940,11 @@ export function ThemeSettingsPage() {
                     <CircleAlert className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
                     {importClientError}
                   </p>
+                )}
+                {importNotice && (
+                  <div role="status" className="rounded border border-accent/40 bg-accent/10 px-3 py-2 text-xs">
+                    {importNotice}
+                  </div>
                 )}
                 {lastError?.where === "import" && (
                   <p role="alert" className="flex items-start gap-2 text-xs text-danger">

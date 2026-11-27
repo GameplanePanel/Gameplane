@@ -13,6 +13,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SettingsNav } from "@/components/ui/SettingsNav";
 import { AddKeyDialog, ChangeLoginNameDialog, GeneratePasswordDialog, PasswordShownOnceDialog } from "@/components/sftp/SftpDialogs";
 import { can, useMe } from "@/lib/auth";
+import { THEMES_MANAGE_PERM } from "@/lib/themePermissions";
 import { errorTextIntl } from "@/lib/errors";
 import { formatRelative } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
@@ -73,7 +74,12 @@ export function ProfileSftpPage() {
       />
 
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-        <SettingsNav active="sftp" showAdminSections={showAdmin} onSelect={() => undefined} />
+        <SettingsNav
+          active="sftp"
+          showAdminSections={showAdmin}
+          showThemeSources={can(me, THEMES_MANAGE_PERM)}
+          onSelect={() => undefined}
+        />
 
         <div className="space-y-6">
           {error ? (

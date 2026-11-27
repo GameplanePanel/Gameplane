@@ -8,6 +8,7 @@
 const THEME_STYLE_ELEMENT_IDS = [
   "gameplane-custom-css",
   "gameplane-custom-theme-vars",
+  "gameplane-installed-theme-css",
 ] as const;
 
 const PINNED_ATTRIBUTES = [

@@ -46,8 +46,15 @@ import type {
   SecuritySettingsResponse,
   ServerEvent,
   StatusReading,
+  ThemeCatalogDetail,
+  ThemeCatalogResponse,
+  ThemeInstallBody,
   ThemePresetId,
+  ThemeSource,
+  ThemeSourceInput,
   ThemeType,
+  InstalledTheme,
+  InstalledThemeDetail,
   User,
   UserThemePreferences,
 } from "@/types";
@@ -233,6 +240,8 @@ export interface UserPreferencesUpdate {
   customColors?: CustomColorConfig | null;
   customCssEnabled: boolean;
   customCss?: string | null;
+  // Spec 043: required when themeType is "installed".
+  installedThemeId?: number;
 }
 
 export interface UserPreferencesReset {
@@ -579,6 +588,59 @@ export const ModuleSources = {
     uploadBundle(source, file, opts, cluster),
   removeUpload: (source: string, module: string, cluster = "local") =>
     api<void>(`/modules/sources/${source}/upload/${module}`, { cluster, method: "DELETE" }),
+};
+
+// Theme marketplace (spec 043, contracts/themes-api.md). Catalog and
+// installed-theme calls go to the API root without a cluster (they are not
+// cluster-scoped), so they take no cluster argument.
+export interface ThemeCatalogParams {
+  q?: string;
+  tag?: string;
+  source?: string;
+}
+
+export const Themes = {
+  // GET /themes/catalog. Empty filter values are omitted from the query.
+  catalog: (params: ThemeCatalogParams = {}) => {
+    const qs = new URLSearchParams();
+    if (params.q) qs.set("q", params.q);
+    if (params.tag) qs.set("tag", params.tag);
+    if (params.source) qs.set("source", params.source);
+    const query = qs.toString();
+    return api<ThemeCatalogResponse>(`/themes/catalog${query ? `?${query}` : ""}`);
+  },
+  // GET /themes/catalog/{id}. tokens and css are present only for valid themes.
+  catalogEntry: (id: number) => api<ThemeCatalogDetail>(`/themes/catalog/${id}`),
+  // Pure URL builder: used as <img src>, so the browser sends the session cookie.
+  previewUrl: (id: number, mode: "light" | "dark") => `/themes/catalog/${id}/preview/${mode}`,
+  // GET /users/me/themes (bare array).
+  installed: () => api<InstalledTheme[]>("/users/me/themes"),
+  // POST /users/me/themes (201). Errors: 409 already_installed | source_disabled, 422 entry_not_valid.
+  install: (body: ThemeInstallBody) =>
+    api<InstalledThemeDetail>("/users/me/themes", { method: "POST", body }),
+  installedDetail: (id: number) => api<InstalledThemeDetail>(`/users/me/themes/${id}`),
+  // POST /users/me/themes/{id}/update (200). Errors: 409 no_update | source_disabled | source_removed.
+  updateInstalled: (id: number) =>
+    api<InstalledThemeDetail>(`/users/me/themes/${id}/update`, { method: "POST" }),
+  // DELETE /users/me/themes/{id} (204). Resets preferences if it was selected.
+  removeInstalled: (id: number) => api<void>(`/users/me/themes/${id}`, { method: "DELETE" }),
+};
+
+// Theme sources, admin only (permission themes:manage; see lib/themePermissions.ts).
+export const ThemeSources = {
+  list: () => api<ThemeSource[]>("/themes/sources"),
+  // POST /themes/sources (201). 409 source_exists; 422 carries a plain-English message in the body.
+  create: (input: ThemeSourceInput) =>
+    api<ThemeSource>("/themes/sources", { method: "POST", body: input }),
+  // PUT /themes/sources/{name} (200). The name comes from the path.
+  update: (name: string, input: ThemeSourceInput) =>
+    api<ThemeSource>(`/themes/sources/${encodeURIComponent(name)}`, { method: "PUT", body: input }),
+  // DELETE refused with 409 source_builtin for the official source.
+  remove: (name: string) =>
+    api<void>(`/themes/sources/${encodeURIComponent(name)}`, { method: "DELETE" }),
+  // POST .../refresh (202, empty body).
+  refresh: (name: string) =>
+    api<void>(`/themes/sources/${encodeURIComponent(name)}/refresh`, { method: "POST" }),
 };
 
 // Share link operations live in api.ts as `Shares` (it needs the api

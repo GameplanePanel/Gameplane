@@ -905,7 +905,9 @@ export interface User {
 // representation of the user_preferences row (data-model.md §2.3).
 
 // Base mode only — custom CSS is an overlay (customCssEnabled), not a mode.
-export type ThemeType = "preset" | "custom_colors";
+// "installed" applies a theme package the user installed from a theme source
+// (spec 043); its tokens come from installedTheme, never from the client.
+export type ThemeType = "preset" | "custom_colors" | "installed";
 export type ThemePresetId = "pink" | "legacy";
 export type AppearanceMode = "light" | "dark" | "system";
 
@@ -928,6 +930,18 @@ export interface UserThemePreferences {
   // Saved dashboard language (BCP 47 tag). null or absent means no saved
   // choice: the app falls back to the browser, then the instance default.
   language?: string | null;
+  // Spec 043: the installed theme in use (themeType "installed") and, when the
+  // server sent it, the render data for that theme. Both are absent or null
+  // unless themeType is "installed".
+  installedThemeId?: number | null;
+  installedTheme?: InstalledThemeRender | null;
+}
+
+// Render data for the installed theme in use (server-computed, validated).
+export interface InstalledThemeRender {
+  tokens: ThemeModeTokens;
+  css: string | null;
+  version: string;
 }
 
 // Portable export document (FR-014, data-model.md §2.4; full schema in
@@ -935,7 +949,167 @@ export interface UserThemePreferences {
 export interface ThemeExport {
   format: "gameplane-theme";
   version: 1;
-  preferences: Omit<UserThemePreferences, "updatedAt">;
+  // installed (spec 043) names the theme by source, name and version only:
+  // installation ids and tokens are never exported.
+  preferences: Omit<UserThemePreferences, "updatedAt" | "installedThemeId" | "installedTheme"> & {
+    installed?: ThemeExportInstalled;
+  };
+}
+
+export interface ThemeExportInstalled {
+  source: string;
+  name: string;
+  version: string;
+}
+
+// ---- Theme marketplace (spec 043, contracts/themes-api.md) ----
+
+// Token names are the 14 custom theme tokens (CUSTOM_THEME_TOKEN_NAMES).
+// Same kebab-case names as CUSTOM_THEME_TOKEN_NAMES (lib/theme-derivation.ts) and
+// themepkg/tokens.go, so a token map serializes straight into CSS variables.
+export type ThemeTokenName =
+  | "background" | "foreground" | "surface" | "surface-secondary" | "surface-tertiary"
+  | "overlay" | "accent" | "accent-foreground" | "accent-soft" | "accent-soft-foreground"
+  | "muted" | "border" | "focus" | "link";
+// "#rrggbb" values.
+export type ThemeTokens = Record<ThemeTokenName, string>;
+export interface ThemeModeTokens {
+  light?: ThemeTokens;
+  dark?: ThemeTokens;
+}
+
+export type ThemeStatus = "valid" | "invalid" | "unverified";
+export type ThemeMode = "light" | "dark";
+
+export interface ThemeCatalogInstalled {
+  version: string;
+}
+
+// One entry of GET /themes/catalog.
+export interface ThemeCatalogItem {
+  id: number;
+  source: string;
+  name: string;
+  displayName: string;
+  author: string;
+  description: string;
+  tags: string[];
+  license: string;
+  version: string;
+  modes: ThemeMode[];
+  status: ThemeStatus;
+  lowContrast: boolean;
+  installed?: ThemeCatalogInstalled;
+  updateAvailable: boolean;
+}
+
+// A theme-source problem reported alongside the catalog.
+export interface ThemeCatalogSourceError {
+  name: string;
+  lastError: string;
+}
+
+// GET /themes/catalog. themes is never null; sources lists enabled sources
+// whose last refresh failed (empty when none).
+export interface ThemeCatalogResponse {
+  themes: ThemeCatalogItem[];
+  sources: ThemeCatalogSourceError[];
+}
+
+export interface ThemeProblem {
+  rule: string;
+  detail: string;
+  line?: number;
+}
+
+// GET /themes/catalog/{id}. tokens and css are present only for status "valid".
+export interface ThemeCatalogDetail extends ThemeCatalogItem {
+  changelog: string;
+  homepage: string;
+  problems: ThemeProblem[];
+  tokens?: ThemeModeTokens;
+  css?: string;
+}
+
+export interface InstalledTheme {
+  id: number;
+  source: string;
+  name: string;
+  displayName: string;
+  version: string;
+  modes: string[];
+  updateAvailable: boolean;
+  sourceRemoved: boolean;
+  selected: boolean;
+}
+
+// POST /users/me/themes (201), GET /users/me/themes/{id}, POST .../update.
+export interface InstalledThemeDetail extends InstalledTheme {
+  tokens: ThemeModeTokens;
+  css: string | null;
+}
+
+export interface ThemeInstallBody {
+  catalogId: number;
+  select?: boolean;
+}
+
+// Theme source (admin). refreshInterval is in seconds (>= 300).
+export type ThemeSourceType = "oci" | "git" | "http" | "local";
+
+export interface ThemeSourceOCISpec {
+  url: string;
+  themes: string[];
+  insecure: boolean;
+}
+
+export interface ThemeSourceGitSpec {
+  url: string;
+  ref?: string;
+  path?: string;
+}
+
+export interface ThemeSourceSpec {
+  oci?: ThemeSourceOCISpec;
+  git?: ThemeSourceGitSpec;
+  http?: { url: string };
+  local?: { path: string };
+  allow?: string[];
+}
+
+export interface ThemeSourceVerifyKeyless {
+  issuer: string;
+  identity: string;
+}
+
+export interface ThemeSourceVerify {
+  key?: string;
+  keyless?: ThemeSourceVerifyKeyless;
+  requireTransparencyLog?: boolean;
+}
+
+export interface ThemeSource {
+  name: string;
+  type: ThemeSourceType;
+  spec: ThemeSourceSpec;
+  verify: ThemeSourceVerify | null;
+  refreshInterval: number;
+  enabled: boolean;
+  builtin: boolean;
+  lastSyncAt: string | null;
+  lastError: string | null;
+  themeCount: number;
+}
+
+// POST /themes/sources and PUT /themes/sources/{name} body. name is taken
+// from the path on PUT and ignored in the body.
+export interface ThemeSourceInput {
+  name: string;
+  type: ThemeSourceType;
+  spec: ThemeSourceSpec;
+  verify?: ThemeSourceVerify | null;
+  refreshInterval?: number;
+  enabled?: boolean;
 }
 
 // A named set of catalog permissions.
