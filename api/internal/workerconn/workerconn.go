@@ -8,6 +8,7 @@ package workerconn
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"syscall"
@@ -21,11 +22,14 @@ const (
 	RetryInterval = 250 * time.Millisecond
 )
 
+// ErrBuildRequest marks an error from newRequest: no request was sent.
+var ErrBuildRequest = errors.New("build worker request")
+
 // Do sends the request newRequest builds with ctx and retries it while the worker
 // refuses the connection, for at most RetryWindow. body, when not nil, is
 // handed to every request it builds and is retried only while none of it has
 // been read, so a streamed upload is never sent twice. The returned error is
-// the last attempt's.
+// the last attempt's; an error from newRequest is wrapped in ErrBuildRequest.
 func Do(
 	ctx context.Context,
 	send func(*http.Request) (*http.Response, error),
@@ -54,7 +58,7 @@ func do(
 		}
 		req, err := newRequest(ctx, reqBody)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %w", ErrBuildRequest, err)
 		}
 		resp, err := send(req)
 		if err == nil {

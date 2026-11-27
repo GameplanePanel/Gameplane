@@ -157,7 +157,7 @@ func TestDoReturnsRequestBuildErrors(t *testing.T) {
 	if resp != nil {
 		_ = resp.Body.Close()
 	}
-	if !errors.Is(err, bad) {
+	if !errors.Is(err, bad) || !errors.Is(err, ErrBuildRequest) {
 		t.Fatalf("err = %v, want %v", err, bad)
 	}
 }

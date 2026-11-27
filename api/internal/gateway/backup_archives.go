@@ -70,6 +70,10 @@ func (h *handler) serveBackupExport(w http.ResponseWriter, req *http.Request, ta
 	resp, err := workerconn.Do(ctx, transport.RoundTrip, func(rctx context.Context, _ io.Reader) (*http.Request, error) {
 		return http.NewRequestWithContext(rctx, http.MethodGet, upstreamURL, nil)
 	}, nil)
+	if errors.Is(err, workerconn.ErrBuildRequest) {
+		http.Error(w, "backup export unavailable", http.StatusBadGateway)
+		return
+	}
 	if err != nil {
 		http.Error(w, "backup export worker unavailable", http.StatusBadGateway)
 		return
@@ -217,6 +221,10 @@ func (h *handler) serveRestoreUpload(w http.ResponseWriter, req *http.Request, t
 		upstream.ContentLength = req.ContentLength
 		return upstream, nil
 	}, req.Body)
+	if errors.Is(err, workerconn.ErrBuildRequest) {
+		http.Error(w, "restore upload unavailable", http.StatusBadGateway)
+		return
+	}
 	if err != nil {
 		http.Error(w, "restore upload worker unavailable; the archive was not confirmed", http.StatusBadGateway)
 		return

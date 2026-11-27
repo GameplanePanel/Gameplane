@@ -346,6 +346,9 @@ func (h *backupArchiveHandler) openLocal(req *http.Request, ns string, exp *kube
 		}
 		return upReq, nil
 	}, nil)
+	if errors.Is(err, workerconn.ErrBuildRequest) {
+		return nil, http.StatusInternalServerError, err
+	}
 	if err != nil {
 		return nil, backupUpstreamStatus(err), fmt.Errorf("backup archive worker is unreachable: %w", err)
 	}

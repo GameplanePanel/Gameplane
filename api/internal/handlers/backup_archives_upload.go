@@ -358,6 +358,9 @@ func (h *backupArchiveHandler) sendLocalUpload(req *http.Request, ns, receiver, 
 		upReq.ContentLength = size
 		return upReq, nil
 	}, body)
+	if errors.Is(err, workerconn.ErrBuildRequest) {
+		return nil, err
+	}
 	if err != nil {
 		return nil, fmt.Errorf("restore upload receiver: %w", err)
 	}
