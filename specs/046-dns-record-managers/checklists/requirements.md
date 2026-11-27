@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (no markers in spec.md, OD-1 to OD-3 settled 2026-11-27, OD-4 to OD-6 in `OPEN-DECISIONS.md` are open)
+- [ ] No [NEEDS CLARIFICATION] markers remain (no markers in spec.md, OD-1 to OD-4 settled 2026-11-27, OD-5 and OD-6 in `OPEN-DECISIONS.md` are open)
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)

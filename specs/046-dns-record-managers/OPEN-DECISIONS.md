@@ -1,6 +1,6 @@
 # Open decisions: spec 046 DNS records through provider managers
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-6 were raised on 2026-11-27 with the first spec draft and asked as decision cards. OD-1 to OD-3 are settled; OD-4 to OD-6 are open. No planning or build work starts until all are.
+Only a decision valgul answers is written here as settled. OD-1 to OD-6 were raised on 2026-11-27 with the first spec draft and asked as decision cards. OD-1 to OD-4 are settled; OD-5 and OD-6 are open. No planning or build work starts until all are.
 
 ## OD-1: How does this live next to ExternalDNS? (SETTLED: own answer, valgul 2026-11-27)
 
@@ -30,11 +30,13 @@ Permission changes are owned by spec 039 (per-server access, in progress on bran
 
 **Settled (valgul, decision card 2026-11-27):** A, "Admins only, no new permission": zones are connected and changed through the existing admin role; no new permission, nothing needed from spec 039.
 
-## OD-4: Does the zone manager answer public DNS queries? (OPEN)
+## OD-4: Does the zone manager answer public DNS queries? (SETTLED: A, valgul 2026-11-27)
 
 - A. Hidden primary: it only serves zone transfers and change notices to the allowed secondaries; the public answers come from those secondaries. (Recommended: no public DNS port to expose or defend from the cluster, works behind NAT.)
 - B. Public authoritative too: it also answers queries on port 53 and can be listed as an NS of the zone.
 - C. Both, chosen per zone.
+
+**Settled (valgul, decision card 2026-11-27):** A, "Hidden primary only": the zone manager only serves zone transfers and change notices to the allowed secondaries; it does not answer public queries.
 
 ## OD-5: Can admins keep their own records in a hosted zone? (OPEN)
 

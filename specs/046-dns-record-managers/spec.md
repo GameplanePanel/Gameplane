@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-27
 
-**Status**: Draft (OD-1 to OD-3 settled, OD-4 to OD-6 open, see `OPEN-DECISIONS.md`). Not v1 scope unless valgul says so.
+**Status**: Draft (OD-1 to OD-4 settled, OD-5 and OD-6 open, see `OPEN-DECISIONS.md`). Not v1 scope unless valgul says so.
 
 **Input**: User description: "https://github.com/GameplanePanel/Gameplane/issues/1006 since this would need to have multiple connector the idea is a centralised api that receive order from the main app and then send it to a "manager" sidecar this manager sidecar would be capable of communicating to one type of dns to create the record so we would have one for cloudflare, ovh, hetzner, etc... and also support zone transfer with a specific manager that would hold a full zone and be the "main" dns for the zone"
 
@@ -144,7 +144,7 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 - **FR-016**: The zone manager MUST serve full and incremental zone transfers to the secondaries on the zone's allowed list, authenticated by shared transfer key, and MUST refuse and log any other transfer request.
 - **FR-017**: The zone manager MUST send a change notice to every allowed secondary when the zone serial increases, and MUST increase the serial on every change.
 - **FR-018**: Hosted zone content and serial MUST survive a restart of the zone manager.
-- **FR-019**: Whether the zone manager also answers public DNS queries, and whether admins can add records of their own to a hosted zone, follows OD-4 and OD-5.
+- **FR-019**: The zone manager MUST be a hidden primary: it serves zone transfers and change notices only to the zone's allowed secondaries and MUST NOT answer public DNS queries; the zone's NS records name the secondaries (OD-4). Whether admins can add records of their own to a hosted zone follows OD-5.
 
 **Templates**
 
