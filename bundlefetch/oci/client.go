@@ -17,8 +17,14 @@ import (
 	"oras.land/oras-go/v2/registry/remote/retry"
 )
 
+// CredentialFunc returns the oras-go credential resolver to attach to a
+// remote.Repository's Client. registry is the registry hostname (e.g.
+// "ghcr.io"). Callers build it from whatever holds their credentials: the
+// operator reads a Kubernetes Secret, the API reads its database.
+type CredentialFunc = func(ctx context.Context, registry string) (auth.Credential, error)
+
 // Client is a thin wrapper around oras-go that knows how to enumerate
-// tags and pull Gameplane module bundles.
+// tags and pull Gameplane bundles.
 type Client struct {
 	credentials CredentialFunc
 	insecure    bool

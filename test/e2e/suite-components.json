@@ -38,7 +38,7 @@
     { "tests": "^(TestGameServer_NetworkCapture|TestNetworkCapture_)",
       "components": ["operator", "api", "agent", "capture-sidecar"] },
     { "tests": "^TestGameTemplate_", "components": ["operator", "api", "agent"] },
-    { "tests": "^(TestModule_|TestModuleSource)", "components": ["operator", "api", "modules"] },
+    { "tests": "^(TestModule_|TestModuleSource)", "components": ["operator", "api", "modules", "bundlefetch"] },
     { "tests": "^TestModule_FinalizerBlocksWhileTemplateInUse$", "components": ["agent"] },
     { "tests": "^TestModule_(ScaffoldAndPackage|SteamcmdScaffoldKeepsNonRootSecurity)$",
       "components": ["gp-module"] },

@@ -98,7 +98,7 @@ Single package; no subdirectories or internal structure.
 
 - **`docs/architecture.md`** — overview of netguard in the operator/agent's security boundaries.
 - **`docs/security.md`** — threat model and SSRF defense rationale.
-- **`operator/internal/modsrc/{git,http}.go`** — module-source fetches via `IsAllowed`.
+- **`bundlefetch/{oci,source}`** (used by `operator/internal/modsrc`) — module-source fetches via `IsAllowed`.
 - **`agent/internal/rcon/websocket.go`** — loopback WebSocket RCON via `IsAllowed`.
 - **`agent/internal/mods/mods.go`** — mod downloads via `IsPublic`.
 - **`api/internal/notify/{notify,deliver}.go`** — admin-configured notification sinks via `IsAllowed`.

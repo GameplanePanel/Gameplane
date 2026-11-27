@@ -5,7 +5,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/GameplanePanel/gameplane/operator/internal/oci"
+	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
 )
 
 func TestReadLocaleFilesTotalBudget(t *testing.T) {

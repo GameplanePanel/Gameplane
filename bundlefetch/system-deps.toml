@@ -1,0 +1,15 @@
+# System dependencies for bundlefetch (spec 026; module from spec 043). Language libraries stay in go.mod/package.json.
+
+component = "bundlefetch"
+
+[[dep]]
+name = "go"
+kind = "toolchain"
+version = "go"
+reason = "Compiles and tests the bundlefetch module (go.work:3-21; inventory 2.1)."
+
+[[dep]]
+name = "golangci-lint"
+kind = "cli"
+version = "golangci_lint"
+reason = "make lint-go runs golangci-lint in this module (Makefile:302-305; GO_MODULES at Makefile:43)."

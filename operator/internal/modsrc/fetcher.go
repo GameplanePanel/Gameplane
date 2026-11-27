@@ -4,11 +4,12 @@ import (
 	"cmp"
 	"context"
 	"fmt"
-	"path"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	bfoci "github.com/GameplanePanel/gameplane/bundlefetch/oci"
+	"github.com/GameplanePanel/gameplane/bundlefetch/source"
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 	"github.com/GameplanePanel/gameplane/operator/internal/oci"
 	"github.com/GameplanePanel/gameplane/operator/internal/secretscope"
@@ -59,7 +60,7 @@ func ForSource(ctx context.Context, c client.Client, namespace string, src *game
 				names = append(names, m.Name)
 			}
 		}
-		return NewOCI(oci.New(creds, spec.Insecure), spec.URL, names), nil
+		return NewOCI(bfoci.New(creds, spec.Insecure), spec.URL, names), nil
 	case gameplanev1alpha1.ModuleSourceTypeGit:
 		spec := src.Spec.Git
 		if spec == nil {
@@ -100,17 +101,4 @@ func readSourceCredential(ctx context.Context, c client.Reader, namespace, name,
 
 // allowed reports whether name passes the source's allow-list. Entries
 // are exact names or path.Match globs; an empty list allows everything.
-func allowed(name string, allow []string) bool {
-	if len(allow) == 0 {
-		return true
-	}
-	for _, pat := range allow {
-		if pat == name {
-			return true
-		}
-		if ok, err := path.Match(pat, name); err == nil && ok {
-			return true
-		}
-	}
-	return false
-}
+func allowed(name string, allow []string) bool { return source.Allowed(name, allow) }

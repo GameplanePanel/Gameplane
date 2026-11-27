@@ -53,3 +53,18 @@ Each of these uses only `oci.MaxLocaleLayerSize`, `oci.IsOversizedLocale`, `oci.
 ## Sign-off
 
 valgul: APPROVED AS WRITTEN, 2026-11-26 (decision card).
+
+## PR-B record (2026-11-27)
+
+Done as listed. Two details the list above did not spell out, both without any change to a test body:
+
+- `bundlefetch/verify/cosign_test.go` carries a byte-identical copy of the `testPubPEM` helper, because the two moved tests use it and the staying tests in `verify_branches_test.go` keep the original.
+- `verify_branches_test.go` loses its `strings` import, which only the two moved tests used; gofmt re-sorted the changed import line in `module_locales_envtest_test.go`.
+
+Test-diff peer review (fresh agent, test diff only): **no weakening**. Six files are pure renames at 100 % similarity, the two moved tests match line by line, and the seven other edits are one-line import swaps.
+
+New test files added by PR-B (not moves): `bundlefetch/source/{dirs,http,git,local,oci}_test.go`.
+
+## PR-B follow-up: new bundlefetch test expectations (main -> master)
+
+`bundlefetch/source/git_test.go` (new in PR-B): the cases "unclean subPath rejected" and "clone failure propagates" expect the default ref `master` instead of `main`, following #1121. `bundlefetch/source/http_test.go`: `switch { case want == ... }` became `switch want { case ... }` (lint only). Fresh-agent peer review of the test diff: no weakening. valgul: APPROVED AS WRITTEN, 2026-11-27 (decision card).

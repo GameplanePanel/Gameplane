@@ -107,6 +107,7 @@ makes.
 | `netguard` | Library | flat root package | matches |
 | `telemetryschema` | Library | flat root package | matches |
 | `themepkg` | Library | flat root package | matches |
+| `bundlefetch` | Library | `oci/`, `verify/`, `source/` packages | matches |
 | `test/e2e` | Test suite | root package + `internal/<game>/` | matches (see §3) |
 | `web` | Web app | `src/pages/` + route definitions in `src/routes/` | `src/pages/` has started (`ClusterDetail.tsx`, `Nodes.tsx`); most screens still live in `src/routes/` → move each to `src/pages/<Screen>.tsx`; screens over 500 lines to split: `AdminSettings.tsx` 2,290, `CreateServer.tsx` 1,448, `tabs/Mods.tsx` 1,291, `tabs/settings/Networking.tsx` 1,055, `ThemeSettings.tsx` 886, `Users.tsx` 825, `Servers.tsx` 674, `tabs/settings/ShareLinks.tsx` 658, `tabs/Files.tsx` 657, `Backups.tsx` 642, `Dashboard.tsx` 599 |
 

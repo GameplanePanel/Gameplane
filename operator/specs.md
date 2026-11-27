@@ -354,16 +354,18 @@ operator/
 │   │
 │   ├── modsrc/
 │   │   Module source fetchers (bundle.go, dir.go, git.go, http.go, local.go, oci.go, upload.go).
-│   │   Abstraction layer: each source type (OCI, git, HTTP, local directory) implements
-│   │   a Fetcher interface; operator uses modsrc.ForSource to route to the right impl.
+│   │   Parses module.yaml and builds ModuleEntry; the generic fetch half (git, HTTP archive,
+│   │   local directory, OCI listing, directory scan and digests) lives in `bundlefetch/source`,
+│   │   so modsrc is a thin adapter. ForSource routes each source type to its impl.
 │   │
 │   ├── oci/
-│   │   OCI registry client wrapper + authentication helpers (auth.go, client.go, testregistry_test.go).
-│   │   Thin layer over go-containerregistry for image pushing/pulling.
+│   │   Secret-based registry credentials (`CredentialFromSecret`, auth.go) for `bundlefetch/oci`,
+│   │   which holds the OCI client.
 │   │
 │   └── verify/
-│       cosign signature verification for OCI module bundles (keyed + keyless).
-│       Returns Verifier interface; operator refuses unsigned bundles if spec.verify declared.
+│       ModuleSource adapter over `bundlefetch/verify` (`Build`: reads spec.verify, the key Secret
+│       and the pull Secret); returns the Verifier interface; operator refuses unsigned bundles
+│       if spec.verify declared.
 ```
 
 ## Custom Resource Definitions
@@ -884,7 +886,8 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 | k8s.io/apimachinery | v0.37.2 | Kubernetes API machinery (metav1, runtime.Scheme, etc.). |
 | k8s.io/client-go | v0.37.2 | Kubernetes client (for exec, logs, discovery). |
 | sigs.k8s.io/controller-runtime | v0.25.3 | Reconciler framework (Manager, Builder, Reconciler interface). |
-| github.com/GameplanePanel/gameplane/netguard | local | SSRF dial guard (permissive policy for module fetches from private registries). |
+| github.com/GameplanePanel/gameplane/netguard | local | SSRF dial guard (permissive policy for module fetches from private registries), used via bundlefetch. |
+| github.com/GameplanePanel/gameplane/bundlefetch | local | OCI client, cosign verify core, git/HTTP/local fetch (spec 043). |
 | github.com/go-git/go-git/v5 | v5.19.3 | Git operations (clone, fetch) for ModuleSources. |
 | github.com/go-git/go-billy/v5 | v5.9.2 | VCS filesystem abstraction for go-git. |
 | github.com/google/go-containerregistry | v0.22.1 | OCI image operations (push, pull, digest). |
@@ -921,7 +924,7 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 
 ## Security considerations
 
-1. **cosign signature verification:** ModuleSource.spec.verify declares keyed (public key Secret) or keyless (Rekor + transparency log) verification. Operator refuses to install bundles with invalid/missing signatures if verify is declared. The OCI client checks the pulled manifest and every layer against their digests before use, so the verified digest covers the installed content. Signature fetching selects the pull Secret entry matching the source registry hostname (including its port); Docker Hub's docker.io, index.docker.io and registry-1.docker.io aliases may share credentials, with an exact entry taking precedence. An unmatched registry uses anonymous access, never another registry's credentials.
+1. **cosign signature verification:** ModuleSource.spec.verify declares keyed (public key Secret) or keyless (Rekor + transparency log) verification. Operator refuses to install bundles with invalid/missing signatures if verify is declared. The OCI client (`bundlefetch/oci`) checks the pulled manifest and every layer against their digests before use, so the verified digest covers the installed content. Signature fetching selects the pull Secret entry matching the source registry hostname (including its port); Docker Hub's docker.io, index.docker.io and registry-1.docker.io aliases may share credentials, with an exact entry taking precedence. An unmatched registry uses anonymous access, never another registry's credentials.
 
 2. **SSRF dial guard (netguard):** ModuleSource fetch (git clone, HTTP download) uses netguard's permissive IsAllowed policy — allows self-hosted registries on private addresses (10.0.0.0/8, etc.), but blocks obvious metadata-service endpoints (169.254.169.254). Agent module install (`capabilities.mods.install`) uses strict IsPublic policy, rejecting private IPs.
 
