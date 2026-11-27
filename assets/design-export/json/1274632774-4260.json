@@ -3,7 +3,7 @@
   "name": "Screen/Admin Settings — Mod registries (Key from startup flag)",
   "type": "FRAME",
   "x": 4920,
-  "y": 92002,
+  "y": 98609,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

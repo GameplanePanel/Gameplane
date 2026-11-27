@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Telemetry (Reset ID confirm)",
   "type": "FRAME",
   "x": 9840,
-  "y": 94667,
+  "y": 101274,
   "width": 1440,
   "height": 1031,
   "fills": [{"type": "SOLID", "color": "#121114"}],

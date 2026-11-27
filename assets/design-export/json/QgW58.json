@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Authentication (Save rejected)",
   "type": "FRAME",
   "x": 3280,
-  "y": 85693,
+  "y": 91000,
   "width": 1440,
   "height": 1660,
   "fills": [{"type": "SOLID", "color": "#121114"}],

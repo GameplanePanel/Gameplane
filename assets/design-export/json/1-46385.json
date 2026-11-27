@@ -4,7 +4,7 @@
   "name": "Gameplane/Dialog/Add SSH key (Invalid key)",
   "type": "FRAME",
   "x": 7240,
-  "y": 84213,
+  "y": 89520,
   "width": 480,
   "height": 470,
   "fills": [{"type": "SOLID", "color": "#1C1A20"}],
