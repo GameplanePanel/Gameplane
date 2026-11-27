@@ -4,6 +4,7 @@ interface Draft {
   error?: string;
   deleting?: boolean;
   pending?: Promise<boolean>;
+  draining?: boolean;
   timer?: ReturnType<typeof setTimeout>;
 }
 
@@ -55,6 +56,18 @@ export class FileDrafts {
     }
   }
 
+  // Unmount flush: write the latest text of every dirty draft, then stop. Runs
+  // with saving still enabled so an in-flight write's loop also queues newer
+  // text; call setEnabled(false) afterwards.
+  flushAll() {
+    if (!this.enabled) return;
+    for (const [path, draft] of this.files) {
+      if (draft.deleting || draft.error || (draft.text === draft.saved && !draft.pending)) continue;
+      draft.draining = true;
+      void this.save(path);
+    }
+  }
+
   private schedule(path: string, draft: Draft) {
     clearTimeout(draft.timer);
     draft.timer = setTimeout(() => { void this.save(path); }, 1200);
@@ -76,6 +89,7 @@ export class FileDrafts {
     if (!draft.pending) {
       draft.pending = this.flush(path, draft).finally(() => {
         draft.pending = undefined;
+        draft.draining = false;
         this.changed();
       });
       this.changed();
@@ -86,7 +100,7 @@ export class FileDrafts {
   private async flush(path: string, draft: Draft) {
     draft.error = undefined;
     try {
-      while (this.enabled && !draft.deleting && draft.saved !== draft.text) {
+      while ((this.enabled || draft.draining) && !draft.deleting && draft.saved !== draft.text) {
         const body = draft.text;
         await this.write(path, body);
         draft.saved = body;
