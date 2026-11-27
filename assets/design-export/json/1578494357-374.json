@@ -1,5 +1,6 @@
 {
   "file": "1578494357-374",
+  "id": "1:59091",
   "name": "Screen/Dialog/Upload Backup — Checking (Light)",
   "type": "FRAME",
   "x": 15480,
@@ -36,6 +37,7 @@
       "texts": ["Upload backup", "Step 3 of 4 · Check"]
     },
     {
+      "id": "1:59164",
       "name": "Spinner",
       "type": "ELLIPSE",
       "x": 28,
@@ -47,6 +49,7 @@
       "variables": {"strokes/0/color": "field/border"}
     },
     {
+      "id": "1:59165",
       "name": "title",
       "type": "TEXT",
       "x": 60,
@@ -60,6 +63,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
     },
     {
+      "id": "1:59166",
       "name": "desc",
       "type": "TEXT",
       "x": 28,

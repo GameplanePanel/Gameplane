@@ -1,5 +1,6 @@
 {
   "file": "1578494357-119",
+  "id": "1:59083",
   "name": "Screen/Dialog/Backup Download (Preparing) (Light)",
   "type": "FRAME",
   "x": 7800,
@@ -36,6 +37,7 @@
       "texts": ["Download backup", "survival-nightly · mc-survival"]
     },
     {
+      "id": "1:59129",
       "name": "title",
       "type": "TEXT",
       "x": 28,
@@ -49,6 +51,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
     },
     {
+      "id": "1:59130",
       "name": "Progress track",
       "type": "RECTANGLE",
       "x": 28,
@@ -59,6 +62,7 @@
       "variables": {"fills/0/color": "border/border"}
     },
     {
+      "id": "1:59131",
       "name": "Progress fill",
       "type": "RECTANGLE",
       "x": 28,
@@ -69,6 +73,7 @@
       "variables": {"fills/0/color": "accent/accent"}
     },
     {
+      "id": "1:59132",
       "name": "desc",
       "type": "TEXT",
       "x": 28,

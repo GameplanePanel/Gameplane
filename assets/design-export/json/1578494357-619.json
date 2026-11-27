@@ -1,5 +1,6 @@
 {
   "file": "1578494357-619",
+  "id": "1:59096",
   "name": "Screen/Dialog/Upload Backup — Restoring",
   "type": "FRAME",
   "x": 20280,
@@ -36,6 +37,7 @@
       "texts": ["Restoring mc-survival", "Restore running"]
     },
     {
+      "id": "1:59167",
       "name": "Progress track",
       "type": "RECTANGLE",
       "x": 28,
@@ -46,6 +48,7 @@
       "variables": {"fills/0/color": "border/border"}
     },
     {
+      "id": "1:59168",
       "name": "Progress fill",
       "type": "RECTANGLE",
       "x": 28,
@@ -56,6 +59,7 @@
       "variables": {"fills/0/color": "accent/accent"}
     },
     {
+      "id": "1:59169",
       "name": "desc",
       "type": "TEXT",
       "x": 28,

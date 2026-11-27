@@ -63,6 +63,7 @@ AREA_BY_DIR = {
     "audit-syslog-bridge": "area: optional-components",
     "telemetry-receiver": "area: optional-components",
     "telemetryschema": "area: shared",
+    "themepkg": "area: shared",
     "i18n": "area: shared",
 }
 

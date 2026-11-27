@@ -1,5 +1,6 @@
 {
   "file": "1153210908-115",
+  "id": "1:59111",
   "name": "Screen/Mobile — Upload backup review (Light)",
   "type": "FRAME",
   "x": 33525,
@@ -33,6 +34,7 @@
       "texts": ["Servers", "AD"]
     },
     {
+      "id": "1:59176",
       "name": "Sheet",
       "type": "FRAME",
       "x": 0,
@@ -47,6 +49,7 @@
       "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
       "children": [
         {
+          "id": "1:59189",
           "name": "title",
           "type": "TEXT",
           "x": 16,
@@ -60,6 +63,7 @@
           "variables": {"fontFamily": "typography/font-sans"}
         },
         {
+          "id": "1:59190",
           "name": "Hint",
           "type": "TEXT",
           "x": 16,

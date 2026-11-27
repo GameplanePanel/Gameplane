@@ -1,8 +1,8 @@
 # Dependency report
 
 This is a component-by-component inventory of Gameplane's third-party
-dependencies and why each one is there. It covers all 12 Go modules that
-share `go.work` (`netguard`, `gameaction`, `gameproto`, `telemetryschema`,
+dependencies and why each one is there. It covers all 13 Go modules that
+share `go.work` (`netguard`, `gameaction`, `gameproto`, `telemetryschema`, `themepkg`,
 `i18n`, `operator`, `api`, `agent`, `telemetry-receiver` [optional], `sentinel` [optional],
 `gp-module`, `test/e2e`), the split component submodules `mcp-server` [optional],
 `audit-syslog-bridge` [optional], `tunnel` [optional], `capture-sidecar` [optional] and `sftp` [optional]
@@ -40,6 +40,7 @@ were added and verified on **2026-09-26**.
 | `gameaction/` | Go | 0 (stdlib only) | Shared console-injection guard + command-template renderer used by the agent and API |
 | `gameproto/` | Go | 0 (stdlib only) | Shared Minecraft/Terraria handshake classifier used by sentinel |
 | `telemetryschema/` | Go | 0 (stdlib only) | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API reporter and the telemetry receiver |
+| `themepkg/` | Go | 1 (`gopkg.in/yaml.v3`) | Shared theme package validator (theme.yaml, tokens and contrast, custom CSS sanitizer, previews, size limits) used by the API and `gp-module` (spec 043) |
 | `operator/` | Go | 21 | controller-runtime reconciler for the 9 CRDs (`operator/api/v1alpha1/*_types.go`); module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
 | `api/` | Go | 21 | chi REST + WebSocket gateway: auth (local + OIDC), RBAC, K8s client, SQLite/Postgres persistence, notifications |
 | `agent/` | Go | 6 | In-pod sidecar: RCON/WebRcon console, chi HTTP surface, heartbeat status patch, disk usage stats |
@@ -66,6 +67,7 @@ flowchart LR
     API --> I18N["i18n"]
     API --> NG["netguard"]
     API --> TS["telemetryschema"]
+    API --> TP["themepkg"]
     AG["agent"] --> GA
     AG --> NG
     OP["operator"] --> I18N
@@ -142,6 +144,21 @@ Imported by (spec 022):
 - `api/` — to build, encode and sign the reporter's payload and the admin preview.
 
 Both importers use a local `replace` module (`replace github.com/GameplanePanel/gameplane/telemetryschema => ../telemetryschema`); the same Dockerfile `COPY` requirement as netguard applies.
+
+### themepkg
+
+`themepkg/go.mod` requires one library, `gopkg.in/yaml.v3`, for the strict
+`theme.yaml` decode (unknown keys refused, line numbers in problems); everything
+else is the standard library. It is the theme package contract of spec 043: the
+manifest schema, the 14 theme tokens, WCAG contrast checks and the token
+derivation port, the custom CSS sanitizer (moved here from the API's spec 016
+preferences handler), preview header checks and size limits.
+
+Imported by (spec 043):
+- `api/` — the custom CSS sanitizer for user preferences, and later theme indexing and installs.
+- `gp-module/` — `gp-module theme validate` (planned).
+
+Importers use a local `replace` module (`replace github.com/GameplanePanel/gameplane/themepkg => ../themepkg`); the same Dockerfile `COPY` requirement as netguard applies.
 
 ## Services
 

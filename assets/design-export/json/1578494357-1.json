@@ -1,5 +1,6 @@
 {
   "file": "1578494357-1",
+  "id": "1:59080",
   "name": "Screen/Dialog/Backup Download",
   "type": "FRAME",
   "x": 4920,
@@ -36,6 +37,7 @@
       "texts": ["Download backup", "survival-nightly · mc-survival"]
     },
     {
+      "id": "1:59119",
       "name": "Hint",
       "type": "TEXT",
       "x": 28,
@@ -68,6 +70,7 @@
       "texts": [".zip", "Opens everywhere. Permissions reset on restore."]
     },
     {
+      "id": "1:59120",
       "name": "Hint",
       "type": "TEXT",
       "x": 28,
@@ -80,6 +83,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
     },
     {
+      "id": "1:59121",
       "name": "Logical size",
       "type": "TEXT",
       "x": 200,

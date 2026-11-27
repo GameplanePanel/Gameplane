@@ -189,6 +189,7 @@ jobs:
               - 'agent/**'
               - 'telemetry-receiver/**'
               - 'telemetryschema/**'
+              - 'themepkg/**'
               - 'i18n/**'
               - 'sentinel/**'
               - 'gp-module/**'
@@ -224,6 +225,7 @@ jobs:
               - 'gameaction/**'
               - 'gp-module/**'
               - 'telemetryschema/**'
+              - 'themepkg/**'
               - 'web/**'
               - 'deploy/standalone/compose*.yaml'
               - 'deploy/standalone/smoke.py'
@@ -824,7 +826,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, agent, api, sentinel, telemetry-receiver, gp-module, test/e2e]
+        module: [netguard, gameaction, gameproto, telemetryschema, themepkg, i18n, operator, agent, api, sentinel, telemetry-receiver, gp-module, test/e2e]
         exclude: ${{ fromJSON(needs.changes.outputs.lint-exclude) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -910,7 +912,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, api, agent, telemetry-receiver, sentinel, gp-module]
+        module: [netguard, gameaction, gameproto, telemetryschema, themepkg, i18n, operator, api, agent, telemetry-receiver, sentinel, gp-module]
         exclude: ${{ fromJSON(needs.changes.outputs.go-exclude) }}
         arch: [amd64, arm64]
     steps:

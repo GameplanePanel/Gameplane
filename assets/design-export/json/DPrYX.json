@@ -846,6 +846,7 @@
                       ]
                     },
                     {
+                      "id": "1:59220",
                       "name": "Completed Restic backup",
                       "type": "FRAME",
                       "x": 0,
@@ -863,6 +864,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
+                          "id": "1:59261",
                           "name": "Backup name",
                           "type": "FRAME",
                           "x": 0,
@@ -880,6 +882,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
+                              "id": "1:59355",
                               "name": "Backup name",
                               "type": "TEXT",
                               "x": 12,
@@ -894,6 +897,7 @@
                           ]
                         },
                         {
+                          "id": "1:59262",
                           "name": "Server",
                           "type": "FRAME",
                           "x": 176,
@@ -910,6 +914,7 @@
                           },
                           "children": [
                             {
+                              "id": "1:59356",
                               "name": "Server",
                               "type": "TEXT",
                               "x": 12,
@@ -924,6 +929,7 @@
                           ]
                         },
                         {
+                          "id": "1:59263",
                           "name": "Phase",
                           "type": "FRAME",
                           "x": 392,
@@ -964,6 +970,7 @@
                           ]
                         },
                         {
+                          "id": "1:59264",
                           "name": "Logical size and packed bytes added",
                           "type": "FRAME",
                           "x": 588,
@@ -980,6 +987,7 @@
                           },
                           "children": [
                             {
+                              "id": "1:59357",
                               "name": "Logical size",
                               "type": "TEXT",
                               "x": 12,
@@ -992,6 +1000,7 @@
                               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                             },
                             {
+                              "id": "1:59358",
                               "name": "Packed bytes added",
                               "type": "TEXT",
                               "x": 12,
@@ -1006,6 +1015,7 @@
                           ]
                         },
                         {
+                          "id": "1:59265",
                           "name": "Completed",
                           "type": "FRAME",
                           "x": 748,
@@ -1022,6 +1032,7 @@
                           },
                           "children": [
                             {
+                              "id": "1:59359",
                               "name": "Completed",
                               "type": "TEXT",
                               "x": 12,
@@ -1036,6 +1047,7 @@
                           ]
                         },
                         {
+                          "id": "1:59266",
                           "name": "Action",
                           "type": "FRAME",
                           "x": 924,
@@ -1052,6 +1064,7 @@
                           },
                           "children": [
                             {
+                              "id": "1:59360",
                               "name": "Action",
                               "type": "TEXT",
                               "x": 12,
@@ -1090,6 +1103,7 @@
                       ]
                     },
                     {
+                      "id": "1:59221",
                       "name": "Completed Volume snapshot backup",
                       "type": "FRAME",
                       "x": 0,
@@ -1107,6 +1121,7 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
+                          "id": "1:59267",
                           "name": "Backup name",
                           "type": "FRAME",
                           "x": 0,
@@ -1124,6 +1139,7 @@
                           "layoutGrow": 1,
                           "children": [
                             {
+                              "id": "1:59361",
                               "name": "Backup name",
                               "type": "TEXT",
                               "x": 12,
@@ -1138,6 +1154,7 @@
                           ]
                         },
                         {
+                          "id": "1:59268",
                           "name": "Server",
                           "type": "FRAME",
                           "x": 176,
@@ -1154,6 +1171,7 @@
                           },
                           "children": [
                             {
+                              "id": "1:59362",
                               "name": "Server",
                               "type": "TEXT",
                               "x": 12,
@@ -1168,6 +1186,7 @@
                           ]
                         },
                         {
+                          "id": "1:59269",
                           "name": "Phase",
                           "type": "FRAME",
                           "x": 392,
@@ -1208,6 +1227,7 @@
                           ]
                         },
                         {
+                          "id": "1:59270",
                           "name": "Logical size and packed bytes added",
                           "type": "FRAME",
                           "x": 588,
@@ -1224,6 +1244,7 @@
                           },
                           "children": [
                             {
+                              "id": "1:59363",
                               "name": "Logical size",
                               "type": "TEXT",
                               "x": 12,
@@ -1236,6 +1257,7 @@
                               "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                             },
                             {
+                              "id": "1:59364",
                               "name": "Packed bytes added",
                               "type": "TEXT",
                               "x": 12,
@@ -1250,6 +1272,7 @@
                           ]
                         },
                         {
+                          "id": "1:59271",
                           "name": "Completed",
                           "type": "FRAME",
                           "x": 748,
@@ -1266,6 +1289,7 @@
                           },
                           "children": [
                             {
+                              "id": "1:59365",
                               "name": "Completed",
                               "type": "TEXT",
                               "x": 12,
@@ -1280,6 +1304,7 @@
                           ]
                         },
                         {
+                          "id": "1:59272",
                           "name": "Action",
                           "type": "FRAME",
                           "x": 924,
@@ -1296,6 +1321,7 @@
                           },
                           "children": [
                             {
+                              "id": "1:59366",
                               "name": "Action",
                               "type": "TEXT",
                               "x": 12,
@@ -1308,6 +1334,7 @@
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             },
                             {
+                              "id": "1:59367",
                               "name": "No download (snapshot)",
                               "type": "TEXT",
                               "x": 67,

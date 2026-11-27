@@ -1,5 +1,6 @@
 {
   "file": "1578494357-322",
+  "id": "1:59089",
   "name": "Screen/Dialog/Upload Backup — Uploading (Light)",
   "type": "FRAME",
   "x": 13560,
@@ -36,6 +37,7 @@
       "texts": ["Upload backup", "Step 2 of 4 · Upload"]
     },
     {
+      "id": "1:59156",
       "name": "Backup name",
       "type": "TEXT",
       "x": 28,
@@ -48,6 +50,7 @@
       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
     },
     {
+      "id": "1:59157",
       "name": "Hint",
       "type": "TEXT",
       "x": 536,
@@ -60,6 +63,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
     },
     {
+      "id": "1:59158",
       "name": "Progress track",
       "type": "RECTANGLE",
       "x": 28,
@@ -70,6 +74,7 @@
       "variables": {"fills/0/color": "border/border"}
     },
     {
+      "id": "1:59159",
       "name": "Progress fill",
       "type": "RECTANGLE",
       "x": 28,
@@ -80,6 +85,7 @@
       "variables": {"fills/0/color": "accent/accent"}
     },
     {
+      "id": "1:59160",
       "name": "desc",
       "type": "TEXT",
       "x": 28,

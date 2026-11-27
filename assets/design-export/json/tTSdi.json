@@ -960,6 +960,7 @@
                       ]
                     },
                     {
+                      "id": "1:59222",
                       "name": "Row 3",
                       "type": "FRAME",
                       "x": 0,
@@ -1050,6 +1051,7 @@
                           "texts": ["mc-survival"]
                         },
                         {
+                          "id": "1:59273",
                           "name": "c4",
                           "type": "FRAME",
                           "x": 614,

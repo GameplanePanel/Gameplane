@@ -1,5 +1,6 @@
 {
   "file": "1578494357-252",
+  "id": "1:59087",
   "name": "Screen/Dialog/Upload Backup — Plain archive (Light)",
   "type": "FRAME",
   "x": 11640,
@@ -36,6 +37,7 @@
       "texts": ["Upload backup", "Step 1 of 4 · File"]
     },
     {
+      "id": "1:59146",
       "name": "Drop zone",
       "type": "FRAME",
       "x": 28,
@@ -49,6 +51,7 @@
       "variables": {"strokes/0/color": "field/border"}
     },
     {
+      "id": "1:59147",
       "name": "title",
       "type": "TEXT",
       "x": 262,
@@ -62,6 +65,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
     },
     {
+      "id": "1:59148",
       "name": "desc",
       "type": "TEXT",
       "x": 190,
@@ -75,6 +79,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
     {
+      "id": "1:59149",
       "name": "Completed",
       "type": "TEXT",
       "x": 56,
@@ -87,6 +92,7 @@
       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
     {
+      "id": "1:59150",
       "name": "Hint",
       "type": "TEXT",
       "x": 28,

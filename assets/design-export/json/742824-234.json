@@ -1,5 +1,6 @@
 {
   "file": "742824-234",
+  "id": "1:59076",
   "name": "Screen/Backups — Restores (Light)",
   "type": "FRAME",
   "x": 1640,
@@ -61,6 +62,7 @@
       ]
     },
     {
+      "id": "1:59114",
       "name": "Main",
       "type": "FRAME",
       "x": 260,
@@ -105,6 +107,7 @@
           "texts": ["gameplane", "Backups", "Search servers…", "AD"]
         },
         {
+          "id": "1:59178",
           "name": "Body",
           "type": "FRAME",
           "x": 0,
@@ -125,6 +128,7 @@
           "variables": {"fills/0/color": "background/background"},
           "children": [
             {
+              "id": "1:59194",
               "name": "Page Header",
               "type": "FRAME",
               "x": 24,
@@ -144,6 +148,7 @@
               "variables": {"fills/0/color": "background/background"},
               "children": [
                 {
+                  "id": "1:59206",
                   "name": "Title Col",
                   "type": "FRAME",
                   "x": 0,
@@ -160,6 +165,7 @@
                   },
                   "children": [
                     {
+                      "id": "1:59229",
                       "name": "phTitle",
                       "type": "TEXT",
                       "x": 0,
@@ -172,6 +178,7 @@
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
+                      "id": "1:59230",
                       "name": "phSubtitle",
                       "type": "TEXT",
                       "x": 0,
@@ -186,6 +193,7 @@
                   ]
                 },
                 {
+                  "id": "1:59207",
                   "name": "phActions",
                   "type": "FRAME",
                   "x": 991,
@@ -234,6 +242,7 @@
               ]
             },
             {
+              "id": "1:59195",
               "name": "tabsBar",
               "type": "FRAME",
               "x": 24,
@@ -361,6 +370,7 @@
               "texts": ["Search by name or server…", "2 of 2 restores", "Filter"]
             },
             {
+              "id": "1:59196",
               "name": "Restores Table",
               "type": "FRAME",
               "x": 24,
@@ -382,6 +392,7 @@
               "variables": {"fills/0/color": "surface/secondary"},
               "children": [
                 {
+                  "id": "1:59208",
                   "name": "Head Row",
                   "type": "FRAME",
                   "x": 4,
@@ -532,6 +543,7 @@
                   ]
                 },
                 {
+                  "id": "1:59209",
                   "name": "Body",
                   "type": "FRAME",
                   "x": 4,
@@ -552,6 +564,7 @@
                   "variables": {"cornerRadius": "radius/2xl"},
                   "children": [
                     {
+                      "id": "1:59231",
                       "name": "Row 1",
                       "type": "FRAME",
                       "x": 0,
@@ -642,6 +655,7 @@
                           "texts": ["mc-survival"]
                         },
                         {
+                          "id": "1:59292",
                           "name": "c4",
                           "type": "FRAME",
                           "x": 614,
@@ -737,6 +751,7 @@
                       ]
                     },
                     {
+                      "id": "1:59232",
                       "name": "Row 2",
                       "type": "FRAME",
                       "x": 0,
@@ -827,6 +842,7 @@
                           "texts": ["valheim-prod"]
                         },
                         {
+                          "id": "1:59293",
                           "name": "c4",
                           "type": "FRAME",
                           "x": 614,
@@ -922,6 +938,7 @@
                       ]
                     },
                     {
+                      "id": "1:59233",
                       "name": "Row 3",
                       "type": "FRAME",
                       "x": 0,
@@ -1012,6 +1029,7 @@
                           "texts": ["mc-survival"]
                         },
                         {
+                          "id": "1:59294",
                           "name": "c4",
                           "type": "FRAME",
                           "x": 614,
