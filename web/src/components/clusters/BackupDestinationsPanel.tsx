@@ -8,48 +8,52 @@ import { LoadingCard } from "@/components/ui/LoadingCard";
 import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { createResourceClient } from "@/lib/endpoints";
 import { APIError } from "@/lib/api";
+import { retryBackupRead } from "@/lib/backupReadOptions";
 import { useMe, can } from "@/lib/auth";
+import { DESTINATION_NAMESPACE } from "@/lib/destinations";
 import { formatRelative } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { ClusterSection, ClusterField } from "./ClusterSection";
 
-// Existing destination requests use the API's default workload namespace.
-const DESTINATION_NAMESPACE = "gameplane-games";
-
-export function BackupDestinationsPanel({ clusterId }: { clusterId: string }) {
+// title replaces the card heading, e.g. with the cluster name on the Backups page's
+// Destinations tab, where one card is shown per cluster.
+export function BackupDestinationsPanel({ clusterId, namespace = DESTINATION_NAMESPACE, title }: { clusterId: string; namespace?: string; title?: string }) {
   const intl = useOptionalIntl();
   const identity = useMe();
   if (identity.isPending) return <LoadingCard message={intl.formatMessage({ id: "web.cluster_configuration.loading_permissions", defaultMessage: "Loading permissions…", description: "Cluster configuration: identity loading state" })} />;
   if (identity.isError && (!identity.data || (identity.error instanceof APIError && identity.error.status === 401))) return <ErrorCard message={intl.formatMessage({ id: "web.cluster_configuration.permissions_error", defaultMessage: "Couldn't load your permissions.", description: "Cluster configuration: identity loading failure" })} onRetry={() => void identity.refetch()} />;
-  if (!can(identity.data, "destinations:read", DESTINATION_NAMESPACE, clusterId)) return <ClusterSection title={intl.formatMessage({ id: "web.routes.admin_settings.backup_destinations", defaultMessage: "Backup destinations", description: "Admin settings: title of the backup destinations section card for one cluster; keep it short" })}><p className="text-sm text-muted">{intl.formatMessage({ id: "web.cluster_configuration.destinations_denied", defaultMessage: "You don't have permission to view backup destinations on this cluster.", description: "Cluster configuration: backup destination access denied" })}</p></ClusterSection>;
-  return <>{identity.isError && <ErrorCard message={intl.formatMessage({ id: "web.cluster_configuration.permissions_error", defaultMessage: "Couldn't load your permissions.", description: "Cluster configuration: identity loading failure" })} onRetry={() => void identity.refetch()} />}<ClusterBackupDestSection key={clusterId} cluster={clusterId} canManage={can(identity.data, "destinations:manage", DESTINATION_NAMESPACE, clusterId)} /></>;
+  if (!can(identity.data, "destinations:read", namespace, clusterId)) return <ClusterSection title={title ?? intl.formatMessage({ id: "web.routes.admin_settings.backup_destinations", defaultMessage: "Backup destinations", description: "Admin settings: title of the backup destinations section card for one cluster; keep it short" })}><p className="text-sm text-muted">{intl.formatMessage({ id: "web.cluster_configuration.destinations_denied", defaultMessage: "You don't have permission to view backup destinations on this cluster.", description: "Cluster configuration: backup destination access denied" })}</p></ClusterSection>;
+  return <>{identity.isError && <ErrorCard message={intl.formatMessage({ id: "web.cluster_configuration.permissions_error", defaultMessage: "Couldn't load your permissions.", description: "Cluster configuration: identity loading failure" })} onRetry={() => void identity.refetch()} />}<ClusterBackupDestSection key={JSON.stringify([clusterId, namespace])} cluster={clusterId} namespace={namespace} title={title} canManage={can(identity.data, "destinations:manage", namespace, clusterId)} /></>;
 }
 
-function ClusterBackupDestSection({ cluster, canManage }: { cluster: string; canManage: boolean }) {
+function ClusterBackupDestSection({ cluster, namespace, title, canManage }: { cluster: string; namespace: string; title?: string; canManage: boolean }) {
   const intl = useOptionalIntl();
   const qc = useQueryClient();
-  const { BackupDestinations } = createResourceClient({ cluster, namespace: DESTINATION_NAMESPACE });
+  const { BackupDestinations } = createResourceClient({ cluster, namespace });
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const list = useQuery({
-    queryKey: ["backup-destinations", cluster, DESTINATION_NAMESPACE],
-    queryFn: ({ signal }) => createResourceClient({ cluster, namespace: DESTINATION_NAMESPACE }, signal).BackupDestinations.list(),
+    queryKey: ["backup-destinations", cluster, namespace],
+    queryFn: ({ signal }) => createResourceClient({ cluster, namespace }, signal).BackupDestinations.list(),
+    retry: retryBackupRead,
   });
   const remove = useMutation({
     mutationFn: (name: string) => BackupDestinations.remove(name),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["backup-destinations", cluster, DESTINATION_NAMESPACE] });
+      void qc.invalidateQueries({ queryKey: ["backup-destinations", cluster, namespace] });
       setDeleting(null);
     },
   });
 
-  const items = list.data?.items ?? [];
+  const items = list.isSuccess ? list.data.items : [];
 
   return (
     <ClusterSection
-      title={intl.formatMessage({ id: "web.routes.admin_settings.backup_destinations", defaultMessage: "Backup destinations", description: "Admin settings: title of the backup destinations section card for one cluster; keep it short" })}
-      subtitle={intl.formatMessage({ id: "web.routes.admin_settings.restic_repositories_for_snapshots", defaultMessage: "Restic repositories for snapshots. Stored as labelled Kubernetes Secrets in the configured namespace.", description: "Admin settings: subtitle under Backup destinations: Restic repositories for snapshots, stored as labelled Kubernetes Secrets (Restic: technical term, usually left untranslated)" })}
+      title={title ?? intl.formatMessage({ id: "web.routes.admin_settings.backup_destinations", defaultMessage: "Backup destinations", description: "Admin settings: title of the backup destinations section card for one cluster; keep it short" })}
+      subtitle={namespace === DESTINATION_NAMESPACE
+        ? intl.formatMessage({ id: "web.routes.admin_settings.restic_repositories_for_snapshots", defaultMessage: "Restic repositories for snapshots. Stored as labelled Kubernetes Secrets in the configured namespace.", description: "Admin settings: subtitle under Backup destinations: Restic repositories for snapshots, stored as labelled Kubernetes Secrets (Restic: technical term, usually left untranslated)" })
+        : intl.formatMessage({ id: "web.cluster_configuration.scoped_backup_destinations", defaultMessage: "Restic repositories for snapshots. Credentials are stored in the {namespace} namespace.", description: "Backup destinations: identifies the Kubernetes namespace selected by a server link" }, { namespace })}
       footer={canManage &&
         <Button onPress={() => setAdding(true)} isDisabled={adding}>
           <Plus className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.admin_settings.add_destination", defaultMessage: "Add destination", description: "Admin settings: button that opens the form to add a backup destination, and the heading of that form; keep it short" })}</Button>
@@ -60,7 +64,7 @@ function ClusterBackupDestSection({ cluster, canManage }: { cluster: string; can
       {!list.isLoading && !list.isError && items.length === 0 && !adding && (
         <div className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.no_backup_destinations_configured_add", defaultMessage: "No backup destinations configured. Add one to enable snapshots.", description: "Admin settings: empty-state text in the backup destinations card when none exist, asking the user to add one to enable snapshots" })}</div>
       )}
-      {adding && canManage && <NewDestinationForm cluster={cluster} onClose={() => setAdding(false)} />}
+      {adding && canManage && <NewDestinationForm cluster={cluster} namespace={namespace} onClose={() => setAdding(false)} />}
       <ul className="divide-y divide-border">
         {items.map((d) => (
           <li key={d.name} className="flex flex-wrap items-center gap-3 py-3">
@@ -111,15 +115,15 @@ function ClusterBackupDestSection({ cluster, canManage }: { cluster: string; can
   );
 }
 
-function NewDestinationForm({ cluster, onClose }: { cluster: string; onClose: () => void }) {
+function NewDestinationForm({ cluster, namespace, onClose }: { cluster: string; namespace: string; onClose: () => void }) {
   const intl = useOptionalIntl();
   const qc = useQueryClient();
-  const { BackupDestinations } = createResourceClient({ cluster, namespace: DESTINATION_NAMESPACE });
+  const { BackupDestinations } = createResourceClient({ cluster, namespace });
   const [form, setForm] = useState({ name: "", url: "", password: "" });
   const create = useMutation({
     mutationFn: () => BackupDestinations.upsert(form),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["backup-destinations", cluster, DESTINATION_NAMESPACE] });
+      void qc.invalidateQueries({ queryKey: ["backup-destinations", cluster, namespace] });
       onClose();
     },
   });

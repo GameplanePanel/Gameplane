@@ -4,7 +4,7 @@
   "name": "Screen/Backups — Restores (Empty)",
   "type": "FRAME",
   "x": 1640,
-  "y": 62890,
+  "y": 66773,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -247,7 +247,7 @@
               "type": "FRAME",
               "x": 24,
               "y": 97,
-              "width": 290,
+              "width": 405,
               "height": 40,
               "fills": [{"type": "SOLID", "color": "#232128"}],
               "cornerRadius": 20,
@@ -328,6 +328,27 @@
                   },
                   "variables": {"cornerRadius": "radius/3xl"},
                   "texts": ["Restores"]
+                },
+                {
+                  "name": "tabDestinations",
+                  "type": "INSTANCE",
+                  "x": 286,
+                  "y": 4,
+                  "width": 115,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Destinations"]
                 }
               ]
             },

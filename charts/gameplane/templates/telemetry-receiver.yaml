@@ -38,6 +38,10 @@
 {{- $powTarget := ternary $pow.targetPerMinute 60 (hasKey $pow "targetPerMinute") }}
 {{- $powMin := ternary $pow.minBits 0 (hasKey $pow "minBits") }}
 {{- $powMax := ternary $pow.maxBits 22 (hasKey $pow "maxBits") }}
+{{- $powClaim := ternary $pow.claimBits 20 (hasKey $pow "claimBits") }}
+{{- if or (lt (int64 $powClaim) 0) (gt (int64 $powClaim) 26) }}
+{{- fail "api.telemetry.receiver.ingestPow.claimBits must be between 0 and 26, the hardest challenge an install solves" }}
+{{- end }}
 {{- if lt (int64 $powTarget) 1 }}
 {{- fail "api.telemetry.receiver.ingestPow.targetPerMinute must be at least 1 (spec 022 OD-5)" }}
 {{- end }}
@@ -123,6 +127,8 @@ spec:
               value: {{ $powMin | int64 | quote }}
             - name: INGEST_POW_MAX_BITS
               value: {{ $powMax | int64 | quote }}
+            - name: INGEST_CLAIM_POW_BITS
+              value: {{ $powClaim | int64 | quote }}
             {{- if $dashboardToken.name }}
             # The dashboard listener only starts when this is set.
             - name: DASHBOARD_TOKEN

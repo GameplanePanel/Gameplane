@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Settings · Scheduled backups",
   "type": "FRAME",
   "x": 0,
-  "y": 48408,
+  "y": 50539,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -250,6 +250,7 @@
                     "Scheduled backups",
                     "Network capture",
                     "Placement",
+                    "Security",
                     "RBAC & access",
                     "Share links",
                     "Danger zone"
@@ -319,7 +320,7 @@
                               "x": 24,
                               "y": 24,
                               "width": 860,
-                              "height": 70,
+                              "height": 76,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 16,
@@ -382,7 +383,7 @@
                                   "x": 216,
                                   "y": 0,
                                   "width": 644,
-                                  "height": 52,
+                                  "height": 76,
                                   "layout": {
                                     "mode": "VERTICAL",
                                     "gap": 8,
@@ -470,6 +471,18 @@
                                       "text": "Configure a backup destination first.",
                                       "font": ["Geist", 400, 12],
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                                    },
+                                    {
+                                      "name": "Manage destinations link",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 60,
+                                      "width": 115,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                                      "text": "Manage destinations",
+                                      "font": ["Geist", 400, 12],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                                     }
                                   ]
                                 }

@@ -265,7 +265,7 @@ func TestReconcileVolumeSnapshotRestore_DeadlineBoundsMissingRefBeforeCreate(t *
 	restore := &gameplanev1alpha1.Restore{
 		ObjectMeta: metav1.ObjectMeta{Name: "rs", Namespace: "ns"},
 		Spec: gameplanev1alpha1.RestoreSpec{
-			BackupRef: gameplanev1alpha1.LocalObjectRef{Name: "b"},
+			BackupRef: &gameplanev1alpha1.LocalObjectRef{Name: "b"},
 			ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "restored"},
 		},
 		Status: gameplanev1alpha1.RestoreStatus{

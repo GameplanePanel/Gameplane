@@ -35,7 +35,7 @@ func TestRestrictTunnelEgressReplacesLegacyPlayitRules(t *testing.T) {
 		}
 		return np.Spec.Egress
 	}
-	if rules := reconcile(); len(rules) != 2 {
+	if rules := reconcile(); len(rules) != 3 {
 		t.Fatalf("unexpected compatibility rules: %+v", rules)
 	}
 	r.RestrictTunnelEgress = true

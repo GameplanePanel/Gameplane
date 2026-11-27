@@ -32,6 +32,15 @@ type Config struct {
 	CaptureMaxRetentionSeconds     int64
 	CaptureDefaultMaxDurationSecs  int64
 	CaptureDefaultMaxSizeBytes     int64
+	// FilesMaxUploadBytes caps one files/stream body. Zero selects
+	// gatewayprotocol.DefaultStreamBodyLimit.
+	FilesMaxUploadBytes int64
+	// BackupsMaxUploadBytes caps one upload restore body (spec 041). Zero
+	// selects the default of 20 GiB.
+	BackupsMaxUploadBytes int64
+	// BackupsMaxConcurrentExports caps active backup downloads per namespace
+	// (spec 041). Zero selects the default of 3.
+	BackupsMaxConcurrentExports int
 }
 
 type httpTransport = http.Transport
@@ -49,6 +58,12 @@ func NewHandler(cfg Config, client *kube.Client) (http.Handler, error) {
 	}
 	if cfg.MaxRequestDuration < 0 {
 		return nil, errors.New("gateway request duration must not be negative")
+	}
+	if cfg.FilesMaxUploadBytes < 0 {
+		return nil, errors.New("gateway upload limit must not be negative")
+	}
+	if cfg.FilesMaxUploadBytes == 0 {
+		cfg.FilesMaxUploadBytes = gatewayprotocol.DefaultStreamBodyLimit
 	}
 	if cfg.CaptureDefaultRetentionSeconds == 0 {
 		cfg.CaptureDefaultRetentionSeconds = 86400
@@ -88,6 +103,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		h.serveCapture(w, req, target)
 		return
 	}
+	if target, err := gatewayprotocol.ParseBackupExportPath(req.URL.Path); err == nil {
+		h.serveBackupExport(w, req, target)
+		return
+	}
+	if target, err := gatewayprotocol.ParseRestoreUploadPath(req.URL.Path); err == nil {
+		h.serveRestoreUpload(w, req, target)
+		return
+	}
 	target, agentPath, err := gatewayprotocol.ParsePath(req.URL.Path)
 	if err != nil || req.URL.RawPath != "" || target.Cluster != h.cfg.Cluster || !h.namespaceAllowed(target.Namespace) {
 		http.NotFound(w, req)
@@ -97,6 +120,9 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if !allowed {
 		http.NotFound(w, req)
 		return
+	}
+	if agentPath == "/files/stream" {
+		maxBody = h.cfg.FilesMaxUploadBytes
 	}
 	upgrade := req.Header.Get("Upgrade")
 	if gatewayprotocol.Streaming(agentPath) != strings.EqualFold(upgrade, "websocket") || (upgrade != "" && !strings.EqualFold(upgrade, "websocket")) {

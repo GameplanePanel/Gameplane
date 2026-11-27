@@ -99,8 +99,10 @@ type GameTemplateSpec struct {
 	Ports []GamePort `json:"ports,omitempty"`
 
 	// SentinelIsolation restricts a wake sentinel to its own server's advertised
-	// ports. Templates opt in after module connectivity validation; absent or
-	// false retains the legacy namespace-wide sentinel allowances.
+	// ports. A template that advertises any port gets this by default (a
+	// running server takes it at its next start); true applies it at once and
+	// requires an advertised port. Only a template with no advertised port
+	// keeps the legacy namespace-wide sentinel allowances.
 	// +optional
 	SentinelIsolation bool `json:"sentinelIsolation,omitempty"`
 
@@ -211,6 +213,65 @@ type GameSecuritySpec struct {
 	// +kubebuilder:validation:Maximum=4294967295
 	// +optional
 	FSGroup *int64 `json:"fsGroup,omitempty"`
+
+	// VolumeOwnershipCheck selects how the kubelet re-applies FSGroup to the
+	// mounted volume. EveryStart re-owns every file on each start (Kubernetes
+	// fsGroupChangePolicy Always); OnlyWhenWrong skips the walk when the
+	// volume root already has the right group (OnRootMismatch). Omitted means
+	// OnlyWhenWrong. Has an effect only when FSGroup is set.
+	// +kubebuilder:validation:Enum=EveryStart;OnlyWhenWrong
+	// +optional
+	VolumeOwnershipCheck VolumeOwnershipCheck `json:"volumeOwnershipCheck,omitempty"`
+
+	// Risky marks the settings whose override a server owner should only
+	// make with care (the image works only with that id, or must start as
+	// root). Presence of a member means "overriding this is risky"; the
+	// dashboard shows the reason before saving. It never forbids an override.
+	// +optional
+	Risky *SecurityRiskSpec `json:"risky,omitempty"`
+}
+
+// VolumeOwnershipCheck is the kubelet fsGroup ownership policy for a data volume.
+type VolumeOwnershipCheck string
+
+const (
+	// VolumeOwnershipCheckEveryStart re-applies the filesystem group to every
+	// file on each start (fsGroupChangePolicy Always).
+	VolumeOwnershipCheckEveryStart VolumeOwnershipCheck = "EveryStart"
+
+	// VolumeOwnershipCheckOnlyWhenWrong re-applies the filesystem group only
+	// when the volume root's group differs (fsGroupChangePolicy OnRootMismatch).
+	VolumeOwnershipCheckOnlyWhenWrong VolumeOwnershipCheck = "OnlyWhenWrong"
+)
+
+// SecurityRiskSpec marks which security settings are risky to override. A
+// member may name a setting the template does not set. Absent member means
+// not risky.
+type SecurityRiskSpec struct {
+	// RunAsUser marks the game container uid as risky to override.
+	// +optional
+	RunAsUser *SecurityRiskNote `json:"runAsUser,omitempty"`
+
+	// RunAsGroup marks the game container gid as risky to override.
+	// +optional
+	RunAsGroup *SecurityRiskNote `json:"runAsGroup,omitempty"`
+
+	// FSGroup marks the volume filesystem group as risky to override.
+	// +optional
+	FSGroup *SecurityRiskNote `json:"fsGroup,omitempty"`
+
+	// VolumeOwnershipCheck marks the ownership check policy as risky to override.
+	// +optional
+	VolumeOwnershipCheck *SecurityRiskNote `json:"volumeOwnershipCheck,omitempty"`
+}
+
+// SecurityRiskNote explains, in one plain-text sentence, what breaks when a
+// risky setting is overridden.
+type SecurityRiskNote struct {
+	// Reason is shown to the server owner before they save the override.
+	// +kubebuilder:validation:MaxLength=200
+	// +optional
+	Reason string `json:"reason,omitempty"`
 }
 
 // GameVersion is one selectable entry in a template's version catalog.

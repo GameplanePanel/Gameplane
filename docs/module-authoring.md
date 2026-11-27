@@ -26,12 +26,12 @@ flowchart LR
 
 ## Quickstart: Authoring with `gp-module` CLI & Web Builder
 
-For a validated wake proxy, add `sentinelIsolation: true` under the template's
-`spec`. The operator permits that server's sentinel to reach only its own
-advertised container ports, preserving each port's TCP/UDP/SCTP protocol.
-Leave management ports unadvertised. A template with no advertised ports grants
-no sentinel access. Omission preserves legacy behavior; adoption in the
-GameplanePanel/module repository is separate from the operator upgrade.
+A template that advertises a port isolates its wake sentinel by default: the
+operator permits that server's sentinel to reach only its own advertised
+container ports, preserving each port's TCP/UDP/SCTP protocol. Leave
+management ports unadvertised. Setting `sentinelIsolation: true` under the
+template's `spec` also applies it to running servers at once (instead of at
+their next start) and requires an advertised port.
 Test player joins, status queries and sleep/wake cycles with an enforcing CNI
 before publishing the opt-in. See [network policy migration](networking.md#networkpolicy-isolation-and-migration).
 
@@ -321,7 +321,7 @@ spec:
   type: git                  # oci | git | http | local | upload
   git:
     url: https://github.com/example/gameplane-modules
-    ref: main                # branch or tag; the resolved commit is the digest
+    ref: master              # branch or tag; the resolved commit is the digest
     subPath: modules         # optional scan root inside the repo
     secretRef: { name: gh-creds }   # optional, in operator.moduleNamespace
   allow: ["minecraft-*"]     # optional name filter (all types)
@@ -1183,7 +1183,8 @@ tab's "Container output" source covers those.
 ### Security context
 
 Some game images refuse to run as root or require a specific uid. Use
-`spec.security` to override the pod/container security settings:
+`spec.security` in the template to set the module default for the pod and
+container security context:
 
 ```yaml
 security:
@@ -1192,7 +1193,11 @@ security:
   fsGroup: 25000          # gid the kubelet chowns the data volume to
 ```
 
-All three fields are optional. When set, the operator applies these
+The block is a default, not a lock. Every field is optional, and a server
+owner can override any setting for one server (see
+[Server security overrides](security.md#server-security-overrides)). Write the
+default for the common case, and mark each value that breaks the game when it
+changes as `risky` (see [Risky values](#risky-values)). When set, the operator applies these
 values to the game container's `securityContext`; `fsGroup` is set on
 the pod spec so the kubelet chowns mounted volumes on startup, letting
 a non-root game user write to the PVC without additional init
@@ -1217,6 +1222,52 @@ spec:
 | `runAsUser` | int64 | omitted (image default) | 0 | 4294967295 | uid the game container runs as |
 | `runAsGroup` | int64 | omitted (image default) | 0 | 4294967295 | gid the game container runs as |
 | `fsGroup` | int64 | omitted (no chown) | 0 | 4294967295 | gid the kubelet chowns volumes to |
+| `volumeOwnershipCheck` | enum | `OnlyWhenWrong` | n/a | n/a | `EveryStart` or `OnlyWhenWrong`; has an effect only when `fsGroup` applies |
+| `risky` | object | omitted | n/a | n/a | marks settings a server owner should not change without a reason; see [Risky values](#risky-values) |
+
+#### Ownership check
+
+`volumeOwnershipCheck` controls how the kubelet re-applies `fsGroup` to the
+data volume:
+
+- `EveryStart` makes the kubelet re-apply the group to the volume's files on
+  every start (pod `fsGroupChangePolicy: Always`). Use it when files inside the
+  volume can end up owned by another uid between starts, for example files a
+  helper process creates as root. The cost is a slower start on large volumes.
+- `OnlyWhenWrong` (the built-in default) re-applies the group only when the
+  volume root is not already owned by `fsGroup` (`OnRootMismatch`). Starts are
+  faster, but files deeper in the volume keep whatever owner they have.
+
+The built-in default changed to `OnlyWhenWrong`. A template with `fsGroup` used
+to get the Kubernetes default, which re-applies the group on every start. Servers
+that already run with an `fsGroup` pick up the new default at their next start.
+Set `volumeOwnershipCheck: EveryStart` in the template if the module needs the
+previous behavior.
+
+#### Risky values
+
+Mark a setting in `risky` when changing it is likely to break the server. The
+dashboard shows the reason and asks the server owner to confirm before saving an
+override for that setting. Mark a value risky when the image works only with that
+uid or gid, or must start as root. Marking a setting risky does not lock it.
+
+```yaml
+security:
+  runAsUser: 25000
+  runAsGroup: 25000
+  fsGroup: 25000
+  risky:
+    runAsUser:
+      reason: "The server must run as uid 25000, or it cannot read its save files."
+```
+
+The members of `risky` are `runAsUser`, `runAsGroup`, `fsGroup` and
+`volumeOwnershipCheck`. A member may be set even when the template sets no
+default for it. The `reason` is one plain-text sentence of 200 characters or
+fewer that says what breaks. Do not write markup in it. The module validators
+(`gp-module validate` and the module repository's `validate.py`) report a `risky`
+member that is not one of these four settings, and a reason longer than 200
+characters, as errors. A `volumeOwnershipCheck` without an `fsGroup` is a warning.
 
 ### Reserved in-pod ports
 

@@ -12,5 +12,8 @@ func LongRunningOperation(method, path string) bool {
 	if method == http.MethodGet {
 		return Streaming(path) || path == "/files/download" || path == "/logs/download"
 	}
+	if method == http.MethodPut {
+		return path == "/files/stream"
+	}
 	return method == http.MethodPost && (path == "/files/upload" || path == "/mods/upload" || path == "/mods/install")
 }

@@ -233,6 +233,9 @@ func main() {
 		logger.Warn("oidc disabled", "err", err)
 	}
 	credentialsNS, moduleConfigMapNS := cfg.managementNamespaces()
+	// The security settings ConfigMap of the home cluster lives here (the
+	// operator's control-plane namespace). Remote clusters use their own.
+	reg.SetControlPlaneNamespace(moduleConfigMapNS)
 	authRegistry := auth.NewRegistry(store,
 		auth.NewK8sSecretReader(k8s, credentialsNS), oidcAuth, cfg.oidcDisplayName, helmPolicy)
 
@@ -282,6 +285,14 @@ func main() {
 	}
 	authRegistry.AttachAuditWriteSyncFunc(auditor.WriteSync)
 	sessions.AttachMCPAudit(auditor.WriteSync)
+	sessions.AttachSFTPAudit(auditor.WriteSync)
+	// Local SFTP endpoint (spec 040): the chart passes the service token its SFTP pod uses in
+	// this cluster. A seeding failure is logged, not fatal: the panel still starts.
+	if tok := os.Getenv("GAMEPLANE_SFTP_LOCAL_SERVICE_TOKEN"); tok != "" {
+		if err := sessions.SeedSFTPServiceToken(ctx, scope.DefaultCluster, tok); err != nil {
+			logger.Error("seed sftp service token", "err", err)
+		}
+	}
 
 	// Notification delivery: watch CRD status transitions (server health,
 	// backup/restore outcomes) and push matching events to the sinks
@@ -368,7 +379,13 @@ func main() {
 	})
 
 	// Public share link endpoints (unauthenticated, token-guessable)
+	// fileAccess decides which servers and file operations a caller may use. The route
+	// middleware, the SFTP listing and the rename body check all share it. It is declared
+	// before the public routes so the SFTP login routes (spec 040) can use it too.
+	fileAccess := rbac.NewFileAccess(reg, reg)
 	handlers.MountPublicShares(r, reg, store, auth.ShareLimiter)
+	// SFTP login (spec 040): service-token routes outside the protected group.
+	handlers.MountSFTPLogin(r, sessions, store, fileAccess, auditor)
 
 	// What the telemetry reporter and the admin preview both collect from.
 	telemetryDeps := telemetry.Deps{
@@ -397,37 +414,60 @@ func main() {
 	r.Group(func(p chi.Router) {
 		p.Use(sessions.Authenticate)
 		p.Use(sessions.MCPTokenGuard)
+		p.Use(sessions.SFTPSessionGuard)
 		// A broad per-IP cap on writes keeps one authenticated client from
 		// pegging the DB or k8s API. Reads go through unlimited (the main
 		// bottleneck there is the dashboard's own polling).
 		p.Use(mutationRateLimit)
-		p.Use(rbac.Middleware(reg))
+		p.Use(rbac.MiddlewareWithFiles(reg, fileAccess))
+		// PostgreSQL panels re-check every long stream. On SQLite only SFTP session transfers are
+		// re-checked, so a revoked or expired SFTP session cannot keep an upload or download running
+		// after the SFTP endpoint has been told to drop it.
+		revalidate := auth.SFTPSessionStream(isStreamingRequest)
 		if store.Driver == "postgres" {
-			p.Use(sessions.RevalidateStreams(isStreamingRequest, 5*time.Second, rbac.StreamGrantValidator(reg)))
+			revalidate = isStreamingRequest
 		}
+		p.Use(sessions.RevalidateStreams(revalidate, 5*time.Second, rbac.StreamGrantValidator(reg)))
 
-		handlers.MountResources(p, reg, store)
+		handlers.MountResources(p, reg, store, auditor)
 		handlers.MountFleet(p, reg, store)
 		handlers.MountNamespaces(p, reg)
 		handlers.MountPodEvents(p, reg)
 		handlers.MountPods(p, reg, cfg.namespace)
-		handlers.MountLifecycle(p, reg)
+		handlers.MountLifecycle(p, reg, auditor)
 		handlers.MountShareLinks(p, reg, store)
 		handlers.MountOwnership(p, reg, store)
 		handlers.MountUsers(p, store, sessions, reg)
+		handlers.MountSFTPServers(p, fileAccess)
 		handlers.MountRolesWithHelm(p, store, helmPolicy)
 		handlers.MountAudit(p, auditor)
 		telemetrySettings := handlers.TelemetrySettings{Dest: telemetryDest, Interval: cfg.telemetryInterval, Deps: telemetryDeps}
 		handlers.MountConfigWithTelemetry(p, store, auditor, oidcAuth != nil, cfg.gameDataStorageClass, helmPolicy, telemetrySettings)
 		handlers.MountTelemetry(p, store, telemetrySettings)
+		handlers.MountSecuritySettings(p, reg, auditor)
 		handlers.MountNotifications(p, notifier, k8s, credentialsNS)
 		handlers.MountAuthProviderSecrets(p, k8s, credentialsNS)
 		handlers.MountCluster(p, reg, store, Version, cfg.clusterOps, cfg.updateChannel)
 		handlers.MountClusterActions(p, k8s, cfg.clusterOps, cfg.clusterExternalAddress)
+		// SFTP endpoint per cluster (spec 040, US4): the panel's own address comes from chart values and its
+		// host key fingerprint from the host key Secret; remote addresses are stored by PUT /clusters/{name}/sftp.
+		// The host key Secret is rendered in the release namespace, which is this pod's own namespace (not
+		// the credentials namespace, which may differ).
+		sftpMount := handlers.SFTPClusterMount{
+			Sessions:      sessions,
+			Kube:          k8s,
+			PublicAddress: os.Getenv("GAMEPLANE_SFTP_PUBLIC_ADDRESS"),
+			HostKeySecret: envOr("GAMEPLANE_SFTP_HOST_KEY_SECRET", "gameplane-sftp-host-key"),
+			Namespace:     cmp.Or(os.Getenv("GAMEPLANE_NAMESPACE"), cfg.namespace),
+			Enabled:       os.Getenv("GAMEPLANE_SFTP_ENABLED") == "true",
+			Port:          envOrInt("GAMEPLANE_SFTP_PORT", 2222),
+		}
+		// GET /users/me/sftp reports the panel's own endpoint (spec 040) only while SFTP is enabled.
+		handlers.SetSFTPEndpointSource(handlers.LocalSFTPEndpointSource(sftpMount, reg.DefaultID()))
 		if cfg.remoteClusters {
-			handlers.MountClusters(p, reg, k8s, credentialsNS)
+			handlers.MountClustersWithSFTP(p, reg, k8s, credentialsNS, sftpMount)
 		} else {
-			handlers.MountClusters(p, reg, nil, credentialsNS)
+			handlers.MountClustersWithSFTP(p, reg, nil, credentialsNS, sftpMount)
 		}
 		handlers.MountInstallation(p, store, cfg.standalone, Version)
 		handlers.MountEvents(p, reg)
@@ -471,7 +511,19 @@ func main() {
 		}
 		handlers.MountServerCapabilities(p, reg, ws.NewCaptureGatewayClient(reg, credentialsNS), captureConfig)
 		handlers.MountCapture(p, reg, auditor, captureConfig, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)
-		ws.MountWithPlayerNames(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, playerNames, ws.AgentGatewayOptions{Namespace: credentialsNS})
+		handlers.MountBackupArchives(p, reg, auditor, handlers.BackupArchiveConfig{
+			GatewayNamespace:     credentialsNS,
+			MaxConcurrentExports: cfg.backupsMaxConcurrentExports,
+			AgentCABundle:        cfg.agentCABundle,
+			AgentClientCert:      cfg.agentClientCert,
+			AgentClientKey:       cfg.agentClientKey,
+			MaxUploadBytes:       cfg.backupsMaxUploadBytes,
+		})
+		ws.MountWithPlayerNames(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, playerNames, ws.AgentGatewayOptions{
+			Namespace:      credentialsNS,
+			Files:          fileAccess,
+			MaxUploadBytes: cfg.filesMaxUploadBytes,
+		})
 	})
 
 	// Usage telemetry. Run returns at once when the resolved destination is
@@ -637,6 +689,12 @@ type config struct {
 	captureMaxRetentionSecs     int64
 	captureDefaultMaxDurationS  int
 	captureDefaultMaxSizeBytes  int64
+	// filesMaxUploadBytes caps one files/stream upload (Helm files.maxUploadSize).
+	filesMaxUploadBytes int64
+	// backupsMaxUploadBytes caps one backup-archive upload restore (Helm backups.maxUploadSize).
+	backupsMaxUploadBytes int64
+	// backupsMaxConcurrentExports caps backup downloads per namespace (Helm backups.maxConcurrentExports).
+	backupsMaxConcurrentExports int
 
 	gameDataStorageClass string
 
@@ -742,6 +800,10 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	c.captureMaxRetentionSecs = envOrInt64("GAMEPLANE_CAPTURE_MAX_RETENTION", 604800)
 	fs.IntVar(&c.captureDefaultMaxDurationS, "capture-default-max-duration", envOrInt("GAMEPLANE_CAPTURE_DEFAULT_MAX_DURATION", 300), "default max capture duration in seconds")
 	c.captureDefaultMaxSizeBytes = envOrInt64("GAMEPLANE_CAPTURE_DEFAULT_MAX_SIZE", 5368709120)
+	fs.Int64Var(&c.filesMaxUploadBytes, "files-max-upload-bytes", envOrInt64("GAMEPLANE_FILES_MAX_UPLOAD_BYTES", 20<<30),
+		"maximum size of one file uploaded through files/stream (bytes); Helm files.maxUploadSize")
+	fs.Int64Var(&c.backupsMaxUploadBytes, "backups-max-upload-bytes", envOrInt64("GAMEPLANE_BACKUPS_MAX_UPLOAD_BYTES", 20<<30), "largest archive one upload restore accepts (bytes); Helm backups.maxUploadSize")
+	fs.IntVar(&c.backupsMaxConcurrentExports, "backups-max-concurrent-exports", 3, "backup downloads that may run at once per namespace; Helm backups.maxConcurrentExports")
 	fs.BoolVar(&c.standalone, "standalone", envOr("GAMEPLANE_STANDALONE", "") == "true", "run without a local Kubernetes cluster")
 	fs.BoolVar(&c.remoteClusters, "remote-clusters", true, "load remote cluster credentials and connect to registered clusters")
 	fs.StringVar(&c.panelKeyFile, "panel-key-file", envOr("GAMEPLANE_PANEL_KEY_FILE", "/data/panel.key"), "persistent standalone credential encryption key file")
@@ -912,15 +974,22 @@ func bodyLimit(maxBytes int64) func(http.Handler) http.Handler {
 // MaxBytesReader is authoritative (main.go's bodyLimit doc comment), so
 // leaving them capped at 1 MiB here makes the proxy's own 64 MiB
 // (httpProxy default, files/write) and 512 MiB (mods/upload) ceilings
-// dead code — see F-075.
+// dead code — see F-075. files/stream is exempt for the same reason; the
+// proxy caps it itself at the configured files.maxUploadSize
+// (MaxBytesReader in ws.httpProxyLimit).
 func isUploadPath(path string) bool {
+	// Archive uploads (spec 041) are capped by backups.maxUploadSize in the handler.
+	if path == "/restores:upload" {
+		return true
+	}
 	if !strings.HasPrefix(path, "/servers/") {
 		return false
 	}
 	// /servers/{name}/files/upload, /servers/{name}/files/write,
-	// /servers/{name}/mods/upload
+	// /servers/{name}/files/stream, /servers/{name}/mods/upload
 	return strings.HasSuffix(path, "/files/upload") ||
 		strings.HasSuffix(path, "/files/write") ||
+		strings.HasSuffix(path, "/files/stream") ||
 		strings.HasSuffix(path, "/mods/upload")
 }
 
@@ -952,6 +1021,12 @@ func secureHeaders(next http.Handler) http.Handler {
 func mutationRateLimit(next http.Handler) http.Handler {
 	mw := auth.MutationLimiter.Middleware(next)
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// SFTP session requests arrive from the SFTP pod's address, so they are limited per
+		// session by auth.SFTPSessionLimiter instead of this per-IP cap.
+		if _, ok := auth.SFTPCallerFromContext(req.Context()); ok {
+			next.ServeHTTP(w, req)
+			return
+		}
 		switch req.Method {
 		case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
 			mw.ServeHTTP(w, req)
@@ -1019,6 +1094,10 @@ func isLargeTransferPath(method, path string) bool {
 		if path == "/admin/audit/export" {
 			return true
 		}
+		// Backup archive downloads (spec 041) stream for as long as the worker takes.
+		if strings.HasPrefix(path, "/backups/") && strings.HasSuffix(path, ":download") {
+			return true
+		}
 		if !strings.HasPrefix(path, "/servers/") {
 			return false
 		}
@@ -1026,6 +1105,10 @@ func isLargeTransferPath(method, path string) bool {
 			strings.HasSuffix(path, "/files/archive") ||
 			strings.HasSuffix(path, "/logs/download") ||
 			strings.HasSuffix(path, ":capture-file")
+	}
+	if method == http.MethodPost && path == "/restores:upload" {
+		// Archive uploads (spec 041) stream the whole body to the receiver on req.Context().
+		return true
 	}
 	if method == http.MethodPost && strings.HasPrefix(path, "/servers/") {
 		// Uploads stream their body on req.Context(). URL installs also
@@ -1035,6 +1118,10 @@ func isLargeTransferPath(method, path string) bool {
 			strings.HasSuffix(path, "/files/write") ||
 			strings.HasSuffix(path, "/mods/upload") ||
 			strings.HasSuffix(path, "/mods/install")
+	}
+	if method == http.MethodPut && strings.HasPrefix(path, "/servers/") {
+		// files/stream streams one file body on req.Context() for as long as the client uploads.
+		return strings.HasSuffix(path, "/files/stream")
 	}
 	return false
 }

@@ -1,0 +1,809 @@
+{
+  "file": "1163467012-3228",
+  "id": "1:39964",
+  "name": "Screen/Standalone — Register cluster (Invalid control-plane namespace)",
+  "type": "FRAME",
+  "x": 30030,
+  "y": 69623,
+  "width": 1440,
+  "height": 900,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "Gameplane",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "id": "1:39991",
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "name": "Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Clusters", "Search servers…", "AD"]
+        },
+        {
+          "id": "1:40016",
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:40060",
+              "name": "Clusters header",
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "children": [
+                {
+                  "id": "1:40130",
+                  "name": "Title Col",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 444,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "id": "1:40187",
+                      "name": "phTitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 97,
+                      "height": 31,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Clusters",
+                      "font": ["Geist", 600, 24],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "id": "1:40188",
+                      "name": "phSubtitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 35,
+                      "width": 444,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Administration of registered clusters, connectivity and node inventory.",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:40131",
+                  "name": "Page actions",
+                  "type": "FRAME",
+                  "x": 995,
+                  "y": 8.5,
+                  "width": 137,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "name": "Register cluster",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 137,
+                      "height": 36,
+                      "component": "Button/Primary/MD",
+                      "componentId": "1:1094",
+                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "fills/0/color": "accent/accent"
+                      },
+                      "texts": ["Register cluster"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1:40061",
+              "name": "No registered clusters",
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 101,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [24, 24, 24, 24],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
+              "children": [
+                {
+                  "id": "1:40132",
+                  "name": "Empty title",
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 24,
+                  "width": 1084,
+                  "height": 24,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "No clusters available",
+                  "font": ["Geist", 400, 16],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "id": "1:40133",
+                  "name": "Empty description",
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 56,
+                  "width": 1084,
+                  "height": 21,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Register a workload cluster to deploy and manage game servers. This panel can run without a local cluster.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:39992",
+      "name": "Modal backdrop",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#00000066", "opacity": 0.4}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [40, 40, 40, 40],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "absolute": true,
+      "children": [
+        {
+          "id": "1:40017",
+          "name": "Register cluster dialog",
+          "type": "FRAME",
+          "x": 480,
+          "y": 52.5,
+          "width": 480,
+          "height": 795,
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "effects": [{"type": "DROP_SHADOW", "radius": 32, "visible": true}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "padding": [20, 20, 20, 20],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {
+            "cornerRadius": "radius/xl",
+            "fills/0/color": "surface/surface",
+            "strokes/0/color": "border/border"
+          },
+          "children": [
+            {
+              "id": "1:40062",
+              "name": "mTitle",
+              "type": "TEXT",
+              "x": 20,
+              "y": 20,
+              "width": 123,
+              "height": 24,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Register cluster",
+              "font": ["Geist", 600, 16],
+              "lineHeight": {"value": 150, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "id": "1:40063",
+              "name": "mDescWrap",
+              "type": "FRAME",
+              "x": 20,
+              "y": 44,
+              "width": 440,
+              "height": 67,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [4, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:40134",
+                  "name": "mDesc",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 4,
+                  "width": 440,
+                  "height": 63,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutGrow": 1,
+                  "text": "Connect an existing workload cluster with the Gameplane operator and CRDs installed. The panel host does not become a workload node.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                }
+              ]
+            },
+            {
+              "id": "1:40064",
+              "name": "Registration fields",
+              "type": "FRAME",
+              "x": 20,
+              "y": 111,
+              "width": 440,
+              "height": 612,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 16,
+                "padding": [16, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:40135",
+                  "name": "Name field",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 16,
+                  "width": 440,
+                  "height": 60,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 6,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "children": [
+                    {
+                      "id": "1:40189",
+                      "name": "Name label",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 440,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Name",
+                      "font": ["Geist", 400, 12],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "Name input",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 24,
+                      "width": 440,
+                      "height": 36,
+                      "component": "Gameplane/Input",
+                      "componentId": "1:706",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      },
+                      "texts": ["production"]
+                    }
+                  ]
+                },
+                {
+                  "id": "1:40136",
+                  "name": "Display name field",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 92,
+                  "width": 440,
+                  "height": 60,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 6,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "children": [
+                    {
+                      "id": "1:40190",
+                      "name": "Display name label",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 440,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Display name",
+                      "font": ["Geist", 400, 12],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "Display name input",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 24,
+                      "width": 440,
+                      "height": 36,
+                      "component": "Gameplane/Input",
+                      "componentId": "1:706",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "1:40137",
+                  "name": "Kubeconfig field",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 168,
+                  "width": 440,
+                  "height": 196,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 6,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "children": [
+                    {
+                      "id": "1:40191",
+                      "name": "Kubeconfig label",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 440,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Kubeconfig",
+                      "font": ["Geist", 400, 12],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "id": "1:40192",
+                      "name": "Kubeconfig textarea (eight rows)",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 24,
+                      "width": 440,
+                      "height": 172,
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [12, 12, 12, 12],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "1:40138",
+                  "name": "Control-plane namespace field",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 380,
+                  "width": 440,
+                  "height": 162,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 6,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "children": [
+                    {
+                      "id": "1:40193",
+                      "name": "Control-plane namespace label",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 440,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Control-plane namespace (optional)",
+                      "font": ["Geist", 400, 12],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "Control-plane namespace input",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 24,
+                      "width": 440,
+                      "height": 36,
+                      "component": "Gameplane/Input",
+                      "componentId": "1:706",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#E0304F"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "danger/danger"
+                      },
+                      "texts": ["Gameplane_CP"]
+                    },
+                    {
+                      "id": "1:40194",
+                      "name": "Control-plane namespace error",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 66,
+                      "width": 440,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#E0304F"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Use a lowercase DNS label: lowercase letters, digits and dashes, starting and ending with a letter or digit, at most 63 characters.",
+                      "font": ["Geist", 400, 12],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/danger"}
+                    },
+                    {
+                      "id": "1:40195",
+                      "name": "Control-plane namespace help",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 108,
+                      "width": 440,
+                      "height": 54,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Namespace where this cluster's Gameplane operator runs. Leave gameplane unless it was installed elsewhere; a wrong value shows the cluster's root setting as missing.",
+                      "font": ["Geist", 400, 12],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:40139",
+                  "name": "Connection helper",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 558,
+                  "width": 440,
+                  "height": 54,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Use a self-contained kubeconfig with credentials and an API address reachable from this panel. Agent console, files and logs also require remote gateway configuration.",
+                  "font": ["Geist", 400, 12],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                }
+              ]
+            },
+            {
+              "id": "1:40065",
+              "name": "mFooter",
+              "type": "FRAME",
+              "x": 20,
+              "y": 723,
+              "width": 440,
+              "height": 52,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [20, 0, 0, 0],
+                "primary": "MAX",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:40140",
+                  "name": "btnCancel",
+                  "type": "FRAME",
+                  "x": 296,
+                  "y": 20,
+                  "width": 64,
+                  "height": 32,
+                  "cornerRadius": 6,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 12, 0, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "id": "1:40196",
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 12,
+                      "y": 8,
+                      "width": 40,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Cancel",
+                      "font": ["Geist", 500, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:40141",
+                  "name": "btnPrimary",
+                  "type": "FRAME",
+                  "x": 368,
+                  "y": 20,
+                  "width": 72,
+                  "height": 32,
+                  "opacity": 0.5,
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 6,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 12, 0, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "accent/accent"},
+                  "children": [
+                    {
+                      "id": "1:40197",
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 12,
+                      "y": 8,
+                      "width": 48,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+                      "text": "Register",
+                      "font": ["Geist", 500, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/foreground"}
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

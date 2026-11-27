@@ -67,7 +67,7 @@ func restoreLifecycleFixture(t *testing.T, extras ...client.Object) (*RestoreRec
 func lifecycleRestore(name string, uid types.UID) *gameplanev1alpha1.Restore {
 	return &gameplanev1alpha1.Restore{
 		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "ns", UID: uid},
-		Spec:       gameplanev1alpha1.RestoreSpec{ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "server"}, BackupRef: gameplanev1alpha1.LocalObjectRef{Name: "backup"}},
+		Spec:       gameplanev1alpha1.RestoreSpec{ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "server"}, BackupRef: &gameplanev1alpha1.LocalObjectRef{Name: "backup"}},
 		Status:     gameplanev1alpha1.RestoreStatus{Phase: gameplanev1alpha1.RestorePhaseSuspending, SnapshotID: "snapshot"},
 	}
 }

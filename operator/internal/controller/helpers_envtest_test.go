@@ -305,7 +305,7 @@ func buildRestore(ns, name, backupName, gsName string) *gameplanev1alpha1.Restor
 	return &gameplanev1alpha1.Restore{
 		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns},
 		Spec: gameplanev1alpha1.RestoreSpec{
-			BackupRef: gameplanev1alpha1.LocalObjectRef{Name: backupName},
+			BackupRef: &gameplanev1alpha1.LocalObjectRef{Name: backupName},
 			ServerRef: gameplanev1alpha1.LocalObjectRef{Name: gsName},
 		},
 	}

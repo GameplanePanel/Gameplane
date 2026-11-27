@@ -4,7 +4,7 @@
   "name": "Screen/Mobile — Backups filters open",
   "type": "FRAME",
   "x": 4920,
-  "y": 60040,
+  "y": 63923,
   "width": 375,
   "height": 844,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -137,6 +137,7 @@
             "sizing": ["FIXED", "FIXED"]
           },
           "layoutAlignSelf": "STRETCH",
+          "clips": true,
           "variables": {"fills/0/color": "default/default"},
           "children": [
             {
@@ -206,6 +207,27 @@
               },
               "variables": {"cornerRadius": "radius/3xl"},
               "texts": ["Restores"]
+            },
+            {
+              "name": "tabDestinations",
+              "type": "INSTANCE",
+              "x": 286,
+              "y": 4,
+              "width": 115,
+              "height": 32,
+              "component": "Tab/Inactive",
+              "componentId": "1:967",
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 16, 0, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"cornerRadius": "radius/3xl"},
+              "texts": ["Destinations"]
             }
           ]
         },

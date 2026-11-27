@@ -330,7 +330,7 @@ func (r *BackupReconciler) pinnedByRestore(ctx context.Context, b *gameplanev1al
 			rs.Status.Phase == gameplanev1alpha1.RestorePhaseFailed {
 			continue
 		}
-		if rs.Spec.BackupRef.Name == b.Name ||
+		if (rs.Spec.BackupRef != nil && rs.Spec.BackupRef.Name == b.Name) ||
 			(rs.Status.SnapshotID != "" && rs.Status.SnapshotID == b.Status.SnapshotID) {
 			return true, nil
 		}
@@ -447,6 +447,8 @@ func (r *BackupReconciler) buildForgetPodSpec(b *gameplanev1alpha1.Backup) corev
 
 	return corev1.PodSpec{
 		RestartPolicy: corev1.RestartPolicyNever,
+		// restic never talks to the Kubernetes API.
+		AutomountServiceAccountToken: ptrTo(false),
 		SecurityContext: &corev1.PodSecurityContext{
 			RunAsNonRoot:   &nonRoot,
 			RunAsUser:      &uid,

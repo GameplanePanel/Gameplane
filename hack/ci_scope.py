@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 EDGE_IMAGES = [
     {"component": component} for component in (
         "operator", "api", "web", "agent", "audit-syslog-bridge",
-        "telemetry-receiver", "sentinel", "capture-sidecar", "mcp-server",
+        "telemetry-receiver", "sentinel", "capture-sidecar", "mcp-server", "sftp",
     )
 ] + [
     {"component": f"tunnel-{name}", "dockerfile": f"tunnel/Dockerfile.{name}"}
@@ -29,8 +29,8 @@ FORCE_ALL_FILES = {
 FORCE_ALL_PREFIXES = (".github/actions/",)
 # Mirrors the e2e-go matrix buckets in .github/workflows/ci.yaml.
 E2E_BUCKETS = ["operator", "api-auth", "api-roles", "api-rbac", "api-agent", "api-mods",
-               "telemetry", "optional-components", "restricted-workloads", "wake-hostport", "network-isolation", "management-placement", "backup-preparation", "monitoring", "recovery", "standalone"]
-E2E_AMD64_ONLY = {"wake-hostport", "network-isolation", "management-placement", "backup-preparation", "monitoring", "recovery", "standalone"}
+               "telemetry", "optional-components", "restricted-workloads", "wake-hostport", "network-isolation", "management-placement", "backup-preparation", "monitoring", "recovery", "standalone", "sftp"]
+E2E_AMD64_ONLY = {"wake-hostport", "network-isolation", "management-placement", "backup-preparation", "monitoring", "recovery", "standalone", "sftp"}
 SUITES_FILE = "test/e2e/suite-components.json"
 # Paths no Go e2e test reads. Their own jobs keep their paths-filter gates.
 NO_E2E_FILES = {

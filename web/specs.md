@@ -1,6 +1,6 @@
 # web — Specification
 
-**Status:** pre-v1 (v0.4.3)  
+**Status:** pre-v1 (v0.5.0)  
 **Module / package:** @gameplane/web  
 **Build:** Vite 8.3 + React 19.3 + TypeScript 7.0 (strict)
 
@@ -47,6 +47,8 @@ These are CRD/API contracts; no new rollout controls or visual flow are defined.
 **API-only:** The dashboard never speaks directly to the operator or agent. All reads/writes flow through the Kubernetes API server and the REST/WebSocket API gateway (`api/`).
 
 **Internal readiness:** Dashboard nginx returns 404 for `/readyz`, including query strings and normalized paths, before SPA routing or API proxying. Kubelet probes reach the API directly; public traffic cannot consume its database readiness slot. The nginx proxy smoke test checks rejection against a live upstream and confirms ordinary proxying still works.
+
+**Browser hardening:** nginx sends the SPA shell with a build-generated `Content-Security-Policy` (`cspHeader` in `vite.config.ts`: inline boot scripts allowed only by hash, no third-party script, style or font hosts), `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy: no-referrer` and HSTS. Fonts (Geist, JetBrains Mono) are bundled from `@fontsource/*`, so no page, the login page included, loads a third-party stylesheet or tells a font CDN who visits. nginx runs with `server_tokens off`, so neither its `Server` header nor its own error pages carry a version. Production builds drop `public/mockServiceWorker.js` (`dropMockWorker` in `vite.config.ts`); only the E2E mock mode serves it.
 
 **Pre-auth privacy:** The login page and any unauthenticated screen must not leak internal state: no hostnames, cluster names, server counts, version strings, user lists, or "user not found" errors. See docs/security.md "pre-auth privacy" and CLAUDE.md rule 3.
 
@@ -158,7 +160,7 @@ This rule was enforced by lint and review throughout the rebuild: any rebuilt fi
 **Appearance selection:** Two mechanisms work together to avoid theme flicker on page load:
 
 1. **Boot script in `index.html`** (T053; extended by feature 016 — see "User Theme Customization" below):
-   - Runs as the first script in `<head>` (before Google Fonts)
+   - Runs as the first script in `<head>` (before any stylesheet)
    - Reads `localStorage.getItem("gameplane-theme-prefs")` first (feature 016 prefs cache, authoritative); the legacy `gameplane-theme` key (light/dark/system only) remains the fallback when the prefs cache is absent
    - Resolves system theme via `window.matchMedia("(prefers-color-scheme: dark)")`
    - Sets `document.documentElement.classList` (add/remove "dark" and "light") and `document.documentElement.dataset.theme`, plus `data-theme-preset` ("pink" | "legacy") and `data-theme-type` ("preset" | "custom_colors")
@@ -403,25 +405,29 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
    - Modpack-capable games render a selector/browser
    - Select active pack, view pack contents, toggle mods within a pack
    - Uses HeroUI Select, Table, Button, Chip
+   - "All loaders" switch (spec 035 FR-014, env-mode registries only, off by default): search drops the server's loader and Minecraft version filters, the install picker lists every version a template version entry runs ("Runs on …"), and the confirmation warns when the install switches the server version (sent as `serverVersion`). Change version stays filtered.
 
 3. **Backups Tab** (`web/src/routes/tabs/Backups.tsx`, 290 lines)
    - Per-server backup list (snapshots created via the /backups page or on-demand)
+   - Users with schedule write access can edit or delete standalone schedules here. The **Managed by server settings** action opens the selected server’s **Settings → Scheduled backups**, where users with server write access can edit its inline backup policy.
    - Table columns: backup name, phase (Pending/Succeeded/Failed), size, completion time, actions
+   - A Succeeded backup without `status.snapshotID` shows the amber **Awaiting snapshot ID** phase chip (`PhaseChip` `awaitingSnapshot`, from `backupAwaitingSnapshot`) instead of green Succeeded, here, in the Backups index rows, the backup detail drawer and the Dashboard's recent backups. It is not a recovery point yet: Restore stays disabled until the ID is recorded (#961).
    - Open backup detail drawer, trigger restore dialog, delete backup
    - Uses HeroUI Table, Button, Modal (restore trigger), ui/ PhaseChip
 
 4. **Settings Tab** (`web/src/routes/tabs/Settings.tsx`, 396 lines)
    - Sub-section navigation tabs (11 sections below) via HeroUI Tabs
+   - Opening Settings from the tab bar starts in **General**. The managed schedule action passes `initialSection="backups"` to start in **Scheduled backups**.
    - Layout: left sidebar with section buttons, right panel for section content
    - Each section maintains independent form state, save/discard flow, per-field validation
 
 ### Modpacks tab (spec 035, planned)
 
-Status: the API and CRD side has landed; the web work (specs/035-curseforge-modpacks tasks, not yet implemented) has not. Contracts: `specs/035-curseforge-modpacks/contracts/ui-modpacks-tab.md` and `api-modpack.md`; designs are in `design.pen`.
+Status: the API and CRD side has landed, and the first web surfaces exist: `web/src/components/modpack-active-card.tsx`, `modpack-confirm-dialog.tsx`, `modpack-missing-files.tsx` and `modpack-version-picker.tsx`, all used by `web/src/routes/tabs/Modpacks.tsx`. Contracts: `specs/035-curseforge-modpacks/contracts/ui-modpacks-tab.md` and `api-modpack.md`; designs are in `design.fig`.
 
 - **Types and client (planned):** `web/src/types.ts` gains `ModpackDecl` fields `versionEnv`, `apiKeyEnv`, `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile`, the provider fields `modpacksOnly` and `ftb`, and the `GET /servers/{name}/modpack` view (`active`, `phase`, `message`, `backupName`, `keyShared`, `missingFiles`, `missingFilesUnknown`, `downloadsPath`, `backupAvailable`). `Servers.installModpack` moves from `{ ref }` to `{ provider, project, version, title, versionName, backupFirst }`; new `Servers.modpack`, `Servers.removeModpack(name, backupFirst)` and an admin `Registries.curseforgeShare` get/put. The install call returns 202; the tab polls the GET view until `phase` is `Applied`.
 - **Surfaces (planned):** registry switch (Modrinth, CurseForge, FTB; CurseForge hidden when `modpacksBlockedReason` is set); version picker for the server's Minecraft version and loader with newest preselected and release/beta badges; confirmation dialog with "Back up first" and a downgrade warning; Active modpack card (title, registry, version or "Not pinned", phase, Change version, Remove, "Retry remove" after a failed removal backup); missing-files notice with links and the `downloads/` upload instructions, or a start-the-server note when `missingFilesUnknown`; admin Mod registries "Share the CurseForge key with game servers" switch, disabled with a reason when only the startup flag supplies the key.
-- Mods tab hides providers with `modsBrowse=false`. Until these land, the existing Modpacks tab (`Modpacks.tsx`) is unchanged.
+- Mods tab hides providers with `modsBrowse=false`. The Modpacks tab (`Modpacks.tsx`) already uses the active card, version picker, confirmation dialog and missing-files notice.
 
 ### Settings Sub-Sections (T101–T111)
 
@@ -794,7 +800,7 @@ vitest.config.ts            # Coverage gates (lines 92 / functions 76 / branches
 playwright.config.ts        # Mock + live test modes, serial execution (login state is shared)
 eslint.config.js            # JavaScript, React Hooks and FormatJS rules
 .oxlintrc.json              # React and TypeScript rules, including type-aware promise checks
-package.json                # @gameplane/web v0.4.3; dev: vite, npm scripts for build/test/lint
+package.json                # @gameplane/web v0.5.0; dev: vite, npm scripts for build/test/lint
 ```
 
 ## SSO Role Rules and Role Source (spec 034) — pending dashboard build
@@ -880,6 +886,7 @@ package.json                # @gameplane/web v0.4.3; dev: vite, npm scripts for 
 8. **Users** (`/users`) → `UsersPage` (gated by `users:manage` permission)
    - Create/edit/delete users and OIDC links
    - Manage role bindings per namespace
+   - Row menu "MCP tokens" opens a dialog listing the selected user's personal MCP tokens (`GET /users/{id}/mcp-tokens`, query key `["user-mcp-tokens", id]`): name, prefix, expiry, last used, and an Active / Expired / Revoked state; no secrets. Revoke appears per active row only for viewers with `users:manage` (`DELETE /users/{id}/mcp-tokens/{tokenId}`), and the list refetches after a revoke. The dialog refreshes the Expired state each minute
 
 9. **AdminSettings** (`/admin`) → `AdminSettingsPage` (gated by `config:manage` permission)
    - Sections: General (version), Telemetry (destination, tiers, install ID, preview, status), Authentication (OIDC providers), Mod registries (API keys),
@@ -1012,6 +1019,13 @@ The warning is shown regardless of how many groups are being added (single or mu
     - Uses HeroUI Card, Button, Chip, Spinner; brand header with ShieldCheck icon; address copy button
     - Built directly from HeroUI primitives; no ui/ atom components
 
+14. **MCP tokens** (`/settings/mcp-tokens`) → `McpTokensPage` (`web/src/routes/McpTokens.tsx`)
+    - No permission gate: every signed-in user manages their own tokens (spec 037, OD-5). Reached from the user menu and from the settings sub-nav (item under Theme)
+    - List via `GET /users/me/mcp-tokens` (query key `["mcp-tokens"]`) with loading, error and empty states; the empty state shows only after a successful load
+    - Rows show name, prefix, created, expiry, last used (relative, or "Never") and an Active / Expired / Revoked state. Expired and revoked rows are greyed with a badge and have no Revoke
+    - Create dialog: name required, lifetime 7, 30, 90 or 365 days, default 30. Success moves to a one-time reveal with Copy buttons for the token and for an MCP client config snippet that uses the panel origin, plus a copy-failure hint when the clipboard refuses. The secret is dropped from component state and from the mutation cache on Done (`gcTime: 0`)
+    - Revoke asks for confirmation, calls `DELETE /users/me/mcp-tokens/{id}`, and refetches the list
+
 ## ServerDetail Tabs
 
 Visible tab set depends on server template + active version:
@@ -1019,13 +1033,13 @@ Visible tab set depends on server template + active version:
 1. **Overview** — GameServer status, phase, uptime, restart count; live metrics from RCON (if available); recent pod events
 2. **Events** — Kubernetes events: image pulls, scheduling, crash-loop, agent startup
 3. **Console** — Interactive RCON/WebSocket terminal (hidden if template has no console, or consoleMode=none)
-4. **Logs** — Live pod stdout OR configured game log file (agent-provided via mTLS; see gameplane.local/logPath annotation)
+4. **Logs** — Live pod stdout OR configured game log file (agent-provided via mTLS; the path comes from the GameTemplate `spec.logPath` field)
 5. **Files** — Browser and editor for server data files (config, save games, logs)
 6. **Mods** — List/install/remove mods; browse by registry provider (Modrinth, CurseForge, etc.) if template declares one
 7. **Modpacks** — Install modpacks (only if template + active version supports loader with modpack capability)
 8. **Players** — Online player snapshot, configured operator identities, ban list, whitelist, kick/ban/unban actions
 9. **Backups** — Per-server backup list, schedule management, restore trigger; reads backup repository URL from Secret `key: "repo"`
-10. **Capture** — a `CaptureWidget` component driving start/stop of packet captures and a table of past captures for this server, gated on the `captures:manage` permission. Sits between the Backups and Settings tabs per `assets/design-export/json` node `O08uaD`/`b4eaUf` (start-capture modal) and `m5kOm4` (capture list). `CaptureWidget.tsx` with `Captures` client namespace (`web/src/lib/api.ts:207-261`) and router/tab wiring (`web/src/routes/ServerDetail.tsx:387`) are implemented in `web/src`.
+10. **Capture** — a `CaptureWidget` component driving start/stop of packet captures and a table of past captures for this server, gated on the `captures:manage` permission. Sits between the Backups and Settings tabs per `assets/design-export/json` node `O08uaD`/`b4eaUf` (start-capture modal) and `m5kOm4` (capture list). `CaptureWidget.tsx` with `Captures` client namespace (`web/src/lib/api.ts:207-261`) and router/tab wiring (`web/src/routes/ServerDetail.tsx:392`) are implemented in `web/src`.
 11. **Settings** — Grouped form with sub-sections (below); changes are draft-until-save; conflict detection on reload
 
 On narrow screens, server actions wrap and the detail tab strip scrolls inside its navigation container. Selecting a tab keeps that tab visible without horizontally scrolling the page or moving the panel controls off-screen.
@@ -1072,11 +1086,23 @@ Save fetches the latest server and applies only the changes from the original ba
 10. **RBAC & access** — Server owner + collaborator list, permission inheritance. The `setCollaborators` mutation runs unconditionally at component render (not gated by an early return), so hook invocation order is consistent. The mutation's namespace is derived from the GameServer's `metadata.namespace` (or `gameplane-games` as fallback); when no server is loaded, the mutation returns early without calling the API. On success, the mutation invalidates the `["server", gs.metadata.name]` query cache, clears input state, and resets errors; on error, it sets a locally-rendered error message and does not clear input, allowing retry.
 11. **Danger zone** — Wipe world data (confirm-dialog), transfer ownership (confirm-dialog), delete server (confirm-dialog); no Clone action (`web/src/routes/tabs/settings/Danger.tsx`)
 
-**Share links (T179):** Mounted in `Settings.tsx` by slice 5 (`ShareLinksSection`). `ShareLinksSection` (`web/src/routes/tabs/settings/ShareLinks.tsx`). Create/list/revoke share links per server; table shows Created, Expires, Can start capability (view-only vs. can-start), Status (Active/Expired/Revoked). The status shows Revoked when revokedAt is set, regardless of expiry state. Create dialog opens to set expiry and start permission; success shows Created dialog with full URL and one-time copy prompt (token hashed server-side and unrecoverable after close). Revoke dialog (AlertDialog danger) confirms destruction. Empty state when no links exist. Visible only to users with the API-enforced permission (owner/admin create/revoke, viewers see list read-only if API permits). Uses HeroUI Modal/ModalBackdrop/ModalContainer/ModalDialog/ModalHeader/ModalHeading/ModalBody/ModalFooter, AlertDialog family, Button, Table, Select, ListBox, ListBoxItem, Label, Description, Switch, Chip. Only Active links show a Revoke button; Expired and Revoked rows show "—" (design xCJlu).
+**Share links (T179):** `ShareLinksSection` in `web/src/routes/tabs/settings/ShareLinks.tsx` lets the server owner create, list, edit and revoke links. The table shows each link's non-secret ID, creation date, expiry, wake permission and status. An active row has a **Can start** switch and a **Revoke** button. Changing the switch updates wake access for everyone with the existing URL. Expired and revoked rows show a read-only capability chip. Revocation takes precedence over expiry. The create dialog sets expiry and wake permission, then shows the same link ID alongside the URL and its one-time copy prompt. The revoke dialog confirms revocation. An empty state appears when the server has no links (design xCJlu).
 
 **Configurable expiry (feature 017, `ShareLinks.tsx`):** The expiry selector offers exactly six choices — 15 days, 30 days, 60 days, 90 days, No expiry, Custom (date picker) — with 30 days pre-selected, replacing the old fixed 24h/7d/30d/90d menu and its "Maximum 90 days" help text. Selecting "No expiry" shows the warning "This link works until you revoke it." and sends `neverExpires: true`. Selecting "Custom" shows a date picker restricted to dates strictly after today (no maximum); choosing a date 365 days or more out additionally shows "Long-lived link — it stays valid for over a year unless you revoke it." Presets and the custom date are converted client-side to an absolute RFC3339 instant (a custom date is valid through 23:59:59 in the owner's local time) and sent as `expiresAt`; the dialog never sends the deprecated `expiresIn`. The Expires column renders "Never" for a link with `expiresAt: null`, and such a link is never shown as "Expired".
 
 **Capture types (`src/types.ts`, built):** `CaptureConfiguration` (`{ enabled?, retentionSeconds? }`, mirrors `spec.capture` — `retentionSeconds` is bounded by the CRD's authoritative `+kubebuilder:validation:Minimum=60 / Maximum=604800` on `operator/api/v1alpha1/gameserver_types.go`'s `CaptureConfiguration.RetentionSeconds`, omit to use cluster default (86400)), `CaptureStatus` (mirrors `status.capture`: `ready`, `activeCapture`/`lastCaptureTime` typed nullable since the API's `formatOptionalTime` never omits the key), `CapturePhase` (`"Pending" | "Running" | "Completed" | "Failed" | "Expired"`), `NetworkCapture` (one capture record — merges the API's start/stop/list/get response shapes) and `NetworkCaptureList` (the `:captures` list envelope). All are implemented in the tree; the `CaptureWidget` component and `Captures` endpoint namespace are live (see Tabs and API Client sections above).
+
+## Server security overrides (spec 030)
+
+One shared editor, `SecurityAdvanced` (`web/src/components/SecurityAdvanced.tsx`), edits `spec.security` on a GameServer: `runAsUser`, `runAsGroup` and `fsGroup` (each a whole number 0 to 4294967295, or "use image default" where the image's own user is kept) and `volumeOwnershipCheck` (`EveryStart` or `OnlyWhenWrong`). It shows each module default from the template's `spec.security` next to the override, the desired and applied values from `status.security`, and a root-override notice. A setting shows "Applied: X" once the server has an applied record, and "Next start: X" (the desired value) before it has ever started. The "Pending: X · applies on the next restart" chip appears only when an applied record exists and the desired value differs from it, so a server that has never started shows no Pending chip (FR-009). It exports `isValidSecurityId`, `securityOverrideCount` and `securityIsValid`. The operator decides what applies; the component only edits the spec. Unset fields are left out of the payload, and an empty override is omitted entirely.
+
+Three places mount it:
+
+- **Create server wizard** (`web/src/routes/CreateServer.tsx`, Configure step): an "Advanced" section below the other fields. The Configure step cannot continue while a typed value is not a valid ID (`securityDraftValid`). Picking a different template clears the overrides, since they were chosen (and any risky value confirmed) against the previous module. Its `server.security.*` refusals show as a "Not created: security settings refused" error with the API's message. The section is read-only when the session lacks `servers:security` (`can(me, "servers:security", ...)`).
+- **Server Settings, Security section** (`web/src/routes/tabs/settings/Security.tsx`, `SecuritySection`; registered in `web/src/routes/tabs/Settings.tsx` as the `security` section, with `Lock` icon): it wraps `SecurityAdvanced` in the settings draft. The section is read-only without `servers:security`, and the tab's Save footer applies it like any other section. Saving a changed `runAsUser` or `runAsGroup` on a server whose `status.security.applied` is set (it has already started, so it has data) opens a confirmation (`needsFileAccessWarning`): files written earlier keep their old owner, and saving does not restart the server.
+- **Cluster Security panel** (`web/src/components/clusters/SecuritySettingsPanel.tsx`, mounted in `ClusterConfiguration.tsx` for every cluster): the cluster-wide `allowRootOverrides` switch. Without `config:read` the section shows a no-permission note instead of the switch, and the switch is editable only with `config:manage`. It reads and writes `GET`/`PUT /security-settings?cluster=<id>` through `SecuritySettings` in `web/src/lib/endpoints.ts`. A 409 or the `server.cluster.security_settings_missing` message ID (or a response with `present: false`) shows a "Security settings missing" alert and disables the switch. Register Cluster (`RegisterClusterDialog.tsx`) has an optional control-plane namespace field (lowercase DNS label, default `gameplane`) sent as `controlPlaneNamespace` only when it differs from `gameplane`, and the cluster overview shows that namespace for remote clusters.
+
+Permission checks here are display only. The API and the operator enforce `servers:security` and the root rule.
 
 ## External Interface / API Client
 
@@ -1156,6 +1182,7 @@ Each namespace is an object of typed functions building and fetching URLs:
 `Players.operators(server, namespace?)` reads configured operator identities through the resource client's captured cluster and namespace. Its optional `capabilities.operators` flag is provided by the agent; the dashboard does not infer support from game names or read arbitrary game files. The method accepts the resource client's cancellation signal.
 
 - **capabilities.ts** — `resolveConsoleMode(template)`, `serverHasMods(template, server)`, `serverHasModpacks(template, server)` — drive tab visibility
+- **serverTemplate.ts** — `getServerTemplate(client, name, ns, templateName)` reads a server's template for ServerDetail, the Console tab and the Settings tab: the catalog `GET /templates/{name}` first, and only after a 403 the server-scoped `GET /servers/{name}/template`, which the API allows for the server's owner and collaborators without `templates:read` (#1063). The Settings tab keeps reading `Servers.effectiveTemplate` directly when a rollout revision is pinned.
 - **useThemePreferences.ts** — theme preferences plumbing (feature 016; full behavior documented under "User Theme Customization" above): `useThemePreferences(me?, opts?)` reconciles the backend `preferences` from `/users/me` over the `gameplane-theme-prefs` localStorage cache (backend wins on drift), exposes `preferences` + an optimistic `updatePreferences(patch)` mutation (DOM + cache first, PUT via `Users.updatePreferences`, revert-and-report on failure, replay-on-`online` after connectivity loss), and keeps the DOM attributes (`class`/`data-theme`, `data-theme-preset`, `data-theme-type`, `data-custom-css`) and the `#gameplane-custom-css` overlay (always last in `<head>`; unmounted on logout and on `/login`/`/share/:token`) in sync. Plain helpers exported for routes and the boot script's post-boot path: `isSafeModeActive()` (`?safe-mode=1` or the `gameplane-safe-mode` sessionStorage flag — suspends only the overlay), `readThemePreferences` / `writeThemePreferences`, `normalizeThemePreferences`, `themePreferencesEqual`, `applyThemePreferences`, `unmountCustomCssOverlay`, plus the storage keys/element ids and the `gameplane-theme-error` window event. The inline `theme-boot` script in `index.html` applies the same cache synchronously pre-paint and is the authoritative boot path (never applies cached prefs on `/login` or `/share/:token`).
 - **servers.ts** — `countByState(items)` (running/stopped/pending/failed counts), `phaseGroups(items)` (items grouped by phase)
 - **games.ts** — category helpers: `gameCategory(game)`, `resolveCategories(explicit, game)`, `matchesCategory`, `matchesAllCategories`, `categoryFilters(categories)`
@@ -1253,12 +1280,12 @@ openEventStream(opts: EventStreamOptions)
 - `react@19.3.1` — React library
 - `react-dom@19.3.1` — DOM renderer
 - `@tanstack/react-router@1.170.46` — file-based routing (via tree.tsx)
-- `@tanstack/react-query@5.107.1` — data fetching, caching, invalidation
+- `@tanstack/react-query@5.108.1` — data fetching, caching, invalidation
 - `@tanstack/react-virtual@3.14.26` — virtualized lists for large tables
 - `@heroui/react@3.2.7` — component library (Button, Card, Modal, Table, Tabs, etc.); underlies every atom in `web/src/components/ui/`
 - `@heroui/styles` — HeroUI's semantic token / theme layer, mapped to Gameplane brand tokens (see `specs/done_014-heroui-web-rebuild/contracts/theme-tokens.md`)
 - `clsx@2.1.1` — conditional classNames
-- `tailwind-merge@3.7.0` — Tailwind class conflict resolution
+- `tailwind-merge@3.7.1` — Tailwind class conflict resolution
 - `tailwindcss@^4.3.3` — utility-first CSS framework
 - `lucide-react@^1.73.0` — SVG icon library
 - `@monaco-editor/react@^4.7.0` — code editor (lazy-loaded, file/config edit tabs)
@@ -1270,10 +1297,10 @@ openEventStream(opts: EventStreamOptions)
 - `vite@^8.3.8` — build + dev server
 - `@vitejs/plugin-react@^6.3.0` — React JSX transform + fast refresh
 - `vitest@^5.0.0` — unit test runner (Jest-like API, Vite-integrated)
-- `@vitest/coverage-v8@5.1.0` — V8 coverage reporter
+- `@vitest/coverage-v8@5.1.1` — V8 coverage reporter
 - `@testing-library/react@16.3.3` — component test utilities
-- `@testing-library/jest-dom@7.0.1` — DOM matchers
-- `@testing-library/user-event@14.6.10` — user interaction simulation
+- `@testing-library/jest-dom@8.0.0` — DOM matchers
+- `@testing-library/user-event@14.6.13` — user interaction simulation
 - `msw@^3.0.5` — Mock Service Worker for request interception (e2e mock mode)
 - `vitest-websocket-mock@0.8.0` — WebSocket mock for unit tests
 - `@playwright/test@^1.65.0` — browser e2e testing (mock + live modes)
@@ -1282,7 +1309,7 @@ openEventStream(opts: EventStreamOptions)
 - `eslint-plugin-react-hooks@7.1.1` — React Hooks and compiler diagnostics
 - `oxlint` and `oxlint-tsgolint` — React rules and type-aware TypeScript linting
 - `tailwindcss@^4.3.3` + `postcss@^8.5.32` + `autoprefixer@^10.6.2` — CSS processing
-- `@tanstack/router-devtools@1.167.3` — TanStack Router dev tools (optional, for debugging)
+- `@tanstack/router-devtools@1.167.4` — TanStack Router dev tools (optional, for debugging)
 
 ## Security considerations
 

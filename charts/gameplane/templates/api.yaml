@@ -24,7 +24,7 @@ metadata:
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 rules:
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers, gametemplates, backups, backupschedules, restores, modules, modulesources, networkcaptures]
+    resources: [gameservers, gametemplates, backups, backupexports, backupschedules, restores, modules, modulesources, networkcaptures]
     verbs: [get, list, watch]
   {{- if $rbac.remoteClusters }}
   - apiGroups: ["gameplane.local"]
@@ -78,10 +78,10 @@ metadata:
   labels: {{- include "gameplane.labels" $ | nindent 4 }}
 rules:
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers, backups, backupschedules, restores, networkcaptures]
+    resources: [gameservers, backups, backupexports, backupschedules, restores, networkcaptures]
     verbs: [get, list, watch, create, update, patch, delete]
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers/status, backups/status, backupschedules/status, restores/status, networkcaptures/status]
+    resources: [gameservers/status, backups/status, backupexports/status, backupschedules/status, restores/status, networkcaptures/status]
     verbs: [get, update, patch]
   - apiGroups: ["snapshot.storage.k8s.io"]
     resources: [volumesnapshots]
@@ -158,6 +158,32 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ .Release.Name }}-api-logs }
+subjects:
+  - kind: ServiceAccount
+    name: gameplane-api
+    namespace: {{ .Release.Namespace }}
+---
+# The panel's SFTP host key Secret lives in the release namespace (templates/sftp.yaml). The API reads only
+# that one Secret, for the fingerprint shown on the SFTP endpoint cards (spec 040, api/internal/handlers/sftp_cluster.go).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-api-sftp-host-key
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [{{ ((.Values.sftp | default dict).hostKeySecret | default "gameplane-sftp-host-key") | quote }}]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-api-sftp-host-key
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ .Release.Name }}-api-sftp-host-key }
 subjects:
   - kind: ServiceAccount
     name: gameplane-api
@@ -333,6 +359,10 @@ spec:
             - --agent-client-cert=/etc/gameplane/agent-client/tls.crt
             - --agent-client-key=/etc/gameplane/agent-client/tls.key
             {{- end }}
+            {{- /* Shared with the dashboard Files tab; also applies on standalone installs. */}}
+            - {{ printf "--files-max-upload-bytes=%s" (include "gameplane.quantityBytes" ((.Values.files | default dict).maxUploadSize | default "20Gi")) | quote }}
+            - {{ printf "--backups-max-upload-bytes=%s" (include "gameplane.backupsQuantityBytes" ((.Values.backups | default dict).maxUploadSize | default "20Gi")) | quote }}
+            - {{ printf "--backups-max-concurrent-exports=%v" ((.Values.backups | default dict).maxConcurrentExports | default 3) | quote }}
             {{- if gt (int .Values.api.audit.retentionDays) 0 }}
             - --audit-retention-days={{ .Values.api.audit.retentionDays }}
             {{- end }}
@@ -428,6 +458,23 @@ spec:
             - name: GAMEPLANE_CLUSTER_OPS
               value: "true"
             {{- end }}
+            {{- /* Local SFTP endpoint (spec 040): the API seeds this service token so the in-cluster pod can log in. */}}
+            {{- if and (.Values.sftp | default dict).enabled (not (.Values.sftp | default dict).apiURL) }}
+            - name: GAMEPLANE_SFTP_LOCAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gameplane-sftp-service-token
+                  key: token
+            {{- /* The dashboard's endpoint card for this cluster: address from values, fingerprint from the host key Secret. */}}
+            - name: GAMEPLANE_SFTP_PUBLIC_ADDRESS
+              value: {{ (.Values.sftp).publicAddress | default "" | quote }}
+            - name: GAMEPLANE_SFTP_HOST_KEY_SECRET
+              value: {{ (.Values.sftp).hostKeySecret | default "gameplane-sftp-host-key" | quote }}
+            - name: GAMEPLANE_SFTP_ENABLED
+              value: "true"
+            - name: GAMEPLANE_SFTP_PORT
+              value: {{ printf "%d" (int (.Values.sftp).port) | quote }}
+            {{- end }}
             {{- if .Values.api.oidc.enabled }}
             - name: GAMEPLANE_OIDC_CLIENT_SECRET
               valueFrom:
@@ -435,12 +482,13 @@ spec:
                   name: {{ .Values.api.oidc.clientSecretRef.name }}
                   key:  {{ .Values.api.oidc.clientSecretRef.key }}
             {{- end }}
-            {{- if .Values.api.audit.webhook.authSecretRef.name }}
+            {{- with include "gameplane.auditWebhookAuthRef" . }}
+            {{- $ref := splitList "/" . }}
             - name: GAMEPLANE_AUDIT_WEBHOOK_AUTH
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.api.audit.webhook.authSecretRef.name }}
-                  key:  {{ .Values.api.audit.webhook.authSecretRef.key }}
+                  name: {{ index $ref 0 }}
+                  key:  {{ index $ref 1 }}
             {{- end }}
             {{- if .Values.api.audit.s3.credentialsSecretRef.name }}
             - name: GAMEPLANE_AUDIT_S3_ACCESS_KEY

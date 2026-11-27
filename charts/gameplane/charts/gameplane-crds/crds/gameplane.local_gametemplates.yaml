@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 71756d153338338b9589c840329595524591d3ef80fd7c4069ade51077609ed1
+    gameplane.local/crd-bundle-sha256: 1c59a38e683f141325539af9127d1ead8bd9b0d16c28877f66774ece9aa1867f
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gametemplates.gameplane.local
 spec:
@@ -2322,6 +2322,54 @@ spec:
                     maximum: 4294967295
                     minimum: 0
                     type: integer
+                  risky:
+                    description: |-
+                      Risky marks the settings whose override a server owner should only
+                      make with care (the image works only with that id, or must start as
+                      root). Presence of a member means "overriding this is risky"; the
+                      dashboard shows the reason before saving. It never forbids an override.
+                    properties:
+                      fsGroup:
+                        description: FSGroup marks the volume filesystem group as
+                          risky to override.
+                        properties:
+                          reason:
+                            description: Reason is shown to the server owner before
+                              they save the override.
+                            maxLength: 200
+                            type: string
+                        type: object
+                      runAsGroup:
+                        description: RunAsGroup marks the game container gid as risky
+                          to override.
+                        properties:
+                          reason:
+                            description: Reason is shown to the server owner before
+                              they save the override.
+                            maxLength: 200
+                            type: string
+                        type: object
+                      runAsUser:
+                        description: RunAsUser marks the game container uid as risky
+                          to override.
+                        properties:
+                          reason:
+                            description: Reason is shown to the server owner before
+                              they save the override.
+                            maxLength: 200
+                            type: string
+                        type: object
+                      volumeOwnershipCheck:
+                        description: VolumeOwnershipCheck marks the ownership check
+                          policy as risky to override.
+                        properties:
+                          reason:
+                            description: Reason is shown to the server owner before
+                              they save the override.
+                            maxLength: 200
+                            type: string
+                        type: object
+                    type: object
                   runAsGroup:
                     description: RunAsGroup is the gid the GAME container runs as.
                     format: int64
@@ -2334,12 +2382,25 @@ spec:
                     maximum: 4294967295
                     minimum: 0
                     type: integer
+                  volumeOwnershipCheck:
+                    description: |-
+                      VolumeOwnershipCheck selects how the kubelet re-applies FSGroup to the
+                      mounted volume. EveryStart re-owns every file on each start (Kubernetes
+                      fsGroupChangePolicy Always); OnlyWhenWrong skips the walk when the
+                      volume root already has the right group (OnRootMismatch). Omitted means
+                      OnlyWhenWrong. Has an effect only when FSGroup is set.
+                    enum:
+                    - EveryStart
+                    - OnlyWhenWrong
+                    type: string
                 type: object
               sentinelIsolation:
                 description: |-
                   SentinelIsolation restricts a wake sentinel to its own server's advertised
-                  ports. Templates opt in after module connectivity validation; absent or
-                  false retains the legacy namespace-wide sentinel allowances.
+                  ports. A template that advertises any port gets this by default (a
+                  running server takes it at its next start); true applies it at once and
+                  requires an advertised port. Only a template with no advertised port
+                  keeps the legacy namespace-wide sentinel allowances.
                 type: boolean
               storage:
                 description: Storage describes the default persistent storage layout.

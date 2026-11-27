@@ -13,7 +13,7 @@ The dashboard and API can also run on a host without Kubernetes using
 [standalone Docker Compose](docs/standalone-panel.md). Game servers still run
 on registered Kubernetes clusters, each with its own operator and agents.
 
-> Status: **pre-v1 release** (`v0.4.3`). The operator, API, agent, and dashboard
+> Status: **pre-v1 release** (`v0.5.0`). The operator, API, agent, and dashboard
 > are feature-complete for the v1 scope and stabilized for external testing.
 > See [Pre-v1 status & known limitations](#pre-v1-status--limitations) before
 > running it for anything you can't afford to lose.
@@ -44,7 +44,7 @@ Screenshots are captured against mocked data for consistency and reproducibility
 
 ## Pre-v1 Status & Limitations
 
-Gameplane is a **pre-v1 release** (`v0.4.3`). Core workflows — server deployment, live consoles, file management, backups/restores, game modules, multi-cluster management, and RBAC — work end-to-end and are verified by automated unit, integration, upgrade, and end-to-end test suites on every commit.
+Gameplane is a **pre-v1 release** (`v0.5.0`). Core workflows — server deployment, live consoles, file management, backups/restores, game modules, multi-cluster management, and RBAC — work end-to-end and are verified by automated unit, integration, upgrade, and end-to-end test suites on every commit.
 
 Here are a few items to keep in mind:
 
@@ -66,7 +66,7 @@ and Agones (a Kubernetes operator library). While not direct competitors,
 Agones is included as a reference point for teams building on Kubernetes
 primitives.
 
-Status: **pre-v1 release** (`v0.4.3`). The operator, API, agent, and dashboard
+Status: **pre-v1 release** (`v0.5.0`). The operator, API, agent, and dashboard
 are feature-complete for the v1 scope and stabilized for external testing.
 
 | Dimension | Gameplane | Pterodactyl | CubeCoders AMP | Agones |
@@ -170,6 +170,7 @@ legacy default for custom deployments. See [storage and recovery](docs/standalon
 | `audit-syslog-bridge/` | Go | Submodule (`GameplanePanel/audit-syslog-bridge`): HTTP-JSON to syslog relay [optional] for audit logging infrastructure. |
 | `telemetry-receiver/` | Go | Collector [optional] for anonymous daily usage reports. |
 | `mcp-server/` | Go | Submodule (`GameplanePanel/mcp`): strictly read-only Model Context Protocol server [optional] for AI tools. |
+| `sftp/` | Go | Submodule (`GameplanePanel/sftp`): optional SFTP endpoint for game server files; every login and file operation goes through the Gameplane API. |
 
 ### Custom Resource Definitions (CRDs)
 
@@ -210,6 +211,7 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 ├── audit-syslog-bridge/  # Submodule: optional syslog relay for audit logs
 ├── telemetry-receiver/   # Optional anonymous usage telemetry receiver
 ├── mcp-server/           # Submodule: optional read-only MCP server (GameplanePanel/mcp)
+├── sftp/                 # Submodule: optional SFTP endpoint for game server files (GameplanePanel/sftp)
 ├── charts/gameplane/     # Helm deployment chart
 ├── deploy/kind/          # Local dev environment bootstrap scripts
 ├── deploy/standalone/    # API + dashboard Docker Compose deployment
@@ -273,7 +275,7 @@ Ed25519 key and do not have transparency log entries — verify them with
 Requires: Go 1.27+, Node 20+, Docker, kind, kubectl, helm,
 [oras](https://oras.land/docs/installation) (>= 1.2.0).
 
-The game modules and the split components live in separate `GameplanePanel/*` repos, wired in here as submodules: `modules/` (`GameplanePanel/module`) and the component submodules `mcp-server/`, `audit-syslog-bridge/`, `tunnel/` and `capture-sidecar/` (`GameplanePanel/mcp`, `/audit-syslog-bridge`, `/tunnel`, `/capture-sidecar`). Clone with submodules (or initialize them after):
+The game modules and the split components live in separate `GameplanePanel/*` repos, wired in here as submodules: `modules/` (`GameplanePanel/module`) and the component submodules `mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/` and `sftp/` (`GameplanePanel/mcp`, `/audit-syslog-bridge`, `/tunnel`, `/capture-sidecar`, `/sftp`). Clone with submodules (or initialize them after):
 
 ```sh
 git clone --recurse-submodules <repo-url>
@@ -300,7 +302,7 @@ The `make dev-up` target:
    `kind-registry:5000`),
 2. loads every locally-built image (operator, api, web, agent, and every
    optional component's image),
-3. pushes every directory under `modules/` (29 games at last count — see
+3. pushes every directory under `modules/` (30 module directories at last count, 29 games plus the Minecraft Proxy module — see
    `modules/` for the current list) to the local registry as an OCI module
    bundle,
 4. installs the Helm chart from `charts/gameplane/` with a default
@@ -325,6 +327,7 @@ Translations are welcome. Translate in the browser on
 pack by hand.
 
 ## License
+
 
 [AGPL-3.0-or-later](./LICENSE). Any network-accessible deployment of a
 modified version must make its source available to users.

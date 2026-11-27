@@ -14,6 +14,14 @@ echo "0b38189d6e1fd76ef5c3db10355026c48a02020d82bf21a1a1b5ab16dffe4f3c  $bundle"
 kubectl create namespace argocd
 kubectl apply --server-side --namespace argocd --filename "$bundle"
 kubectl set env -n argocd deployment/argocd-repo-server --containers=argocd-repo-server ARGOCD_GIT_MODULES_ENABLED=false
+# The controller gives the repo server 60s per manifest request by default.
+# The first request clones this repository, which can take longer on a CI
+# runner (DeadlineExceeded on the gameplane-crds source), so allow 180s. The
+# controller reads the key at start, so restart it; the rollout wait below
+# covers the restart.
+kubectl patch configmap -n argocd argocd-cmd-params-cm --type merge \
+    -p '{"data":{"controller.repo.server.timeout.seconds":"180"}}'
+kubectl rollout restart -n argocd statefulset/argocd-application-controller
 # Immediately after creation a CRD can report null conditions. Wait for
 # the API to publish Established=True on both resources before discovery.
 crds=(crd/applications.argoproj.io crd/appprojects.argoproj.io)

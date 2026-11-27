@@ -547,7 +547,7 @@ func TestFinalizeSnapshot_WaitsForPinningRestore(t *testing.T) {
 	byRef := &gameplanev1alpha1.Restore{
 		ObjectMeta: metav1.ObjectMeta{Name: "rs1", Namespace: "ns"},
 		Spec: gameplanev1alpha1.RestoreSpec{
-			BackupRef: gameplanev1alpha1.LocalObjectRef{Name: "b1"},
+			BackupRef: &gameplanev1alpha1.LocalObjectRef{Name: "b1"},
 			ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "gs1"},
 		},
 		Status: gameplanev1alpha1.RestoreStatus{Phase: gameplanev1alpha1.RestorePhaseRunning},
@@ -555,7 +555,7 @@ func TestFinalizeSnapshot_WaitsForPinningRestore(t *testing.T) {
 	bySnapshot := &gameplanev1alpha1.Restore{
 		ObjectMeta: metav1.ObjectMeta{Name: "rs1", Namespace: "ns"},
 		Spec: gameplanev1alpha1.RestoreSpec{
-			BackupRef: gameplanev1alpha1.LocalObjectRef{Name: "some-other-backup"},
+			BackupRef: &gameplanev1alpha1.LocalObjectRef{Name: "some-other-backup"},
 			ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "gs1"},
 		},
 		Status: gameplanev1alpha1.RestoreStatus{

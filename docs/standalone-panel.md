@@ -230,9 +230,8 @@ and TLS. Expose the web Service through your HTTPS ingress or use a local port
 forward. Bootstrap the admin with `/api bootstrap-admin` in the API pod as in the
 [combined installation guide](install.md#first-time-setup).
 
-`operator.enabled=false` excludes the bundled native CRD subchart before Helm's
-CRD installation phase. `api.standalone=true` also skips the CRD apply hook and
-its RBAC automatically, so this profile needs no `--skip-crds` argument. It
+`api.standalone=true` skips the CRD apply hook and its RBAC automatically, so
+this profile installs no CRDs and needs no `--skip-crds` argument. It
 leaves any CRDs already on the cluster in place. It creates no operator,
 agent certificates, game namespace, module source, game network policies,
 operator monitors, or API Kubernetes RBAC. Its API pod disables service account
@@ -270,8 +269,8 @@ helm --kubeconfig remote-admin.yaml upgrade --install gameplane charts/gameplane
   --set image.registry=<image-registry> --set image.tag=<matching-tag>
 ```
 
-The remote install keeps `operator.enabled=true`, so Helm installs the bundled
-CRDs through its native installation phase. The operator creates agents alongside
+The remote install keeps `operator.enabled=true`, so the chart's `crds.autoApply`
+pre-install hook Job applies the Gameplane CRDs. The operator creates agents alongside
 game servers. Enable the optional
 [private gateway](gateway-install.md) for agent operations such as console,
 files, and player management. Without a gateway, Kubernetes resource operations

@@ -22,7 +22,7 @@ import {
 
 import { StatCard } from "@/components/ui/StatCard";
 import { Meter } from "@/components/ui/Meter";
-import { PhaseChip } from "@/components/ui/PhaseChip";
+import { PhaseChip, backupAwaitingSnapshot } from "@/components/ui/PhaseChip";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { LoadingCard } from "@/components/ui/LoadingCard";
 import { ErrorCard } from "@/components/ui/ErrorCard";
@@ -515,7 +515,7 @@ function BackupRow({
       {backup.status?.size && (
         <span className="shrink-0 font-mono text-xs text-foreground">{backup.status.size}</span>
       )}
-      <PhaseChip phase={backup.status?.phase} />
+      <PhaseChip phase={backup.status?.phase} awaitingSnapshot={backupAwaitingSnapshot(backup.status)} />
     </div>
   );
 }

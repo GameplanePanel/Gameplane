@@ -84,6 +84,12 @@ var serverEntries = []Entry{
 		Status:      http.StatusBadRequest,
 	},
 	{
+		ID:          "server.lifecycle.name_invalid",
+		English:     "server name must start with a lowercase letter, contain only lowercase letters, digits and dashes, and have at most 57 characters",
+		Description: "API error when a new server's name cannot name its Kubernetes Services (resources.go:createHandler, lifecycle.go:cloneHandler).",
+		Status:      http.StatusUnprocessableEntity,
+	},
+	{
 		ID:          "server.lifecycle.new_name_required",
 		English:     "newName required",
 		Description: "API error from the server lifecycle API (lifecycle.go:cloneHandler).",
@@ -112,6 +118,18 @@ var serverEntries = []Entry{
 		English:     "this server has no modpack",
 		Description: "API error from the modpack API (registry_modpack.go:removeModpack) when there is no modpack to remove.",
 		Status:      http.StatusNotFound,
+	},
+	{
+		ID:          "server.modpack.server_version_forbidden",
+		English:     "changing the server version needs permission to edit the server",
+		Description: "API error from the modpack API (registry.go:installModpack) when a modpack install would switch the server version (serverVersion) and the caller lacks servers:write in the server's namespace.",
+		Status:      http.StatusForbidden,
+	},
+	{
+		ID:          "server.modpack.server_version_mismatch",
+		English:     "the chosen pack version does not run on that server version",
+		Description: "API error from the modpack API (registry.go:installModpack, registry_server_version.go:serverVersionTarget) when a modpack install names a server version (serverVersion) that is not a template version or cannot run the chosen pack version.",
+		Status:      http.StatusBadRequest,
 	},
 	{
 		ID:          "server.modpack.version_required",
@@ -202,6 +220,24 @@ var serverEntries = []Entry{
 		English:     "role not found",
 		Description: "API error from the roles API (roles.go:del, roles.go:update).",
 		Status:      http.StatusNotFound,
+	},
+	{
+		ID:          "server.security.forbidden",
+		English:     "changing security settings requires the servers:security permission",
+		Description: "API error from the GameServer save path (security_overrides.go) when a caller without servers:security changes spec.security.",
+		Status:      http.StatusForbidden,
+	},
+	{
+		ID:          "server.security.root_disabled",
+		English:     "root values (user 0, group 0, filesystem group 0, or the image default for user or group) are not allowed on this cluster until an administrator allows root overrides in that cluster's Configuration",
+		Description: "API error from the GameServer save path when a new or changed root value is saved while the cluster's allow-root-overrides setting is off. Argument setting names the first offending setting.",
+		Status:      http.StatusForbidden,
+	},
+	{
+		ID:          "server.security.invalid",
+		English:     "invalid security override: {detail}",
+		Description: "API error from the GameServer save path when spec.security has an invalid shape. Argument setting names the offending setting; argument detail says what is wrong.",
+		Status:      http.StatusUnprocessableEntity,
 	},
 	{
 		ID:          "server.shares.expires_at_in_past",

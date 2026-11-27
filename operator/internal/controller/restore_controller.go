@@ -49,6 +49,18 @@ type RestoreReconciler struct {
 	// OperationQuiescer completes an orphaned backup's cleanup before this
 	// restore can acquire the same target. It never quiesces a restore.
 	OperationQuiescer AgentQuiescer
+	// UploadStagingStorageClass names the StorageClass of the staging volume an
+	// upload restore is received and checked on. Empty uses the cluster default
+	// class (spec 041, --backup-upload-staging-storage-class).
+	UploadStagingStorageClass string
+	// AgentImage runs the archive-worker receive and copy subcommands for upload restores.
+	AgentImage string
+	// AgentImagePullPolicy is the pull policy for AgentImage.
+	AgentImagePullPolicy corev1.PullPolicy
+	// AgentCASecretName and AgentCASecretNamespace locate the agent CA that
+	// signs the receiver's TLS certificate.
+	AgentCASecretName      string
+	AgentCASecretNamespace string
 }
 
 // apiReader returns the uncached reader for live-consistency checks,
@@ -67,6 +79,8 @@ func (r *RestoreReconciler) apiReader() client.Reader {
 // +kubebuilder:rbac:groups=gameplane.local,resources=gameservers,verbs=get;list;watch
 // +kubebuilder:rbac:groups=gameplane.local,resources=backups,verbs=get;list;watch
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch
+// Upload restores read the PersistentVolume behind each target claim to copy its node affinity.
+// +kubebuilder:rbac:groups=core,resources=persistentvolumes,verbs=get;list;watch
 
 func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var rs gameplanev1alpha1.Restore
@@ -75,7 +89,16 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	if !rs.DeletionTimestamp.IsZero() || rs.Status.Phase == gameplanev1alpha1.RestorePhaseSucceeded ||
 		rs.Status.Phase == gameplanev1alpha1.RestorePhaseFailed {
+		if rs.Spec.Upload != nil {
+			// Upload workers and the staging claim never outlive the Restore.
+			if err := r.deleteUploadResources(ctx, &rs); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 		return r.cleanupRestore(ctx, &rs)
+	}
+	if rs.Spec.Upload != nil {
+		return r.reconcileUpload(ctx, &rs)
 	}
 
 	// Pin the snapshotID at first observation so retention can't pull
@@ -274,7 +297,12 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		job.Spec.ActiveDeadlineSeconds = &deadline
 		job.Annotations = map[string]string{restoreTargetAnnotation: rs.Annotations[restoreTargetAnnotation]}
 		job.Spec.Template.Labels = map[string]string{backupRestoreJobLabel: backupRestoreJobValue, restoreUIDLabel: string(rs.UID)}
-		job.Spec.Template.Spec = r.buildRestorePodSpec(&rs, &src, &tmpl)
+		// The restore writes into the data volume as the server last set it up (spec 030, FR-011).
+		appliedFSGroup, err := appliedBackupFSGroup(ctx, r.apiReader(), &gs, &tmpl)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		job.Spec.Template.Spec = r.buildRestorePodSpec(&rs, &src, &tmpl, appliedFSGroup)
 		if err := r.GameWorkloadPolicy.placeFirstVolumeConsumer(ctx, r.apiReader(), &gs, &tmpl, &job.Spec.Template.Spec); err != nil {
 			var rejected workloadPolicyRejection
 			if errors.As(err, &rejected) {
@@ -423,14 +451,17 @@ func (r *RestoreReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // buildRestorePodSpec mirrors backup_controller.buildBackupPodSpec but
 // runs `restic restore <id>` and mounts the data PVC read-write.
 func (r *RestoreReconciler) buildRestorePodSpec(
-	rs *gameplanev1alpha1.Restore, src *gameplanev1alpha1.Backup, tmpl *gameplanev1alpha1.GameTemplate,
+	rs *gameplanev1alpha1.Restore, src *gameplanev1alpha1.Backup, tmpl *gameplanev1alpha1.GameTemplate, appliedFSGroup ...*int64,
 ) corev1.PodSpec {
 	nonRoot := true
 	roRootFS := true
 	noPrivEsc := false
 	uid := int64(65532)
 	spec := corev1.PodSpec{
-		SecurityContext: buildBackupPodSecurityContext(tmpl),
+		// restic never talks to the Kubernetes API: no token in a pod that
+		// mounts the game volume read-write.
+		AutomountServiceAccountToken: ptrTo(false),
+		SecurityContext:              buildBackupPodSecurityContext(tmpl, appliedFSGroup...),
 		Containers: []corev1.Container{{
 			Name:                     "restic",
 			TerminationMessagePolicy: corev1.TerminationMessageFallbackToLogsOnError,

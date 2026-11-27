@@ -1,0 +1,258 @@
+{
+  "file": "2044649516-2862",
+  "name": "Screen/Mobile — MCP Tokens",
+  "type": "FRAME",
+  "x": 8200,
+  "y": 102913,
+  "width": 390,
+  "height": 844,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "Mobile TopBar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64,
+      "component": "Gameplane/Mobile TopBar",
+      "componentId": "1:1782",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 16, 0, 16],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Settings", "AD"]
+    },
+    {
+      "name": "Body",
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 390,
+      "height": 780,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "name": "Page Header",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 16,
+          "width": 358,
+          "height": 66,
+          "component": "Gameplane/Page Header",
+          "componentId": "1:3282",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "texts": ["MCP tokens", "Personal tokens let an AI assistant read Gameplane. A token can only read."]
+        },
+        {
+          "name": "Gameplane/Button/Default",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 98,
+          "width": 141,
+          "height": 36,
+          "component": "Gameplane/Button/Default",
+          "componentId": "1:306",
+          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
+          "texts": ["Create token"]
+        },
+        {
+          "name": "Mobile token claude-desktop",
+          "type": "FRAME",
+          "x": 16,
+          "y": 150,
+          "width": 358,
+          "height": 150,
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "cornerRadius": 16,
+          "clips": true,
+          "variables": {"fills/0/color": "surface/surface"},
+          "children": [
+            {
+              "name": "Text",
+              "type": "TEXT",
+              "x": 16,
+              "y": 14,
+              "width": 111,
+              "height": 20,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "claude-desktop",
+              "font": ["Geist", 500, 15]
+            },
+            {
+              "name": "Text",
+              "type": "TEXT",
+              "x": 16,
+              "y": 38,
+              "width": 84,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "gpmcp_a1b2…",
+              "font": ["Geist", 400, 13]
+            },
+            {
+              "name": "Text",
+              "type": "TEXT",
+              "x": 16,
+              "y": 62,
+              "width": 120,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Expires Dec 2, 2026",
+              "font": ["Geist", 400, 13]
+            },
+            {
+              "name": "Text",
+              "type": "TEXT",
+              "x": 16,
+              "y": 80,
+              "width": 147,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Last used 5 minutes ago",
+              "font": ["Geist", 400, 13]
+            },
+            {
+              "name": "Btn Revoke",
+              "type": "INSTANCE",
+              "x": 6,
+              "y": 104,
+              "width": 65,
+              "height": 32,
+              "component": "Button/Ghost/SM",
+              "componentId": "1:1092",
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 5,
+                "padding": [8, 10, 8, 10],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"cornerRadius": "radius/3xl"},
+              "texts": ["Revoke"]
+            }
+          ]
+        },
+        {
+          "name": "Mobile token laptop-cli",
+          "type": "FRAME",
+          "x": 16,
+          "y": 316,
+          "width": 358,
+          "height": 150,
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "cornerRadius": 16,
+          "clips": true,
+          "variables": {"fills/0/color": "surface/surface"},
+          "children": [
+            {
+              "name": "Text",
+              "type": "TEXT",
+              "x": 16,
+              "y": 14,
+              "width": 68,
+              "height": 20,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "laptop-cli",
+              "font": ["Geist", 500, 15]
+            },
+            {
+              "name": "Text",
+              "type": "TEXT",
+              "x": 16,
+              "y": 38,
+              "width": 84,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "gpmcp_9f3c…",
+              "font": ["Geist", 400, 13]
+            },
+            {
+              "name": "Text",
+              "type": "TEXT",
+              "x": 16,
+              "y": 62,
+              "width": 118,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Expires Jan 8, 2027",
+              "font": ["Geist", 400, 13]
+            },
+            {
+              "name": "Text",
+              "type": "TEXT",
+              "x": 16,
+              "y": 80,
+              "width": 120,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Last used Yesterday",
+              "font": ["Geist", 400, 13]
+            },
+            {
+              "name": "Btn Revoke",
+              "type": "INSTANCE",
+              "x": 6,
+              "y": 104,
+              "width": 65,
+              "height": 32,
+              "component": "Button/Ghost/SM",
+              "componentId": "1:1092",
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 5,
+                "padding": [8, 10, 8, 10],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"cornerRadius": "radius/3xl"},
+              "texts": ["Revoke"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

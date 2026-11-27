@@ -1,0 +1,517 @@
+{
+  "file": "2044649516-579",
+  "name": "Screen/MCP Tokens — Empty",
+  "type": "FRAME",
+  "x": 1640,
+  "y": 102913,
+  "width": 1440,
+  "height": 900,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "name": "Top Bar",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "children": [
+            {
+              "name": "Breadcrumbs",
+              "type": "FRAME",
+              "x": 32,
+              "y": 23,
+              "width": 157,
+              "height": 18,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 72,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "gameplane",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 80,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "name": "crumbPage",
+                  "type": "TEXT",
+                  "x": 102,
+                  "y": 0,
+                  "width": 55,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Settings",
+                  "font": ["Geist", 500, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                }
+              ]
+            },
+            {
+              "name": "Actions",
+              "type": "FRAME",
+              "x": 752,
+              "y": 0,
+              "width": 396,
+              "height": 64,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "name": "Cluster Pill",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 15.5,
+                  "width": 94,
+                  "height": 33,
+                  "visible": false,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 8,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "name": "healthDot",
+                      "type": "ELLIPSE",
+                      "x": 12,
+                      "y": 12.5,
+                      "width": 8,
+                      "height": 8,
+                      "fills": [{"type": "SOLID", "color": "#21C45D"}],
+                      "variables": {"fills/0/color": "success/success"}
+                    },
+                    {
+                      "name": "clusterName",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 8,
+                      "width": 30,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "local",
+                      "font": ["Geist", 500, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "chevron",
+                      "type": "INSTANCE",
+                      "x": 66,
+                      "y": 8.5,
+                      "width": 16,
+                      "height": 16,
+                      "component": "lucide/chevron-down/16x16",
+                      "variables": {"fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Search",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 12,
+                  "width": 300,
+                  "height": 40,
+                  "component": "SearchField/Primary",
+                  "componentId": "1:1928",
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "texts": ["Search servers…"]
+                },
+                {
+                  "name": "Bell Wrap",
+                  "type": "FRAME",
+                  "x": 312,
+                  "y": 12,
+                  "width": 40,
+                  "height": 40,
+                  "children": [
+                    {
+                      "name": "Sdet8",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 36,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 8,
+                          "y": 8,
+                          "width": 20,
+                          "height": 20,
+                          "component": "lucide/bell/20x20",
+                          "variables": {"fills/0/color": "foreground/foreground"}
+                        }
+                      ]
+                    },
+                    {
+                      "name": "UnreadDot",
+                      "type": "ELLIPSE",
+                      "x": 29,
+                      "y": 1,
+                      "width": 8,
+                      "height": 8,
+                      "visible": false,
+                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "strokes": [{"type": "SOLID", "color": "#121114"}],
+                      "strokeWeight": 1.5,
+                      "variables": {"fills/0/color": "accent/accent", "strokes/0/color": "background/background"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Avatar",
+                  "type": "INSTANCE",
+                  "x": 364,
+                  "y": 16,
+                  "width": 32,
+                  "height": 32,
+                  "component": "Avatar/Text",
+                  "componentId": "1:2407",
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 9999,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "accent/accent"},
+                  "texts": ["AD"]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "name": "Page Header",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "component": "Gameplane/Page Header",
+              "componentId": "1:3282",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "MCP tokens",
+                "Personal tokens let an AI assistant read Gameplane through the MCP server, with your permissions. A token can only read."
+              ]
+            },
+            {
+              "name": "Settings Layout",
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 711,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 24,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "name": "Settings Nav",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 220,
+                  "height": 492,
+                  "component": "Gameplane/Admin Settings Nav",
+                  "componentId": "1:3419",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 2,
+                    "padding": [8, 0, 8, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "texts": [
+                    "ACCOUNT",
+                    "Theme",
+                    "MCP tokens",
+                    "SFTP",
+                    "SERVER",
+                    "General",
+                    "Authentication",
+                    "Module sources",
+                    "Mod registries",
+                    "Notifications",
+                    "Telemetry",
+                    "Updates",
+                    "About"
+                  ]
+                },
+                {
+                  "name": "Content Column",
+                  "type": "FRAME",
+                  "x": 244,
+                  "y": 0,
+                  "width": 888,
+                  "height": 711,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 16,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "name": "Empty card",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 888,
+                      "height": 240,
+                      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                      "cornerRadius": 24,
+                      "clips": true,
+                      "variables": {"fills/0/color": "surface/surface"},
+                      "children": [
+                        {
+                          "name": "Text",
+                          "type": "TEXT",
+                          "x": 32,
+                          "y": 40,
+                          "width": 165,
+                          "height": 23,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "No MCP tokens yet",
+                          "font": ["Geist", 600, 18]
+                        },
+                        {
+                          "name": "Text",
+                          "type": "TEXT",
+                          "x": 32,
+                          "y": 72,
+                          "width": 640,
+                          "height": 36,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "A token lets an MCP client, such as an AI assistant, read Gameplane with your permissions. Create one to connect a client.",
+                          "font": ["Geist", 400, 14]
+                        },
+                        {
+                          "name": "Gameplane/Button/Default",
+                          "type": "INSTANCE",
+                          "x": 32,
+                          "y": 130,
+                          "width": 141,
+                          "height": 36,
+                          "component": "Gameplane/Button/Default",
+                          "componentId": "1:306",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "texts": ["Create token"]
+                        },
+                        {
+                          "name": "Link",
+                          "type": "INSTANCE",
+                          "x": 32,
+                          "y": 186,
+                          "width": 218,
+                          "height": 17,
+                          "component": "Link",
+                          "componentId": "1:5492",
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 4,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "texts": ["How to connect an MCP client"]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

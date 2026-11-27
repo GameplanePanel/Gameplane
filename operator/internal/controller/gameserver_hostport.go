@@ -67,6 +67,48 @@ func (r *GameServerReconciler) validateHostportArchitecture(ctx context.Context,
 	return nil
 }
 
+// hostportReservedPorts are node ports a Hostport game must never bind.
+// hostPort is implemented by a DNAT rule for the node's own addresses, so a
+// game pod with one of these as its host port takes the traffic meant for the
+// node's control plane, kubelet, etcd or CNI overlay (players can still reach
+// such a game through NodePort or LoadBalancer, which use their own ports).
+var hostportReservedPorts = map[int32]string{
+	2379:  "etcd",
+	2380:  "etcd peer",
+	6443:  "Kubernetes API server",
+	8472:  "flannel VXLAN",
+	10250: "kubelet",
+	10255: "kubelet read-only",
+	10256: "kube-proxy health",
+	10257: "kube-controller-manager",
+	10259: "kube-scheduler",
+	51820: "flannel WireGuard",
+	51821: "flannel WireGuard IPv6",
+}
+
+// validateHostportPorts refuses Hostport exposure when an advertised game
+// port would bind a privileged (below 1024) or reserved node port. The check
+// covers the game pod and the sentinel, which bind the same advertised ports.
+// It returns a workloadPolicyRejection, so a suspended server can still drain
+// (reconcileRejectedGameWorkload) and a rollout is refused before it starts.
+func validateHostportPorts(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
+	if gs.Spec.Networking.Expose != "Hostport" {
+		return nil
+	}
+	for _, p := range tmpl.Spec.Ports {
+		if !p.Advertise {
+			continue
+		}
+		if p.ContainerPort < 1024 {
+			return workloadPolicyRejection{fmt.Errorf("networking.expose=Hostport cannot bind port %d (%s): host ports below 1024 are reserved for the node; use NodePort or LoadBalancer", p.ContainerPort, p.Name)}
+		}
+		if use, ok := hostportReservedPorts[p.ContainerPort]; ok {
+			return workloadPolicyRejection{fmt.Errorf("networking.expose=Hostport cannot bind port %d (%s): the node uses it for the %s; use NodePort or LoadBalancer", p.ContainerPort, p.Name, use)}
+		}
+	}
+	return nil
+}
+
 func hostportNodeReady(node *corev1.Node) bool {
 	for _, condition := range node.Status.Conditions {
 		if condition.Type == corev1.NodeReady {

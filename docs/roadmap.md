@@ -2,7 +2,7 @@
 
 ## Current release
 
-- **Version:** `v0.4.3` (pre-v1), released 2026-11-21. See the [changelog](../CHANGELOG.md).
+- **Version:** `v0.5.0` (pre-v1), released 2026-11-25. See the [changelog](../CHANGELOG.md).
 - **Status as of 2026-11-10:** The CRDs, operator, API, agent, and dashboard are
   feature-complete for the v1 scope and stabilized for external testing, but the
   project is not yet recommended for unattended production. This page tracks what
@@ -229,7 +229,7 @@ current cluster state and *propose* fixes — strictly read-only, no writes.
 A new optional component [optional] (distroless Docker image, Helm toggle) exposing only
 `List` / `Get` / `Watch` over the Gameplane CRDs plus Pods, Events, and pod logs.
 "Propose a fix" returns suggested YAML or `kubectl` invocations as text — no
-create/update/delete/patch tool exists. See [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/main/README.md).
+create/update/delete/patch tool exists. See [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/master/README.md).
 
 #### Module signing: active for official bundles (ECDSA P-256, Rekor-logged) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
 

@@ -23,7 +23,7 @@ rules:
     resources: [nodes]
     verbs: [get]
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers, gametemplates, backups, backupschedules, restores, modules, modulesources, networkcaptures]
+    resources: [gameservers, gametemplates, backups, backupexports, backupschedules, restores, modules, modulesources, networkcaptures]
     verbs: [get, list, watch]
   # GameTemplate is cluster-scoped; the gametemplate controller updates
   # status (inUseCount) and the module controller creates/deletes
@@ -83,6 +83,11 @@ rules:
   - apiGroups: ["storage.k8s.io"]
     resources: [storageclasses]
     verbs: [get, list, watch]
+  # Upload restores read the PersistentVolume behind each target claim to copy
+  # its node affinity onto the staging volume (spec 041). Read-only, cluster-scoped.
+  - apiGroups: [""]
+    resources: [persistentvolumes]
+    verbs: [get, list, watch]
   # CSI VolumeSnapshots back the volume-snapshot backup strategy: the
   # backup controller watches them cluster-wide for readyToUse and reads
   # the (cluster-scoped) content objects they bind to. Creation/deletion is
@@ -139,13 +144,13 @@ metadata:
   labels: {{- include "gameplane.labels" $ | nindent 4 }}
 rules:
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers, backups, backupschedules, restores, networkcaptures]
+    resources: [gameservers, backups, backupexports, backupschedules, restores, networkcaptures]
     verbs: [get, list, watch, create, update, patch, delete]
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers/status, backups/status, backupschedules/status, restores/status, networkcaptures/status]
+    resources: [gameservers/status, backups/status, backupexports/status, backupschedules/status, restores/status, networkcaptures/status]
     verbs: [get, update, patch]
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers/finalizers, backups/finalizers, backupschedules/finalizers, restores/finalizers, networkcaptures/finalizers]
+    resources: [gameservers/finalizers, backups/finalizers, backupexports/finalizers, backupschedules/finalizers, restores/finalizers, networkcaptures/finalizers]
     verbs: [update]
   - apiGroups: ["apps"]
     resources: [statefulsets, deployments]
@@ -177,6 +182,11 @@ rules:
   - apiGroups: [""]
     resources: [pods/ephemeralcontainers]
     verbs: [get, patch, update]
+  # File-only pod for a stopped server (spec 040, gameserver_files.go): the
+  # operator creates and removes <gs>-files in this managed namespace only.
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [create, delete]
   # Per-GameServer agent identity: SA + heartbeat Role/RoleBinding
   # (resourceNames-scoped to one GameServer's status subresource).
   # Granting gameservers/status passes the RBAC escalation check
@@ -361,6 +371,14 @@ spec:
             # (Always for :edge installs, IfNotPresent for pinned tags) so
             # the agent sidecar rolls in step with the rest of Gameplane.
             - --agent-image-pull-policy={{ .Values.image.pullPolicy }}
+            {{- /* Per-upload limit for every agent (dashboard Files tab and SFTP). Falls back to 20Gi when
+                   files is absent after --reuse-values from a release that predates it. */}}
+            - {{ printf "--agent-max-upload-bytes=%s" (include "gameplane.quantityBytes" ((.Values.files | default dict).maxUploadSize | default "20Gi")) | quote }}
+            - {{ printf "--backup-upload-staging-storage-class=%s" ((.Values.backups | default dict).uploadStagingStorageClass | default "") | quote }}
+            - {{ printf "--backup-export-ttl=%s" ((.Values.backups | default dict).exportTTL | default "1h") | quote }}
+            {{- with .Values.operator.filesIdleTimeout }}
+            - --files-idle-timeout={{ . }}
+            {{- end }}
             - --sentinel-image={{ include "gameplane.sentinelImage" . }}
             {{- if hasKey .Values.operator "tailscaleMaxSessions" }}
             - --tailscale-max-sessions={{ .Values.operator.tailscaleMaxSessions }}
@@ -373,6 +391,18 @@ spec:
             - --tunnel-playit-image={{ include "gameplane.tunnelPlayitImage" . }}
             {{- if .Values.networkPolicies.tenantIsolation }}
             - --restrict-tunnel-egress
+            {{- else }}
+            {{- /* tunnelEgress is absent after --reuse-values from a release that predates it; the operator then uses its built-in defaults. */}}
+            {{- $tunnelEgress := .Values.networkPolicies.tunnelEgress | default dict }}
+            {{- range $tunnelEgress.exceptCIDRs }}
+            - {{ printf "--tunnel-egress-except-cidr=%s" . | quote }}
+            {{- end }}
+            {{- range $tunnelEgress.allowCIDRs }}
+            - {{ printf "--tunnel-egress-allow-cidr=%s" . | quote }}
+            {{- end }}
+            {{- end }}
+            {{- range (.Values.operator.allowedImageRegistries | default list) }}
+            - {{ printf "--allowed-image-registry=%s" . | quote }}
             {{- end }}
             {{- if .Values.operator.configInitImage }}
             - --config-init-image={{ .Values.operator.configInitImage }}
@@ -462,6 +492,9 @@ spec:
             {{- range .templates }}
             - --port-pool-template={{ . }}={{ $pool }}
             {{- end }}
+            {{- end }}
+            {{- range $template, $hostname := .Values.operator.templateHostnames }}
+            - {{ printf "--template-hostname=%s=%s" $template $hostname | quote }}
             {{- end }}
             - --zap-log-level={{ .Values.operator.logLevel }}
             {{- if .Values.operator.localModules.enabled }}

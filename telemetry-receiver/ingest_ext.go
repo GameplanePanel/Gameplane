@@ -81,15 +81,23 @@ func (s *store) installHMAC(installID string) string {
 // ingestExtended handles a report that carries a valid ext part. The identity
 // checks (verifyExtSignature, precheckClaim) run first, before the limiter
 // counts the report and before any write.
-func (s *server) ingestExtended(w http.ResponseWriter, req *http.Request, body []byte, rep telemetryschema.Report) {
+//
+// powBits is the difficulty of the proof-of-work solution already verified
+// for this request, or -1; a report that would create a new install needs at
+// least INGEST_CLAIM_POW_BITS (requireClaimPoW).
+func (s *server) ingestExtended(w http.ResponseWriter, req *http.Request, body []byte, rep telemetryschema.Report, powBits int) {
 	ext := rep.Ext
 	if reason := s.verifyExtSignature(req.Header.Get(telemetryschema.SignatureHeader), body, ext); reason != "" {
 		s.refuse(w, reason)
 		return
 	}
 	idHMAC := s.store.installHMAC(ext.InstallID)
-	if reason := s.precheckClaim(req.Context(), idHMAC, ext); reason != "" {
+	reason, isNew := s.precheckClaim(req.Context(), idHMAC, ext)
+	if reason != "" {
 		s.refuse(w, reason)
+		return
+	}
+	if isNew && !s.requireClaimPoW(w, req, powBits) {
 		return
 	}
 	if !s.daily.take(sourceIP(req, s.cfg.trustedProxyCIDRs), s.now()) {
@@ -121,7 +129,7 @@ func (s *server) ingestExtended(w http.ResponseWriter, req *http.Request, body [
 	}
 	slog.Info("telemetry report",
 		"version", version, "servers", rep.Servers, "templates", rep.Templates, "extended", true)
-	s.reports.WithLabelValues(version).Inc()
+	s.countReport(version)
 	s.servers.Observe(float64(rep.Servers))
 	s.templates.Observe(float64(rep.Templates))
 	s.extReports.Inc()
@@ -365,19 +373,23 @@ func (s *server) verifyExtSignature(header string, body []byte, ext *telemetrysc
 // limiter counts the report, so a refused report never uses up a source's
 // budget. It returns a refusal reason, or "". recordExtended repeats the
 // check inside its transaction, which is the authoritative one. A read failure
-// here is not a refusal: the transaction reads again.
-func (s *server) precheckClaim(ctx context.Context, idHMAC string, ext *telemetryschema.Extended) string {
+// here is not a refusal: the transaction reads again. isNew is true when no
+// activity record exists for idHMAC, so the report would create an install.
+func (s *server) precheckClaim(ctx context.Context, idHMAC string, ext *telemetryschema.Extended) (reason string, isNew bool) {
 	row, found, err := lookupActivity(ctx, s.store.db, idHMAC)
-	if err != nil || !found {
-		return ""
+	if err != nil {
+		return "", false
+	}
+	if !found {
+		return "", true
 	}
 	switch claimErr := checkClaim(row, telemetryschema.KeyFingerprint(ext.Key), ext.SentAt); {
 	case errors.Is(claimErr, errIDClaimed):
-		return refuseIDClaimed
+		return refuseIDClaimed, false
 	case errors.Is(claimErr, errReplay):
-		return refuseReplay
+		return refuseReplay, false
 	}
-	return ""
+	return "", false
 }
 
 // checkClaim decides whether a report may use an existing activity record, in

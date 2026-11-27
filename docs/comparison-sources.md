@@ -31,25 +31,25 @@ verified.
 ### Row (b): Scaling & auto-sleep
 
 **Source ID**: G-b  
-**Evidence**: operator/api/v1alpha1/gameserver_types.go:152, 173–219 (`IdleSpec`); CLAUDE.md § Repository Map (`gameproto/`, `sentinel/`)  
+**Evidence**: operator/api/v1alpha1/gameserver_types.go:223, 402–448 (`IdleSpec`); CLAUDE.md § Repository Map (`gameproto/`, `sentinel/`)  
 **Checked on**: 2026-09-26 (re-verified)  
-**What was verified**: GameServer CRD specifies `spec.idle` (line 152, `IdleSpec` at lines 173–219) with configurable wake windows, manual wake, and the WakeOnConnect boolean flag (line 218) for sentinel-based wake on join. Minecraft/Terraria protocol support documented in sentinel and gameproto modules.  
+**What was verified**: GameServer CRD specifies `spec.idle` (line 223, `IdleSpec` at lines 402–448) with configurable wake windows, manual wake, and the WakeOnConnect boolean flag (line 447) for sentinel-based wake on join. Minecraft/Terraria protocol support documented in sentinel and gameproto modules.  
 **Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/operator/api/v1alpha1
 
 <a id="gameplane-row-c"></a>
 ### Row (c): Inbound connectivity (NAT traversal, relay)
 
 **Source ID**: G-c  
-**Evidence**: CLAUDE.md § Repository Map (`tunnel/`); operator/api/v1alpha1/gameserver_types.go:359–406  
+**Evidence**: CLAUDE.md § Repository Map (`tunnel/`); operator/api/v1alpha1/gameserver_types.go:619, 643–670  
 **Checked on**: 2026-09-26 (re-verified)  
-**What was verified**: Tunnel is documented in CLAUDE.md repo map as "Relay client supervisor (frp, Tailscale, playit)". Relay is configured per-GameServer via `spec.networking.tunnel.enabled` (GameServerTunnel), not a Helm value; the chart only carries `operator.tunnelImages` (charts/gameplane/values.yaml:88).  
+**What was verified**: Tunnel is documented in CLAUDE.md repo map as "Relay client supervisor (frp, Tailscale, playit)". Relay is configured per-GameServer via `spec.networking.tunnel.enabled` (GameServerTunnel), not a Helm value; the chart only carries `operator.tunnelImages` (charts/gameplane/values.yaml:195).  
 **Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/tunnel
 
 <a id="gameplane-row-d"></a>
 ### Row (d): Backup and restore
 
 **Source ID**: G-d  
-**Evidence**: operator/api/v1alpha1/backup_types.go:22; CLAUDE.md architecture section  
+**Evidence**: operator/api/v1alpha1/backup_types.go:262; CLAUDE.md architecture section  
 **Checked on**: 2026-09-02  
 **What was verified**: Backup CRD type defined with support for Restic snapshots to S3-compatible storage; BackupSchedule CRD supports cron-scheduled backups; one-click restore via Restore CRD.  
 **Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/operator/api/v1alpha1
@@ -67,9 +67,9 @@ verified.
 ### Row (f): Game template distribution
 
 **Source ID**: G-f  
-**Evidence**: docs/module-authoring.md § Verifying and pinning bundles (lines 340–414); CLAUDE.md § Repository Map (`modules/`)  
+**Evidence**: docs/module-authoring.md § Verifying and pinning bundles (lines 433–515); CLAUDE.md § Repository Map (`modules/`)  
 **Checked on**: 2026-09-26 (re-verified)  
-**What was verified**: OCI bundles via ModuleSource CRD supporting git/http/oci/local/upload sources; cosign signature verification documented at lines 340–414; 29 ready-to-use templates in gameplane-module repository.  
+**What was verified**: OCI bundles via ModuleSource CRD supporting git/http/oci/local/upload sources; cosign signature verification documented at lines 433–515; 30 ready-to-use templates in gameplane-module repository.  
 **Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/modules
 
 <a id="gameplane-row-g"></a>

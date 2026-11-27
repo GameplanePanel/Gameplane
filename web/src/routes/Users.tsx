@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useInstallation } from "@/lib/useInstallation";
 import {
   useMutation,
@@ -20,6 +20,8 @@ import {
   DropdownSection,
   DropdownItem,
   Modal,
+  ModalBackdrop,
+  ModalContainer,
   ModalDialog,
   ModalHeader,
   ModalHeading,
@@ -34,6 +36,7 @@ import {
   ListBoxItem,
 } from "@heroui/react";
 import {
+  Link as LinkIcon,
   Clock,
   Hand,
   KeyRound,
@@ -43,6 +46,7 @@ import {
   RotateCcw,
   ScrollText,
   Search,
+  SquareTerminal,
   Trash2,
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -51,7 +55,8 @@ import { RoleEditorModal } from "@/components/ui/RoleEditorModal";
 import { InviteUserDialog } from "@/components/ui/admin/InviteUserDialog";
 import { EditUserDialog } from "@/components/ui/admin/EditUserDialog";
 import { ResetPasswordDialog } from "@/components/ui/admin/ResetPasswordDialog";
-import { APIError } from "@/lib/api";
+import { SftpAccessDrawer } from "@/components/ui/admin/SftpAccessDrawer";
+import { APIError, listUserMcpTokens, revokeUserMcpToken, type McpToken } from "@/lib/api";
 import { useMe, can } from "@/lib/auth";
 import {
   Users as UsersAPI,
@@ -61,7 +66,7 @@ import {
 } from "@/lib/endpoints";
 import { formatRelative } from "@/lib/utils";
 import type { ExtendedUser, Role, RoleBinding } from "@/types";
-import { englishIntl, useOptionalIntl } from "@/lib/i18n/format";
+import { englishIntl, useFormat, useOptionalIntl } from "@/lib/i18n/format";
 import type { IntlShape } from "react-intl";
 
 type TabKey = "users" | "roles" | "service" | "idp";
@@ -134,6 +139,8 @@ export function UsersPage() {
   const [resetting, setResetting] = useState<ExtendedUser | null>(null);
   const [deleting, setDeleting] = useState<ExtendedUser | null>(null);
   const [returning, setReturning] = useState<ExtendedUser | null>(null);
+  const [sftpUser, setSftpUser] = useState<ExtendedUser | null>(null);
+  const [tokensOf, setTokensOf] = useState<ExtendedUser | null>(null);
 
   const { data: users = [], error } = useQuery({
     queryKey: ["users"],
@@ -334,6 +341,13 @@ export function UsersPage() {
                               <div className="flex items-center gap-2">
                                 <Pencil className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.users.edit_user", defaultMessage: "Edit user", description: "Users: menu item that opens the edit dialog for a user; keep it short" })}</div>
                             </DropdownItem>
+                            <DropdownItem
+                              key="mcp-tokens"
+                              onPress={() => setTokensOf(u)}
+                            >
+                              <div className="flex items-center gap-2">
+                                <LinkIcon className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.users.mcp_tokens", defaultMessage: "MCP tokens", description: "Users: row menu item that opens the dialog listing a user's MCP tokens; keep it short" })}</div>
+                            </DropdownItem>
                             {canReturnToSso(u) && (
                               <DropdownItem
                                 key="return-sso"
@@ -343,6 +357,13 @@ export function UsersPage() {
                                   <RotateCcw className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.users.return_to_sso_control", defaultMessage: "Return to SSO control", description: "Users: menu item, edit-dialog button and confirm button that let the SSO rules set a hand-set user's role again; keep it short" })}</div>
                               </DropdownItem>
                             )}
+                            <DropdownItem
+                              key="sftp"
+                              onPress={() => setSftpUser(u)}
+                            >
+                              <div className="flex items-center gap-2">
+                                <SquareTerminal className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.users.sftp_access", defaultMessage: "SFTP access", description: "Users: menu item that opens the admin SFTP drawer for a user's keys and password; keep it short" })}</div>
+                            </DropdownItem>
                             <DropdownItem
                               key="reset"
                               isDisabled={u.provider === "oidc"}
@@ -464,6 +485,13 @@ export function UsersPage() {
           }}
         />
       )}
+      {sftpUser && (
+        <SftpAccessDrawer
+          userId={sftpUser.id}
+          username={sftpUser.username}
+          onClose={() => setSftpUser(null)}
+        />
+      )}
       {resetting && (
         <ResetPasswordDialog
           open
@@ -479,6 +507,13 @@ export function UsersPage() {
           apiError={apiErrorText(reset.error, intl)}
           submitLabel={intl.formatMessage({ id: "web.routes.users.set_new_password", defaultMessage: "Set new password", description: "Users: submit button label in the reset-password dialog" })}
           onReset={(password) => reset.mutate({ id: resetting.id, password })}
+        />
+      )}
+      {tokensOf && (
+        <UserMcpTokensDialog
+          user={tokensOf}
+          canRevoke={can(me, "users:manage")}
+          onClose={() => setTokensOf(null)}
         />
       )}
       {returning && (
@@ -514,6 +549,93 @@ export function UsersPage() {
         />
       )}
     </div>
+  );
+}
+
+const MCP_DATE_OPTIONS: Intl.DateTimeFormatOptions = { year: "numeric", month: "short", day: "numeric" };
+
+// UserMcpTokensDialog lists another user's personal MCP tokens (no secrets).
+// Revoke needs users:manage; the list itself needs users:read.
+function UserMcpTokensDialog({ user, canRevoke, onClose }: { user: ExtendedUser; canRevoke: boolean; onClose: () => void }) {
+  const intl = useOptionalIntl();
+  const fmt = useFormat();
+  const qc = useQueryClient();
+  const queryKey = ["user-mcp-tokens", user.id];
+  const { data, error, isPending } = useQuery({
+    queryKey,
+    queryFn: () => listUserMcpTokens(user.id),
+  });
+  const revoke = useMutation({
+    mutationFn: (tokenId: number) => revokeUserMcpToken(user.id, tokenId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey });
+    },
+  });
+  const tokens = data?.items ?? [];
+  // Advances once a minute so a token that expires while the dialog is open turns Expired.
+  // Lazy init and the interval callback keep render pure (react-hooks/purity).
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <Modal isOpen onOpenChange={(open) => { if (!open) onClose(); }}>
+      <ModalBackdrop>
+        <ModalContainer>
+          <ModalDialog className="w-[560px] max-w-[560px] rounded-xl">
+            <ModalHeader>
+              <ModalHeading>{intl.formatMessage({ id: "web.routes.users.mcp_tokens_for_username", defaultMessage: "MCP tokens for {username}", description: "Users: title of the dialog listing a user's MCP tokens; {username} is the user name" }, { username: user.username })}</ModalHeading>
+            </ModalHeader>
+            <ModalBody className="space-y-1">
+              <ErrorLine error={error} />
+              {!isPending && tokens.length === 0 && (
+                <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.users.mcp_tokens_none", defaultMessage: "No MCP tokens.", description: "Users: text in the MCP tokens dialog when the user has no tokens" })}</p>
+              )}
+              {tokens.map((t: McpToken) => {
+                const revoked = t.revokedAt !== null;
+                const expired = !revoked && Date.parse(t.expiresAt) < now;
+                const active = !revoked && !expired;
+                const shownPrefix = `${t.prefix}…`;
+                return (
+                  <div key={t.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-2 last:border-0">
+                    <div className={active ? "min-w-0" : "min-w-0 text-foreground/50"}>
+                      <div className="text-sm font-medium">{t.name}</div>
+                      <div className="font-mono text-xs text-muted">{shownPrefix}</div>
+                    </div>
+                    <div className="text-right text-xs text-muted">
+                      <div>{intl.formatMessage({ id: "web.routes.users.mcp_tokens_expires_on", defaultMessage: "Expires {date}", description: "Users: MCP tokens dialog, expiry line of a token; {date} is a formatted date" }, { date: fmt.date(new Date(t.expiresAt), MCP_DATE_OPTIONS) })}</div>
+                      <div>{intl.formatMessage({ id: "web.routes.users.mcp_tokens_last_used", defaultMessage: "Last used {when}", description: "Users: MCP tokens dialog, last-used line of a token; {when} is a relative time or Never" }, { when: t.lastUsedAt ? formatRelative(t.lastUsedAt, intl) : intl.formatMessage({ id: "web.routes.users.mcp_tokens_never", defaultMessage: "never", description: "Users: MCP tokens dialog, shown after Last used when the token was never used; lower case" }) })}</div>
+                    </div>
+                    <div>
+                      {active && canRevoke && (
+                        <Button size="sm" variant="ghost" isDisabled={revoke.isPending} onPress={() => revoke.mutate(t.id)}>
+                          {intl.formatMessage({ id: "web.routes.users.mcp_tokens_revoke", defaultMessage: "Revoke", description: "Users: MCP tokens dialog, button that revokes one token; keep it short" })}
+                        </Button>
+                      )}
+                      {!active && (
+                        <span className="inline-flex rounded-full border border-border px-2.5 py-0.5 text-xs text-muted">
+                          {revoked
+                            ? intl.formatMessage({ id: "web.routes.users.mcp_tokens_revoked", defaultMessage: "Revoked", description: "Users: MCP tokens dialog, badge on a revoked token; keep it short" })
+                            : intl.formatMessage({ id: "web.routes.users.mcp_tokens_expired", defaultMessage: "Expired", description: "Users: MCP tokens dialog, badge on an expired token; keep it short" })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              <ErrorLine error={revoke.error} />
+            </ModalBody>
+            <ModalFooter className="flex items-center justify-end">
+              <Button size="sm" variant="ghost" onPress={onClose}>
+                {intl.formatMessage({ id: "web.routes.users.mcp_tokens_close", defaultMessage: "Close", description: "Users: MCP tokens dialog, button that closes the dialog; keep it short" })}
+              </Button>
+            </ModalFooter>
+          </ModalDialog>
+        </ModalContainer>
+      </ModalBackdrop>
+    </Modal>
   );
 }
 

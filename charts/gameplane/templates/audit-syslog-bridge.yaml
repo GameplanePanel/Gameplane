@@ -7,6 +7,24 @@
 {{- if not $b.syslog.addr }}
 {{- fail "api.audit.webhook.syslogBridge.enabled=true requires api.audit.webhook.syslogBridge.syslog.addr (your collector host:port)" }}
 {{- end }}
+{{- if not .Values.api.audit.webhook.authSecretRef.name }}
+{{- /* Generated once: lookup returns the live Secret on install and upgrade; offline renders regenerate it. */}}
+{{- $old := lookup "v1" "Secret" .Release.Namespace "gameplane-audit-syslog-bridge-token" }}
+# Shared token for the API → bridge call when api.audit.webhook.authSecretRef
+# is unset, so the bridge never accepts unauthenticated POSTs.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gameplane-audit-syslog-bridge-token
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+type: Opaque
+data:
+  token: {{ dig "data" "token" "" ($old | default dict) | default (printf "Bearer %s" (randAlphaNum 43) | b64enc) }}
+---
+{{- end }}
 # Generic HTTP-JSON → syslog relay. The API's audit webhook POSTs each event
 # here; this forwards it as RFC 5424 syslog to the configured collector. It
 # touches no Kubernetes API, so it runs with the default ServiceAccount and no
@@ -44,16 +62,16 @@ spec:
             - { name: APP_NAME,       value: {{ $b.appName | quote }} }
             - { name: FACILITY,       value: {{ $b.facility | quote }} }
             - { name: SEVERITY,       value: {{ $b.severity | quote }} }
-            {{- if .Values.api.audit.webhook.authSecretRef.name }}
             # Require the same shared token the API sends as its Authorization
             # header, so the bridge rejects unauthenticated POSTs from other
-            # workloads. Sourced from the Secret, never a flag/plain value.
+            # workloads. Sourced from the Secret, never a flag/plain value: the
+            # one in authSecretRef, or the chart-generated token Secret below.
+            {{- $ref := splitList "/" (include "gameplane.auditWebhookAuthRef" .) }}
             - name: AUTH_HEADER
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.api.audit.webhook.authSecretRef.name }}
-                  key:  {{ .Values.api.audit.webhook.authSecretRef.key }}
-            {{- end }}
+                  name: {{ index $ref 0 }}
+                  key:  {{ index $ref 1 }}
           ports:
             - { name: http, containerPort: 8514 }
           livenessProbe:  { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 5 }

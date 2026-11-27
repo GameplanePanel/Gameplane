@@ -11,8 +11,11 @@ export function RegisterClusterDialog({ open, onOpenChange }: { open: boolean; o
   const [name, setName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [kubeconfig, setKubeconfig] = useState("");
+  const [controlPlaneNamespace, setControlPlaneNamespace] = useState("gameplane");
+  const trimmedNamespace = controlPlaneNamespace.trim();
+  const namespaceValid = trimmedNamespace === "" || (/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(trimmedNamespace) && trimmedNamespace.length <= 63);
   const register = useMutation({
-    mutationFn: () => Clusters.register({ name: name.trim(), displayName: displayName.trim(), kubeconfig }),
+    mutationFn: () => Clusters.register({ name: name.trim(), displayName: displayName.trim(), kubeconfig, controlPlaneNamespace: trimmedNamespace && trimmedNamespace !== "gameplane" ? trimmedNamespace : undefined }),
     onSuccess: async () => {
       setKubeconfig("");
       onOpenChange(false);
@@ -30,9 +33,15 @@ export function RegisterClusterDialog({ open, onOpenChange }: { open: boolean; o
           <div className="space-y-1"><Label htmlFor="cluster-display-name">{intl.formatMessage({ id: "web.components.register_cluster_dialog.display_name", defaultMessage: "Display name", description: "Register cluster dialog: label for the cluster display name field" })}</Label><Input id="cluster-display-name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} /></div>
           <div className="space-y-1"><Label htmlFor="cluster-kubeconfig">{intl.formatMessage({ id: "web.components.register_cluster_dialog.kubeconfig", defaultMessage: "Kubeconfig", description: "Register cluster dialog: label for the large text box where the cluster's kubeconfig is pasted; technical term, usually left untranslated" })}</Label><TextArea id="cluster-kubeconfig" value={kubeconfig} onChange={(event) => setKubeconfig(event.target.value)} rows={8} className="font-mono text-xs" /></div>
           <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.register_cluster_dialog.use_a_self_contained_kubeconfig_with", defaultMessage: "Use a self-contained kubeconfig with credentials and an API address reachable from this panel. Agent console, files and logs also require remote gateway configuration.", description: "Register cluster dialog: hint under the kubeconfig box saying the file must be self-contained with an API address this panel can reach, and that console, files and logs also need gateway setup" })}</p>
+          <div className="space-y-1">
+            <Label htmlFor="cluster-control-plane-namespace">{intl.formatMessage({ id: "web.clusters.control_plane_namespace_field_label", defaultMessage: "Control-plane namespace (optional)", description: "Register cluster dialog: label for the namespace field where the cluster's Gameplane operator runs" })}</Label>
+            <Input id="cluster-control-plane-namespace" value={controlPlaneNamespace} onChange={(event) => setControlPlaneNamespace(event.target.value)} aria-invalid={!namespaceValid} aria-describedby={namespaceValid ? "cluster-control-plane-namespace-help" : "cluster-control-plane-namespace-error"} />
+            <p id="cluster-control-plane-namespace-help" className="text-xs text-muted">{intl.formatMessage({ id: "web.clusters.control_plane_namespace_help", defaultMessage: "Namespace where this cluster's Gameplane operator runs. Leave gameplane unless it was installed elsewhere; a wrong value shows the cluster's root setting as missing.", description: "Register cluster dialog: help text under the control-plane namespace field; gameplane is the default namespace name, not translated" })}</p>
+            {!namespaceValid && <p id="cluster-control-plane-namespace-error" className="text-xs text-danger">{intl.formatMessage({ id: "web.clusters.control_plane_namespace_invalid", defaultMessage: "Use a lowercase DNS label: lowercase letters, digits and dashes, starting and ending with a letter or digit, at most 63 characters.", description: "Register cluster dialog: validation error when the control-plane namespace is not a lowercase DNS label; DNS label is a technical term, usually left untranslated" })}</p>}
+          </div>
           {register.error && <p role="alert" className="text-sm text-danger">{register.error instanceof APIError ? register.error.body || register.error.message : register.error.message}</p>}
         </ModalBody>
-        <ModalFooter><Button variant="outline" isDisabled={register.isPending} onPress={() => onOpenChange(false)}>{intl.formatMessage({ id: "web.components.register_cluster_dialog.cancel", defaultMessage: "Cancel", description: "Register cluster dialog: button that closes the dialog without registering the cluster; keep it short" })}</Button><Button isDisabled={register.isPending || !name.trim() || !kubeconfig.trim()} onPress={() => register.mutate()}>{intl.formatMessage({ id: "web.components.register_cluster_dialog.register", defaultMessage: "Register", description: "Register cluster dialog: button that submits the form and registers the cluster; keep it short" })}</Button></ModalFooter>
+        <ModalFooter><Button variant="outline" isDisabled={register.isPending} onPress={() => onOpenChange(false)}>{intl.formatMessage({ id: "web.components.register_cluster_dialog.cancel", defaultMessage: "Cancel", description: "Register cluster dialog: button that closes the dialog without registering the cluster; keep it short" })}</Button><Button isDisabled={register.isPending || !name.trim() || !kubeconfig.trim() || !namespaceValid} onPress={() => register.mutate()}>{intl.formatMessage({ id: "web.components.register_cluster_dialog.register", defaultMessage: "Register", description: "Register cluster dialog: button that submits the form and registers the cluster; keep it short" })}</Button></ModalFooter>
       </ModalDialog></ModalContainer>
     </ModalBackdrop>
   </Modal>;

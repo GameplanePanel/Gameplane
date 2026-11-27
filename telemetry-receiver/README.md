@@ -6,7 +6,7 @@ JSON report once a day while the admin's telemetry switches are on. There
 are two tiers:
 
 ```json
-{ "version": "0.4.3", "servers": 3, "templates": 7 }
+{ "version": "0.5.0", "servers": 3, "templates": 7 }
 ```
 
 The basic tier is that and nothing else. The extended tier adds an `ext`
@@ -29,7 +29,7 @@ project's default receiver, which the maintainers operate.
 
 | Listener | Variable (default) | Serves |
 |---|---|---|
-| Public | `LISTEN_ADDR` (`:8080`) | `POST /ingest`, `GET /v1/summary` (only when `PUBLIC_SUMMARY=true`), `GET /v1/challenge` (only when `INGEST_POW=true`), `GET /healthz` |
+| Public | `LISTEN_ADDR` (`:8080`) | `POST /ingest`, `GET /v1/summary` (only when `PUBLIC_SUMMARY=true`), `GET /v1/challenge` (when `INGEST_POW=true`, or while a new-install claim is pending for the source), `GET /healthz` |
 | Dashboard | `DASHBOARD_LISTEN_ADDR` (`:8081`) | login page, dashboard, `/api/v1/views`, `/metrics`, static assets |
 
 The dashboard listener starts only when `DASHBOARD_TOKEN` is set. Keep it
@@ -40,9 +40,9 @@ everything else.
 
 | Route | Method | Response |
 |---|---|---|
-| `/ingest` | POST | `204` accepted (also a same-day duplicate) · `400` malformed or invalid · `401` bad or missing token (when `AUTH_TOKEN` is set) · `403` `bad_signature`, `stale` or `replay` · `409` `id_claimed` · `413` body over 16 KiB · `428` `pow_required` or `pow_invalid` · `429` per-source daily limit · `503` `pow_busy` |
+| `/ingest` | POST | `204` accepted (also a same-day duplicate) · `400` malformed or invalid · `401` bad or missing token (when `AUTH_TOKEN` is set) · `403` `bad_signature`, `stale` or `replay` · `409` `id_claimed` · `413` body over 16 KiB · `428` `pow_required`, `pow_invalid` or `pow_claim` · `429` per-source daily limit · `503` `pow_busy` |
 | `/v1/summary` | GET | `200` five headline counts · `404` unless `PUBLIC_SUMMARY=true` · `429` rate limit |
-| `/v1/challenge` | GET | `200` a proof-of-work challenge · `404` unless `INGEST_POW=true` · `429` rate limit |
+| `/v1/challenge` | GET | `200` a proof-of-work challenge · `404` unless `INGEST_POW=true` or a new-install claim is pending for the source · `429` rate limit |
 | `/healthz` | GET | `200 ok` |
 
 Extended reports must carry a valid `Gameplane-Telemetry-Signature`. The
@@ -94,13 +94,13 @@ version that doesn't report it count as other.
 On the dashboard listener, Bearer token required:
 
 ```
-gameplane_telemetry_reports_total{version="0.4.3"}  # reports by reported version
+gameplane_telemetry_reports_total{version="0.5.0"}  # reports by reported version
 gameplane_telemetry_servers                         # histogram of GameServer counts
 gameplane_telemetry_templates                       # histogram of GameTemplate counts
 gameplane_telemetry_duplicates_total                # same-day repeat extended reports
 gameplane_telemetry_extended_reports_total          # extended reports counted
 gameplane_telemetry_rate_limited_total{route}       # ingest, login, summary, challenge
-gameplane_telemetry_refused_total{reason}           # bad_signature, stale, id_claimed, replay, pow_required, pow_invalid, pow_busy
+gameplane_telemetry_refused_total{reason}           # bad_signature, stale, id_claimed, replay, pow_required, pow_invalid, pow_busy, pow_claim
 gameplane_telemetry_pow_challenges_total            # proof-of-work challenges issued
 gameplane_telemetry_pow_bits                        # difficulty a challenge issued now would carry
 ```
@@ -125,6 +125,7 @@ and all counters; the durable figures live in the SQLite store.
 | `PUBLIC_SUMMARY` | `false` | `true` enables `GET /v1/summary`. |
 | `TRUSTED_PROXY_CIDRS` | *(empty)* | Comma-separated CIDRs whose `X-Forwarded-For` is trusted for the source address. |
 | `INGEST_SOURCE_DAILY_LIMIT` | `20` | Accepted reports per source per UTC day. `0` means unlimited. |
+| `INGEST_SOURCE_PER_MINUTE` | `60` | `/ingest` requests per source per minute, refused and malformed ones included. `0` means unlimited. |
 | `RETENTION_DAYS` | `730` | Daily aggregate retention. Minimum `365`. |
 | `ACTIVITY_EXPIRY_DAYS` | `90` | Activity record expiry. Minimum `31`. |
 | `ID_PEPPER` | *(empty)* | HMAC pepper for install IDs, from a Secret. Empty means one is generated and kept in the database. |
@@ -132,6 +133,7 @@ and all counters; the durable figures live in the SQLite store.
 | `INGEST_POW_TARGET_PER_MIN` | `60` | Normal challenge rate; no work is required at or below it. Must be at least 1. |
 | `INGEST_POW_MIN_BITS` | `0` | Lowest difficulty issued. |
 | `INGEST_POW_MAX_BITS` | `22` | Highest difficulty issued. At least `INGEST_POW_MIN_BITS` and at most 26. |
+| `INGEST_CLAIM_POW_BITS` | `20` | Proof-of-work bits the first report of a new install ID must carry, even with `INGEST_POW` off. `0` turns it off; at most 26. |
 
 A value below a minimum, an unparsable number or a malformed
 `TRUSTED_PROXY_CIDRS` entry stops the receiver at start with an error.

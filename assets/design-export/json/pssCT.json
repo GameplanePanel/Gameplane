@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Backups",
   "type": "FRAME",
   "x": 0,
-  "y": 35828,
+  "y": 37959,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -701,7 +701,7 @@
                   "x": 0,
                   "y": 111,
                   "width": 1132,
-                  "height": 70,
+                  "height": 184,
                   "layout": {
                     "mode": "VERTICAL",
                     "gap": 8,
@@ -775,17 +775,298 @@
                       ]
                     },
                     {
-                      "id": "1:1256",
-                      "name": "noSchedules",
+                      "name": "Multiple schedules notice",
                       "type": "TEXT",
                       "x": 0,
                       "y": 52,
-                      "width": 114,
-                      "height": 18,
+                      "width": 526,
+                      "height": 16,
                       "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-                      "text": "No schedules yet.",
-                      "font": ["Geist", 400, 14],
+                      "text": "This server has multiple backup schedules — consider consolidating to avoid duplicate backups.",
+                      "font": ["Geist", 400, 12],
                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    },
+                    {
+                      "name": "test-server-01-daily",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 76,
+                      "width": 1132,
+                      "height": 50,
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 12,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "SPACE_BETWEEN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "clips": true,
+                      "variables": {"strokes/0/color": "border-2"},
+                      "children": [
+                        {
+                          "name": "Schedule details",
+                          "type": "FRAME",
+                          "x": 16,
+                          "y": 16,
+                          "width": 219,
+                          "height": 18,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "clips": true,
+                          "children": [
+                            {
+                              "name": "Schedule name",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0.5,
+                              "width": 157,
+                              "height": 17,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "test-server-01-daily",
+                              "font": ["JetBrains Mono", 400, 13],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "name": "Cron expression",
+                              "type": "TEXT",
+                              "x": 169,
+                              "y": 0,
+                              "width": 50,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "0 3 * * *",
+                              "font": ["Geist", 400, 14],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Schedule actions",
+                          "type": "FRAME",
+                          "x": 918,
+                          "y": 9,
+                          "width": 198,
+                          "height": 32,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "clips": true,
+                          "children": [
+                            {
+                              "name": "Next run",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 7,
+                              "width": 70,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "Next: in 8h",
+                              "font": ["Geist", 400, 14],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            },
+                            {
+                              "name": "Edit",
+                              "type": "INSTANCE",
+                              "x": 78,
+                              "y": 0,
+                              "width": 48,
+                              "height": 32,
+                              "component": "Button/Outline/SM",
+                              "componentId": "1:633",
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 5,
+                                "padding": [8, 12, 8, 12],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "variables": {
+                                "cornerRadius": "radius/3xl",
+                                "paddingRight": "spacing/3",
+                                "paddingLeft": "spacing/3",
+                                "strokes/0/color": "border-2"
+                              },
+                              "texts": ["Edit"]
+                            },
+                            {
+                              "name": "Delete",
+                              "type": "INSTANCE",
+                              "x": 134,
+                              "y": 0,
+                              "width": 64,
+                              "height": 32,
+                              "component": "Button/Outline/SM",
+                              "componentId": "1:633",
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 5,
+                                "padding": [8, 12, 8, 12],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "variables": {
+                                "cornerRadius": "radius/3xl",
+                                "paddingRight": "spacing/3",
+                                "paddingLeft": "spacing/3",
+                                "strokes/0/color": "border-2"
+                              },
+                              "texts": ["Delete"]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "mc-survival-auto",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 134,
+                      "width": 1132,
+                      "height": 50,
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 12,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "SPACE_BETWEEN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "clips": true,
+                      "variables": {"strokes/0/color": "border-2"},
+                      "children": [
+                        {
+                          "name": "Schedule details",
+                          "type": "FRAME",
+                          "x": 16,
+                          "y": 16,
+                          "width": 199,
+                          "height": 18,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "clips": true,
+                          "children": [
+                            {
+                              "name": "Schedule name",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0.5,
+                              "width": 125,
+                              "height": 17,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "mc-survival-auto",
+                              "font": ["JetBrains Mono", 400, 13],
+                              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "name": "Cron expression",
+                              "type": "TEXT",
+                              "x": 137,
+                              "y": 0,
+                              "width": 62,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "0 */6 * * *",
+                              "font": ["Geist", 400, 14],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Schedule actions",
+                          "type": "FRAME",
+                          "x": 845,
+                          "y": 9,
+                          "width": 271,
+                          "height": 32,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "clips": true,
+                          "children": [
+                            {
+                              "name": "Next run",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 7,
+                              "width": 70,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "text": "Next: in 2h",
+                              "font": ["Geist", 400, 14],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            },
+                            {
+                              "name": "Managed by server settings",
+                              "type": "INSTANCE",
+                              "x": 78,
+                              "y": 0,
+                              "width": 193,
+                              "height": 32,
+                              "component": "Button/Outline/SM",
+                              "componentId": "1:633",
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 5,
+                                "padding": [8, 12, 8, 12],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "variables": {
+                                "cornerRadius": "radius/3xl",
+                                "paddingRight": "spacing/3",
+                                "paddingLeft": "spacing/3",
+                                "strokes/0/color": "border-2"
+                              },
+                              "texts": ["Managed by server settings"]
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 },
@@ -794,7 +1075,7 @@
                   "name": "Backups Section",
                   "type": "FRAME",
                   "x": 0,
-                  "y": 205,
+                  "y": 319,
                   "width": 1132,
                   "height": 138,
                   "layout": {
@@ -1046,7 +1327,7 @@
                                   "type": "FRAME",
                                   "x": 0,
                                   "y": 3,
-                                  "width": 772,
+                                  "width": 720,
                                   "height": 48,
                                   "layout": {
                                     "mode": "HORIZONTAL",
@@ -1077,9 +1358,9 @@
                                   "id": "1:1273",
                                   "name": "Phase",
                                   "type": "FRAME",
-                                  "x": 772,
+                                  "x": 720,
                                   "y": 3,
-                                  "width": 120,
+                                  "width": 172,
                                   "height": 48,
                                   "layout": {
                                     "mode": "HORIZONTAL",
@@ -1091,17 +1372,26 @@
                                   },
                                   "children": [
                                     {
-                                      "id": "1:1274",
                                       "name": "Phase",
-                                      "type": "TEXT",
+                                      "type": "INSTANCE",
                                       "x": 12,
-                                      "y": 15.5,
-                                      "width": 67,
-                                      "height": 17,
-                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
-                                      "text": "Succeeded",
-                                      "font": ["Geist", 400, 13],
-                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                                      "y": 14.5,
+                                      "width": 137,
+                                      "height": 19,
+                                      "component": "Chip/Soft/Warning/MD",
+                                      "componentId": "1:3907",
+                                      "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
+                                      "cornerRadius": 16,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 2,
+                                        "padding": [2, 8, 2, 8],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
+                                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "warning/soft"},
+                                      "texts": ["Awaiting snapshot ID"]
                                     }
                                   ]
                                 },

@@ -56,6 +56,7 @@ type Result struct {
 	EffectiveEnv     map[string]string    `json:"effectiveEnv"`
 	Ports            []PortPreview        `json:"ports"`
 	Storage          StoragePreview       `json:"storage"`
+	Security         *SecurityPreview     `json:"security,omitempty"`
 	RenderedManifest string               `json:"renderedManifest,omitempty"`
 }
 
@@ -294,6 +295,12 @@ func GeneratePreview(opts Options) (*Result, error) {
 		storage.MountPath, _ = storMap["mountPath"].(string)
 	}
 
+	// Security: resolved module defaults, ownership policy and risky settings.
+	var security *SecurityPreview
+	if secMap, ok := spec["security"].(map[string]any); ok {
+		security = buildSecurityPreview(secMap)
+	}
+
 	return &Result{
 		Game:            game,
 		DisplayName:     displayName,
@@ -305,6 +312,7 @@ func GeneratePreview(opts Options) (*Result, error) {
 		EffectiveEnv:    effectiveEnv,
 		Ports:           ports,
 		Storage:         storage,
+		Security:        security,
 	}, nil
 }
 
@@ -360,6 +368,9 @@ func (p *Result) FormatHuman() string {
 			fmt.Fprintf(&sb, "  - %d/%s (%s)\n", port.ContainerPort, port.Protocol, port.Name)
 		}
 	}
+	sb.WriteString("\n")
+
+	sb.WriteString(formatSecurityHuman(p.Security))
 
 	return sb.String()
 }

@@ -199,6 +199,9 @@ func TestAllow(t *testing.T) {
 		{RoleViewer, "POST", "/restores", scope.DefaultCluster, false},
 		{RoleOperator, "POST", "/restores", scope.DefaultCluster, true},
 		{RoleAdmin, "POST", "/restores", scope.DefaultCluster, true},
+		{RoleViewer, "POST", "/restores:upload", scope.DefaultCluster, false},
+		{RoleOperator, "POST", "/restores:upload", scope.DefaultCluster, true},
+		{RoleAdmin, "POST", "/restores:upload", scope.DefaultCluster, true},
 		// Events SSE is a namespaced read.
 		{RoleViewer, "GET", "/events", scope.DefaultCluster, true},
 		// Roles: read for all built-ins; manage admin-only.

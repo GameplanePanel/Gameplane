@@ -27,7 +27,7 @@ change, the one compile check to run, and how long CI takes.
 | API route | `api/` (handlers in `api/internal/handlers/`) | `go build ./...` in `api/` | same as any Go change |
 | Game module | `modules/<game>/`: PR in `GameplanePanel/module`, then a pointer bump here | `make module-validate MODULE=<game>` | 2.7 min in `GameplanePanel/module` (run 79, 2026-10-20); the bump PR here runs the docs gates |
 | Website | `website/`: PR in `GameplanePanel/website`, then a pointer bump here | `npm run build` in `website/` | 0.6 min in `GameplanePanel/website` (PR 25, 2026-10-22); the bump PR here runs the docs gates |
-| Split component | `mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`: PR in its own repo (`GameplanePanel/mcp`, `GameplanePanel/audit-syslog-bridge`, `GameplanePanel/tunnel`, `GameplanePanel/capture-sidecar`), then a pointer bump here | follow that repo's docs | the bump PR here runs the build and optional-components e2e |
+| Split component | `mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`, `sftp/`: PR in its own repo (`GameplanePanel/mcp`, `GameplanePanel/audit-syslog-bridge`, `GameplanePanel/tunnel`, `GameplanePanel/capture-sidecar`, `GameplanePanel/sftp`), then a pointer bump here | follow that repo's docs | the bump PR here runs the build and optional-components e2e |
 
 Times are GitHub Actions wall clock for one PR run, measured 2026-10-20: runs
 2507, 2525 and 2524, and 11 Go PR runs for the median. Change-based test
@@ -43,7 +43,7 @@ Gates a first PR trips on:
   [Design first for UI changes](#design-first-for-ui-changes). Never hand-edit
   `.fig` files.
 - Submodule work in the wrong repo: `modules/`, `website/` and the component submodules
-  (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) changes go to
+  (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`, `sftp/`) changes go to
   their own repos first, then a pointer bump PR here.
 
 ## Dev loop
@@ -102,8 +102,9 @@ Reopen the container with one of the named profiles (or `full`) and run the targ
 `design.fig`, not in code.** Open `design.fig` in
 [OpenPencil](https://github.com/ValgulNecron/open-pencil) or Figma, update the
 relevant screen, regenerate the export with `hack/design/fig-export.ts` (see
-`assets/design-export/MANIFEST.md`), review with the maintainers, *then*
-translate to React. This keeps the 84 designed screens (`assets/design-export/MANIFEST.md`, re-measured 2026-09-12) the source of truth and
+`assets/design-export/MANIFEST.md`; it renders only the screens that changed, and the
+`design export` workflow commits it on pull requests from branches of this repository), review with the maintainers, *then*
+translate to React. This keeps the 251 designed screens (`assets/design-export/screens.json`) the source of truth and
 prevents the dashboard from drifting into code-led redesigns.
 
 Backend/operator/API changes do not need a design pass.
@@ -161,7 +162,7 @@ These jobs block merging. Each gate with a fixture has a `hack/*_test.sh` self-t
 - **`workflow lint`** also runs hadolint over every tracked Dockerfile, failing on any warning (`.hadolint.yaml`). Fix the Dockerfile: pin `apk`/`apt` package versions, and set a `SHELL` with `-o pipefail` before any piped `RUN` step.
 - **`dependency review`** runs on pull requests only. It fails when the PR adds a dependency with a HIGH or CRITICAL advisory. Pick a version without the advisory, or drop the dependency.
 - **`codegen drift`** runs `make generate manifests` and `make tidy`, then fails if `git diff` is not empty. Run the same commands locally and commit what they change (CLAUDE.md rule 7).
-- **`submodule freshness`** runs `hack/check-submodule-freshness.sh`. It fails when any submodule pointer (`modules`, `website` or a component submodule listed in `.gitmodules`) names a commit that is not on that repo's `main`, when a gitlink is missing, or when the script cannot fetch that repo's `main`. For a pointer that is not on `main`, merge the submodule PR first, then bump the pointer to the merged commit. Otherwise restore the gitlink, or fix the fetch error, and re-run. It also runs `hack/submodules.sh check`, which fails when a component submodule is missing from a workflow path filter it must be in.
+- **`submodule freshness`** runs `hack/check-submodule-freshness.sh`. It fails when any submodule pointer (`modules`, `website` or a component submodule listed in `.gitmodules`) names a commit that is not on that repo's `master`, when a gitlink is missing, or when the script cannot fetch that repo's `master`. For a pointer that is not on `master`, merge the submodule PR first, then bump the pointer to the merged commit. Otherwise restore the gitlink, or fix the fetch error, and re-run. It also runs `hack/submodules.sh check`, which fails when a component submodule is missing from a workflow path filter it must be in.
 
 ### How CI picks tests
 
@@ -233,7 +234,7 @@ cd gp-module && go test ./...
 cd web      && npm test
 ```
 
-The component submodules (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) run their tests and lint in their own repos' CI (shared `.github/workflows/go-component.yaml`). To compile one here use `cd <path> && GOWORK=off go build ./...`.
+The component submodules (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`, `sftp/`) run their tests and lint in their own repos' CI (shared `.github/workflows/go-component.yaml`). To compile one here use `cd <path> && GOWORK=off go build ./...`.
 
 ## E2E testing
 
@@ -342,7 +343,7 @@ flowchart TD
 Game-module changes (`modules/`) belong in the separate **`GameplanePanel/module`**
 repo, which this repo vendors as a submodule. Open the module PR there; once it
 merges, bump the submodule pointer here (`git add modules`) in a follow-up PR.
-Component submodule changes (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) belong in their own repos the same way (`git add <path>`).
+Component submodule changes (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`, `sftp/`) belong in their own repos the same way (`git add <path>`).
 
 `.gitmodules` points all submodules (`modules/`, `website/` and the component submodules) at the upstream
 GitHub URLs, so a fork of this repo clones them without forking them too. To

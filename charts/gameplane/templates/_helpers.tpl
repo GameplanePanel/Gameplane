@@ -80,6 +80,44 @@ track a rolling channel.
 {{- end -}}
 {{- end -}}
 
+{{- define "gameplane.sftpImage" -}}
+{{- if .Values.sftp.image -}}{{- .Values.sftp.image -}}
+{{- else -}}{{- printf "%s/sftp:%s" .Values.image.registry (include "gameplane.imageTag" .) -}}{{- end -}}
+{{- end -}}
+
+{{- /* gameplane.quantityBytes converts a Kubernetes quantity (Ki Mi Gi Ti Pi, k K M G T P, or digits) to an
+integer byte count string. Helm has no quantity parser, so anything else fails the render. A YAML integer
+arrives as float64, so it is formatted without an exponent. */ -}}
+{{- define "gameplane.quantityBytes" -}}
+{{- $raw := . -}}
+{{- $s := "" -}}
+{{- if kindIs "float64" $raw -}}{{- $s = printf "%.0f" $raw -}}{{- else -}}{{- $s = toString $raw | trim -}}{{- end -}}
+{{- if not (regexMatch "^[0-9]+(Ki|Mi|Gi|Ti|Pi|k|K|M|G|T|P)?$" $s) -}}
+{{- fail (printf "files.maxUploadSize %q must be a whole-number quantity such as 20Gi" $s) -}}
+{{- end -}}
+{{- $n := regexFind "^[0-9]+" $s | int64 -}}
+{{- if lt $n 1 -}}{{- fail (printf "files.maxUploadSize %q must be greater than zero" $s) -}}{{- end -}}
+{{- $u := regexFind "[A-Za-z]+$" $s -}}
+{{- $m := dict "" 1 "Ki" 1024 "Mi" 1048576 "Gi" 1073741824 "Ti" 1099511627776 "Pi" 1125899906842624 "k" 1000 "K" 1000 "M" 1000000 "G" 1000000000 "T" 1000000000000 "P" 1000000000000000 -}}
+{{- mul $n (index $m $u | int64) | int64 -}}
+{{- end -}}
+
+{{- /* gameplane.backupsQuantityBytes is gameplane.quantityBytes for backups.maxUploadSize (spec 041): same
+parsing, with error messages that name the backups key. */ -}}
+{{- define "gameplane.backupsQuantityBytes" -}}
+{{- $raw := . -}}
+{{- $s := "" -}}
+{{- if kindIs "float64" $raw -}}{{- $s = printf "%.0f" $raw -}}{{- else -}}{{- $s = toString $raw | trim -}}{{- end -}}
+{{- if not (regexMatch "^[0-9]+(Ki|Mi|Gi|Ti|Pi|k|K|M|G|T|P)?$" $s) -}}
+{{- fail (printf "backups.maxUploadSize %q must be a whole-number quantity such as 20Gi" $s) -}}
+{{- end -}}
+{{- $n := regexFind "^[0-9]+" $s | int64 -}}
+{{- if lt $n 1 -}}{{- fail (printf "backups.maxUploadSize %q must be greater than zero" $s) -}}{{- end -}}
+{{- $u := regexFind "[A-Za-z]+$" $s -}}
+{{- $m := dict "" 1 "Ki" 1024 "Mi" 1048576 "Gi" 1073741824 "Ti" 1099511627776 "Pi" 1125899906842624 "k" 1000 "K" 1000 "M" 1000000 "G" 1000000000 "T" 1000000000000 "P" 1000000000000000 -}}
+{{- mul $n (index $m $u | int64) | int64 -}}
+{{- end -}}
+
 {{- /*
 gameplane.labels intentionally omits app.kubernetes.io/name so each
 resource can set its own (e.g. "gameplane-api", "gameplane-operator")
@@ -278,5 +316,31 @@ install/upgrade time, so re-run helm upgrade if the API endpoint moves.
 {{- end -}}
 {{- range (uniq $cidrs) }}
 - ipBlock: { cidr: {{ . | quote }} }
+{{- end -}}
+{{- end -}}
+
+{{- /*
+"true" when the crds.autoApply hook Job runs (and so installs the CRDs and
+applies the chart's ModuleSources), otherwise empty.
+*/ -}}
+{{- define "gameplane.crdHookEnabled" -}}
+{{- if and (not .Values.api.standalone) .Values.crds.autoApply.enabled -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
+gameplane.auditWebhookAuthRef returns "name/key" of the Secret holding the
+audit webhook Authorization value, or "" when none applies. An explicit
+api.audit.webhook.authSecretRef wins; otherwise, when the bundled syslog bridge
+is the auto-wired sink, the chart-generated gameplane-audit-syslog-bridge-token
+Secret is used so the bridge never runs without inbound authentication.
+*/}}
+{{- define "gameplane.auditWebhookAuthRef" -}}
+{{- $w := .Values.api.audit.webhook -}}
+{{- if $w.authSecretRef.name -}}
+{{- printf "%s/%s" $w.authSecretRef.name $w.authSecretRef.key -}}
+{{- else if and $w.syslogBridge.enabled (not $w.url) -}}
+gameplane-audit-syslog-bridge-token/token
 {{- end -}}
 {{- end -}}

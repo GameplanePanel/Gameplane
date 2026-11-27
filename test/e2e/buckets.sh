@@ -33,11 +33,14 @@ cd "$(dirname "$0")"
 # non-parallel tests first — inside the main bucket it would starve
 # everyone else's logins).
 
+# Login tally (operator bucket): TestGameServer_SecurityOverrideAppliesOnRestart
+# does zero logins. TestAPI_SecurityOverride_PermissionAndRootRule adds one
+# e2e-admin login and one login as its own custom-role user (two logins).
 bucket_operator() { cat <<'EOF'
 TestHelmInstall_AllPodsReady
 TestHelmInstall_OperatorSecretNamespaceBoundary
 TestHelmInstall_AllCRDsPresent
-TestHelmInstall_CRDApplyHookSkippedOnFreshInstall
+TestHelmInstall_CRDApplyHookRunsOnFreshInstall
 TestHelmInstall_APIHealthz
 TestHelmInstall_MetricsNotOnPublicPort
 TestHelmInstall_APIServerEgressPolicy_AllowsPrivateRanges
@@ -70,6 +73,7 @@ TestGameServer_CorrectedImageRecoversFailedOrdinal
 TestGameServer_RestoredRolloutRehearsal
 TestGameServer_WipeReportsFailureOnPermissionDenied
 TestGameServer_CascadingDelete
+TestGameServer_SecurityOverrideAppliesOnRestart
 TestGameServer_LoadBalancerClassReplacesTheService
 TestGameServer_PortPoolAllocation
 TestGameServer_PortPoolServingAllocation
@@ -121,6 +125,7 @@ TestAPI_I18n_LanguagePref
 TestAPI_I18n_NotifyLanguage
 TestAPI_I18n_NotifyTestSendRateLimit
 TestAPI_I18n_InstanceDefault
+TestAPI_SecurityOverride_PermissionAndRootRule
 TestAPI_RBAC_MCPTokenReads
 TestE2E_ResticRepoReady
 TestCISelection_AgentOnlyChange
@@ -395,7 +400,8 @@ EOF
 # that TestAPI_AccountRemoval_RevokesSharesAndAllowsSSOReprovision signs in
 # through.
 #
-# TestMultiCluster_MCPTokenRemoteGrant (spec 037, T039) costs +1 e2e-admin
+# TestMultiCluster_TokenRemoteGrant (spec 037 T039, plus spec 040 T052 as its
+# sftp-remote-endpoint subtest on the same admin login) costs +1 e2e-admin
 # login plus one login as its own user, bringing this job to 7 admin logins,
 # the ceiling: do not add admin logins to this bucket. Run in parallel, its two
 # logins made TestAPI_I18n_ProblemJSON's failed-login pair hit 429, so it runs
@@ -408,7 +414,7 @@ TestAPI_I18n_ModuleLocales
 TestAPI_SSORoleRules
 TestMultiCluster_ClusterDispatchAndScopedRBAC
 TestMultiCluster_GatewayParity
-TestMultiCluster_MCPTokenRemoteGrant
+TestMultiCluster_TokenRemoteGrant
 EOF
 }
 
@@ -531,8 +537,17 @@ TestStandalone_HelmPanelLifecycle
 EOF
 }
 
+# sftp owns its cluster: TestSFTP_Lifecycle runs `helm upgrade --reuse-values`
+# to enable the SFTP endpoint, so it cannot share a cluster with other tests.
+# Admin logins: one. SFTP logins share the auth limiter; see the test's doc
+# comment for the per-user budget. amd64 only, like standalone.
+bucket_sftp() { cat <<'EOF'
+TestSFTP_Lifecycle
+EOF
+}
+
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery standalone
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery standalone sftp
 }
 
 list_bucket() {
@@ -561,6 +576,7 @@ list_bucket() {
 	backup-preparation) bucket_backup_preparation ;;
 	recovery) bucket_recovery ;;
 	standalone) bucket_standalone ;;
+	sftp) bucket_sftp ;;
 	monitoring) bucket_monitoring ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2

@@ -4,7 +4,7 @@
   "name": "Screen/Dashboard Home — Telemetry notice (default)",
   "type": "FRAME",
   "x": 4920,
-  "y": 12822,
+  "y": 14484,
   "width": 1440,
   "height": 1380,
   "fills": [{"type": "SOLID", "color": "#121114"}],

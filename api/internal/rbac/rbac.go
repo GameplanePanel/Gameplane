@@ -76,11 +76,25 @@ const (
 // one cluster never grants access to another — this prevents cross-cluster
 // privilege escalation.
 func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
+	return MiddlewareWithFiles(fetch, NewFileAccess(fetch, nil))
+}
+
+// MiddlewareWithFiles is Middleware with the server file routes authorized by files (see
+// fileaccess.go). Every other route keeps the rule table. A nil files is replaced by
+// NewFileAccess(fetch, nil).
+func MiddlewareWithFiles(fetch ServerFetcher, files *FileChecker) func(http.Handler) http.Handler {
+	if files == nil {
+		files = NewFileAccess(fetch, nil)
+	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			u := auth.UserFromContext(req.Context())
 			if u == nil {
 				httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
+				return
+			}
+			if action, server, isFile := FileActionForRoute(req.Method, req.URL.Path); isFile {
+				serveFileRoute(w, req, next, fetch, files, u, action, server)
 				return
 			}
 			r, ok := match(req.Method, req.URL.Path)
@@ -179,6 +193,41 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 	}
 }
 
+// serveFileRoute authorizes one /servers/{name}/files route through files. The refusal answers
+// match the rule-table path: namespace and cluster first, then server.forbidden, except that an
+// MCP token with no grant on the cluster gets server.cluster_forbidden.
+func serveFileRoute(w http.ResponseWriter, req *http.Request, next http.Handler, fetch ServerFetcher, files *FileChecker, u *auth.User, action FileAction, server string) {
+	ns, err := scope.Resolve(req)
+	if err != nil {
+		httperr.WriteMessage(w, req, messages.New("server.common.namespace_not_permitted", nil))
+		return
+	}
+	cl := scope.DefaultCluster
+	if fetch != nil {
+		// rbac.Middleware must be mounted with a non-nil fetcher: the cluster gates the
+		// permission check, so resolving it here keeps the check on the cluster that serves the request.
+		cl, err = scope.ResolveCluster(req, fetch)
+		if err != nil {
+			httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
+			return
+		}
+	}
+	ctx, err := files.AllowBound(req.Context(), u, action, FileTarget{Cluster: cl, Namespace: ns, Server: server})
+	if err != nil {
+		if _, isToken := auth.MCPTokenFromContext(req.Context()); isToken && !u.CanDiscoverCluster(cl) {
+			httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
+			return
+		}
+		httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
+		return
+	}
+	if _, isSFTP := auth.SFTPCallerFromContext(req.Context()); isSFTP {
+		// SFTP rows name the file target (spec 040 FR-020); the path is a query parameter on these routes.
+		auth.SetAuditTarget(req.Context(), cl+"/"+ns+"/"+server+" "+req.URL.Query().Get("path"))
+	}
+	next.ServeHTTP(w, req.WithContext(ctx))
+}
+
 // rule maps a request shape to the permission required to perform it.
 // The first matching rule wins. method "" matches any method; segment ""
 // matches any first path segment; prefix/suffix narrow further when a
@@ -189,7 +238,10 @@ type rule struct {
 	segment string
 	prefix  string // strings.HasPrefix(path, prefix)
 	suffix  string // strings.HasSuffix(path, suffix)
-	perm    string // required permission; "" = any authenticated user
+	// contains narrows a rule to paths with this substring in the middle
+	// (e.g. /users/{id}/sftp/keys/{keyId}), where prefix and suffix cannot.
+	contains string
+	perm     string // required permission; "" = any authenticated user
 }
 
 var rules = []rule{
@@ -218,6 +270,17 @@ var rules = []rule{
 	{method: "GET", segment: "users", suffix: "/users/me/mcp-tokens", perm: ""},
 	{method: "POST", segment: "users", suffix: "/users/me/mcp-tokens", perm: ""},
 	{method: "DELETE", segment: "users", prefix: "/users/me/mcp-tokens/", perm: ""},
+	// Personal SFTP credentials (spec 040): the same self-service split as MCP tokens.
+	{method: "GET", segment: "users", suffix: "/users/me/sftp", perm: ""},
+	{method: "POST", segment: "users", suffix: "/users/me/sftp/keys", perm: ""},
+	{method: "DELETE", segment: "users", prefix: "/users/me/sftp/keys/", perm: ""},
+	{method: "POST", segment: "users", suffix: "/users/me/sftp/password", perm: ""},
+	{method: "DELETE", segment: "users", suffix: "/users/me/sftp/password", perm: ""},
+	// Admin SFTP view and revokes of another user's credentials (spec 040 US3): users:manage, not users:read.
+	// These must precede the generic users rules below.
+	{method: "GET", segment: "users", suffix: "/sftp", perm: "users:manage"},
+	{method: "DELETE", segment: "users", contains: "/sftp/keys/", perm: "users:manage"},
+	{method: "DELETE", segment: "users", suffix: "/sftp/password", perm: "users:manage"},
 	{method: "GET", segment: "users", perm: "users:read"},
 	{segment: "users", perm: "users:manage"},
 
@@ -249,6 +312,10 @@ var rules = []rule{
 	// to callers without config:manage.
 	{method: "GET", segment: "admin", prefix: "/admin/telemetry", perm: "config:read"},
 	{segment: "admin", prefix: "/admin/telemetry", perm: "config:manage"},
+	// Allow root overrides (spec 030) is a per-cluster switch next to the
+	// config rules: reads need config:read, the flip needs config:manage.
+	{method: "GET", segment: "security-settings", perm: "config:read"},
+	{segment: "security-settings", perm: "config:manage"},
 	{segment: "admin", perm: "*"},
 
 	// Network capture (feature 003-network-capture-sidecar): admin-only via
@@ -281,6 +348,9 @@ var rules = []rule{
 	{method: "GET", segment: "schedules", perm: "schedules:read"},
 	{segment: "schedules", perm: "schedules:write"},
 	{method: "GET", segment: "restores", perm: "backups:read"},
+	// POST /restores:upload is a verb on the collection; firstSegment keeps the
+	// verb, so it needs its own rule (spec 041 archive upload).
+	{method: "POST", segment: "restores:upload", perm: "backups:restore"},
 	{segment: "restores", perm: "backups:restore"},
 
 	// Backup destinations are restic-repo Secrets: reads expose only the
@@ -307,6 +377,9 @@ var rules = []rule{
 	// (plural /clusters endpoint).
 	// Discovery filters each registration by the caller's grants. Namespace
 	// server readers may select their cluster without gaining node inventory.
+	// The SFTP endpoint drawer (spec 040) lists addresses and tokens, so its
+	// GET needs cluster:manage; it must come before the generic GET below.
+	{method: "GET", segment: "clusters", suffix: "/sftp", perm: "cluster:manage"},
 	{method: "GET", segment: "clusters", perm: ""},
 	{segment: "clusters", perm: "cluster:manage"},
 
@@ -362,6 +435,9 @@ func match(method, path string) (rule, bool) {
 			continue
 		}
 		if r.suffix != "" && !strings.HasSuffix(path, r.suffix) {
+			continue
+		}
+		if r.contains != "" && !strings.Contains(path, r.contains) {
 			continue
 		}
 		return r, true

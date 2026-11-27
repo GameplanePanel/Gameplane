@@ -45,7 +45,7 @@ metadata:
   labels: {{- include "gameplane.labels" $ | nindent 4 }}
 rules:
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers, networkcaptures]
+    resources: [gameservers, networkcaptures, backups, backupexports]
     verbs: [get]
   - apiGroups: [""]
     resources: [services]
@@ -92,6 +92,31 @@ spec:
       ports:
         - { protocol: TCP, port: 8090 }
         - { protocol: TCP, port: 9091 }
+---
+# File-only pods (spec 040) serve /files on the agent port while a server is stopped. The
+# gateway may reach them there and nowhere else (no capture or kubelet port).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $.Release.Name }}-gateway-to-files
+  namespace: {{ . }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: gameplane-files
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $.Release.Namespace }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: gameplane-gateway
+              app.kubernetes.io/instance: {{ $.Release.Name }}
+      ports:
+        - { protocol: TCP, port: 8090 }
 {{- end }}
 {{- end }}
 ---
@@ -142,6 +167,9 @@ spec:
             - {{ printf "--capture-max-retention=%d" (.Values.capture.maxRetentionSeconds | int64) | quote }}
             - {{ printf "--capture-default-max-duration=%d" (.Values.capture.defaultMaxDurationSeconds | int64) | quote }}
             - {{ printf "--capture-default-max-size=%d" (.Values.capture.defaultMaxSizeBytes | int64) | quote }}
+            - {{ printf "--files-max-upload-bytes=%s" (include "gameplane.quantityBytes" ((.Values.files | default dict).maxUploadSize | default "20Gi")) | quote }}
+            - {{ printf "--backups-max-upload-bytes=%s" (include "gameplane.backupsQuantityBytes" ((.Values.backups | default dict).maxUploadSize | default "20Gi")) | quote }}
+            - {{ printf "--backups-max-concurrent-exports=%v" ((.Values.backups | default dict).maxConcurrentExports | default 3) | quote }}
           ports:
             - { name: mtls, containerPort: 8443 }
           # The listener requires mTLS on every request; no unauthenticated

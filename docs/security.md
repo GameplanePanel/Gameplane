@@ -341,6 +341,8 @@ still sees the stored values; restrict that with cluster RBAC.
 
 ## Share links
 
+The server owner can change an active link's **Can start** permission under **Settings → Share links**. Use the **Link ID** shown at creation to identify its row later. Enabling wake access lets anyone who already has that URL wake the server from idle sleep. Disabling it removes that permission on the next request. The URL and expiry stay the same.
+
 Share links (`api/internal/db/shares.go`, schema in `api/internal/db/migrations/sqlite/006_share_links.sql`, Postgres twin in `migrations/postgres/`) grant unauthenticated, token-bearing access to a single GameServer's status and connection address, optionally with permission to wake it. Because they are unauthenticated, their security rests entirely on the token being both hard to guess and hard to recover if the database or a backup leaks.
 
 **Storage.** Only a SHA-256 hash of the token is persisted (`token_hash`, indexed for O(1) lookup); the raw 32-byte random token is generated at creation, returned exactly once in the create response, and never stored, logged, or recoverable afterwards.
@@ -378,9 +380,10 @@ intended for local `kind` development where mTLS is overkill.
 ### Tenant network profile
 
 Pre-provision a dedicated namespace per tenant and apply the cluster's restricted
-Pod Security Admission labels there. Upgrade each wake-enabled template to
-`spec.sentinelIsolation: true`, and verify its advertised ports before switching
-profiles. With `networkPolicies.tenantIsolation: true`, Helm owns the baseline
+Pod Security Admission labels there. Sentinel isolation is the default for any
+template that advertises a port; restart running servers that predate it (or set
+`spec.sentinelIsolation: true` on their templates), and verify their advertised
+ports before switching profiles. With `networkPolicies.tenantIsolation: true`, Helm owns the baseline
 policies in the primary namespace and every namespace in `operator.gameNamespaces`.
 Inventory policies with the same names before enabling this on an existing system.
 Removing a namespace from the list can remove its Helm-owned policies. Drain
@@ -492,6 +495,23 @@ When `networkPolicies.enabled=true` (default) the chart applies:
   defined in `networkPolicies.gameEgress.privateCIDRs` (by default: 10.0.0.0/8,
   172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 to block in-cluster and
   cloud-metadata access). Ports customizable via `networkPolicies.gameEgress.ports`.
+- `<gameserver-name>-tunnel-egress` — created by the **operator** for each
+  GameServer with a tunnel. Outside `tenantIsolation` it allows DNS to any
+  destination, the advertised ports to this server's own game and waker pods
+  only, and the provider's relay ports (frp `serverPort`, Tailscale TCP 443
+  and UDP 41641, every port for playit) to public addresses only:
+  `networkPolicies.tunnelEgress.exceptCIDRs` (RFC 1918, link-local,
+  `fc00::/7`, `fe80::/10` by default) stay closed, so a relay cannot reach
+  in-cluster services, nodes or cloud metadata. A frp `serverAddr` written
+  as an IP address is added as a /32 or /128 (never loopback or link-local);
+  list a LAN frp server reached by hostname in
+  `networkPolicies.tunnelEgress.allowCIDRs`. Tailscale direct connections to
+  LAN peers fall back to DERP. With `tenantIsolation` the operator grants only
+  the backend path and administrators supply provider egress (see above).
+- `allow-playit-tunnel-to-apiserver` — outside `tenantIsolation`, allows
+  playit relay pods (labelled `gameplane.local/tunnel-provider: playit`) the
+  same apiserver addresses as `allow-agent-to-apiserver`, on TCP 443 and
+  6443, so they can publish their assigned address.
 
 **Note:** `default-deny-egress` applies to all pods in the games namespace
 (`podSelector: {}`), while `allow-agent-to-apiserver` and
@@ -630,6 +650,70 @@ that pod, including other players' packets. This access is admin-only and fully
 audited (every capture operation is logged). Default capture retention is 24 hours,
 reducing the exposure window for captured data.
 
+### Server security overrides
+
+A module sets default run-as ids, the filesystem group and the ownership check in
+`spec.security` of its `GameTemplate` (see [`module-authoring.md`](module-authoring.md#security-context)).
+A server owner can override these per server in `GameServer.spec.security`. An
+override never changes a running pod: the new values apply at the server's next
+start, and the dashboard shows the value as pending until then.
+
+**Who may override.** Writing `spec.security` needs the `servers:security`
+permission, which the admin role holds by default. A user without it gets 403 on
+create and update.
+
+**The root rule.** A root value is `runAsUser` or `runAsGroup` set to `0` or to
+the image default, or `fsGroup` set to `0`. Root values are refused unless the
+cluster allows them. The setting is `allowRootOverrides`, and it is separate for
+each cluster and off by default. An administrator sets it under Clusters, the
+cluster, Configuration, with `PUT /security-settings?cluster=<id>` and body
+`{"allowRootOverrides": true}`. `GET /security-settings?cluster=<id>` reads it and
+needs `config:read`; the PUT needs `config:manage`.
+
+The value is stored in one ConfigMap per cluster, `gameplane-security-settings`,
+in that cluster's operator control-plane namespace. Its key `allowRootOverrides`
+is `"true"` or `"false"`. Any other value, a missing key or a missing ConfigMap
+reads as off. The operator's Helm chart creates the ConfigMap with `"false"` and
+the annotation `helm.sh/resource-policy: keep`, so an uninstall keeps it. On
+upgrade the chart reads the current value back, so an upgrade never flips the
+setting. The API never creates the ConfigMap. If it is deleted, the setting reads
+as off until the next `helm upgrade`. For a remote cluster, the API uses the
+namespace recorded on its registration, `Cluster.spec.controlPlaneNamespace`
+(default `gameplane`). A wrong namespace cannot turn the setting on. The ConfigMap
+is then not found, GET reports `present: false`, and PUT returns 409
+`server.cluster.security_settings_missing`.
+
+Two layers enforce the rule, and both fail closed:
+
+- The API refuses a create or update that saves a new or changed root value
+  while the setting is off, with 403 `server.security.root_disabled`.
+- The operator does not start a stopped server that holds a saved root override
+  while the setting is off. Its replicas stay at zero, and the condition
+  `SecurityAllowed` is `False` with reason `RootOverrideDisallowed`. A server
+  that is already running keeps running.
+
+**Applied filesystem group for backups.** Backup and restore jobs use the
+filesystem group the server last started with, not the value it will start with
+next. A pending change to `fsGroup` therefore does not change how a backup reads
+the data volume.
+
+**Ownership check trade-off.** `EveryStart` re-applies the group to every file on
+each start, which is always correct and slow on large volumes. `OnlyWhenWrong`
+starts faster but leaves files deeper in the volume with their current owner.
+See the module authoring guide for the built-in default.
+
+**Audit trail.** Create, update, clone and refusal of an override write an audit
+row, and so does each flip of `allowRootOverrides` (target `security/<cluster id>`,
+reason `allowRootOverrides:false->true` or `true->false`). If the flip is recorded
+but the ConfigMap update fails, a second row with reason `security_save_failed`
+is written and the API returns 502. The audit schema is unchanged.
+
+**Writers that bypass the API.** Anyone with Kubernetes write access to a
+`GameServer` or to the `gameplane-security-settings` ConfigMap can set these values
+without the API checks or audit rows. The operator still applies the root hold to
+every server it reconciles, so write access to the ConfigMap is equivalent to the
+setting itself. Restrict it with Kubernetes RBAC.
+
 ## Module supply chain
 
 A `GameTemplate` materialized from a module chooses the container image,
@@ -691,6 +775,63 @@ earlier:
 
 The mods package confines its own paths separately (`ConfinePath`/`ConfineRelPath`)
 and does not use this descriptor walk.
+
+## SFTP endpoint (spec 040, optional)
+
+The SFTP endpoint (`sftp.enabled`, off by default; see [sftp.md](sftp.md)) is a
+second internet-facing listener, so it gets the same treatment as the dashboard:
+
+- **Authentication is decided by the API.** The SFTP pod holds no password
+  hashes and no key store. Each login (`POST /sftp/v1/login`) is checked by the
+  API against the user's own SSH public keys or generated password. The login
+  limiter is the same one the dashboard uses, so guessing is throttled per IP
+  and per username. A refused login returns one generic refusal, so the client
+  cannot tell a wrong password from a server the user cannot read.
+- **Service tokens are per cluster.** The SFTP pod authenticates to the API with
+  a `gpsftps_` token minted under **Clusters**. Each cluster has at most two
+  active tokens, shown once, stored only as a digest, and revocable. A token
+  identifies a cluster endpoint; it does not identify a user and grants no
+  file access by itself.
+- **Host key.** The SSH host key lives in the `gameplane-sftp-host-key` Secret,
+  created once by the chart and kept on uninstall. Users see its fingerprint on
+  their profile page and every client pins it. A bring-your-own key replaces the
+  Secret's `host_key` entry (`sftp.hostKeySecret`).
+- **File-only pod.** The SFTP pod keeps no game data and mounts no game
+  volume. Every file operation is a request to the API, which runs it through the
+  agent as the signed-in user, with the same RBAC, ownership and dotfile rules as
+  the Files tab, and records it in the audit log with `source: sftp`. For a
+  stopped server, the operator's file-only pod (agent `--files-only`, no host
+  ports, removed after `--files-idle-timeout`) serves the same files; file access
+  never starts the game. Enabling SFTP grants the operator `pods: create, delete`
+  in game namespaces so it can run that file-only pod.
+- **Revocation and disable** end open sessions within 60 seconds and refuse new
+  logins (FR-007, SC-006). The SFTP pod fails closed: when it cannot confirm a
+  session with the API for 2 minutes (for example, the API is down), it closes
+  the connection, and a file request the API answers with 401 closes it at once.
+  The API also re-checks every running SFTP upload or download against its
+  session every 5 seconds, on SQLite as well as PostgreSQL, so a transfer stops
+  when its session is revoked or expires.
+- **API hop.** The SFTP pod refuses an `http` API URL unless it is started with
+  `--allow-insecure-api`. The chart sets that only in local mode, where the pod
+  talks to the API Service over the cluster's pod network and its
+  NetworkPolicy limits egress to the API pods. Remote mode needs an `https`
+  `sftp.apiURL` (the chart refuses anything else), with the certificate checked
+  against the system roots or `sftp.apiCASecret`. The pod never follows a
+  redirect from the API, so it never re-sends a password, key or token to
+  another address.
+- **Exposed listener.** Each connection may hold at most 2 session channels,
+  and a channel that does not start SFTP within 10 seconds is closed.
+  Connections still logging in are capped at 64 in total and at
+  `sftp.maxPreAuthPerIP` (default 8) per source IP, so one address cannot
+  starve everyone else.
+- **Metrics.** `/metrics` has no authentication. The SFTP pod binds it to
+  loopback by default. The chart serves it on the pod address only when
+  `serviceMonitors.enabled` is true, through the separate in-cluster
+  `gameplane-sftp-metrics` Service and a NetworkPolicy rule for
+  `serviceMonitors.scrapeNamespaceSelector`. The public `gameplane-sftp`
+  Service carries only SSH.
+- **Transfers.** Uploads are capped by `files.maxUploadSize` and the volume's
+  free space. Idle sessions close after `sftp.idleTimeout`.
 
 ## Runtime mod installs (agent)
 
@@ -977,8 +1118,10 @@ Anyone can therefore post reports. Defences:
   body cap, and every string matched against a pattern or a fixed list, so
   hostile text can't create unbounded categories or reach the dashboard
 - a per-source daily limit on accepted reports (`INGEST_SOURCE_DAILY_LIMIT`,
-  default `20`, tolerant of shared NAT) and a rate limit on the public
-  summary, both held in memory only
+  default `20`, tolerant of shared NAT), a per-source request rate on
+  `/ingest` that also counts refused and malformed reports
+  (`INGEST_SOURCE_PER_MINUTE`, default `60`), and a rate limit on the public
+  summary, all held in memory only
 - optional proof-of-work (`INGEST_POW`, off by default; see below), which
   raises the cost of bulk reports in proportion to the request rate
 - only daily aggregates and expiring activity records are stored; raw
@@ -1008,6 +1151,14 @@ costs the receiver one HMAC and one hash, and it answers `428`
 (`pow_required` or `pow_invalid`) or, when its used-challenge set (1,000,000
 entries) is full, `503 pow_busy`. Challenge requests have their own
 per-source limit.
+
+New installs pay separately, whether or not `INGEST_POW` is on: the first
+report of an install ID the receiver has never seen needs a solved challenge
+of at least `INGEST_CLAIM_POW_BITS` (default 20, about a second of CPU). It
+is refused `428 pow_claim` first, and the install's automatic retry fetches a
+claim-grade challenge for its source and resends. Known installs never solve
+anything for it, so fabricating installs in bulk costs CPU per install while
+real installs pay once.
 
 What it stops: cheap bulk fabrication. The work a flood must do grows
 faster than its rate, while an install sending one report a day pays
@@ -1133,7 +1284,7 @@ Secret read. Without the grant, the API omits "used" and the dashboard shows
 
 ## mcp-server (optional)
 
-The optional MCP server (`mcpServer.enabled`, see [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/main/README.md))
+The optional MCP server (`mcpServer.enabled`, see [`mcp-server/README.md`](https://github.com/GameplanePanel/mcp/blob/master/README.md))
 is strictly read-only: no tool it exposes can create, update, patch, delete,
 or apply anything. It runs in one of two modes.
 

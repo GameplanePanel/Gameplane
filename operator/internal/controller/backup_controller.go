@@ -344,6 +344,27 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 		return ctrl.Result{}, err
 	}
+	// A scheduled Backup records the UID of the server its schedule fired for.
+	// If that server was replaced by a new one under the same name before the
+	// capture started, fail instead of capturing the replacement's data under
+	// the predecessor's provenance (#960). A cached mismatch is confirmed
+	// against the API server so a watch lag cannot fail a valid Backup.
+	if o := b.Spec.Origin; o != nil && o.ServerUID != "" && string(gs.UID) != o.ServerUID {
+		if err := r.backupAPIReader().Get(ctx, types.NamespacedName{
+			Namespace: b.Namespace, Name: b.Spec.ServerRef.Name,
+		}, &gs); err != nil {
+			if apierrors.IsNotFound(err) {
+				return r.fail(ctx, &b,
+					fmt.Sprintf("GameServer %q not found in namespace %s", b.Spec.ServerRef.Name, b.Namespace))
+			}
+			return ctrl.Result{}, fmt.Errorf("get server %s: %w", b.Spec.ServerRef.Name, err)
+		}
+		if string(gs.UID) != o.ServerUID {
+			return r.fail(ctx, &b, fmt.Sprintf(
+				"GameServer %q was replaced after schedule %q fired this backup; not capturing the new server",
+				b.Spec.ServerRef.Name, o.ScheduleName))
+		}
+	}
 
 	// Volume-snapshot backups take a CSI snapshot of the data PVC rather
 	// than running restic, so they branch off here — before the restic
@@ -1042,7 +1063,7 @@ func volumeSnapshotsAvailable(rm meta.RESTMapper) bool {
 //
 // Both containers share the same env (repo + password from the user's
 // Secret) and a tmpfs-backed cache to keep the rootfs read-only.
-func (r *BackupReconciler) buildBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl *gameplanev1alpha1.GameTemplate) corev1.PodSpec {
+func (r *BackupReconciler) buildBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl *gameplanev1alpha1.GameTemplate, appliedFSGroup ...*int64) corev1.PodSpec {
 	env := resticEnv(b.Spec.RepoRef.Name)
 	containerSec := resticContainerSecurityContext()
 
@@ -1055,7 +1076,7 @@ func (r *BackupReconciler) buildBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl 
 	}
 
 	spec := corev1.PodSpec{
-		SecurityContext: buildBackupPodSecurityContext(tmpl),
+		SecurityContext: buildBackupPodSecurityContext(tmpl, appliedFSGroup...),
 		InitContainers: []corev1.Container{{
 			Name:      "restic-init",
 			Image:     resticImageOrDefault(r.ResticImage),
@@ -1152,12 +1173,16 @@ func resticContainerSecurityContext() *corev1.SecurityContext {
 }
 
 // buildBackupPodSecurityContext returns the pod-level SecurityContext for backup/restore jobs.
-// It includes the template's FSGroup (if set) along with standard settings for the backup job.
-func buildBackupPodSecurityContext(tmpl *gameplanev1alpha1.GameTemplate) *corev1.PodSecurityContext {
+// The filesystem group is the applied one when a value is passed (spec 030, FR-011): the
+// group the data volume was last set up with. Without a value it is the template's FSGroup
+// (if set), as before. Standard settings for the backup job are unchanged.
+func buildBackupPodSecurityContext(tmpl *gameplanev1alpha1.GameTemplate, appliedFSGroup ...*int64) *corev1.PodSecurityContext {
 	nonRoot := true
 	uid := int64(65532)
 	fsGroup := uid
-	if tmpl.Spec.Security != nil && tmpl.Spec.Security.FSGroup != nil {
+	if len(appliedFSGroup) > 0 && appliedFSGroup[0] != nil {
+		fsGroup = *appliedFSGroup[0]
+	} else if tmpl.Spec.Security != nil && tmpl.Spec.Security.FSGroup != nil {
 		fsGroup = *tmpl.Spec.Security.FSGroup
 	}
 	return &corev1.PodSecurityContext{

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -16,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
@@ -83,6 +85,66 @@ func TestResources_GameServerCRUDRoundTrip(t *testing.T) {
 		Get(context.Background(), name, metav1.GetOptions{}); !apierrors.IsNotFound(err) {
 		t.Errorf("expected NotFound after DELETE, got err=%v", err)
 	}
+}
+
+func TestScheduleDeletePreconditions(t *testing.T) {
+	name := uniqueResourceName("scheduled")
+	path := "/schedules/" + name
+	schedule := map[string]any{
+		"apiVersion": "gameplane.local/v1alpha1",
+		"kind":       "BackupSchedule",
+		"metadata":   map[string]any{"name": name},
+		"spec": map[string]any{
+			"serverRef": map[string]any{"name": "alpha"},
+			"schedule":  "0 3 * * *",
+			"strategy":  "volume-snapshot",
+		},
+	}
+	create := func() unstructured.Unstructured {
+		t.Helper()
+		resp := doJSON(t, http.MethodPost, "/schedules", schedule)
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusCreated {
+			t.Fatalf("create schedule: %d %s", resp.StatusCode, readBody(t, resp))
+		}
+		var obj unstructured.Unstructured
+		if err := json.NewDecoder(resp.Body).Decode(&obj); err != nil {
+			t.Fatal(err)
+		}
+		return obj
+	}
+	remove := func(query string, want int) {
+		t.Helper()
+		resp := doJSON(t, http.MethodDelete, path+query, nil)
+		if body := readBody(t, resp); resp.StatusCode != want {
+			t.Fatalf("DELETE %s%s = %d, want %d: %s", path, query, resp.StatusCode, want, body)
+		}
+	}
+	conditions := func(uid, version string) string {
+		return "?" + url.Values{"expectedUID": {uid}, "expectedResourceVersion": {version}}.Encode()
+	}
+	first := create()
+	t.Cleanup(func() {
+		if err := kubeC.Dynamic.Resource(kube.GVRs["schedules"]).Namespace(scope.DefaultNamespace).
+			Delete(context.Background(), name, metav1.DeleteOptions{}); err != nil && !apierrors.IsNotFound(err) {
+			t.Errorf("clean up schedule %s: %v", name, err)
+		}
+	})
+	uid, version := string(first.GetUID()), first.GetResourceVersion()
+	first.SetLabels(map[string]string{"changed": "true"})
+	resp := doJSON(t, http.MethodPut, path, first.Object)
+	if body := readBody(t, resp); resp.StatusCode != http.StatusOK {
+		t.Fatalf("update schedule: %d %s", resp.StatusCode, body)
+	}
+	remove(conditions(uid, version), http.StatusConflict)
+	remove("", http.StatusNoContent)
+
+	replacement := create()
+	current := replacement.GetResourceVersion()
+	remove(conditions(uid, current), http.StatusConflict)
+	remove("?expectedUID="+uid, http.StatusBadRequest)
+	remove(conditions("", current), http.StatusBadRequest)
+	remove(conditions(string(replacement.GetUID()), current), http.StatusNoContent)
 }
 
 // Both REST write endpoints must return the CRD's field-specific error.

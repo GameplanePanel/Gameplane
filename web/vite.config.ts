@@ -3,7 +3,7 @@ import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -73,8 +73,8 @@ function cspHeader(): Plugin {
       const policy = [
         "default-src 'self'",
         ["script-src 'self'", ...hashes].join(" "),
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-        "font-src 'self' data: https://fonts.gstatic.com",
+        "style-src 'self' 'unsafe-inline'",
+        "font-src 'self' data:",
         "img-src 'self' data: blob: https:",
         "connect-src 'self'",
         "worker-src 'self' blob:",
@@ -88,6 +88,28 @@ function cspHeader(): Plugin {
         path.resolve(here, "build/csp.conf"),
         `add_header Content-Security-Policy "${policy}" always;\n`,
       );
+    },
+  };
+}
+
+// dropMockWorker removes public/mockServiceWorker.js from production builds.
+// Only the E2E mock mode (`vite --mode mock`, served by the dev server, which
+// reads public/ directly) registers it; a production image that still served
+// it would hand any script on the dashboard origin a ready-made service
+// worker that answers the dashboard's own requests and outlives the page.
+function dropMockWorker(): Plugin {
+  let outDir = "";
+  let mode = "";
+  return {
+    name: "gameplane-drop-mock-worker",
+    apply: "build",
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+      mode = config.mode;
+    },
+    closeBundle() {
+      if (mode === "mock") return;
+      rmSync(path.join(outDir, "mockServiceWorker.js"), { force: true });
     },
   };
 }
@@ -112,7 +134,7 @@ export default defineConfig({
   // The TS client and its worker load on the first script edit. Prebundle their
   // dependencies so Vite does not reload the dashboard and close that file.
   optimizeDeps: { include: ["vscode-languageserver-protocol/browser", "@bjorn3/browser_wasi_shim"] },
-  plugins: [react(), i18nFixtures(), i18nPseudo(), cspHeader()],
+  plugins: [react(), i18nFixtures(), i18nPseudo(), cspHeader(), dropMockWorker()],
   preview: { headers: isolationHeaders },
   worker: { format: "es" },
   resolve: {

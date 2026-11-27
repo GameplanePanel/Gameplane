@@ -44,33 +44,29 @@ image:
   pullPolicy: IfNotPresent
   pullSecrets: []
 
-# Native CRDs live in the bundled gameplane-crds subchart, enabled by
-# operator.enabled. Dependency gating happens before Helm installs CRDs, so
-# operator.enabled=false omits them from a standalone central panel install.
-# CRD lifecycle. Helm installs the files under the subchart's crds/ on first install
-# and NEVER updates them on `helm upgrade` (a documented Helm limitation). This
-# hook closes that gap: a pre-UPGRADE Job runs `kubectl apply --server-side`
-# over the CRDs, so a plain `helm upgrade` always brings the CRD schema up to
-# date. First installs get the CRDs from Helm's native crds/ (no pod), so the
-# hook normally runs only on upgrades — air-gapped first installs need no
-# extra image. The exception: a `helm install` onto CRDs an earlier,
-# uninstalled release left behind (crds/ skips existing CRDs), detected by the
-# bundle-hash annotation `make manifests` stamps on every CRD; the hook then
-# also runs on that install (F-218). It never deletes CRDs, so
-# `helm uninstall` still leaves your GameServers intact.
+# CRD lifecycle. The chart installs and updates its CRDs with a hook Job that
+# runs `kubectl apply --server-side` over crd-manifests/ on pre-INSTALL and
+# pre-UPGRADE (Helm's own crds/ phase never updates CRDs on upgrade). Once the
+# CRDs are served, a second hook Job applies the chart's ModuleSources
+# (defaultModuleSource, uploadModuleSource) with helm.sh/resource-policy=keep,
+# since Helm cannot create objects of a kind that does not exist yet. It never
+# deletes CRDs, so `helm uninstall` leaves your GameServers intact; the
+# ModuleSources stay too. With enabled=false (for example the Argo CD profile)
+# you install the CRDs yourself first, from the gameplane-crds chart or
+# charts/gameplane/charts/gameplane-crds/crds, and the ModuleSources render as
+# ordinary release objects.
 crds:
   autoApply:
     enabled: true
-    # The upgrade hook must be schedulable before new Deployments roll out.
+    # The hook must be schedulable before new Deployments roll out.
     nodeSelector: {}
     tolerations: []
     affinity: {}
     topologySpreadConstraints: []
     priorityClassName: ""
     # kubectl image the apply Job runs. Any image with kubectl on PATH works;
-    # retag to a private mirror for air-gapped installs (needed at upgrade
-    # time, and also on an install over CRDs an earlier, uninstalled release
-    # left behind — a genuinely fresh first install doesn't run the hook).
+    # retag to a private mirror for air-gapped installs (needed on every
+    # install and upgrade).
     image: registry.k8s.io/kubectl:v1.36.3
     # Pull policy for the kubectl image above. Kept separate from image.pullPolicy
     # so tracking :edge components (image.pullPolicy=Always) doesn't force a
@@ -80,6 +76,9 @@ crds:
 operator:
   # Bound, rotating agent-only token; 600 supports short rotation drills.
   agentTokenExpirationSeconds: 3600
+  # How long a stopped server's file-only pod (spec 040) stays up after its last
+  # file operation before the operator removes it. Must be a positive duration.
+  filesIdleTimeout: 10m
   # Disable the operator and bundled native CRDs for a standalone central panel.
   enabled: true
   replicas: 1
@@ -97,6 +96,17 @@ operator:
   # Remote-cluster kubeconfigs. A native API shares api.credentialsNamespace.
   # With no native API, empty uses the release namespace.
   controlPlaneNamespace: ""
+  # Remote operator-only installs (api.enabled=false): the identity the central
+  # panel uses on this cluster, as subjects of its registered kubeconfig. Each
+  # entry gets get, update and patch on the gameplane-security-settings
+  # ConfigMap only (the root-override switch), in the control-plane namespace.
+  # Empty creates no grant. The chart cannot see the kubeconfig, so the subject
+  # must be set by the operator of that cluster. Example:
+  #   securitySettingsSubjects:
+  #     - kind: ServiceAccount
+  #       name: panel-identity
+  #       namespace: panel-namespace
+  securitySettingsSubjects: []
   # Empty uses the release namespace. Non-default namespaces must already exist;
   # provision the referenced Secrets there before upgrading. These settings move
   # the operator's API reads, not the API pod or its mounted mTLS client material.
@@ -171,6 +181,13 @@ operator:
   #       ports: "2456-2499"
   #       templates: [valheim, factorio]
   portPools: []
+  # Default player-facing DNS names by GameTemplate name for NodePort and
+  # LoadBalancer servers. A server's networking.hostname overrides its default.
+  # Point each shared name at the address players can reach.
+  # templateHostnames:
+  #   minecraft-java: mc.example.net
+  #   valheim: val.example.net
+  templateHostnames: {}
   # Tunnel provider images: relay binaries wrapped in OCI images for reaching
   # players through relay services when the cluster has no public IP or port-
   # forwarding. Each wraps a third-party relay binary (frpc, tailscaled, playit)
@@ -179,6 +196,11 @@ operator:
     frp: ""   # defaults to {image.registry}/tunnel-frp:{image.tag}
     tailscale: ""   # defaults to {image.registry}/tunnel-tailscale:{image.tag}
     playit: ""   # defaults to {image.registry}/tunnel-playit:{image.tag}
+  # Registry hosts or host/path prefixes (e.g. ghcr.io, docker.io/itzg) a
+  # GameServer spec.image override may pull from. Empty (default) leaves the
+  # admin-only override unrestricted; template and version images are
+  # module-controlled and never checked.
+  allowedImageRegistries: []
   # Images the operator injects into game/backup pods. Retag these to a
   # private registry mirror for air-gapped installs (Docker Hub blocked).
   configInitImage: busybox:1.38.0
@@ -326,11 +348,11 @@ api:
       # above — automatically points the API's audit webhook at it, so each
       # audit event is forwarded to your syslog/SIEM collector. Off by default.
       #
-      # Auth: the bridge Service is a ClusterIP other pods can reach. Set
-      # `authSecretRef` above and the SAME token guards both the API→bridge call
-      # and the bridge's inbound check, so only the API can inject records —
-      # strongly recommended. Without it the bridge accepts unauthenticated POSTs
-      # (rely on NetworkPolicies to restrict who can reach :8514).
+      # Auth: the bridge Service is a ClusterIP other pods can reach, so the
+      # API→bridge call and the bridge's inbound check always share a token and
+      # only the API can inject records. Set `authSecretRef` above to supply
+      # your own; otherwise the chart generates one in the Secret
+      # gameplane-audit-syslog-bridge-token (kept across upgrades).
       #
       # Setting webhook.url explicitly disables the auto-wiring, so don't enable
       # the bridge and set webhook.url at the same time (the bridge would run
@@ -475,11 +497,18 @@ api:
       # challenges a minute, rises with the request rate up to maxBits, and
       # falls one bit every 5 minutes. Installs refuse challenges above 26
       # bits, so maxBits may not exceed 26.
+      #
+      # claimBits applies even while enabled is false: the first report of
+      # an install ID the receiver has never seen must carry a solved
+      # challenge of at least this many bits (about a second of CPU at 20),
+      # so creating installs in bulk is costly. Known installs never solve
+      # anything for it. 0 turns it off; at most 26.
       ingestPow:
         enabled: false
         targetPerMinute: 60
         minBits: 0
         maxBits: 22
+        claimBits: 20
 
   oidc:
     enabled: false
@@ -681,6 +710,23 @@ networkPolicies:
   # explicitly there when the endpoint is public. Re-run helm upgrade if
   # the API server endpoint changes.
   apiServerCIDRs: []
+  # Tunnel relay egress outside tenantIsolation. A relay may resolve DNS
+  # anywhere, reach its own server's game pods on the advertised ports, and
+  # dial its provider's ports (frp serverPort, Tailscale 443/41641, any port
+  # for playit) on public addresses only: exceptCIDRs stay closed so a relay
+  # cannot reach in-cluster services, nodes or cloud metadata. A frp
+  # serverAddr written as an IP is always allowed; list a LAN frp server
+  # reached by hostname in allowCIDRs (e.g. 192.168.1.20/32). Unused with
+  # tenantIsolation, where administrators supply provider egress policies.
+  tunnelEgress:
+    exceptCIDRs:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+      - 169.254.0.0/16
+      - fc00::/7
+      - fe80::/10
+    allowCIDRs: []
   # Egress allowance for game pods to reach the public internet. Game
   # servers download their binaries, assets, and mods on first start
   # (Fabric meta, Mojang, Steam, mod registries); without this the
@@ -787,6 +833,68 @@ mcpServer:
     requests: { cpu: 50m, memory: 32Mi }
     limits:   { cpu: 200m, memory: 128Mi }
 
+# File transfer settings shared by the dashboard Files tab and SFTP (spec 040).
+files:
+  # Maximum size of one file upload. Binary or decimal Kubernetes quantity
+  # (Ki/Mi/Gi/Ti, K/M/G/T) or a plain byte count. Passed to the operator
+  # (agent --max-upload-bytes), the API and the gateway.
+  maxUploadSize: 20Gi
+
+# Backup archives (spec 041): download any finished restic backup as .tar.gz or
+# .zip, and restore a server from an uploaded archive.
+backups:
+  # Largest archive one upload restore accepts. Kubernetes quantity or bytes.
+  maxUploadSize: 20Gi
+  # Storage class for the temporary volume an upload is unpacked and checked
+  # on before it replaces server data. Empty uses the cluster's default class;
+  # with neither, upload restores are refused before the server stops.
+  uploadStagingStorageClass: ""
+  # Downloads that may run at once per namespace; more get "busy, retry".
+  maxConcurrentExports: 3
+  # How long one download worker may live (Go duration, 1m to 24h).
+  exportTTL: 1h
+
+# SFTP endpoint for game server files (spec 040). Off by default. Every login and
+# file operation is authorised by the Gameplane API as the signed-in user.
+sftp:
+  enabled: false
+  port: 2222
+  # Empty => {image.registry}/sftp:{image tag}. Set a full reference to pin.
+  image: ""
+  # ClusterIP (default), NodePort or LoadBalancer. Use LoadBalancer or NodePort to accept SFTP from outside the cluster.
+  serviceType: ClusterIP
+  # NodePort only: fixed node port (30000-32767). 0 = let Kubernetes choose.
+  nodePort: 0
+  # LoadBalancer only: requested external IP, when the cloud supports it. Empty = provider default.
+  loadBalancerIP: ""
+  # Address shown to users in the profile (host or host:port). Empty = unknown.
+  publicAddress: ""
+  # Remote clusters: central API URL (https:// only), optional CA bundle Secret (key ca.crt) and an existing Secret
+  # with key `token` holding the service token created in the central panel.
+  apiURL: ""
+  apiCASecret: ""
+  serviceTokenSecret: ""
+  # Existing Secret with a `host_key` PEM; empty => chart generates one once (kept on uninstall).
+  hostKeySecret: ""
+  idleTimeout: 15m
+  maxSessionsPerUser: 4
+  maxTransfersPerUser: 8
+  # Connections one source IP may have open before login finishes; more are closed at once. Raise it
+  # when many users reach the pod from one address (a LoadBalancer that rewrites client IPs).
+  maxPreAuthPerIP: 8
+  # /metrics (port 9102, no authentication) is served only when serviceMonitors.enabled is true, on a
+  # separate in-cluster gameplane-sftp-metrics Service; the public SFTP Service carries only SSH.
+  # Remote mode (apiURL set) requires an https:// URL.
+  replicas: 1
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits:   { cpu: 500m, memory: 256Mi }
+
 # Informational release-channel label shown read-only in the dashboard's
 # Admin Settings → Updates section. Nothing consumes it — Gameplane is
 # upgraded via Helm (image tags / chart versions). Empty (default)
@@ -864,15 +972,15 @@ defaultModuleSource:
   git:
     url: https://github.com/GameplanePanel/module.git
     # Pinned to the module-repo tag validated against this chart's backend
-    # release, not "main": a git source only ever offers the module version
-    # present at its ref, so tracking main means a module version bump
+    # release, not "master": a git source only ever offers the module version
+    # present at its ref, so tracking master means a module version bump
     # upstream can orphan every already-installed Module CR on this cluster
     # (they stay pinned to the old version, which the ref no longer serves,
     # and go Failed/VersionUnavailable — this happened on the maintainer's
     # own cluster). Bump this ref only in lockstep with a chart release that
     # was actually tested against the matching module-repo tag. Set to
-    # "main" explicitly if you want the bleeding edge instead.
-    ref: v0.4.1
+    # "master" explicitly if you want the bleeding edge instead.
+    ref: v0.5.0
     subPath: ""           # module directories live at the repo root
   oci:
     url: ghcr.io/gameplanepanel/gameplane-modules
@@ -882,18 +990,32 @@ defaultModuleSource:
     modules:
       - 7-days-to-die
       - ark-survival-ascended
+      - ark-survival-evolved
+      - arma-reforger
+      - beammp
       - cs2
       - dayz
       - dont-starve-together
       - enshrouded
+      - euro-truck-simulator-2
       - factorio
+      - farming-simulator-25
+      - fivem
       - garrys-mod
+      - left-4-dead-2
       - minecraft-java
+      - minecraft-proxy
+      - mount-and-blade-2-bannerlord
+      - nuclear-option
       - palworld
       - project-zomboid
       - rust
       - satisfactory
+      - squad
+      - team-fortress-2
       - terraria
+      - the-isle
+      - tmodloader
       - valheim
       - v-rising
     # Reference to a kubernetes.io/dockerconfigjson Secret in the operator

@@ -4,132 +4,199 @@
     "figId": "1:5086",
     "name": "Gameplane/Provenance Badge/Not configured",
     "width": 115,
-    "height": 17
+    "height": 17,
+    "hash": "7895ae3a00ae13f7d5f1abf5a68fca3ddd83ebd3a7fa83b6d6052f8ca8336f9d"
   },
   {
     "file": "CqaSq",
     "figId": "1:10185",
     "name": "Gameplane/Role Editor Modal",
     "width": 480,
-    "height": 513
+    "height": 513,
+    "hash": "9c499f1105c0f0e2c68d27a52a8c9788e7cb79e1a1042109f12b5d6a8ff61728"
   },
   {
     "file": "DMnEi",
     "figId": "1:10241",
     "name": "Gameplane/Dialog/Add Module Source",
     "width": 480,
-    "height": 885
+    "height": 885,
+    "hash": "8260f3da20749e2bcdd725e6f14c2a61135ee25cf75cbbfea2714e44ab36375c"
   },
   {
     "file": "E9EEv0",
     "figId": "1:10276",
     "name": "Gameplane/Dialog/Restore Backup",
     "width": 480,
-    "height": 389
+    "height": 389,
+    "hash": "eca6930dd47a84aa9863640cb848e74cea5010d04d10b91c22f87f56479ca7f3"
   },
   {
     "file": "Kp48V",
     "figId": "1:10369",
     "name": "Gameplane/Dialog/Confirm Admin Mapping",
     "width": 440,
-    "height": 320
+    "height": 320,
+    "hash": "201ad515701a6a4c5ca3b8f43a2d7f49383683106a6e5d1a76429fe572f141a8"
   },
   {
     "file": "MaoHP",
     "figId": "1:10326",
     "name": "Gameplane/Dialog/Reset Password",
     "width": 480,
-    "height": 215
+    "height": 215,
+    "hash": "45c8afb353fa9b01aac777cedfff1519229854e18813f69f0a8fd86866f5102f"
   },
   {
     "file": "NLDDv",
     "figId": "1:10285",
     "name": "Gameplane/Dialog/Invite User",
     "width": 480,
-    "height": 516
+    "height": 516,
+    "hash": "5664e6002dfacecf7a78421dda580f00a9782e85a322fb330ad686379330878e"
   },
   {
     "file": "R65Xyx",
     "figId": "1:3547",
     "name": "Gameplane/Provenance Badge/Overridden",
     "width": 169,
-    "height": 17
+    "height": 17,
+    "hash": "2cf49c89f11fbc2ba1997c3165aa78ca5a330f78dab2245c7d74ad67a8f00f45"
   },
   {
     "file": "Rwnu3",
     "figId": "1:3569",
     "name": "Gameplane/Provenance Badge/From Helm",
     "width": 127,
-    "height": 17
+    "height": 17,
+    "hash": "ad3955c879ce7d8d4e0a0a3da869d0bc0d0acc4898804a58538d489d5ef4b568"
   },
   {
     "file": "S7SCDc",
     "figId": "1:10364",
     "name": "Gameplane/Dialog/Revoke Share Link",
     "width": 440,
-    "height": 190
+    "height": 190,
+    "hash": "7705aec974c6f13a15eb8c2fea6e93ceb430ca278ace971caf3cb319ddd57fde"
   },
   {
     "file": "VM7ro",
     "figId": "1:10351",
     "name": "Gameplane/Dialog/Share Link Created",
     "width": 480,
-    "height": 344
+    "height": 380,
+    "hash": "9efc00d0836a7d18cfe2879f54a7fe32d19ea6235fb7d8dbae8d5b72b1bfeaf0"
   },
   {
     "file": "XL5ZU",
     "figId": "1:3553",
     "name": "Gameplane/Removable Group Chip/Orange",
     "width": 83,
-    "height": 23
+    "height": 23,
+    "hash": "6266a1b771c73445ba945d372731f86c9c17e06ec75a81e05c3dc7c7feec510c"
   },
   {
     "file": "atqRh",
     "figId": "1:10338",
     "name": "Gameplane/Dialog/Create Share Link",
     "width": 480,
-    "height": 302
+    "height": 302,
+    "hash": "0518382ebf5304a6b08104124a73439a38291490a368f3a7a79fcf09c5d04a5a"
   },
   {
     "file": "bHJy6",
     "figId": "1:10422",
     "name": "Gameplane/Backup Volume Coverage — Recorded",
     "width": 400,
-    "height": 442
+    "height": 442,
+    "hash": "fba9283ebf4065950d60a4fd7ad4eb8047e5ddfea84efe7ef1b7cd09af3d8741"
   },
   {
     "file": "m1hP1j",
     "figId": "1:10080",
     "name": "Integrity Banner (Broken)",
     "width": 1132,
-    "height": 64
+    "height": 64,
+    "hash": "1affe6e27d63550b4a6696e64ac2f0b72282a84f675b82daf13754e6523cc805"
   },
   {
     "file": "t3IY3u",
     "figId": "1:10302",
     "name": "Gameplane/Dialog/Edit User",
     "width": 480,
-    "height": 558
+    "height": 558,
+    "hash": "a7a10763926bcc566dd689dcc210b21f5aac2e46a017ea357e77bce0dc77ac0d"
   },
   {
     "file": "uw0dB",
     "figId": "1:10074",
     "name": "Gameplane/Removable Group Chip/Secondary",
     "width": 77,
-    "height": 23
+    "height": 23,
+    "hash": "03657b8fa9601ca66ba9fc9505b519de32497ae22fa6f31b8a79fb51fe5d2086"
   },
   {
     "file": "vStkb",
     "figId": "1:3575",
     "name": "Gameplane/Removable Group Chip/Violet",
     "width": 77,
-    "height": 23
+    "height": 23,
+    "hash": "ece8e5e1208ba180b8a5235ffaa7ecd85a87dbbb14d571709601e3f188c1b391"
   },
   {
     "file": "zhLZN",
     "figId": "1:10111",
     "name": "Gameplane/Backup Detail Drawer",
     "width": 440,
-    "height": 760
+    "height": 760,
+    "hash": "592fa569bba6dd74b2fa14ac5f66c2fdabaf73a44c825cdb9e0957b4c9139745"
+  },
+  {
+    "file": "security-advanced",
+    "figId": "1344695818:183",
+    "name": "Gameplane/Security Advanced",
+    "width": 860,
+    "height": 651,
+    "hash": "83f49a80d3bb7cbe63f14cb5f6deeb6ce67ccd98397ba6d028b8d8a1820a564e"
+  },
+  {
+    "file": "security-advanced-mobile",
+    "figId": "1344695818:343",
+    "name": "Gameplane/Security Advanced/Mobile",
+    "width": 327,
+    "height": 891,
+    "hash": "4a47b4583be072a97abe97f8f91b531ef50f56904b1636c808356bf28e85067e"
+  },
+  {
+    "file": "dialog-risky-security-value",
+    "figId": "1344695818:344",
+    "name": "Gameplane/Dialog/Risky Security Value",
+    "width": 480,
+    "height": 271,
+    "hash": "220166db07fea752ec41c0c514619067fdaf0625786b928e2f04f27b2a9be207"
+  },
+  {
+    "file": "dialog-security-file-access",
+    "figId": "1344695818:363",
+    "name": "Gameplane/Dialog/Security File Access Warning",
+    "width": 480,
+    "height": 286,
+    "hash": "e2ca9f0c7a3b06e9f6335c0d345793c6331a6a796eb1504fdf2e0bd93981f5b4"
+  },
+  {
+    "file": "cluster-security-panel",
+    "figId": "1344695818:414",
+    "name": "Gameplane/Cluster Security Panel",
+    "width": 1132,
+    "height": 209,
+    "hash": "66d9b3109cc0d5a113e1741fb2f0fcd7917f15fe1a6ecfd351b12f677fa3450d"
+  },
+  {
+    "file": "UserMenu",
+    "figId": "1:10020",
+    "name": "Gameplane/Top Bar — User Menu",
+    "width": 232,
+    "height": 181,
+    "hash": "b450e035399bce9fd02698bcb06db061275e84a22aab272d7065339b865e9e99"
   }
 ]

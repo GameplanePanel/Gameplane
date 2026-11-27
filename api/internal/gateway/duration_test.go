@@ -103,13 +103,16 @@ func durationProxy(ctx context.Context, t *testing.T, h *handler, cert *x509.Cer
 }
 
 func TestGatewayTransfersWithoutTotalCap(t *testing.T) {
-	for _, path := range []string{"/files/download", "/logs/download", "/files/upload", "/mods/upload", "/mods/install", "capture"} {
+	for _, path := range []string{"/files/download", "/logs/download", "/files/upload", "/mods/upload", "/mods/install", "/files/stream", "capture"} {
 		t.Run(path, func(t *testing.T) {
 			h, cert := newFixture(t)
 			h.cfg.MaxRequestDuration = 0
 			method := http.MethodGet
 			if path == "/files/upload" || path == "/mods/upload" || path == "/mods/install" {
 				method = http.MethodPost
+			}
+			if path == "/files/stream" {
+				method = http.MethodPut
 			}
 			var gatewayPath string
 			var err error
@@ -237,6 +240,9 @@ func TestGatewayDeadlinePolicy(t *testing.T) {
 		{http.MethodPost, "/files/upload", true},
 		{http.MethodPost, "/mods/upload", true},
 		{http.MethodPost, "/mods/install", true},
+		{http.MethodPut, "/files/stream", true},
+		{http.MethodGet, "/files/stat", false},
+		{http.MethodPost, "/files/rename", false},
 		{http.MethodGet, "/status", false},
 		{http.MethodGet, "/files/list", false},
 		{http.MethodGet, "/files/read", false},

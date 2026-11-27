@@ -1,6 +1,6 @@
 # test/e2e — Specification
 
-**Status:** pre-v1 (v0.4.3)
+**Status:** pre-v1 (v0.5.0)
 **Module / package:** `github.com/GameplanePanel/gameplane/test/e2e`
 **Go version:** 1.27.0
 
@@ -197,6 +197,21 @@ Kind local-path PV affinity supplies the storage placement constraint; this is
 not an attachable CSI driver or multi-attach qualification. Unit/envtest regressions
 cover stale worker/source identity, persisted budgets, delayed drainage, CSI
 abort/reclamation, retained/replaced content and raw snapshot-source rejection.
+
+### Server security override acceptance
+
+Two tests in the `operator` bucket (`test/e2e/buckets.sh`) cover module security
+defaults and per-server overrides. `TestGameServer_SecurityOverrideAppliesOnRestart`
+(`gameserver_security_e2e_test.go`) uses zero API logins. It checks that an override
+sets the uid of the running pod, that the change stays pending without changing the
+pod UID until a restart, and that a root override does not start while the cluster
+ConfigMap `gameplane-security-settings` is off, and starts once it is `"true"`.
+`TestAPI_SecurityOverride_PermissionAndRootRule` (`api_security_override_e2e_test.go`)
+uses one admin login and one login as a user with a custom role (`servers:read`,
+`servers:write`, later granted `servers:security`). It checks the 403 without
+`servers:security`, the 403 for a root value while the cluster setting is off and
+the 200 once it is on (via `PUT /security-settings?cluster=local`), the ConfigMap
+value after each flip, and the audit rows for the flip and the refusal.
 
 ## Non-goals / boundaries
 

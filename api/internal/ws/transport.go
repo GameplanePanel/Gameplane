@@ -39,6 +39,17 @@ type agentRequest struct {
 	rawQuery string
 	header   http.Header
 	body     io.Reader
+	// contentLength is the caller's declared body size. Zero means unknown,
+	// so the outgoing request keeps the length net/http derives from body.
+	contentLength int64
+}
+
+// applyContentLength forwards a known body length so the agent's free-space
+// and size pre-checks see the real size instead of a chunked body.
+func (operation agentRequest) applyContentLength(req *http.Request) {
+	if operation.contentLength > 0 {
+		req.ContentLength = operation.contentLength
+	}
 }
 
 // agentTransport separates agent operations from their network route. A
@@ -123,6 +134,7 @@ func (t *directAgentTransport) Do(ctx context.Context, operation agentRequest) (
 	if err != nil {
 		return nil, err
 	}
+	operation.applyContentLength(req)
 	// Keep browser session material out of agents even for internal callers.
 	copyProxyHeaders(req.Header, operation.header)
 	return t.http.Do(req)

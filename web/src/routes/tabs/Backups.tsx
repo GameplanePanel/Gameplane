@@ -1,10 +1,10 @@
-import { useResourceClient, useResourceTarget, resourceKey, useResourcePermissions, resourceCan } from "@/lib/resourceTarget";
+import { useResourceAccess, useResourceClient, useResourceTarget, resourceKey, useResourcePermissions, resourceCan } from "@/lib/resourceTarget";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, CalendarClock, Clock, HardDrive } from "lucide-react";
-import { Button, Chip, Table } from "@heroui/react";
+import { Button, Table } from "@heroui/react";
 import { StatCard } from "@/components/ui/StatCard";
-import { PhaseChip } from "@/components/ui/PhaseChip";
+import { PhaseChip, backupAwaitingSnapshot } from "@/components/ui/PhaseChip";
 
 import { APIError } from "@/lib/api";
 import { useBackupDestinations } from "@/lib/destinations";
@@ -15,22 +15,29 @@ import { ScheduleForm } from "@/components/backups/ScheduleForm";
 import { RestoreDialog } from "@/components/backups/RestoreDialog";
 import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
 import { BackupSize } from "@/components/backups/BackupSize";
-import type { Backup } from "@/types";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import type { Backup, BackupSchedule } from "@/types";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
-export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
+function scheduleMissingOrChanged(error: unknown): boolean {
+  return error instanceof APIError && (error.status === 404 || error.status === 409);
+}
+
+export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; ns?: string; onOpenBackupSettings?: () => void }) {
   const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const resourceClient = useResourceClient(resourceTarget);
   const { Backups } = resourceClient;
   const qc = useQueryClient();
   const permissions = useResourcePermissions();
+  const access = useResourceAccess();
   // The access snapshot belongs to the selected cluster and namespace. Keep
   // denied results isolated from later grants and from other resource scopes.
   const accessKey = useBackupAccessKey(resourceTarget, permissions);
   const canReadBackups = resourceCan(permissions, "backups:read");
   const canReadSchedules = resourceCan(permissions, "schedules:read");
-  const [creatingSchedule, setCreatingSchedule] = useState(false);
+  const [scheduleEditor, setScheduleEditor] = useState<"new" | BackupSchedule | null>(null);
+  const [deleting, setDeleting] = useState<BackupSchedule | null>(null);
   const [restoringBackup, setRestoringBackup] = useState<Backup | null>(null);
   const [selectedBackup, setSelectedBackup] = useState<string | null>(null);
 
@@ -63,6 +70,21 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
   const backups = backupsDenied ? undefined : backupsData;
   const schedules = schedulesDenied ? undefined : schedulesData;
   const restores = restoresDenied ? undefined : restoresData;
+  const canManageSchedules = !schedulesDenied && resourceCan(permissions, "schedules:write");
+  const removeSchedule = useMutation({
+    mutationFn: (schedule: BackupSchedule) => resourceClient.Schedules.remove(schedule.metadata.name, ns, schedule.metadata),
+    onError: async error => {
+      if (scheduleMissingOrChanged(error)) {
+        await qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "schedules") });
+        setDeleting(null);
+      }
+    },
+    onSuccess: () => {
+      setDeleting(null);
+      void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "schedules") });
+      void qc.invalidateQueries({ queryKey: ["fleet", "schedules"] });
+    },
+  });
 
   // Multi-destination picking is handled on the dashboard's Backups page;
   // here we only act when there's exactly one configured destination.
@@ -83,7 +105,7 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
   const backupNowDisabled = !resourceCan(permissions, "backups:write") || !lone || createNow.isPending;
   const backupNowHint =
     destinationsLoaded && destinations.length === 0
-      ? intl.formatMessage({ id: "web.routes.tabs.backups.backup_now_hint_no_destination", defaultMessage: "No backup destination configured. Add one in admin settings.", description: "Backups tab: hint under the Back up now button when no backup destination exists; points to admin settings" })
+      ? intl.formatMessage({ id: "web.routes.tabs.backups.backup_now_hint_no_destination", defaultMessage: "No backup destination configured. See this server’s Settings → Scheduled backups.", description: "Backups tab: directs the user to the server settings section with the destination management link" })
       : destinations.length > 1
         ? intl.formatMessage({ id: "web.routes.tabs.backups.backup_now_hint_many_destinations", defaultMessage: "Multiple destinations configured — use the Backups page to pick one.", description: "Backups tab: hint under the Back up now button when several backup destinations exist; points to the dashboard Backups page to choose one" })
         : undefined;
@@ -148,39 +170,83 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
           <Button
             size="sm"
             variant="outline"
-            onPress={() => setCreatingSchedule(true)}
-            isDisabled={creatingSchedule || !resourceCan(permissions, "schedules:write")}
+            onPress={() => setScheduleEditor("new")}
+            isDisabled={scheduleEditor !== null || !resourceCan(permissions, "schedules:write")}
           >{intl.formatMessage({ id: "web.routes.tabs.backups.new_schedule", defaultMessage: "New schedule", description: "Backups tab: button that opens the form to create a new backup schedule; keep it short" })}</Button>
         </div>
-        {creatingSchedule && (
-          <ScheduleForm serverName={name} ns={ns} onClose={() => setCreatingSchedule(false)} />
+        {scheduleEditor && (scheduleEditor === "new" || canManageSchedules) && (
+          <ScheduleForm
+            key={scheduleEditor === "new" ? "new" : scheduleEditor.metadata.name}
+            existing={scheduleEditor === "new" ? undefined : scheduleEditor}
+            serverName={name}
+            ns={ns}
+            onClose={() => setScheduleEditor(null)}
+          />
         )}
         {serverSchedules.length > 1 && (
           <div className="mb-3 rounded border border-warning/30 bg-warning/5 px-3 py-2 text-xs text-foreground/60">{intl.formatMessage({ id: "web.routes.tabs.backups.this_server_has_multiple_backup", defaultMessage: "This server has multiple backup schedules — consider consolidating to avoid duplicate backups.", description: "Backups tab: warning note shown when the server has more than one backup schedule, advising to combine them to avoid duplicate backups" })}</div>
         )}
         <div className="space-y-1 pt-2">
           {serverSchedules.map((s) => {
-            const isAutoManaged = s.metadata.name === `${name}-auto`;
+            const serverOwner = s.metadata.ownerReferences?.find(owner =>
+              owner.controller && owner.kind === "GameServer" && owner.name === name);
+            const canOpenSettings = access?.canWrite && onOpenBackupSettings &&
+              (!resourceTarget.uid || serverOwner?.uid === resourceTarget.uid);
             return (
               <div
                 key={s.metadata.name}
-                className="flex items-center justify-between rounded border border-border bg-surface/30 px-4 py-2 text-sm"
+                className="flex flex-wrap items-center justify-between gap-3 rounded border border-border bg-surface/30 px-4 py-2 text-sm"
               >
-                <div className="flex items-center gap-2">
-                  <span className="font-mono">{s.spec.schedule}</span>
-                  {isAutoManaged && (
-                    <Chip size="sm" color="default" variant="soft">{intl.formatMessage({ id: "web.routes.tabs.backups.managed_by_server_settings", defaultMessage: "Managed by server settings", description: "Backups tab: small badge on a schedule row meaning the schedule is set by the server settings and not edited here; keep it short" })}</Chip>
+                <div className="flex min-w-0 flex-wrap items-center gap-3">
+                  <span className="break-all font-mono">{s.metadata.name}</span>
+                  <span className="text-foreground/60">{s.spec.schedule}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-foreground/60">{intl.formatMessage({ id: "web.routes.tabs.backups.next", defaultMessage: "Next:", description: "Backups tab: label in front of the next run time shown on a backup schedule row" })} {formatRelativeFuture(s.status?.nextScheduleTime, intl)}</span>
+                  {serverOwner ? (
+                    <Button size="sm" variant="outline" isDisabled={!canOpenSettings} onPress={onOpenBackupSettings}>
+                      {intl.formatMessage({ id: "web.routes.tabs.backups.managed_by_server_settings", defaultMessage: "Managed by server settings", description: "Backups tab: opens the server settings that control this schedule" })}
+                    </Button>
+                  ) : (
+                    <>
+                      <Button size="sm" variant="outline" isDisabled={!canManageSchedules || scheduleEditor !== null} onPress={() => setScheduleEditor(s)}>
+                        {intl.formatMessage({ id: "web.routes.tabs.backups.edit", defaultMessage: "Edit", description: "Server Backups tab: opens the selected backup schedule for editing" })}
+                      </Button>
+                      <Button size="sm" variant="outline" isDisabled={!canManageSchedules || scheduleEditor !== null || !s.metadata.uid || !s.metadata.resourceVersion} onPress={() => {
+                        removeSchedule.reset();
+                        setDeleting(s);
+                      }}>
+                        {intl.formatMessage({ id: "web.routes.backups.delete", defaultMessage: "Delete", description: "Backups: button that starts deleting a schedule row, and the confirm button of the delete schedule dialog; keep it short" })}
+                      </Button>
+                    </>
                   )}
                 </div>
-                <span className="text-foreground/60">{intl.formatMessage({ id: "web.routes.tabs.backups.next", defaultMessage: "Next:", description: "Backups tab: label in front of the next run time shown on a backup schedule row" })} {formatRelativeFuture(s.status?.nextScheduleTime, intl)}
-                </span>
               </div>
             );
           })}
-          {schedules && serverSchedules.length === 0 && !creatingSchedule && (
+          {schedules && serverSchedules.length === 0 && !scheduleEditor && (
             <p className="text-sm text-foreground/60">{intl.formatMessage({ id: "web.routes.tabs.backups.no_schedules_yet", defaultMessage: "No schedules yet.", description: "Backups tab: empty-state text in the schedules section, shown when the server has no backup schedules" })}</p>
           )}
         </div>
+        {!deleting && scheduleMissingOrChanged(removeSchedule.error) && (
+          <ErrorBanner err={intl.formatMessage({ id: "web.routes.tabs.backups.delete_schedule_changed", defaultMessage: "The schedule changed or was removed. Review the current schedule before deleting.", description: "Server Backups tab: the schedule changed after the user opened the delete confirmation" })} />
+        )}
+        {deleting && canManageSchedules && (
+          <ConfirmDialog
+            open
+            onOpenChange={open => { if (!open) setDeleting(null); }}
+            title={intl.formatMessage({ id: "web.routes.backups.delete_schedule", defaultMessage: "Delete schedule?", description: "Backups: title of the dialog asking whether to delete a schedule" })}
+            description={<>
+              {intl.formatMessage({ id: "web.routes.tabs.backups.delete_schedule_hint", defaultMessage: "Deleting this schedule stops future runs. Backups already taken are kept.", description: "Server Backups tab: explains the effect of deleting a schedule" })}
+              {removeSchedule.error && <ErrorBanner err={removeSchedule.error} />}
+            </>}
+            confirmPhrase={deleting.metadata.name}
+            confirmLabel={intl.formatMessage({ id: "web.routes.backups.delete", defaultMessage: "Delete", description: "Backups: button that starts deleting a schedule row, and the confirm button of the delete schedule dialog; keep it short" })}
+            destructive
+            busy={removeSchedule.isPending}
+            onConfirm={() => removeSchedule.mutate(deleting)}
+          />
+        )}
       </section>
 
       {serverRestores.length > 0 && (
@@ -245,7 +311,7 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
                     >
                       <Table.Cell className="font-mono">{b.metadata.name}</Table.Cell>
                       <Table.Cell>
-                        <PhaseChip phase={b.status?.phase} />
+                        <PhaseChip phase={b.status?.phase} awaitingSnapshot={backupAwaitingSnapshot(b.status)} />
                       </Table.Cell>
                       <Table.Cell className="font-mono"><BackupSize backup={b} /></Table.Cell>
                       <Table.Cell className="font-mono text-foreground/60">

@@ -35,6 +35,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -82,7 +83,12 @@ type Version struct {
 	ReleaseType string `json:"releaseType,omitempty"`
 	// PublishedAt is RFC 3339 UTC; empty when unknown.
 	PublishedAt string `json:"publishedAt,omitempty"`
-	Files       []File `json:"files"`
+	// ServerVersion and ServerVersionName are set only by the handler's
+	// all-loaders modpack listing (spec 035 FR-014): the template version id
+	// and displayName of the server version this pack version runs on.
+	ServerVersion     string `json:"serverVersion,omitempty"`
+	ServerVersionName string `json:"serverVersionName,omitempty"`
+	Files             []File `json:"files"`
 }
 
 // SearchQuery is a normalized search request. Loader and GameVersion are
@@ -228,6 +234,7 @@ type Set struct {
 // destination is refused at dial time with netguard.ErrBlockedAddr.
 func NewSet(version string, keyFunc KeyFunc) *Set {
 	client := netguard.HTTPClient(15*time.Second, netguard.IsPublic)
+	client.CheckRedirect = stripKeysOnHostChange
 	ua := "gameplane/" + version + " (+https://github.com/GameplanePanel/gameplane)"
 	return &Set{
 		modrinth:     newModrinth(client, ua),
@@ -243,6 +250,26 @@ func NewSet(version string, keyFunc KeyFunc) *Set {
 		ua:           ua,
 		now:          time.Now,
 	}
+}
+
+// providerKeyHeaders are the API-key headers keyed providers send (CurseForge
+// x-api-key, Nexus apikey). Go keeps custom headers on a redirect to another
+// host, so stripKeysOnHostChange removes them there.
+var providerKeyHeaders = []string{"x-api-key", "apikey"}
+
+// stripKeysOnHostChange is the registry client's CheckRedirect: it keeps Go's
+// 10-redirect limit and drops provider API keys when a redirect leaves the
+// host of the original request.
+func stripKeysOnHostChange(req *http.Request, via []*http.Request) error {
+	if len(via) >= 10 {
+		return errors.New("stopped after 10 redirects")
+	}
+	if len(via) > 0 && !strings.EqualFold(req.URL.Host, via[0].URL.Host) {
+		for _, h := range providerKeyHeaders {
+			req.Header.Del(h)
+		}
+	}
+	return nil
 }
 
 // For returns the provider for a module's registry config. ok is false

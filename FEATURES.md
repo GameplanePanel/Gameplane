@@ -6,7 +6,7 @@ Default column: **on** (enabled by the chart or the product), **off** (opt-in, s
 
 Notification rows take effect once a notification sink is configured.
 
-Status date: 2026-11-21 (v0.4.3, pre-v1).
+Status date: 2026-11-25 (v0.5.0, pre-v1).
 
 See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 
@@ -96,7 +96,7 @@ See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 | Browse the official catalog and merged module states | beta | on | The official OCI catalog holds 29 game modules and the chart enables 16 by default, and the Modules page shows available, installed, verified, failed and update states across all configured sources. | [module-authoring](docs/module-authoring.md#installing-a-module) |
 | Pin or verify module bundles with digests and signatures | beta | off | Sets a Module digest so only that exact bundle installs, and checks bundle signatures against a cosign public key or a keyless Sigstore identity before installing. | [module-authoring](docs/module-authoring.md#verifying-and-pinning-bundles) |
 | Use a Git repository, HTTP archive or local directory as a module source | beta | off | Reads module directories from a Git repository at a pinned ref, from a tar.gz or zip archive served over HTTP or HTTPS, or from a path mounted into the operator pod. | [module-authoring](docs/module-authoring.md#module-sources) |
-| Complete specs.md for all 29 game modules | planned | n/a | Each game module carries a specs.md documenting its template configuration; 26 of 29 have one today. | [roadmap](docs/roadmap.md#game-module-template-specifications-planned) |
+| Complete specs.md for all 29 game modules | planned | n/a | Each game module carries a specs.md documenting its template configuration; 27 of 29 have one today. | [roadmap](docs/roadmap.md#game-module-template-specifications-planned) |
 | Nuclear Option join through a load-balancer IP pool override | in progress | n/a | Lets Nuclear Option clients join through a load-balancer IP pool override; blocked until the server binding on UDP 7777 is documented. | [roadmap](docs/roadmap.md#in-progress) |
 
 ## Module authoring
@@ -182,7 +182,7 @@ See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 | Record and page through the audit log | stable | on | Each mutating API request writes an audit event to the audit_events table that the dashboard serves, and GET /admin/audit pages and filters the events. | [install](docs/install.md#audit-log) |
 | Export the audit trail and verify its hash chain | beta | on | GET /admin/audit/export downloads the full trail as CSV or JSON, and GET /admin/audit/verify re-walks the SHA-256 chain and reports the first broken link. | [security](docs/security.md#audit-log-integrity) |
 | Forward audit events to stdout or a webhook | beta | off | Mirrors each event as a structured JSON log line when api.audit.stdout is set, and POSTs each event as JSON from a bounded best-effort buffer when api.audit.webhook.url is set, with an optional Authorization header read from a Secret. | [install](docs/install.md#audit-log) |
-| Ship audit events to syslog or S3-compatible storage | beta | off | The bundled audit-syslog-bridge turns events into RFC 5424 records sent over TCP, TCP with TLS or UDP, with TCP recommended, and api.audit.s3 batches NDJSON objects flushed at 100 events, 1 MiB or 5 seconds. | [audit-syslog-bridge](https://github.com/GameplanePanel/audit-syslog-bridge/blob/main/README.md#transport-prefer-tcp) |
+| Ship audit events to syslog or S3-compatible storage | beta | off | The bundled audit-syslog-bridge turns events into RFC 5424 records sent over TCP, TCP with TLS or UDP, with TCP recommended, and api.audit.s3 batches NDJSON objects flushed at 100 events, 1 MiB or 5 seconds. | [audit-syslog-bridge](https://github.com/GameplanePanel/audit-syslog-bridge/blob/master/README.md#transport-prefer-tcp) |
 | Prune audit events past a retention age | beta | off | api.audit.retentionDays removes events older than N days, and the default of 0 keeps events forever. | [install](docs/install.md#audit-log) |
 | Resolve client IPs through trusted proxies | beta | on | The API reads X-Forwarded-For only from peers inside api.trustedProxies, so audit records and per-IP limits use the real client address. | [security](docs/security.md#client-ip-extraction-from-forwarded-headers) |
 | Run Gameplane pods hardened and optionally enforce restricted Pod Security | beta | on | Operator, API, agent and optional bridge pods run as uid 65532 with read-only root filesystems, RuntimeDefault seccomp and all capabilities dropped, and new installations enforce the Restricted Pod Security Standard in managed game namespaces by default. | [security](docs/security.md#pod-security) |
@@ -237,7 +237,7 @@ See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 | Capability | Maturity | Default | Description | Docs |
 |---|---|---|---|---|
 | Install and upgrade the panel from the Helm chart | stable | on | One helm upgrade --install installs the operator, API and dashboard, and a pre-upgrade hook applies the Gameplane CRDs so every upgrade keeps the schema current. | [install](docs/install.md#one-shot-install) |
-| Read-only MCP server | beta | off | An optional MCP server lets AI assistants read GameServers, pods, events and logs and propose fixes without writing. | [mcp-server](https://github.com/GameplanePanel/mcp/blob/main/README.md#tools) |
+| Read-only MCP server | beta | off | An optional MCP server lets AI assistants read GameServers, pods, events and logs and propose fixes without writing. | [mcp-server](https://github.com/GameplanePanel/mcp/blob/master/README.md#tools) |
 | Helper image overrides for air-gapped mirrors | beta | n/a | Helm lets operators retag the config-init and restic helper images to a private registry mirror. | [install](docs/install.md#values-reference) |
 | Rolling edge images | beta | off | Setting image.tag to edge runs the rolling build published on every master push. | [install](docs/install.md#edge-channel-latest-edge-build) |
 | Local Kind development loop | beta | n/a | Make targets create a Kind cluster with a local OCI registry, load images and run the web dev server. | [contributing](docs/contributing.md#dev-loop) |

@@ -8,10 +8,15 @@ prompt lists these surfaces:
 2. **Version picker** (install and Change version): versions for the server's Minecraft
    version and loader only, newest first and preselected; release/beta badge; older-than-
    pinned versions marked.
+2a. **"All loaders" toggle** (FR-014, OD-12 C) in the browser's filter row for registries that pin a
+   version, off by default. On: search shows every pack; the picker lists every version the server can
+   run, each row naming its server version ("Runs on 26.1.2 · NeoForge"), and an empty state when the
+   server can run none.
 3. **Confirmation dialog**: pack + version; "Back up first" checkbox (ticked when
    `backupAvailable`, otherwise disabled with a reason); downgrade warning when an older
    version is picked; Remove variant states that every mod in the mods folder is deleted,
-   including ones added by hand.
+   including ones added by hand. When the picked version needs another server version, a line says
+   "The server version changes from {current} to {target}." (OD-13 B).
 4. **Active modpack card** at the top: title, registry, version name or "Not pinned",
    phase (Backing up / Applying / Backup failed + message), Change version, Remove. A pending
    removal shows "Removing"; after a failed removal backup, Remove becomes "Retry remove".

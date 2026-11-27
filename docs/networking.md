@@ -7,31 +7,38 @@ Gameplane exposes game servers through Kubernetes Services, with optional integr
 NetworkPolicies are additive. An allowance in one policy cannot be narrowed by
 another policy. Enforcement also requires a CNI that implements NetworkPolicy.
 
-Modules may set `GameTemplate.spec.sentinelIsolation: true`. The operator then
-labels the game and sentinel pod templates and creates two owned policies:
-`<server>-sentinel-ingress` and `<server>-sentinel-egress`. They allow a sentinel
-to reach only its own server's advertised container ports, with the declared
-protocol. Zero advertised ports creates no allowance. Management ports must
-remain `advertise: false`. The legacy chart policies exclude opted-in sources
-and destinations. Templates without the field retain the existing broad
-sentinel-to-game allowance; module maintainers can adopt it after validating
-their proxy traffic.
+Every server whose template advertises a port gets sentinel isolation by
+default. The operator labels the game and sentinel pod templates and creates
+two owned policies: `<server>-sentinel-ingress` and `<server>-sentinel-egress`.
+They allow a sentinel to reach only its own server's advertised container
+ports, with the declared protocol. The sentinel only listens on and dials
+advertised ports, so wake works as before. Management ports must remain
+`advertise: false`. The legacy chart policies exclude isolated sources and
+destinations; only a template with no advertised port keeps the broad
+sentinel-to-game allowance (it has nothing to proxy).
 
-For an opted-in template, the operator applies the isolation in this order:
+A server that was running before the upgrade that made this the default keeps
+its unlabeled game pod, still covered by the legacy rules, until its next start
+(stop and start, or sleep and wake), so the upgrade restarts no game. The
+sentinel takes the label at once. Modules may still set
+`GameTemplate.spec.sentinelIsolation: true` to label running servers
+immediately; it requires an advertised port.
+
+The operator applies the isolation in this order:
 
 ```mermaid
 flowchart TD
-    T["GameTemplate sentinelIsolation: true"] --> P{"Advertised ports declared?"}
-    P -- no --> N["Reconcile stops with a Failed phase;<br/>existing sentinel exposure is revoked"]
+    T["GameTemplate"] --> P{"Advertised ports declared?"}
+    P -- "no, sentinelIsolation: true" --> N["Reconcile stops with a Failed phase;<br/>existing sentinel exposure is revoked"]
     P -- yes --> L["Game and sentinel pod templates labeled gameplane.local/sentinel-isolation: true"]
     L --> R["Pods roll out; StatefulSet selectors unchanged"]
     R --> Y["Per-server policies: &lt;server&gt;-sentinel-ingress and &lt;server&gt;-sentinel-egress"]
     Y --> Z["Sentinel reaches only its server's advertised ports"]
 ```
 
-Upgrade the CRDs, operator and chart together before opting in a template.
-Existing game pods roll out to acquire the isolation label; StatefulSet
-selectors stay unchanged. Do not claim isolation until both game and sentinel
+Upgrade the CRDs, operator and chart together. Existing game pods acquire the
+isolation label at their next start (or roll out at once with an explicit
+opt-in); StatefulSet selectors stay unchanged. Do not claim isolation until both game and sentinel
 pods have the label and the per-server policies exist. Other administrator-added
 policies can still grant wider access. Disabling chart NetworkPolicies or using
 a non-enforcing CNI does not provide this boundary.
@@ -302,12 +309,40 @@ created before the upgrade that introduced it. A hostname that doesn't
 resolve to its server would now be shown to players, so before upgrading,
 check each such hostname, or clear it where it isn't the name players use.
 
+### Default player hostname per game template
+
+Set `operator.templateHostnames` in your Helm values to advertise a shared
+hostname for servers using a particular GameTemplate. This example gives
+Minecraft Java and Valheim separate hostnames.
+
+```yaml
+operator:
+  templateHostnames:
+    minecraft-java: mc.example.net
+    valheim: val.example.net
+```
+
+The operator also accepts a repeated `--template-hostname=<template>=<hostname>`
+flag. Use the name from `spec.templateRef.name`. Each NodePort server advertises
+the name with its allocated NodePort. Each LoadBalancer server advertises it
+with its Service ports once the load balancer has an address.
+
+A server's **Settings → Networking → Hostname** overrides the template default.
+Clearing the field restores inheritance. Changes to the mapping apply to existing
+servers on reconciliation. Removing a mapping restores normal address discovery
+for servers using that default.
+
+Point each shared DNS name at the node, load balancer or forwarding edge that
+serves those games. Template defaults only supply player-facing addresses.
+External-dns annotations still come from individual Service settings, and a
+published tunnel endpoint keeps its provider's host and port.
+
 ### Connecting to a NodePort server
 
 The dashboard's **External Address** shows and copies the game host and
 the NodePort Kubernetes assigned, for example `play.example.net:31042`.
 Set **Settings → Networking → Hostname** (`spec.networking.hostname`) to a
-name that players can resolve and reach on that port. With no hostname,
+name that players can resolve and reach on that port. With no server or template hostname,
 Gameplane uses a Kubernetes `ExternalIP` on the node serving the game or
 its wake proxy. IPv6 addresses appear in brackets, as in
 `[2001:db8::42]:31042`.

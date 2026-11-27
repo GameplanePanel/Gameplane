@@ -1,6 +1,6 @@
 # telemetry-receiver — Specification
 
-**Status:** pre-v1 (v0.4.3)  
+**Status:** pre-v1 (v0.5.0)  
 **Module / package:** github.com/GameplanePanel/gameplane/telemetry-receiver  
 **Go version:** 1.27
 
@@ -17,10 +17,10 @@ Optional collector for the usage telemetry that Gameplane installs report daily.
 - **Extended identity checks**: an extended report must carry a valid `Gameplane-Telemetry-Signature` (Ed25519 over the exact body bytes, under the key in `ext.key`). The receiver also refuses a send time outside `[now - 36h, now + 1h]` (`stale`), a key that differs from the one that first claimed the install ID (`id_claimed`) and a send time not later than the last accepted one (`replay`)
 - **Proof-of-work (optional)**: with `INGEST_POW=true`, `/ingest` requires a solved challenge from `/v1/challenge` before the body is read; difficulty adapts to the challenge rate
 - **Aggregation and storage**: daily aggregates and expiring per-install activity records in SQLite (`$DATA_DIR/telemetry.db`); an install ID is stored only as `HMAC-SHA256(pepper, installID)`
-- **Per-source limits**: accepted reports per source per UTC day (`INGEST_SOURCE_DAILY_LIMIT`), login attempts, summary reads and challenge requests, all held in memory; source addresses come from the TCP peer, or from `X-Forwarded-For` only when the peer is inside `TRUSTED_PROXY_CIDRS`
+- **Per-source limits**: `/ingest` requests per source per minute, refused ones included (`INGEST_SOURCE_PER_MINUTE`), accepted reports per source per UTC day (`INGEST_SOURCE_DAILY_LIMIT`), login attempts, summary reads and challenge requests, all held in memory; source addresses come from the TCP peer, or from `X-Forwarded-For` only when the peer is inside `TRUSTED_PROXY_CIDRS`
 - **Dashboard**: server-rendered HTML with inline SVG charts and no JavaScript, behind one operator token; the same view model is served as JSON at `/api/v1/views`. Every range ends on today (UTC), which is still in progress
 - **Public summary (optional)**: `GET /v1/summary` returns five counts when `PUBLIC_SUMMARY=true`
-- **Version sanitization**: invalid syntax is bucketed as `"invalid"`. Retain at most 128 distinct strings matching `^[A-Za-z0-9][A-Za-z0-9._+-]{0,31}$` per process for the Prometheus label; additional versions share `"other"`. The two bucket names are reserved, for at most 130 series. Retained labels are never evicted; restart resets the budget with the counters.
+- **Version sanitization**: invalid syntax is bucketed as `"invalid"`. At most 128 distinct strings matching `^[A-Za-z0-9][A-Za-z0-9._+-]{0,31}$` hold a label at a time; once all 128 are taken, a new version is counted under `"other"` and waits in a pending set (at most 1,024 versions, least reported dropped first) until it has more reports than the least reported label, which it then replaces (that label's series is deleted). Junk versions reported once or twice therefore cannot lock real releases out. The two bucket names are reserved, for at most 130 series. Restart resets the budget with the counters.
 - **Metrics**: Prometheus series on the dashboard listener only, behind the token
 - **Lifecycle**: an hourly job finalizes completed UTC days, expires activity records and deletes daily aggregates older than `RETENTION_DAYS`
 - **Structured logging**: logs each accepted report via `log/slog` with version/servers/templates fields (and `extended`); source addresses are never logged
@@ -39,11 +39,14 @@ telemetry-receiver/
 ├── main.go             # config (loadConfig, validate), server wiring, both listeners, graceful shutdown
 ├── ingest.go           # POST /ingest: auth, proof-of-work gate, body read, basic reports
 ├── ingest_ext.go       # extended reports: signature, window, claim, replay, activity records
+├── claim.go            # new-install proof-of-work claims (pow_claim) and their source marks
 ├── pow.go              # proof-of-work: challenges, difficulty, verification, GET /v1/challenge
 ├── store.go            # SQLite schema, meta, write transactions, retention and lifecycle job
 ├── ratelimit.go        # per-source limiters, source-address derivation
 ├── summary.go          # GET /v1/summary and its snapshot cache
 ├── dashboard.go        # dashboard listener: login, sessions, views JSON, metrics, static files
+├── versionlabel.go     # version label budget (at most 128 labels, bounded pending set)
+├── versionorder.go     # semver ordering of version changes between reports
 ├── views.go            # dashboard view model (BuildViews)
 ├── charts.go, charts_ext.go  # inline SVG chart rendering
 ├── web/                # embedded HTML templates and static CSS/icon
@@ -64,12 +67,12 @@ The full contract is `specs/done_022-default-telemetry-dashboard/contracts/recei
 
 | Route | Method | Success response | Failures |
 |-------|--------|------------------|----------|
-| `/ingest` | POST | `204 No Content` (also for a same-day duplicate extended report, which only counts in `duplicates`) | `400` structural error; `401` missing/wrong Authorization (when `AUTH_TOKEN` set); `403` `bad_signature`, `stale` or `replay`; `409` `id_claimed`; `413` body >16 KiB; `428` `pow_required` or `pow_invalid`; `429` per-source daily limit; `503` `pow_busy` with `Retry-After: 60` |
+| `/ingest` | POST | `204 No Content` (also for a same-day duplicate extended report, which only counts in `duplicates`) | `400` structural error; `401` missing/wrong Authorization (when `AUTH_TOKEN` set); `403` `bad_signature`, `stale` or `replay`; `409` `id_claimed`; `413` body >16 KiB; `428` `pow_required`, `pow_invalid` or `pow_claim`; `429` per-source request budget or daily limit; `503` `pow_busy` with `Retry-After: 60` |
 | `/v1/summary` | GET | `200` JSON with exactly `asOf`, `reportsLatestDay`, `reports30d`, `reportsTotal`, `activeInstalls30d` | `404` unless `PUBLIC_SUMMARY=true`; `429` per-source rate limit |
-| `/v1/challenge` | GET | `200` JSON `{challenge, bits, expiresAt}`, `Cache-Control: no-store` | `404` unless `INGEST_POW=true`; `429` (10 per minute, burst 5 per source) |
+| `/v1/challenge` | GET | `200` JSON `{challenge, bits, expiresAt}`, `Cache-Control: no-store` | `404` unless `INGEST_POW=true` or a new-install claim is pending for the source; `429` (10 per minute, burst 5 per source) |
 | `/healthz` | GET | `200 OK`, body `"ok"` | Never errors |
 
-`/ingest` runs its checks in this order: `AUTH_TOKEN`, proof-of-work, body read, decode, extended identity checks, per-source daily limit, store. A refused report changes no stored data. Every other path, including `/metrics`, answers `404`.
+`/ingest` runs its checks in this order: per-source request budget (`429` with `Retry-After: 60`), `AUTH_TOKEN`, proof-of-work, body read, decode, extended identity checks, new-install proof-of-work (`pow_claim`), per-source daily limit, store. A refused report changes no stored data. Every other path, including `/metrics`, answers `404`.
 
 ### Dashboard listener (`DASHBOARD_LISTEN_ADDR`)
 
@@ -96,6 +99,7 @@ The session cookie is `gp_telemetry_session` (`HttpOnly; Secure; SameSite=Strict
 | `PUBLIC_SUMMARY` | `false` | `true` enables `/v1/summary` |
 | `TRUSTED_PROXY_CIDRS` | *(empty)* | Comma-separated CIDRs whose `X-Forwarded-For` is trusted; a malformed entry stops startup |
 | `INGEST_SOURCE_DAILY_LIMIT` | `20` | Accepted reports per source per UTC day; `0` means unlimited; negative is refused |
+| `INGEST_SOURCE_PER_MINUTE` | `60` | `/ingest` requests per source per minute (burst of the same size), counting refused and malformed ones; `0` means unlimited; negative is refused |
 | `RETENTION_DAYS` | `730` | Daily aggregate retention; minimum `365` |
 | `ACTIVITY_EXPIRY_DAYS` | `90` | Activity record expiry; minimum `31` |
 | `ID_PEPPER` | *(empty)* | HMAC pepper for install IDs. Empty means one is generated and kept in the database |
@@ -103,6 +107,7 @@ The session cookie is `gp_telemetry_session` (`HttpOnly; Secure; SameSite=Strict
 | `INGEST_POW_TARGET_PER_MIN` | `60` | Normal challenge rate: at or below it no work is required. Must be at least 1 |
 | `INGEST_POW_MIN_BITS` | `0` | Lowest difficulty issued. Must not be negative |
 | `INGEST_POW_MAX_BITS` | `22` | Highest difficulty issued. At least `INGEST_POW_MIN_BITS` and at most 26 (the hardest challenge an install solves) |
+| `INGEST_CLAIM_POW_BITS` | `20` | Difficulty the first report of a new install ID must carry, even with `INGEST_POW` off; `0` turns it off; at most 26 |
 
 An unparsable or out-of-range value stops the receiver at start with an `invalid configuration` error.
 
@@ -114,6 +119,8 @@ Difficulty: with `r` challenges issued in the trailing 60 seconds (counting the 
 
 Verification (before the body is read): header present and well formed, MAC valid, not expired, enough leading zero bits as stated in the token, not already used. A missing header is `428 pow_required`; any other failure is `428 pow_invalid`. A verified solution is marked used at once, whatever happens to the report. The used set is in memory, pruned when entries expire, and capped at 1,000,000; when full, `/ingest` answers `503 pow_busy` with `Retry-After: 60`. A restart invalidates outstanding challenges.
 
+New-install claims (`INGEST_CLAIM_POW_BITS`, default 20, on even when `INGEST_POW` is off): an extended report whose install ID has no activity record must carry a verified solution of at least that many bits. Otherwise it is refused `428 pow_claim`, nothing is stored, and its source prefix is marked in memory for 15 minutes (at most 100,000 marks). While marked, `/v1/challenge` serves that source (even with `INGEST_POW` off, where it is otherwise `404`) with at least the claim difficulty; the reporter's existing 428 retry fetches it, solves it and resends. An accepted claim clears the mark. Known installs never solve anything for it.
+
 ### Prometheus metrics (dashboard listener, Bearer token)
 
 ```
@@ -123,7 +130,7 @@ gameplane_telemetry_templates_bucket{le="…"}            # histogram (same buck
 gameplane_telemetry_duplicates_total                    # same-day repeat extended reports
 gameplane_telemetry_extended_reports_total              # extended reports counted in the aggregates
 gameplane_telemetry_rate_limited_total{route}           # route: ingest, login, summary, challenge
-gameplane_telemetry_refused_total{reason}               # bad_signature, stale, id_claimed, replay, pow_required, pow_invalid, pow_busy
+gameplane_telemetry_refused_total{reason}               # bad_signature, stale, id_claimed, replay, pow_required, pow_invalid, pow_busy, pow_claim
 gameplane_telemetry_pow_challenges_total                # challenges issued
 gameplane_telemetry_pow_bits                            # gauge: difficulty a challenge issued now would carry (0 when proof-of-work is off)
 ```
@@ -137,7 +144,7 @@ All series are in memory and reset on restart; the durable figures are the aggre
 - **Extended reports must be signed**: a report with `ext` and a missing or invalid signature is refused (`403 bad_signature`) before any write, and an install ID is bound to the first valid key that claims it.
 - **Refusal invariant (dashboard)**: an unauthenticated dashboard response never contains a figure, a date other than page chrome, a version, category or module name, or anything that varies with whether data exists. A wrong token gets the same "Invalid credentials" login page whether or not the receiver is empty.
 - **No token, no dashboard**: the dashboard listener is not started unless `DASHBOARD_TOKEN` is set, and a token shorter than 32 characters stops startup.
-- **Version label bounded**: malformed strings become `version="invalid"`; after 128 distinct valid versions, new versions become `version="other"`. Concurrent requests share the same budget, and all accepted reports remain counted.
+- **Version label bounded**: malformed strings become `version="invalid"`; at most 128 valid versions hold a label at a time, and a version waiting for a slot counts as `version="other"` until it outranks the least reported label. Concurrent requests share the same budget, an increment for a label evicted in the meantime counts as `other`, and all accepted reports remain counted.
 - **Refused reports change nothing**: signature, window, claim, replay and proof-of-work refusals write no data; a proof-of-work refusal costs one HMAC and one hash.
 - **Single writer**: SQLite writes are serialized by one mutex; run one replica per database.
 - **Graceful shutdown**: catches SIGINT/SIGTERM and shuts both listeners down with a 5s context timeout; the lifecycle job stops before the store closes.

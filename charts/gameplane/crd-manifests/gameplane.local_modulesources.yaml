@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 71756d153338338b9589c840329595524591d3ef80fd7c4069ade51077609ed1
+    gameplane.local/crd-bundle-sha256: 1c59a38e683f141325539af9127d1ead8bd9b0d16c28877f66774ece9aa1867f
     controller-gen.kubebuilder.io/version: v0.22.0
   name: modulesources.gameplane.local
 spec:
@@ -74,8 +74,8 @@ spec:
                 description: Git configures a git-type source.
                 properties:
                   ref:
-                    default: main
-                    description: Ref is the branch or tag to index. Defaults to main.
+                    default: master
+                    description: Ref is the branch or tag to index. Defaults to master.
                     type: string
                   secretRef:
                     description: |-

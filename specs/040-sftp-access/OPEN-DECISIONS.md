@@ -1,4 +1,4 @@
-# Open decisions: spec 039 SFTP access to game servers
+# Open decisions: spec 040 SFTP access to game servers
 
 Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. OD-1 to OD-5 are settled. Planning raised OD-6 and OD-7 on 2026-11-22: both are settled. No decision is open.
 

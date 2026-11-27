@@ -3,7 +3,7 @@
   "name": "Screen/Mobile — Server Detail — Modpacks",
   "type": "FRAME",
   "x": 18880,
-  "y": 32970,
+  "y": 35101,
   "width": 390,
   "height": 1100,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -157,10 +157,54 @@
           "texts": ["Search modpacks…"]
         },
         {
-          "name": "Modpacks List",
+          "name": "All loaders Row",
           "type": "FRAME",
           "x": 16,
           "y": 401,
+          "width": 358,
+          "height": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 10,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "clips": true,
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 3.5,
+              "width": 63,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "All loaders",
+              "font": ["Geist", 400, 13],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "name": "All loaders switch",
+              "type": "INSTANCE",
+              "x": 73,
+              "y": 2,
+              "width": 36,
+              "height": 20,
+              "component": "Gameplane/Switch/Off",
+              "componentId": "1:1470",
+              "fills": [{"type": "SOLID", "color": "#2C2932"}],
+              "cornerRadius": 24,
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "border/border"}
+            }
+          ]
+        },
+        {
+          "name": "Modpacks List",
+          "type": "FRAME",
+          "x": 16,
+          "y": 441,
           "width": 358,
           "height": 296,
           "layout": {

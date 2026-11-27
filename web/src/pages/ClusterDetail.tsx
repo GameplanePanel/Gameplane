@@ -22,10 +22,12 @@ const tabs = defineMessages({
 });
 type ClusterTab = keyof typeof tabs;
 const unauthorized = (error: unknown) => error instanceof APIError && error.status === 401;
+// Default control-plane namespace for registered clusters (API default; technical name, not translated).
+const DEFAULT_CONTROL_PLANE_NAMESPACE = "gameplane";
 
 export function ClusterDetailPage() {
   const { clusterId } = useParams({ from: "/app-layout/clusters/$clusterId" });
-  const { tab = "overview" } = useSearch({ from: "/app-layout/clusters/$clusterId" });
+  const { tab = "overview", ns } = useSearch({ from: "/app-layout/clusters/$clusterId" });
   const intl = useOptionalIntl();
   const navigate = useNavigate();
   const installation = useInstallation();
@@ -43,12 +45,12 @@ export function ClusterDetailPage() {
     {installation.isError && installationFailure}
     {registry.isError && registryFailure}
     <PageHeader title={clusterName} description={intl.formatMessage({ id: "web.cluster_detail.description", defaultMessage: "Cluster connectivity, nodes and configuration.", description: "Cluster detail page description" })} actions={<Button variant="outline" onPress={() => void navigate({ to: "/servers", search: { cluster: cluster.name } })}>{intl.formatMessage({ id: "web.routes.clusters.view_servers", defaultMessage: "View servers", description: "Clusters: button on a cluster card that opens the server list for that cluster; keep it short; its screen-reader name also includes the cluster name" })}</Button>} />
-    <Tabs selectedKey={selected} onSelectionChange={(key) => void navigate({ to: "/clusters/$clusterId", params: { clusterId }, search: { tab: String(key) as ClusterTab } })}>
+    <Tabs selectedKey={selected} onSelectionChange={(key) => void navigate({ to: "/clusters/$clusterId", params: { clusterId }, search: { tab: String(key) as ClusterTab, ns } })}>
       <Tabs.List aria-label={intl.formatMessage({ id: "web.cluster_detail.tabs", defaultMessage: "Cluster detail tabs", description: "Accessible cluster tab navigation label" })}>{(Object.keys(tabs) as ClusterTab[]).map((key) => <Tab key={key} id={key}>{intl.formatMessage(tabs[key])}</Tab>)}</Tabs.List>
     </Tabs>
     {selected === "overview" && <ClusterOverview cluster={cluster} />}
     {selected === "nodes" && (cluster.canViewInventory === true ? <div className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-muted">{intl.formatMessage({ id: "web.cluster_detail.fixed_cluster", defaultMessage: "Cluster: {name}", description: "Fixed cluster scope label above embedded nodes" }, { name: clusterName })}</p><Button variant="outline" onPress={() => void navigate({ to: "/nodes", search: {} })}>{intl.formatMessage({ id: "web.cluster_detail.all_nodes", defaultMessage: "View all nodes", description: "Link from cluster nodes to fleet nodes" })}</Button></div><NodeInventory key={cluster.name} clusterId={cluster.name} embedded /></div> : <ErrorCard message={intl.formatMessage({ id: "web.cluster_detail.inventory_denied", defaultMessage: "You don't have permission to view node inventory on this cluster.", description: "Cluster node inventory access denied" })} />)}
-    {selected === "configuration" && <ClusterConfiguration key={cluster.name} cluster={cluster} />}
+    {selected === "configuration" && <ClusterConfiguration key={cluster.name} cluster={cluster} destinationNamespace={ns} />}
   </div>;
 }
 
@@ -58,9 +60,9 @@ function ClusterOverview({ cluster }: { cluster: ClusterRegistry }) {
   const empty = intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
   const phase = cluster.phase === "Healthy" ? intl.formatMessage({ id: "web.routes.clusters.phase_healthy", defaultMessage: "Healthy", description: "Clusters: API status label for a cluster the panel reports as healthy" }) : cluster.phase === "Unhealthy" ? intl.formatMessage({ id: "web.routes.clusters.phase_unhealthy", defaultMessage: "Unhealthy", description: "Clusters: API status label for a cluster the panel reports as unhealthy" }) : cluster.phase || intl.formatMessage({ id: "web.routes.clusters.phase_unknown", defaultMessage: "Unknown", description: "Clusters: API status shown when the cluster reports no phase" });
   return <div className="grid gap-6 lg:grid-cols-2"><ClusterSection title={intl.formatMessage({ id: "web.cluster_detail.identity", defaultMessage: "Cluster identity", description: "Cluster overview identity section" })}>
-    <dl className="space-y-4 text-sm"><div><dt className="text-muted">{intl.formatMessage({ id: "web.cluster_detail.registration_id", defaultMessage: "Registration ID", description: "Cluster registration identifier label" })}</dt><dd className="break-all pt-1 font-mono">{cluster.name}</dd></div><div><dt className="text-muted">{intl.formatMessage({ id: "web.cluster_detail.kubernetes_version", defaultMessage: "Kubernetes version", description: "Cluster Kubernetes version label" })}</dt><dd className="pt-1 font-mono">{cluster.serverVersion || empty}</dd></div></dl>
+    <dl className="space-y-4 text-sm"><div><dt className="text-muted">{intl.formatMessage({ id: "web.cluster_detail.registration_id", defaultMessage: "Registration ID", description: "Cluster registration identifier label" })}</dt><dd className="break-all pt-1 font-mono">{cluster.name}</dd></div><div><dt className="text-muted">{intl.formatMessage({ id: "web.cluster_detail.kubernetes_version", defaultMessage: "Kubernetes version", description: "Cluster Kubernetes version label" })}</dt><dd className="pt-1 font-mono">{cluster.serverVersion || empty}</dd></div>{cluster.name !== "local" && <div><dt className="text-muted">{intl.formatMessage({ id: "web.clusters.control_plane_namespace_detail_label", defaultMessage: "Control-plane namespace", description: "Cluster overview: label for the namespace where this remote cluster's Gameplane operator runs" })}</dt><dd className="pt-1 font-mono">{cluster.controlPlaneNamespace || DEFAULT_CONTROL_PLANE_NAMESPACE}</dd></div>}</dl>
     {cluster.name === "local" && <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.clusters.central_cluster", defaultMessage: "Central cluster", description: "Clusters: note on the cluster card of the built-in local cluster that the panel itself runs in" })}</p>}
-    {cluster.canViewInventory === true && <Button variant="outline" onPress={() => void navigate({ to: "/nodes", search: { cluster: cluster.name } })}>{intl.formatMessage({ id: "web.routes.clusters.view_nodes", defaultMessage: "View nodes", description: "Clusters: button on a cluster card that opens the node inventory for that cluster; shown only when the user can view inventory; keep it short" })}</Button>}
+    {cluster.canViewInventory === true && <Button variant="outline" onPress={() => void navigate({ to: "/clusters/$clusterId", params: { clusterId: cluster.name }, search: { tab: "nodes" } })}>{intl.formatMessage({ id: "web.routes.clusters.view_nodes", defaultMessage: "View nodes", description: "Clusters: button on a cluster card that opens the node inventory for that cluster; shown only when the user can view inventory; keep it short" })}</Button>}
   </ClusterSection><ClusterSection title={intl.formatMessage({ id: "web.cluster_detail.connectivity", defaultMessage: "API connectivity", description: "Cluster overview connectivity section" })} subtitle={intl.formatMessage({ id: "web.cluster_detail.connectivity_description", defaultMessage: "Status reports Kubernetes API connectivity, not game or gateway health.", description: "Cluster health scope explanation" })}>
     <p className={cluster.phase === "Healthy" ? "font-medium text-success" : cluster.phase === "Unhealthy" ? "font-medium text-danger" : "font-medium text-muted"}>{phase}</p>
     {cluster.message && <p className="break-words text-sm text-muted">{cluster.message}</p>}

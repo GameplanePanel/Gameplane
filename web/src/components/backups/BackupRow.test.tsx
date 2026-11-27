@@ -108,6 +108,21 @@ describe("BackupRow", () => {
     expect(screen.getByRole("button", { name: "Restore" })).toBeDisabled();
   });
 
+  it("shows Awaiting snapshot ID instead of Succeeded while the snapshot ID is missing", () => {
+    render(
+      tableWrap(
+        <BackupRow permissions={["backups:restore"]}
+          backup={makeBackup({ status: { phase: "Succeeded" } })}
+          showServer={false}
+          onSelect={() => {}}
+          onRestore={() => {}}
+        />,
+      ),
+    );
+    expect(screen.getByText("Awaiting snapshot ID")).toBeInTheDocument();
+    expect(screen.queryByText("Succeeded")).toBeNull();
+  });
+
   it("Restore button is disabled when phase is not Succeeded", () => {
     render(
       tableWrap(

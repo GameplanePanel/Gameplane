@@ -22,7 +22,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
-// MountShareLinks wires authenticated share link operations (create, list, revoke).
+// MountShareLinks wires authenticated share link operations for the server owner.
 // Must be mounted inside the protected group with auth + rbac middleware.
 // Ownership is verified per-request; only the server owner can manage shares.
 func MountShareLinks(r chi.Router, reg *kube.Registry, store *db.Store) {
@@ -30,7 +30,9 @@ func MountShareLinks(r chi.Router, reg *kube.Registry, store *db.Store) {
 		r.Post("/", createShareHandler(reg, store))
 		r.Get("/", listSharesHandler(reg, store))
 	})
-	r.Delete("/servers/{name}/shares/{id}", revokeShareHandler(reg, store))
+	mutate := mutateShareHandler(reg, store)
+	r.Patch("/servers/{name}/shares/{id}", mutate)
+	r.Delete("/servers/{name}/shares/{id}", mutate)
 }
 
 // MountPublicShares wires unauthenticated share link resolution and start.
@@ -189,7 +191,7 @@ func createShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 	}
 }
 
-// listSharesHandler lists all share links for a server (owner-only).
+// listSharesHandler lists the current server incarnation's share links (owner-only).
 // The returned list never includes the raw token, only ID + metadata.
 func listSharesHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -229,23 +231,27 @@ func listSharesHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 		}
 
 		// Convert to response format, excluding tokens.
-		resps := make([]shareResp, len(links))
-		for i, link := range links {
-			resps[i] = shareResp{
+		resps := make([]shareResp, 0, len(links))
+		for _, link := range links {
+			if serverReplacedSinceLink(obj, link) {
+				continue
+			}
+			resps = append(resps, shareResp{
 				ID:        link.ID,
 				CreatedAt: link.CreatedAt.UTC().Format(time.RFC3339),
 				ExpiresAt: formatExpiresAt(link.ExpiresAt),
 				RevokedAt: formatRevokedAt(link.RevokedAt),
 				CanStart:  link.CanStart,
 				// Token deliberately omitted in list response
-			}
+			})
 		}
 		writeOrErr(w, req, resps, nil)
 	}
 }
 
-// revokeShareHandler revokes a share link by ID (owner-only).
-func revokeShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
+// mutateShareHandler changes a link's wake permission or revokes the link.
+// Both operations require the current owner of the server in the request.
+func mutateShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		u := auth.UserFromContext(req.Context())
 		if u == nil {
@@ -277,7 +283,21 @@ func revokeShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 		}
 
 		cl, _ := scope.ResolveCluster(req, reg)
-		if err := store.RevokeShareLink(req.Context(), cl, ns, name, id); err != nil {
+		if req.Method == http.MethodPatch {
+			var body struct {
+				CanStart *bool `json:"canStart"`
+			}
+			dec := json.NewDecoder(http.MaxBytesReader(w, req.Body, 1<<16))
+			dec.DisallowUnknownFields()
+			if err := dec.Decode(&body); err != nil || body.CanStart == nil || dec.Decode(&struct{}{}) != io.EOF {
+				httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
+				return
+			}
+			err = store.SetShareLinkCanStart(req.Context(), cl, ns, name, id, string(obj.GetUID()), obj.GetCreationTimestamp().Time, *body.CanStart)
+		} else {
+			err = store.RevokeShareLink(req.Context(), cl, ns, name, id)
+		}
+		if err != nil {
 			if errors.Is(err, db.ErrShareLinkNotFound) {
 				httperr.WriteMessage(w, req, messages.New("server.not_found", nil))
 				return

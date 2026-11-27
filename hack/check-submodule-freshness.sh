@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-submodule-freshness.sh: Fail when a submodule gitlink in the
-# superproject points at a commit that is not on the upstream main branch.
+# superproject points at a commit that is not on the upstream branch named in .gitmodules (master).
 #
 # Purpose:
 #   Catches a superproject pointer bump made before the submodule PR merged.

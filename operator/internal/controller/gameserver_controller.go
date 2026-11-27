@@ -37,6 +37,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/recorder"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -54,9 +55,17 @@ type GameServerReconciler struct {
 	WakeStartLimit     int
 	WakeStartNamespace string
 	// ControlPlaneNamespace holds the managed mod-registry key Secret that
-	// modpack servers receive a CurseForge key from. Empty disables key sharing.
+	// modpack servers receive a CurseForge key from, and the cluster's
+	// security settings ConfigMap (gameplane-security-settings, spec 030
+	// OD-7). Empty disables key sharing and disallows root overrides (fail
+	// closed).
 	ControlPlaneNamespace string
 	Scheme                *runtime.Scheme
+
+	// EventRecorder emits a Warning event on a GameServer held back from
+	// starting by the root-override rule. Nil-safe: unit and envtest setups
+	// may leave it unset.
+	EventRecorder recorder.EventRecorder
 
 	// AgentImage is the container image used for the sidecar agent
 	// injected into every game pod. Set from an operator flag so the
@@ -80,6 +89,13 @@ type GameServerReconciler struct {
 	// as GAMEPLANE_LOG_LEVEL. Empty injects nothing — the agent defaults
 	// to info and existing StatefulSets don't roll on operator upgrade.
 	AgentLogLevel string
+
+	// AgentMaxUploadBytes, when positive, is passed to every agent as
+	// --max-upload-bytes (Helm files.maxUploadSize). Zero keeps the agent default.
+	AgentMaxUploadBytes int64
+	// FilesIdleTimeout is how long a stopped server's file-only pod lives
+	// after its last file operation. Zero or less uses DefaultFilesIdleTimeout.
+	FilesIdleTimeout time.Duration
 
 	// Auxiliary resources are complete install-level overrides. Nil uses the
 	// built-in requests; a non-nil empty object explicitly clears them.
@@ -111,6 +127,15 @@ type GameServerReconciler struct {
 	TunnelTailscaleImage string
 	TunnelPlayitImage    string
 	RestrictTunnelEgress bool
+	// TunnelEgressExceptCIDRs are the ranges a legacy tunnel relay may not
+	// dial on its provider ports (empty: DefaultTunnelEgressExceptCIDRs).
+	// TunnelEgressAllowCIDRs are LAN relay ranges an administrator allows
+	// anyway. Both are canonical CIDRs and unused with RestrictTunnelEgress.
+	TunnelEgressExceptCIDRs []string
+	TunnelEgressAllowCIDRs  []string
+	// AllowedImageRegistries limits GameServer spec.image overrides to
+	// these registry hosts or host/path prefixes. Empty leaves them open.
+	AllowedImageRegistries []string
 
 	// AgentCASecretName / AgentCASecretNamespace point at the cluster-
 	// wide Secret holding `ca.crt` + `ca.key` used to sign the
@@ -141,6 +166,9 @@ type GameServerReconciler struct {
 	// is treated exactly as "none": mutate nothing and report the
 	// unhonored request, never silently fall back to the default pool.
 	AddressManager string
+
+	// TemplateHostnames supplies player-facing Service hostnames by GameTemplate name.
+	TemplateHostnames map[string]string
 
 	// PortPools gives the servers of each pooled template Service ports of
 	// their own on a shared endpoint (--port-pool, --port-pool-template); see
@@ -297,6 +325,22 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if err := r.Get(ctx, req.NamespacedName, &gs); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	// A child resource the apiserver rejects as invalid (422) fails the same
+	// way on every pass. Record it on the Ready condition so the server shows
+	// Failed with the reason, instead of staying Pending with the error only
+	// in the operator log.
+	defer func() {
+		if reconcileErr == nil || !apierrors.IsInvalid(reconcileErr) {
+			return
+		}
+		if err := r.setPhase(ctx, &gs, "Kubernetes rejected a resource for this server: "+reconcileErr.Error()); err != nil {
+			logger.Error(err, "record rejected resource on GameServer status")
+		}
+	}()
+	// Check the name before creating any child resource.
+	if err := validateServerName(gs.Name); err != nil {
+		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
+	}
 	// Recover the durable eviction decision before any validation that can
 	// return early (including a missing template or newly requested wipe).
 	if op, held, err := lifecycleOwner(&gs); held && err == nil && op.Kind == podRecoveryKind {
@@ -357,6 +401,22 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if err := validateProbeHosts(effectiveGameProbes(&gs, &tmpl)); err != nil {
 		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
 	}
+	if err := validateHostportPorts(&gs, &tmpl); err != nil {
+		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+	}
+	if err := validateSidecarPorts(&tmpl); err != nil {
+		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+	}
+	if err := r.validateImageOverride(&gs); err != nil {
+		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+	}
+	if err := r.validateServiceAccountOverride(ctx, &gs); err != nil {
+		var rejected workloadPolicyRejection
+		if errors.As(err, &rejected) {
+			return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
+		}
+		return ctrl.Result{}, err
+	}
 	if tmpl.Spec.SentinelIsolation && len(networkPolicyPortsFromTemplate(&tmpl)) == 0 {
 		cleanupErr := r.revokeInvalidSentinelIsolationExposure(ctx, &gs)
 		phaseErr := r.setPhase(ctx, &gs,
@@ -369,7 +429,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// the missing-template path) instead of materializing a pod that
 	// silently ignores what the user asked for.
 	if r.RestrictedWorkloads {
-		if err := validateRestrictedTemplate(&tmpl); err != nil {
+		if err := validateRestrictedSecurity(resolveGameSecurity(&tmpl, &gs)); err != nil {
 			return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
 		}
 	}
@@ -566,11 +626,25 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "compute desired replicas")
 		return ctrl.Result{}, err
 	}
+	// A file-only pod must be gone before the game starts (spec 040 FR-013c).
+	// The hold may zero replicas while that pod drains; the pre-hold value
+	// says a start is pending, so the files pod is not recreated meanwhile.
+	startWanted := replicas > 0
+	replicas, stopRequeue, err = r.holdStartForFilesPod(ctx, &gs, replicas, stopRequeue)
+	if err != nil {
+		logger.Error(err, "hold start for files pod")
+		return ctrl.Result{}, err
+	}
 	if err := r.reconcileStatefulSet(ctx, &gs, &tmpl, ver, mc, replicas, &wipeState); err != nil {
 		if apierrors.IsConflict(err) {
 			return requeueOnConflict(ctrl.Result{}, err)
 		}
 		logger.Error(err, "reconcile StatefulSet")
+		return ctrl.Result{}, err
+	}
+	filesRequeue, err := r.reconcileFilesPod(ctx, &gs, &tmpl, ver, replicas, startWanted)
+	if err != nil {
+		logger.Error(err, "reconcile files pod")
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileModpackRollout(ctx, &gs); err != nil {
@@ -653,7 +727,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// the sleep deadline or the next wake window; take whichever comes first,
 	// or nothing fires the transition until an unrelated event happens to
 	// wake the reconciler.
-	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry, modpackKeyRequeue(&gs)}
+	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry, modpackKeyRequeue(&gs), filesRequeue}
 	if _, held, _ := lifecycleOwner(&gs); held {
 		hints = append(hints, 5*time.Second)
 	}
@@ -704,6 +778,7 @@ func (r *GameServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Watches(&gameplanev1alpha1.Backup{}, handler.EnqueueRequestsFromMapFunc(mapModpackBackupToGameServer)).
 		Watches(&gameplanev1alpha1.GameTemplate{}, handler.EnqueueRequestsFromMapFunc(r.mapTemplateToGameServers),
 			builder.WithPredicates(predicate.GenerationChangedPredicate{})).
+		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.mapSecuritySettingsToGameServers)).
 		Complete(r)
 }
 
@@ -1304,17 +1379,26 @@ func (r *GameServerReconciler) reconcileAgentService(
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: gs.Name + "-agent", Namespace: gs.Namespace},
 	}
-	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, svc, func() error {
+	// A file-only pod (spec 040) serves the agent while the server is stopped.
+	serving, err := r.filesPodServing(ctx, gs)
+	if err != nil {
+		return err
+	}
+	selector := map[string]string{
+		"app.kubernetes.io/name":     "gameplane-game",
+		"app.kubernetes.io/instance": gs.Name,
+	}
+	if serving {
+		selector = filesPodLabels(gs)
+	}
+	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, svc, func() error {
 		svc.Spec.Type = corev1.ServiceTypeClusterIP
 		// The agent must be reachable while the game container is still
 		// starting (console/files/logs during long world generation), so
 		// don't gate endpoints on whole-pod readiness — the game's
 		// readiness probe would otherwise hold the agent hostage.
 		svc.Spec.PublishNotReadyAddresses = true
-		svc.Spec.Selector = map[string]string{
-			"app.kubernetes.io/name":     "gameplane-game",
-			"app.kubernetes.io/instance": gs.Name,
-		}
+		svc.Spec.Selector = selector
 		svc.Spec.Ports = []corev1.ServicePort{
 			{
 				Name:       "agent",
@@ -1978,6 +2062,42 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		if err != nil {
 			return err
 		}
+		// Root-override hold (spec 030, OD-4, R9): while the cluster does not
+		// allow root overrides, a stopped server that saves one is not scaled
+		// up. This runs before the replica assignment and the security refresh,
+		// so the StatefulSet is left exactly as it was. A running server (replicas
+		// above zero) is never touched. A new StatefulSet is created at zero.
+		if actualReplicas > 0 && (ss.Spec.Replicas == nil || *ss.Spec.Replicas == 0) && r.rootOverrideHeld(ctx, &live) {
+			r.recordRootOverrideHold(&live)
+			if ss.ResourceVersion != "" {
+				return nil
+			}
+			actualReplicas = 0
+		}
+		// Security-derived template parts are written only when the workload is
+		// new or starts from zero replicas (brief D3, R5). A running workload
+		// keeps the parts it was started with, so saving an override never
+		// restarts a pod. The live replica count is read before the assignment
+		// below overwrites it.
+		// A change of workload profile (restricted mode on or off) replaces the
+		// pods anyway, so it also takes the desired security values.
+		profileChange := ss.ResourceVersion != "" &&
+			r.RestrictedWorkloads != (ss.Spec.Template.Annotations[workloadSecurityLabel] == "restricted")
+		securityRefresh := ss.ResourceVersion == "" || profileChange ||
+			(ss.Spec.Replicas != nil && *ss.Spec.Replicas == 0 && actualReplicas > 0)
+		priorTemplate := ss.Spec.Template.Spec.DeepCopy()
+		priorSecurityApplied := ss.Spec.Template.Annotations[securityAppliedAnnotation]
+		desiredSecurity := resolveGameSecurity(tmpl, gs)
+		// Pod-level filesystem group and change policy the pod spec renders with.
+		// A kept template renders from what it already carries, which may predate
+		// the feature (no policy set).
+		securityFSGroup, securityPolicy := desiredSecurity.FSGroup.Value, desiredSecurity.fsGroupChangePolicy()
+		if !securityRefresh {
+			securityFSGroup, securityPolicy = nil, nil
+			if prior := priorTemplate.SecurityContext; prior != nil {
+				securityFSGroup, securityPolicy = prior.FSGroup, prior.FSGroupChangePolicy
+			}
+		}
 		ss.Spec.Replicas = &actualReplicas
 		if held && (op.Kind != "Rollout" || op.Token != live.Annotations[effectiveTemplateAnnotation] || len(op.Recovery) != 0) && (!ss.CreationTimestamp.IsZero() || ss.ResourceVersion != "") {
 			// Restore and wipe may stop the existing workload, but rollout
@@ -1989,11 +2109,20 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		}
 		ss.Spec.ServiceName = gs.Name
 		ss.Spec.Selector = &metav1.LabelSelector{MatchLabels: labels}
+		// Default sentinel isolation (any advertised port) reaches a running
+		// game at its next start, so the upgrade that turns it on restarts no
+		// game; an explicit template opt-in applies at once. Until then the
+		// chart's legacy rules still cover the unlabeled pod, and the
+		// per-server grants already exist.
+		isolate := sentinelIsolated(tmpl)
+		if !securityRefresh && !tmpl.Spec.SentinelIsolation {
+			isolate = ss.Spec.Template.Labels[sentinelIsolationLabel] == "true"
+		}
 		ss.Spec.Template.Labels = make(map[string]string, len(labels)+1)
 		for key, value := range labels {
 			ss.Spec.Template.Labels[key] = value
 		}
-		if tmpl.Spec.SentinelIsolation {
+		if isolate {
 			ss.Spec.Template.Labels[sentinelIsolationLabel] = "true"
 		}
 		// Stamp (or clear) the config fingerprint without touching
@@ -2014,9 +2143,26 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 			delete(ann, configHashAnnotation)
 		}
 		ss.Spec.Template.Annotations = ann
+		if securityRefresh {
+			encoded, err := encodeSecurityAnnotation(desiredSecurity.settings())
+			if err != nil {
+				return err
+			}
+			if ss.Spec.Template.Annotations == nil {
+				ss.Spec.Template.Annotations = map[string]string{}
+			}
+			ss.Spec.Template.Annotations[securityAppliedAnnotation] = encoded
+		} else if priorSecurityApplied != "" {
+			if ss.Spec.Template.Annotations == nil {
+				ss.Spec.Template.Annotations = map[string]string{}
+			}
+			ss.Spec.Template.Annotations[securityAppliedAnnotation] = priorSecurityApplied
+		}
 		ss.Spec.Template.Spec.Containers = []corev1.Container{
 			buildGameContainer(gs, tmpl, image, ver, mc),
-			buildAgentContainer(gs, tmpl, ver, r.AgentImage, r.AgentLogLevel, r.AgentImagePullPolicy, r.AgentResources),
+			withAgentTransferFlags(
+				buildAgentContainer(gs, tmpl, ver, r.AgentImage, r.AgentLogLevel, r.AgentImagePullPolicy, r.AgentResources),
+				r.AgentMaxUploadBytes, false),
 		}
 		volumes := []corev1.Volume{
 			{
@@ -2082,7 +2228,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 					},
 				},
 			})
-			initContainers = append(initContainers, buildConfigInitContainer(r.ConfigInitImage, tmpl, r.AgentResources))
+			initContainers = append(initContainers, buildConfigInitContainerResolved(r.ConfigInitImage, tmpl, securityFSGroup, r.AgentResources))
 		}
 		ss.Spec.Template.Spec.InitContainers = initContainers
 		// Per-(version+loader) mod volume, nested at storage.mountPath/<path>
@@ -2121,7 +2267,13 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		}
 		// Same unconditional-assign reasoning: removing template.spec.security
 		// must clear a previously-set pod-level FSGroup, not leave it pinned.
-		ss.Spec.Template.Spec.SecurityContext = gamePodSecurityContext(tmpl)
+		ss.Spec.Template.Spec.SecurityContext = gamePodSecurityContextResolved(securityFSGroup, securityPolicy)
+		if r.RestrictedWorkloads && ss.Spec.Template.Spec.SecurityContext == nil {
+			// Restricted mode requires a pod security context (applyWorkloadSecurity
+			// sets its restricted fields on it). Validation refuses a restricted
+			// server without an fsGroup; this keeps the write from dereferencing nil.
+			ss.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
+		}
 		if r.RestrictedWorkloads {
 			if ss.Spec.Template.Annotations == nil {
 				ss.Spec.Template.Annotations = map[string]string{}
@@ -2130,7 +2282,14 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		} else {
 			delete(ss.Spec.Template.Annotations, workloadSecurityLabel)
 		}
-		applyWorkloadSecurity(&ss.Spec.Template.Spec, tmpl, r.RestrictedWorkloads, r.AgentTokenExpirationSeconds)
+		applyWorkloadSecurityResolved(&ss.Spec.Template.Spec, resolveGameSecurity(tmpl, gs), r.RestrictedWorkloads, r.AgentTokenExpirationSeconds)
+		if !securityRefresh {
+			// A running workload keeps the game container and config-init
+			// security it was started with. applyWorkloadSecurity above derives
+			// them from the template, so their exact prior values are restored.
+			restoreContainerSecurityContext(&ss.Spec.Template.Spec, priorTemplate, gameContainerName)
+			restoreContainerSecurityContext(&ss.Spec.Template.Spec, priorTemplate, securityConfigInitContainerName)
+		}
 		// Default to the per-GameServer SA so the agent's heartbeat can
 		// patch gameservers/status (see reconcileAgentRBAC); an explicit
 		// spec.serviceAccountName still wins.
@@ -2147,7 +2306,12 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		ss.Spec.Template.Spec.ShareProcessNamespace = &shareProcess
 		return controllerutil.SetControllerReference(gs, ss, r.Scheme)
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	// Runs after the mutate, never inside it: the observed value comes from a
+	// pod that exists only once the StatefulSet has been written (R6).
+	return r.recordObservedSecurity(ctx, gs, ss)
 }
 
 // effectiveMountPath is where the game's data volume is mounted,
@@ -2523,6 +2687,13 @@ func configInitImageOrDefault(image string) string {
 // and directory it copied group-writable so a non-root game sharing that
 // fsGroup can update them.
 func buildConfigInitContainer(image string, tmpl *gameplanev1alpha1.GameTemplate, defaults ...*corev1.ResourceRequirements) corev1.Container {
+	return buildConfigInitContainerResolved(image, tmpl, resolveGameSecurity(tmpl, nil).FSGroup.Value, defaults...)
+}
+
+// buildConfigInitContainerResolved is buildConfigInitContainer with the
+// filesystem group already resolved for the server (a nil fsGroup means none
+// applies). Production callers pass the value the StatefulSet applies.
+func buildConfigInitContainerResolved(image string, tmpl *gameplanev1alpha1.GameTemplate, fsGroup *int64, defaults ...*corev1.ResourceRequirements) corev1.Container {
 	image = configInitImageOrDefault(image)
 	mountPath := effectiveMountPath(tmpl)
 	cpCmd := "cp -RL " + configFilesStagingPath + "/* '" + mountPath + "/'"
@@ -2531,8 +2702,8 @@ func buildConfigInitContainer(image string, tmpl *gameplanev1alpha1.GameTemplate
 	// Newly created files must inherit the declared shared group even on
 	// local-path volumes that do not implement kubelet fsGroup ownership.
 	// Only reconcile copied entries; unrelated server data keeps its modes.
-	if tmpl.Spec.Security != nil && tmpl.Spec.Security.FSGroup != nil {
-		group := *tmpl.Spec.Security.FSGroup
+	if fsGroup != nil {
+		group := *fsGroup
 		security = &corev1.SecurityContext{RunAsGroup: ptrTo(group)}
 		// Restricted init runs as the game UID. It can overwrite an existing
 		// root-owned, shared-group-writable file, but cannot chmod that file.
@@ -2675,28 +2846,34 @@ func buildGameContainer(
 		c.TTY = true
 		c.Stdin = true
 	}
-	c.SecurityContext = gameContainerSecurityContext(tmpl)
+	resolved := resolveGameSecurity(tmpl, gs)
+	c.SecurityContext = gameContainerSecurityContextResolved(resolved.RunAsUser.Value, resolved.RunAsGroup.Value)
 	return c
 }
 
-// gameContainerSecurityContext returns the GAME container's
-// SecurityContext derived from the template's optional Security block, or
-// nil when the template sets neither RunAsUser nor RunAsGroup — so a
-// template that doesn't opt in renders a pod spec byte-identical to
-// before this field existed (no empty `securityContext: {}`). Unlike
-// buildAgentContainer's fixed distroless SecurityContext, this only sets
-// what the template asks for: most game images need nothing beyond the
-// uid/gid override to run non-root (e.g. ARK's uid 25000), and forcing
+// gameContainerSecurityContext returns the GAME container's SecurityContext
+// for the template's own Security block, with no server override applied.
+func gameContainerSecurityContext(tmpl *gameplanev1alpha1.GameTemplate) *corev1.SecurityContext {
+	resolved := resolveGameSecurity(tmpl, nil)
+	return gameContainerSecurityContextResolved(resolved.RunAsUser.Value, resolved.RunAsGroup.Value)
+}
+
+// gameContainerSecurityContextResolved builds the GAME container's
+// SecurityContext from the resolved runAsUser and runAsGroup, or returns nil
+// when neither applies, so a server that sets nothing renders a pod spec
+// byte-identical to before this field existed (no empty `securityContext: {}`).
+// Unlike buildAgentContainer's fixed distroless SecurityContext, this only sets
+// what the server asks for: most game images need nothing beyond the uid/gid
+// override to run non-root (e.g. ARK's uid 25000), and forcing
 // readOnlyRootFilesystem/capabilities drops on arbitrary third-party game
 // images would break ones that don't expect it.
-func gameContainerSecurityContext(tmpl *gameplanev1alpha1.GameTemplate) *corev1.SecurityContext {
-	sec := tmpl.Spec.Security
-	if sec == nil || (sec.RunAsUser == nil && sec.RunAsGroup == nil) {
+func gameContainerSecurityContextResolved(runAsUser, runAsGroup *int64) *corev1.SecurityContext {
+	if runAsUser == nil && runAsGroup == nil {
 		return nil
 	}
 	return &corev1.SecurityContext{
-		RunAsUser:  sec.RunAsUser,
-		RunAsGroup: sec.RunAsGroup,
+		RunAsUser:  runAsUser,
+		RunAsGroup: runAsGroup,
 	}
 }
 
@@ -2801,16 +2978,23 @@ func isServerOwnedConfigMap(cm *corev1.ConfigMap, gs *gameplanev1alpha1.GameServ
 	return false
 }
 
-// gamePodSecurityContext returns the pod-level SecurityContext carrying
-// FSGroup, or nil when the template's Security block doesn't set one —
-// mirroring gameContainerSecurityContext's byte-identical-when-unset
-// behavior at the pod level.
+// gamePodSecurityContext returns the pod-level SecurityContext for the
+// template's own Security block, with no server override applied.
 func gamePodSecurityContext(tmpl *gameplanev1alpha1.GameTemplate) *corev1.PodSecurityContext {
-	sec := tmpl.Spec.Security
-	if sec == nil || sec.FSGroup == nil {
+	resolved := resolveGameSecurity(tmpl, nil)
+	return gamePodSecurityContextResolved(resolved.FSGroup.Value, resolved.fsGroupChangePolicy())
+}
+
+// gamePodSecurityContextResolved returns the pod-level SecurityContext carrying
+// the resolved FSGroup and its FSGroupChangePolicy, or nil when no filesystem
+// group applies, mirroring gameContainerSecurityContextResolved's
+// byte-identical-when-unset behavior at the pod level. The policy is only
+// meaningful with an FSGroup, so it is dropped when fsGroup is nil.
+func gamePodSecurityContextResolved(fsGroup *int64, policy *corev1.PodFSGroupChangePolicy) *corev1.PodSecurityContext {
+	if fsGroup == nil {
 		return nil
 	}
-	return &corev1.PodSecurityContext{FSGroup: sec.FSGroup}
+	return &corev1.PodSecurityContext{FSGroup: fsGroup, FSGroupChangePolicy: policy}
 }
 
 // buildAgentContainer constructs the sidecar management agent container definition.

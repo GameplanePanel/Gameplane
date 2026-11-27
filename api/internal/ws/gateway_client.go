@@ -30,8 +30,16 @@ const gatewayCredentialsLabel = "gameplane.local/agent-gateway-credentials"
 var errGatewayUnavailable = errors.New("agent gateway not configured")
 
 // AgentGatewayOptions enables registered-cluster agent routes. Secrets are read
-// only from the central API's configured credentials namespace.
-type AgentGatewayOptions struct{ Namespace string }
+// only from the central API's configured credentials namespace. Files authorizes
+// the rename body (see filesRename); MaxUploadBytes caps files/stream (0 = 20 GiB).
+type AgentGatewayOptions struct {
+	Namespace      string
+	Files          *rbac.FileChecker
+	MaxUploadBytes int64
+	// AgentHost overrides the in-cluster agent host:port of the direct transport. Tests
+	// use it to reach a local TLS server; nil keeps the service DNS name.
+	AgentHost func(name, namespace string) string
+}
 
 type agentGatewayResolver struct {
 	registry  *kube.Registry
@@ -173,6 +181,7 @@ func (t *gatewayAgentTransport) Do(ctx context.Context, operation agentRequest) 
 	if err != nil {
 		return nil, fmt.Errorf("build gateway agent request: %w", err)
 	}
+	operation.applyContentLength(req)
 	copyProxyHeaders(req.Header, operation.header)
 	client := t.http
 	if gatewayprotocol.LongRunningOperation(operation.method, operation.path) {

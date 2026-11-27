@@ -18,7 +18,7 @@ For an offline Helm renderer, see the [Argo CD delivery guide](argocd.md).
 
 The chart and its images are published to the GitHub Container Registry (GHCR)
 as OCI artifacts — no `helm repo add` needed. Install a tagged release straight
-from the registry (replace `<version>` with a release, e.g. `0.4.3`):
+from the registry (replace `<version>` with a release, e.g. `0.5.0`):
 
 ```sh
 helm upgrade --install gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
@@ -31,9 +31,9 @@ The chart's `appVersion` pins matching component images under
 `ghcr.io/gameplanepanel/gameplane/<name>:<version>`, so no image overrides are
 needed for a released version. A default install pulls four of them:
 `operator`, `api`, `web`, and `agent` (the last is pulled per-GameServer, on
-demand). The remaining eight — `audit-syslog-bridge`, `telemetry-receiver`,
+demand). The remaining nine — `audit-syslog-bridge`, `telemetry-receiver`,
 `sentinel`, `tunnel-frp`, `tunnel-tailscale`, `tunnel-playit`, `mcp-server`,
-and `capture-sidecar` — are only pulled when the optional component they
+`capture-sidecar`, and `sftp` — are only pulled when the optional component they
 belong to is enabled (and, for `sentinel` and `capture-sidecar`, only for
 GameServers that opt in). See each component's values block for its enable
 flag.
@@ -46,13 +46,12 @@ flowchart TD
   release["helm install or upgrade gameplane"] --> opq{"operator.enabled"}
   release --> apiq{"api.enabled"}
   release --> monq{"serviceMonitors, prometheusRules or grafanaDashboards"}
-  opq -- "true (default)" --> crds["gameplane-crds subchart (Helm crds/ phase)"]
   opq -- "true (default)" --> op["Operator Deployment, RBAC and NetworkPolicies"]
-  opq -- "true (default)" --> vap["Admission policies and default ModuleSource"]
+  opq -- "true (default)" --> vap["Admission policies"]
   apiq -- "true (default)" --> api["API Deployment, Service and data PVC"]
   apiq -- "web.enabled (default)" --> web["Web dashboard"]
   apiq -- "ingress.enabled" --> ing["Ingress"]
-  release -- "not api.standalone and crds.autoApply.enabled" --> hook["CRD apply hook Job"]
+  release -- "not api.standalone and crds.autoApply.enabled" --> hook["CRD apply hook Job: CRDs, then the default ModuleSource"]
   apiq -- "api.telemetry.receiver.enabled and empty endpoint" --> tr["Telemetry receiver"]
   apiq -- "syslogBridge.enabled and empty webhook URL" --> asb["Audit syslog bridge"]
   monq -- "opt-in" --> mon["ServiceMonitor, PodMonitor, PrometheusRule and dashboard ConfigMap"]
@@ -70,7 +69,7 @@ helm upgrade --install gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
   --set ingress.host=gameplane.your-domain.test
 ```
 
-`:edge` moves with `main`; pin a specific commit with `image.tag=sha-<short>`
+`:edge` moves with `master`; pin a specific commit with `image.tag=sha-<short>`
 when you need reproducibility.
 
 ### Verifying image signatures
@@ -255,7 +254,7 @@ RoleBindings can still widen access and must be removed separately.
 Top-level knobs (see `values.yaml` for the full list):
 
 - `image.registry` / `image.tag` — container image pinning
-- `operator.enabled` — enable the workload operator and bundled native CRDs (default `true`). Set to `false` for a standalone central panel; the CRD subchart is excluded before Helm installs CRDs.
+- `operator.enabled` — enable the workload operator and the chart's ModuleSources (default `true`). Set to `false` for a standalone central panel. The CRDs come from the `crds.autoApply` hook (see [Helm CRD caveat](#helm-crd-caveat)).
 - `api.enabled` — enable the central API and dashboard (default `true`). Set to `false` on a remote operator/gateway installation.
 - `api.standalone` — store management records and encrypted credentials in SQL without a local cluster (default `false`). Requires `operator.enabled=false` and one API replica. The standalone profile omits native CRDs and the CRD apply hook/RBAC without an additional CLI flag. See the [standalone guide](standalone-panel.md).
 - `operator.replicas` — leader-elected, safe at 2+
@@ -308,10 +307,11 @@ Top-level knobs (see `values.yaml` for the full list):
       a dashboard override survives future `helm upgrade`s that change the Helm
       value. Per-role precedence: dashboard override (if present) > Helm seed. No
       admin account or `bootstrap-admin` run needed for OIDC-only installs.
-    - `defaultRole` — Helm-only (no dashboard override in v1). Default role when a
+    - `defaultRole` — Seeded from Helm; an admin can also override it from the dashboard. Default role when a
       user's IdP groups don't match any `roleMappings` entry (default `""`).
-      Accepted values: `""` (treat as `"viewer"`), `"viewer"`, `"operator"`,
-      `"admin"`, or `"deny"` (reject login). Meaningful only when role mappings
+      Accepted values: `""` (treat as `"viewer"`), `"deny"` (reject login), or the
+      name of any role, built-in or custom (checked at sign-in; a missing role
+      refuses the login). Meaningful only when role mappings
       are configured. Example: `--set api.oidc.defaultRole=viewer`
   **Backward compatibility**: Group-based mapping is active whenever at least
   one `roleMappings` list is non-empty or an admin has set a mapping override
@@ -355,8 +355,9 @@ Top-level knobs (see `values.yaml` for the full list):
     - `backupEgress.ports` — TCP ports for repository connections (default 443, 22); unlike `gameEgress` there is no private-range exclusion, since the destination is an admin-configured repository Secret rather than an attacker-influenced URL, and is often itself private
 - `clusterOps.enabled` — credential-minting cluster operations (Add node, Download kubeconfig) in the dashboard's Cluster page (default off; grants powerful kube-system + CSR-approval RBAC)
   - `clusterOps.externalAddress` — external (node-routable) API server address, e.g. `1.2.3.4:6443` or `https://k8s.example.com:6443`, used in the join command and downloaded kubeconfig instead of the in-cluster ClusterIP; leave empty only when the in-cluster address is itself reachable from outside the cluster
-- `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](https://github.com/GameplanePanel/mcp/blob/main/README.md)
+- `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](https://github.com/GameplanePanel/mcp/blob/master/README.md)
   - `mcpServer.replicas` — MCP server replicas (default 1)
+- `sftp.enabled` — optional SFTP endpoint for game server files (default off); see [sftp.md](sftp.md)
 - `updates.channel` — informational release-channel label (e.g., `stable`, `edge`) shown read-only in the dashboard's Admin Settings → Updates section; purely informational (Gameplane upgrades via Helm, not auto-update)
 - `podSecurity.enforceRestricted` — defaults to true on new installs. Enables the Restricted game/config-init profile and namespace admission. Templates require positive `security.runAsUser` and `security.fsGroup`; verify image compatibility and migrate existing file ownership before upgrading. Enabling it rolls existing Pods once.
   - `podSecurity.version` — pinned PSA minor, default `v1.34`; administrator override for a tested cluster version.
@@ -369,7 +370,7 @@ Top-level knobs (see `values.yaml` for the full list):
   - `defaultModuleSource.type` — source type: `oci` (default, pulls pre-built bundles from a registry) or `git` (index the public `GameplanePanel/module` repo)
   - `defaultModuleSource.git.*` — git configuration (when `type: git`)
     - `git.url` — repository URL (default `https://github.com/GameplanePanel/module.git`)
-    - `git.ref` — git branch/tag (defaults to a pinned module-repo release tag, see `defaultModuleSource.git.ref` in `values.yaml`; set `main` to track the bleeding edge, but then a module bump on `main` can stop serving the version installed Modules pin, which leaves them `Failed`/`VersionUnavailable`)
+    - `git.ref` — git branch/tag (defaults to a pinned module-repo release tag, see `defaultModuleSource.git.ref` in `values.yaml`; set `master` to track the bleeding edge, but then a module bump on `master` can stop serving the version installed Modules pin, which leaves them `Failed`/`VersionUnavailable`)
     - `git.subPath` — module subdirectory within the repository (default `""`, empty means root)
   - `defaultModuleSource.oci.*` — OCI registry configuration (when `type: oci`)
     - `oci.url` — OCI registry URL (e.g., `ghcr.io/gameplanepanel/gameplane-modules`)
@@ -415,6 +416,9 @@ Top-level knobs (see `values.yaml` for the full list):
   Each server gets a contiguous block, kept for its life. Use it when servers
   are reached through a relay or an edge that forwards ports, as games whose
   clients send no hostname must be. See [Networking](networking.md#port-pools).
+- `operator.templateHostnames` — default player hostnames keyed by GameTemplate
+  name for NodePort and LoadBalancer servers. Each server can override its
+  template default in Networking settings. See [Default player hostname per game template](networking.md#default-player-hostname-per-game-template).
 - `capture.enabled` — the optional network packet capture sidecar [optional] for GameServers
   (default `false`). When enabled cluster-wide, admins can opt individual GameServers
   into live AF_PACKET capture with BPF filtering and download PCAPNG files. Captures
@@ -553,11 +557,14 @@ a slow or down sink never blocks or fails a request.
 - `api.audit.webhook.authSecretRef` — optional `Authorization` header for the
   webhook, sourced from a Secret (never a flag — see [security](security.md)).
 - `api.audit.webhook.syslogBridge.enabled` — deploy the bundled
-  [audit-syslog-bridge [optional]](https://github.com/GameplanePanel/audit-syslog-bridge/blob/main/README.md) and point the webhook
+  [audit-syslog-bridge [optional]](https://github.com/GameplanePanel/audit-syslog-bridge/blob/master/README.md) and point the webhook
   at it automatically, so events are forwarded to a **syslog** collector. Set
   `syslogBridge.syslog.addr` to your collector `host:port` (required when
   enabled), and optionally `network` (`tcp`/`udp`), `tls`, `facility`, and
   `severity`. Setting `webhook.url` explicitly overrides the auto-wiring.
+  The API and the bridge always share a token: the one in `authSecretRef`,
+  or, when that is unset, one the chart generates in the Secret
+  `gameplane-audit-syslog-bridge-token` (kept across upgrades).
 
   ```sh
   helm upgrade ... \
@@ -950,75 +957,61 @@ remote workloads running. Keep cookie jars and kubeconfig files private.
 ### Helm CRD caveat
 
 This section applies to combined and remote workload installations. A standalone
-central Helm release uses `operator.enabled=false` to exclude the bundled
-`gameplane-crds` subchart and `api.standalone=true` to skip the CRD apply hook and
-its RBAC. No `--skip-crds` argument is needed; follow its
+central Helm release uses `api.standalone=true`, which skips the CRD apply hook
+and its RBAC, and `operator.enabled=false`, which leaves out the operator and
+its ModuleSources. No `--skip-crds` argument is needed; follow its
 [panel profile](standalone-panel.md#central-panel-on-kubernetes).
 
-With the default `operator.enabled=true`, the subchart supplies CRDs through
-Helm's native `crds/` phase before the release's custom resources are installed.
-CRDs already present on the cluster remain in place when switching to a profile
-that omits them; this setting does not delete CRDs or their custom resources.
-Combined API-only installs retain the existing apply hook when
-`api.standalone=false` and `crds.autoApply.enabled=true`.
+**The chart installs its CRDs with a hook, not Helm's `crds/` phase.** Helm
+never updates `crds/` files on `helm upgrade`, and carrying them in the chart
+as well as in the hook doubled its packaged size. So `crds.autoApply`
+(enabled by default) ships a **pre-install/pre-upgrade hook Job** that runs
+`kubectl apply --server-side --field-manager=helm` over
+`charts/gameplane/crd-manifests/` on every `helm install` and `helm upgrade`.
+The `Cluster` CRD, and every other Gameplane CRD, stays in step with the chart
+automatically. **No manual `kubectl apply` step is needed.** Every install
+and upgrade pulls the hook's `kubectl` image, so mirror
+`crds.autoApply.image` on an air-gapped cluster.
 
-**`helm upgrade` never updates CRDs.** That is a documented Helm limitation,
-not a Gameplane one: files under a chart's `crds/` directory are installed on
-first install and ignored on every upgrade thereafter.
+Helm checks every release object's kind before it runs pre-install hooks, and
+a ModuleSource can't be created before its CRD exists. So once the CRDs are
+Established, a second hook Job (`<release>-module-sources`) server-side applies the chart's ModuleSources
+(`defaultModuleSource`, `uploadModuleSource`) with the annotation
+`helm.sh/resource-policy: keep`. They are not release objects: `helm
+uninstall` leaves them in place, and turning `defaultModuleSource.enabled` off
+later does not delete the existing one (`kubectl delete modulesource default`
+does). On the first upgrade from a release that still owned the ModuleSource,
+the Job sets that annotation before Helm compares the releases, so Helm keeps
+the ModuleSource and its Modules instead of deleting them.
 
-The chart works around this for you. `crds.autoApply` (enabled by default)
-ships a **pre-install/pre-upgrade hook** that runs `kubectl apply
---server-side` over the current CRDs on every `helm upgrade`, and also on a
-`helm install` that lands on top of CRDs an earlier, uninstalled release left
-behind, so the `Cluster` CRD — and every other Gameplane CRD — stays in step
-with the chart automatically. **No manual `kubectl apply` step is needed.**
+CRDs are never owned or deleted by Helm here, so `helm uninstall` leaves your
+GameServers intact.
 
 You only need to apply CRDs by hand if you have deliberately disabled the
-hook:
+hook, for example in the [Argo CD profile](argocd.md). Then the ModuleSources
+render as ordinary release objects, so the CRDs must exist before the release
+is installed:
 
 ```sh
 # only when crds.autoApply.enabled=false
-kubectl apply --server-side -f charts/gameplane/crd-manifests/
+kubectl apply --server-side --field-manager=helm -f charts/gameplane/crd-manifests/
 ```
 
-The hook fires on pre-upgrade always. On `helm install` it fires only when
-the cluster already holds Gameplane CRDs from a different chart version, i.e.
-ones an earlier, uninstalled release left behind (Helm's `crds/` install
-silently skips existing CRDs). It tells those apart by content: `make
-manifests` stamps every chart CRD with a `gameplane.local/crd-bundle-sha256`
-annotation, a hash over the whole CRD set, and the hook compares the live
-`gameservers.gameplane.local` CRD's stamp with the chart's. On a genuinely
-fresh cluster, Helm's `crds/` step creates the CRDs, carrying this chart's
-stamp, before the hook is evaluated, so the stamps match and the hook does
-not run. A fresh install therefore never depends on pulling the hook's
-`kubectl` image; an install over leftover CRDs does, so mirror
-`crds.autoApply.image` if you reinstall on an air-gapped cluster. CRDs are
-never owned or deleted by Helm here, so `helm uninstall` leaves your
-GameServers intact.
-
-With Helm 3, the hook's events on `helm install` depend on the live CRD stamp:
+The same CRDs are published on their own as the
+`oci://ghcr.io/gameplanepanel/charts/gameplane-crds` chart.
 
 ```mermaid
 flowchart TD
-  start["helm install or helm upgrade"] --> up{"Release.IsUpgrade?"}
-  up -- yes --> pre["pre-upgrade hook: kubectl apply --server-side"]
-  up -- no --> live{"gameservers CRD present with a different stamp?"}
-  live -- "no: fresh cluster, stamps match" --> none["No hook Job; crds/ created the CRDs"]
-  live -- "yes: leftover CRDs" --> pi["pre-install and pre-upgrade hook applies crd-manifests/"]
+  start["helm install or helm upgrade"] --> hook["pre-install/pre-upgrade hooks"]
+  hook --> crds["crd-apply Job: kubectl apply --server-side crd-manifests/"]
+  crds --> wait["module-sources Job: kubectl wait for CRDs Established"]
+  wait --> ms["kubectl apply --server-side the chart's ModuleSources (resource-policy keep)"]
+  ms --> rel["Helm installs or upgrades the release objects"]
 ```
 
-**Helm 4** installs `crds/` with a server-side apply under the field manager
-`helm` instead of skipping existing CRDs, so a `helm install` over leftover
-CRDs updates them itself (stamp included) and the hook stays pre-upgrade
-only. The hook applies under the same `helm` field manager so that apply
-never conflicts with it. Releases up to and including `0.2.0-beta.8` applied under <!-- doc-versions: historical -->
-kubectl's default manager (`kubectl`); if CRDs such a release upgraded were
-left behind, a Helm 4 `helm install` stops with `conflict with "kubectl" …
-.spec.versions`. Re-run it with `--force-conflicts` to take them over:
-
-```sh
-helm install gameplane charts/gameplane -n gameplane-system --create-namespace --force-conflicts
-```
+Releases up to and including `0.2.0-beta.8` applied CRDs under kubectl's <!-- doc-versions: historical -->
+default manager (`kubectl`). The hook takes those fields over with
+`--force-conflicts`.
 
 ### RBAC and permissions
 
@@ -1052,7 +1045,7 @@ helm upgrade gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
   --reuse-values
 ```
 
-CRDs are brought up to date automatically by the chart's pre-upgrade hook —
+CRDs are brought up to date automatically by the chart's pre-install/pre-upgrade hook —
 see [Helm CRD caveat](#helm-crd-caveat).
 
 **A caution on `--reuse-values`:** it replays your previous values *and skips
@@ -1073,7 +1066,7 @@ and roll out the new agent before relying on per-server readings.
 
 ### What upgrades are tested
 
-CI runs an end-to-end upgrade on every PR (`e2e upgrade`, on both amd64 and
+CI runs an end-to-end upgrade on PRs whose changes select the upgrade suite (`e2e upgrade`, on both amd64 and
 arm64): it installs the **previous release's published chart and published
 GHCR images** into a fresh cluster, seeds a running GameServer with data on
 its PVC and an admin user in the database, then upgrades to the chart under
