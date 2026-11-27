@@ -354,7 +354,8 @@ spec:
 # own (only the Job controller's batch.kubernetes.io/job-name) until
 # the operator's Backup/Restore reconcilers stamp them with
 # app.kubernetes.io/name=gameplane-backup-restore — this policy
-# selects that label. The destination is whatever an admin's repo
+# selects that label. Backup export workers (spec 041) read the same
+# repositories and carry the same label. The destination is whatever an admin's repo
 # Destination Secret points at (s3/b2/rest/sftp/swift/azure/gcs,
 # in-cluster or public), so, unlike allow-game-public-egress, no
 # private-range exception is applied here: the destination is
@@ -371,29 +372,6 @@ spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/name: gameplane-backup-restore
-  policyTypes: [Egress]
-  egress:
-    - to:
-        {{- range ($backupEgress.toCIDRs | default (list "0.0.0.0/0")) }}
-        - ipBlock: { cidr: {{ . | quote }} }
-        {{- end }}
-      ports:
-        {{- range $backupEgress.ports }}
-        - { protocol: {{ .protocol }}, port: {{ .port }} }
-        {{- end }}
----
-# Backup export workers (spec 041) read the snapshot from the same restic
-# repositories as backup and restore Jobs, so they get the same egress.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-archive-export-egress
-  namespace: {{ $namespace }}
-  labels: {{- include "gameplane.labels" . | nindent 4 }}
-spec:
-  podSelector:
-    matchLabels:
-      gameplane.local/archive-worker: export
   policyTypes: [Egress]
   egress:
     - to:
