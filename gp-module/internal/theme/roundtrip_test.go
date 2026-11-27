@@ -191,8 +191,8 @@ func TestWriteOCILayoutExtendsExistingLayout(t *testing.T) {
 	for _, m := range index.Manifests {
 		refs[m.Annotations[annotationRefName]] = true
 	}
-	if len(index.Manifests) != 2 || !refs["1.2.0"] || !refs["1.2.1"] {
-		t.Fatalf("index.json refs = %v, want both 1.2.0 and 1.2.1", refs)
+	if len(index.Manifests) != 2 || !refs[bundle.Name+"-1.2.0"] || !refs[bundle.Name+"-1.2.1"] {
+		t.Fatalf("index.json refs = %v, want both %s-1.2.0 and %s-1.2.1", refs, bundle.Name, bundle.Name)
 	}
 	// Writing the same version again replaces its entry instead of adding one.
 	if _, err := WriteOCILayout(bundle, layout); err != nil {

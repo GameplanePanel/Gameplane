@@ -102,8 +102,12 @@ gp-module theme preview deep-ocean --port 8787 --mode dark
 # 5a. Write an OCI image layout for review or a later push
 gp-module theme package deep-ocean --out build/deep-ocean-oci
 
-# 5b. Or push to a registry with the credentials in your Docker config (needs oras)
+# 5b. Or push to a registry with the credentials in your Docker config (needs oras).
+# --push takes a registry prefix; the theme is pushed to ghcr.io/example/themes/deep-ocean:<version>
 gp-module theme package deep-ocean --push ghcr.io/example/themes
+
+# Local dev registry over plain HTTP
+gp-module theme package deep-ocean --push localhost:5001/themes --plain-http
 ```
 
 `theme init` writes both token modes unless you pass `--dark` or `--light`. It
@@ -131,7 +135,7 @@ published.
 | `theme.yaml` layer | `application/vnd.gameplane.theme.metadata.v1+yaml` |
 | `theme.css` layer | `text/css` |
 | Preview layers | `image/png` or `image/webp` |
-| Reference | `<registry>/<name>:<version>` |
+| Reference | `<registry-prefix>/<name>:<version>` (`--push` takes the prefix; `--plain-http` allows plain HTTP registries) |
 
 Each layer is titled with its path inside the package. Pushing uses the `oras`
 CLI, which reads the registry credentials from the Docker config. Sign the

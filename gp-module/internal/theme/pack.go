@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/GameplanePanel/gameplane/gp-module/internal/packager"
 )
 
 // OCI artifact, config and layer media types of a theme package
@@ -142,9 +144,16 @@ type ociIndex struct {
 	Manifests     []ociDescriptor `json:"manifests"`
 }
 
+// layoutRefName is the org.opencontainers.image.ref.name of a bundle's index
+// entry. It keys the entry by theme name and version, so two themes with the
+// same version can share one layout folder without overwriting each other.
+func layoutRefName(b *Bundle) string {
+	return b.Name + "-" + b.Version
+}
+
 // WriteOCILayout writes the bundle as an OCI image layout in dir (index.json,
 // oci-layout and blobs/sha256). It returns the manifest digest. An existing
-// layout is extended, so several versions can share one folder.
+// layout is extended, so several themes and versions can share one folder.
 func WriteOCILayout(b *Bundle, dir string) (string, error) {
 	blobs := filepath.Join(dir, "blobs", "sha256")
 	if err := os.MkdirAll(blobs, 0o750); err != nil {
@@ -185,10 +194,12 @@ func WriteOCILayout(b *Bundle, dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// The entry for this version is replaced; other versions stay.
+	// The entry for this theme and version is replaced; other themes and
+	// versions stay, so several themes can share one --out folder.
+	ref := layoutRefName(b)
 	kept := index.Manifests[:0]
 	for _, m := range index.Manifests {
-		if m.Annotations[annotationRefName] != b.Version {
+		if m.Annotations[annotationRefName] != ref {
 			kept = append(kept, m)
 		}
 	}
@@ -197,7 +208,7 @@ func WriteOCILayout(b *Bundle, dir string) (string, error) {
 		Digest:       manifestDigest,
 		Size:         manifestSize,
 		ArtifactType: ArtifactType,
-		Annotations:  map[string]string{annotationRefName: b.Version},
+		Annotations:  map[string]string{annotationRefName: ref},
 	})
 	indexBytes, err := json.MarshalIndent(index, "", "  ")
 	if err != nil {
@@ -242,11 +253,18 @@ func writeBlob(blobsDir string, data []byte) (string, int64, error) {
 	return digest, int64(len(data)), nil
 }
 
-// Push uploads the bundle to registry as <registry>/<name>:<version> with ORAS,
-// which reads the registry credentials from the Docker config, the same way the
-// module packager does. It returns the pushed reference. Signing stays with
-// `cosign sign`.
-func Push(b *Bundle, dir, registry string) (string, error) {
+// PushOptions controls Push. PlainHTTP allows plain HTTP registry connections
+// (for example the local dev registry), as `gp-module package --plain-http` does.
+type PushOptions struct {
+	PlainHTTP bool
+}
+
+// Push uploads the bundle to the registry prefix as <prefix>/<name>:<version>
+// with ORAS, which reads the registry credentials from the Docker config, the
+// same way the module packager does. It returns the pushed reference. The oras
+// call goes through packager.RunOras, the exempt file for oras execution. Signing
+// stays with `cosign sign`.
+func Push(b *Bundle, dir, prefix string, opts PushOptions) (string, error) {
 	if _, err := exec.LookPath("oras"); err != nil {
 		return "", errors.New("oras binary not found in PATH; install ORAS (https://oras.land) or use --out to write an OCI layout")
 	}
@@ -259,16 +277,16 @@ func Push(b *Bundle, dir, registry string) (string, error) {
 	if err := os.WriteFile(configPath, b.Config, 0o600); err != nil {
 		return "", fmt.Errorf("write config: %w", err)
 	}
-	ref := fmt.Sprintf("%s/%s:%s", strings.TrimRight(registry, "/"), b.Name, b.Version)
-	args := []string{"push", "--artifact-type", ArtifactType, "--config", configPath + ":" + ConfigMediaType, ref}
+	ref := fmt.Sprintf("%s/%s:%s", strings.TrimRight(prefix, "/"), b.Name, b.Version)
+	args := []string{"push"}
+	if opts.PlainHTTP {
+		args = append(args, "--plain-http")
+	}
+	args = append(args, "--artifact-type", ArtifactType, "--config", configPath+":"+ConfigMediaType, ref)
 	for _, l := range b.Layers {
 		args = append(args, l.Title+":"+l.MediaType)
 	}
-	cmd := exec.CommandContext(context.Background(), "oras", args...)
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	if err := packager.RunOras(context.Background(), dir, args...); err != nil {
 		return "", fmt.Errorf("oras push failed: %w", err)
 	}
 	return ref, nil
