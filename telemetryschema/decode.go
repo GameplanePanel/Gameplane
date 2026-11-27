@@ -369,9 +369,16 @@ func k8sMinor(v string) string {
 	return other
 }
 
+// MaxK8sVersions caps how many distinct Kubernetes versions one report may list
+// in env.k8s (after folding). It is far above any real fleet's spread of minor
+// versions and keeps one report from registering an unbounded number of
+// dashboard categories.
+const MaxK8sVersions = 32
+
 // asK8sSet decodes schema 2's ext.env.k8s: an array of strings, each folded by
 // k8sMinor, returned sorted and de-duplicated and never nil. An element that is
-// null or not a string is invalid.
+// null or not a string is invalid, and so is a set of more than MaxK8sVersions
+// distinct values.
 func asK8sSet(raw json.RawMessage) ([]string, error) {
 	var in []*string
 	if err := json.Unmarshal(raw, &in); err != nil {
@@ -385,7 +392,11 @@ func asK8sSet(raw json.RawMessage) ([]string, error) {
 		out = append(out, k8sMinor(*p))
 	}
 	sort.Strings(out)
-	return slices.Compact(out), nil
+	out = slices.Compact(out)
+	if len(out) > MaxK8sVersions {
+		return nil, fmt.Errorf("%w: ext.env.k8s lists more than %d versions", ErrInvalidPayload, MaxK8sVersions)
+	}
+	return out, nil
 }
 
 // decodeGames validates ext.games. Counts of modules outside the catalog are

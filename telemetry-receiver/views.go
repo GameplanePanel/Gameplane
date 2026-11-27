@@ -446,7 +446,7 @@ func buildExtended(ctx context.Context, st *store, rangeDays int, from, to strin
 		return nil, err
 	}
 	e.Env = EnvViews{
-		K8s:        sortedShares(dims[dimK8s], nil),
+		K8s:        sortedShares(foldTopShares(dims[dimK8s], topVersions), nil),
 		Distro:     sortedShares(dims[dimDistro], nil),
 		Arch:       sortedShares(dims[dimArch], nil),
 		Nodes:      sortedShares(dims[dimNodes], telemetryschema.NodeBands),
@@ -668,6 +668,40 @@ func queryDims(ctx context.Context, db *sql.DB, from, to string, extReports int6
 		return nil, fmt.Errorf("read daily_dim: %w", err)
 	}
 	return out, nil
+}
+
+// foldTopShares keeps the topN labels with the largest shares (ties by label)
+// and folds every other row, and any stored "other" row, into one "other" row
+// that comes last. A dimension with more values than the chart can show, such
+// as k8s, cannot flood its panel this way. Rows are returned in no particular
+// order; pass the result to sortedShares.
+func foldTopShares(rows []ShareRow, topN int) []ShareRow {
+	var named []ShareRow
+	var other float64
+	for _, r := range rows {
+		if r.Label == versionOtherStored {
+			other += r.Share
+			continue
+		}
+		named = append(named, r)
+	}
+	sort.Slice(named, func(i, j int) bool {
+		if named[i].Share != named[j].Share {
+			return named[i].Share > named[j].Share
+		}
+		return named[i].Label < named[j].Label
+	})
+	if len(named) > topN {
+		for _, r := range named[topN:] {
+			other += r.Share
+		}
+		named = named[:topN]
+	}
+	out := append([]ShareRow{}, named...)
+	if other > 0 {
+		out = append(out, ShareRow{Label: versionOtherStored, Share: other})
+	}
+	return out
 }
 
 // sortedShares returns rows ordered by order (members not in order, such as

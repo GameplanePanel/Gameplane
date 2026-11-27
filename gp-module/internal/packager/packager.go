@@ -170,11 +170,24 @@ func CreateArchiveFromFiles(files map[string][]byte, limits PackageLimits) ([]by
 	return buf.Bytes(), warnings, nil
 }
 
+// standardModuleFiles is the top-level file set a module bundle carries. It
+// matches the layers PushOCI pushes, so the .tar.gz export and the OCI push
+// ship the same files. Anything else in the directory (dotfiles, editor
+// backups, earlier bundles) is left out.
+var standardModuleFiles = []string{"module.yaml", "template.yaml", "README.md", "icon.png"}
+
 // CreateArchiveFromDir reads module files from a directory and compresses them into a .tar.gz archive.
+// Only the standard module files and the locales are included, as in an OCI push.
 func CreateArchiveFromDir(dirPath string, limits PackageLimits) ([]byte, []PackageWarning, error) {
-	files, err := ReadModuleFiles(dirPath)
+	dirFiles, err := ReadModuleFiles(dirPath)
 	if err != nil {
 		return nil, nil, err
+	}
+	files := make(map[string][]byte, len(standardModuleFiles))
+	for _, name := range standardModuleFiles {
+		if data, ok := dirFiles[name]; ok {
+			files[name] = data
+		}
 	}
 	// Translations travel in the archive at the same relative path an OCI
 	// bundle uses as layer title: locales/<tag>.json (en.json is not shipped).
