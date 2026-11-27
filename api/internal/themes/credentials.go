@@ -175,12 +175,12 @@ func (s *Service) secretStore() (kube.SecretStore, error) {
 }
 
 // writeCredential creates or replaces the credential Secret of source with data
-// and returns its name. An existing Secret that is not labelled as a theme source
+// (named by credentialSecretName). An existing Secret that is not labelled as a theme source
 // credential is refused, so this path cannot overwrite another Secret.
-func (s *Service) writeCredential(ctx context.Context, source string, data map[string][]byte) (string, error) {
+func (s *Service) writeCredential(ctx context.Context, source string, data map[string][]byte) error {
 	st, err := s.secretStore()
 	if err != nil {
-		return "", err
+		return err
 	}
 	name := credentialSecretName(source)
 	labels := map[string]string{ThemeSourceSecretLabel: "true", managedByLabel: managedByValue}
@@ -191,19 +191,19 @@ func (s *Service) writeCredential(ctx context.Context, source string, data map[s
 	}
 	_, err = st.Create(ctx, desired, metav1.CreateOptions{})
 	if err == nil {
-		return name, nil
+		return nil
 	}
 	if !apierrors.IsAlreadyExists(err) {
-		return "", fmt.Errorf("store theme source credential: %w", err)
+		return fmt.Errorf("store theme source credential: %w", err)
 	}
 	existing, err := st.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		return "", fmt.Errorf("read theme source credential: %w", err)
+		return fmt.Errorf("read theme source credential: %w", err)
 	}
 	if existing.Labels[ThemeSourceSecretLabel] != "true" {
 		// A foreign Secret with the same name is a conflict the admin can fix by
 		// renaming the source, so it is a 422 refusal, not a server error.
-		return "", sourceErrf("a Secret named %s already exists and is not a theme source credential", name)
+		return sourceErrf("a Secret named %s already exists and is not a theme source credential", name)
 	}
 	if existing.Labels == nil {
 		existing.Labels = map[string]string{}
@@ -214,9 +214,9 @@ func (s *Service) writeCredential(ctx context.Context, source string, data map[s
 	existing.Data = data
 	existing.StringData = nil
 	if _, err := st.Update(ctx, existing, metav1.UpdateOptions{}); err != nil {
-		return "", fmt.Errorf("update theme source credential: %w", err)
+		return fmt.Errorf("update theme source credential: %w", err)
 	}
-	return name, nil
+	return nil
 }
 
 // deleteCredential removes the credential Secret of source. A missing Secret, or

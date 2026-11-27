@@ -348,7 +348,7 @@ func (s *Service) CreateSource(ctx context.Context, name string, in SourceSettin
 		return db.ThemeSource{}, fmt.Errorf("create theme source %q: %w", name, err)
 	}
 	if data != nil {
-		if _, err := s.writeCredential(ctx, name, data); err != nil {
+		if err := s.writeCredential(ctx, name, data); err != nil {
 			if derr := s.store.DeleteThemeSource(ctx, created.ID); derr != nil {
 				s.logger.ErrorContext(ctx, "remove theme source after credential failure", "source", name, "error", derr)
 			}
@@ -466,7 +466,7 @@ func (s *Service) UpdateSource(ctx context.Context, name string, in SourceSettin
 	}
 	credChanged := writeData != nil || deleteSecret
 	if writeData != nil {
-		if _, err := s.writeCredential(ctx, name, writeData); err != nil {
+		if err := s.writeCredential(ctx, name, writeData); err != nil {
 			s.logger.ErrorContext(ctx, "write theme source credential after row update", "source", name, "error", err)
 			return db.ThemeSource{}, err
 		}
