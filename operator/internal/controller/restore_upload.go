@@ -166,13 +166,15 @@ func checkUploadArchive(s uploadSummary, confirmedTemplate string, target upload
 		if s.Manifest.Template.Name != target.TemplateName {
 			return nil, fmt.Sprintf("archive is for %s, this server runs %s", s.Manifest.Template.Name, target.TemplateName)
 		}
-		present := make(map[string]bool, len(s.Volumes))
-		for _, v := range s.Volumes {
-			present[v] = true
-		}
-		for _, v := range target.VolumeNames {
-			if !present[v] {
-				return nil, fmt.Sprintf("archive has no volume %q, which this server uses", v)
+		if !legacyArchiveLayout(s.Kind, s.Volumes, target.VolumeNames) {
+			present := make(map[string]bool, len(s.Volumes))
+			for _, v := range s.Volumes {
+				present[v] = true
+			}
+			for _, v := range target.VolumeNames {
+				if !present[v] {
+					return nil, fmt.Sprintf("archive has no volume %q, which this server uses", v)
+				}
 			}
 		}
 		if archiveGameVersionOlder(s.Manifest.GameVersion, target.GameVersion) {
@@ -186,6 +188,22 @@ func checkUploadArchive(s uploadSummary, confirmedTemplate string, target upload
 		warnings = append(warnings, "zip file permissions were reset; file modes in the archive were not preserved")
 	}
 	return warnings, ""
+}
+
+// legacyArchiveLayout reports whether a Gameplane archive holds only the single
+// "data" folder of a capture format 1 backup. Like a plain archive, that folder
+// fills the game's data claim. targetNames are the server's logical volume
+// names; a server with its own volume named "data" keeps the per-volume match.
+func legacyArchiveLayout(kind string, archiveVolumes, targetNames []string) bool {
+	if kind != "gameplane" || len(archiveVolumes) != 1 || archiveVolumes[0] != uploadPlainLogicalName {
+		return false
+	}
+	for _, n := range targetNames {
+		if n == uploadPlainLogicalName {
+			return false
+		}
+	}
+	return true
 }
 
 // archiveGameVersionOlder reports whether the archive's game version sorts
@@ -585,8 +603,13 @@ func (r *RestoreReconciler) uploadCopy(ctx context.Context, rs *gameplanev1alpha
 			return ctrl.Result{}, err
 		}
 		kind := ""
-		if rs.Status.Upload != nil {
-			kind = rs.Status.Upload.Kind
+		if up := rs.Status.Upload; up != nil {
+			kind = up.Kind
+			// A capture format 1 archive is copied like a plain one: its single
+			// data folder fills the game's data claim.
+			if up.Manifest != nil && legacyArchiveLayout(kind, up.Manifest.Volumes, target.archiveTarget().VolumeNames) {
+				kind = "plain"
+			}
 		}
 		if err := r.ensureUploadObject(ctx, rs, r.buildUploadCopyPod(rs, name, target, kind, sel, fsGroup)); err != nil {
 			return ctrl.Result{}, err
