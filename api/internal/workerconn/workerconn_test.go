@@ -18,8 +18,8 @@ func refused() error {
 	return &url.Error{Op: "Get", URL: "https://worker:9443/", Err: fmt.Errorf("dial tcp: %w", syscall.ECONNREFUSED)}
 }
 
-func getRequest(body io.Reader) (*http.Request, error) {
-	return http.NewRequestWithContext(context.Background(), http.MethodGet, "https://worker:9443/export/uid", body)
+func getRequest(ctx context.Context, body io.Reader) (*http.Request, error) {
+	return http.NewRequestWithContext(ctx, http.MethodGet, "https://worker:9443/export/uid", body)
 }
 
 func TestDoRetriesRefusedConnection(t *testing.T) {
@@ -127,8 +127,8 @@ func TestDoRetriesUnreadBodyAndDeliversIt(t *testing.T) {
 		}
 		return srv.Client().Do(req)
 	}
-	newRequest := func(body io.Reader) (*http.Request, error) {
-		req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, srv.URL, body)
+	newRequest := func(ctx context.Context, body io.Reader) (*http.Request, error) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodPut, srv.URL, body)
 		if err != nil {
 			return nil, err
 		}
@@ -148,7 +148,7 @@ func TestDoRetriesUnreadBodyAndDeliversIt(t *testing.T) {
 
 func TestDoReturnsRequestBuildErrors(t *testing.T) {
 	bad := errors.New("bad url")
-	newRequest := func(io.Reader) (*http.Request, error) { return nil, bad }
+	newRequest := func(context.Context, io.Reader) (*http.Request, error) { return nil, bad }
 	send := func(*http.Request) (*http.Response, error) {
 		t.Fatal("send called")
 		return nil, nil

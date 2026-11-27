@@ -339,8 +339,8 @@ func (h *backupArchiveHandler) openLocal(req *http.Request, ns string, exp *kube
 		return nil, http.StatusBadGateway, errors.New("backup export has an invalid worker address")
 	}
 	target := h.exportURL(host, uid).String()
-	resp, err := workerconn.Do(req.Context(), h.tlsClient.Do, func(io.Reader) (*http.Request, error) {
-		upReq, err := http.NewRequestWithContext(req.Context(), http.MethodGet, target, nil)
+	resp, err := workerconn.Do(req.Context(), h.tlsClient.Do, func(rctx context.Context, _ io.Reader) (*http.Request, error) {
+		upReq, err := http.NewRequestWithContext(rctx, http.MethodGet, target, nil)
 		if err != nil {
 			return nil, fmt.Errorf("build backup export request: %w", err)
 		}

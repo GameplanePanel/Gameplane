@@ -350,8 +350,8 @@ func (h *backupArchiveHandler) sendLocalUpload(req *http.Request, ns, receiver, 
 		return nil, errors.New("restore upload has an invalid receiver address")
 	}
 	target := h.uploadURL(host, restoreUID).String()
-	resp, err := workerconn.Do(req.Context(), h.tlsClient.Do, func(b io.Reader) (*http.Request, error) {
-		upReq, err := http.NewRequestWithContext(req.Context(), http.MethodPut, target, b)
+	resp, err := workerconn.Do(req.Context(), h.tlsClient.Do, func(rctx context.Context, b io.Reader) (*http.Request, error) {
+		upReq, err := http.NewRequestWithContext(rctx, http.MethodPut, target, b)
 		if err != nil {
 			return nil, fmt.Errorf("build restore upload request: %w", err)
 		}

@@ -21,7 +21,7 @@ const (
 	RetryInterval = 250 * time.Millisecond
 )
 
-// Do sends the request newRequest builds and retries it while the worker
+// Do sends the request newRequest builds with ctx and retries it while the worker
 // refuses the connection, for at most RetryWindow. body, when not nil, is
 // handed to every request it builds and is retried only while none of it has
 // been read, so a streamed upload is never sent twice. The returned error is
@@ -29,7 +29,7 @@ const (
 func Do(
 	ctx context.Context,
 	send func(*http.Request) (*http.Response, error),
-	newRequest func(body io.Reader) (*http.Request, error),
+	newRequest func(ctx context.Context, body io.Reader) (*http.Request, error),
 	body io.Reader,
 ) (*http.Response, error) {
 	return do(ctx, send, newRequest, body, RetryWindow, RetryInterval)
@@ -38,7 +38,7 @@ func Do(
 func do(
 	ctx context.Context,
 	send func(*http.Request) (*http.Response, error),
-	newRequest func(body io.Reader) (*http.Request, error),
+	newRequest func(ctx context.Context, body io.Reader) (*http.Request, error),
 	body io.Reader,
 	window, interval time.Duration,
 ) (*http.Response, error) {
@@ -52,7 +52,7 @@ func do(
 		if tracked != nil {
 			reqBody = tracked
 		}
-		req, err := newRequest(reqBody)
+		req, err := newRequest(ctx, reqBody)
 		if err != nil {
 			return nil, err
 		}

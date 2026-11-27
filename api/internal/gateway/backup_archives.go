@@ -67,8 +67,8 @@ func (h *handler) serveBackupExport(w http.ResponseWriter, req *http.Request, ta
 	}
 	defer transport.CloseIdleConnections()
 	upstreamURL := "https://" + export.Status.ServiceName + "." + target.Namespace + ".svc.cluster.local:" + backupExportWorkerPort + "/export/" + target.ExportUID
-	resp, err := workerconn.Do(ctx, transport.RoundTrip, func(io.Reader) (*http.Request, error) {
-		return http.NewRequestWithContext(ctx, http.MethodGet, upstreamURL, nil)
+	resp, err := workerconn.Do(ctx, transport.RoundTrip, func(rctx context.Context, _ io.Reader) (*http.Request, error) {
+		return http.NewRequestWithContext(rctx, http.MethodGet, upstreamURL, nil)
 	}, nil)
 	if err != nil {
 		http.Error(w, "backup export worker unavailable", http.StatusBadGateway)
@@ -209,8 +209,8 @@ func (h *handler) serveRestoreUpload(w http.ResponseWriter, req *http.Request, t
 	}
 	defer transport.CloseIdleConnections()
 	upstreamURL := "https://" + receiver + "." + target.Namespace + ".svc:" + restoreUploadWorkerPort + "/upload/" + target.RestoreUID
-	resp, err := workerconn.Do(ctx, transport.RoundTrip, func(b io.Reader) (*http.Request, error) {
-		upstream, err := http.NewRequestWithContext(ctx, http.MethodPut, upstreamURL, b)
+	resp, err := workerconn.Do(ctx, transport.RoundTrip, func(rctx context.Context, b io.Reader) (*http.Request, error) {
+		upstream, err := http.NewRequestWithContext(rctx, http.MethodPut, upstreamURL, b)
 		if err != nil {
 			return nil, fmt.Errorf("build restore upload request: %w", err)
 		}
