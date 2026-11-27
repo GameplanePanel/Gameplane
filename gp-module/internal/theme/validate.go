@@ -153,18 +153,18 @@ func (r Report) JSON() ([]byte, error) {
 func (r Report) Human() string {
 	var b strings.Builder
 	if r.Name != "" {
-		fmt.Fprintf(&b, "theme %s %s (modes: %s)\n", r.Name, r.Version, strings.Join(r.Modes, ", "))
+		_, _ = fmt.Fprintf(&b, "theme %s %s (modes: %s)\n", r.Name, r.Version, strings.Join(r.Modes, ", "))
 	}
 	for _, p := range r.Problems {
-		fmt.Fprintf(&b, "error %s\n", p.Error())
+		_, _ = fmt.Fprintf(&b, "error %s\n", p.Error())
 	}
 	for _, w := range r.Warnings {
-		fmt.Fprintf(&b, "warning %s: %s\n", w.Rule, w.Detail)
+		_, _ = fmt.Fprintf(&b, "warning %s: %s\n", w.Rule, w.Detail)
 	}
 	if r.Valid {
-		fmt.Fprintf(&b, "%s: valid\n", r.Dir)
+		_, _ = fmt.Fprintf(&b, "%s: valid\n", r.Dir)
 	} else {
-		fmt.Fprintf(&b, "%s: invalid (%d problem(s))\n", r.Dir, len(r.Problems))
+		_, _ = fmt.Fprintf(&b, "%s: invalid (%d problem(s))\n", r.Dir, len(r.Problems))
 	}
 	return b.String()
 }

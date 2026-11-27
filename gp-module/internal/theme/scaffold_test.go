@@ -15,7 +15,7 @@ import (
 func requireOnlyMetadataProblems(t *testing.T, probs []themepkg.Problem) {
 	t.Helper()
 	for _, p := range probs {
-		if p.Rule != themepkg.RuleSchema || !(strings.Contains(p.Detail, "author") || strings.Contains(p.Detail, "license")) {
+		if p.Rule != themepkg.RuleSchema || (!strings.Contains(p.Detail, "author") && !strings.Contains(p.Detail, "license")) {
 			t.Fatalf("unexpected problem in a fresh scaffold: %v", p)
 		}
 	}
