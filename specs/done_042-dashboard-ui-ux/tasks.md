@@ -1,6 +1,6 @@
 # Tasks: Dashboard UI and UX polish, screen by screen
 
-**Input**: `specs/042-dashboard-ui-ux/` (spec.md, plan.md, research.md, data-model.md,
+**Input**: `specs/done_042-dashboard-ui-ux/` (spec.md, plan.md, research.md, data-model.md,
 contracts/, quickstart.md, OPEN-DECISIONS.md)
 
 **Tests**: the repo requires tests with every change (constitution I, web coverage floors),
@@ -19,8 +19,8 @@ diff; deleting or weakening one needs valgul's written sign-off.
 
 ## Phase 1: Setup
 
-- [x] T001 Re-check every `file:line` cited in `specs/042-dashboard-ui-ux/spec.md` Context and `research.md` against fresh `origin/master`; correct drift in those two files before any edit
-- [x] T002 List every horizontal `Tabs.List` and every `Table.Root` with its wrapper in `web/src/` (grep), and append the two lists to `specs/042-dashboard-ui-ux/research.md` R2/R3 as the audit set
+- [x] T001 Re-check every `file:line` cited in `specs/done_042-dashboard-ui-ux/spec.md` Context and `research.md` against fresh `origin/master`; correct drift in those two files before any edit
+- [x] T002 List every horizontal `Tabs.List` and every `Table.Root` with its wrapper in `web/src/` (grep), and append the two lists to `specs/done_042-dashboard-ui-ux/research.md` R2/R3 as the audit set
 
 ---
 
@@ -121,7 +121,7 @@ skills; finish with `design-export`.
 - [x] T044 Browser smoke test at sonnet via Chrome MCP of quickstart.md steps 1–5 in dark and light, 1280 px and 390 px; screenshots to `/mnt/project-files/notes/042/`
 - [x] T045 Changelog `changelog/unreleased/<PR>-dashboard-ui-polish.md` for the visual changes
 - [x] T046 Fresh-agent peer review of every test diff (weakened / deleted / only replaced); sign-off card for anything weakened or deleted
-- [ ] T047 Once all tasks are done and merged, archive with `spec-archive` (`specs/done_042-dashboard-ui-ux`)
+- [X] T047 Once all tasks are done and merged, archive with `spec-archive` (`specs/done_042-dashboard-ui-ux`)
 
 ---
 
