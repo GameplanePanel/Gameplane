@@ -4,7 +4,7 @@
   "name": "Gameplane/Dialog/Generate SFTP password",
   "type": "FRAME",
   "x": 7920,
-  "y": 89520,
+  "y": 91938,
   "width": 480,
   "height": 300,
   "fills": [{"type": "SOLID", "color": "#1C1A20"}],

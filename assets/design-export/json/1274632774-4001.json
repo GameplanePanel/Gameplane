@@ -3,7 +3,7 @@
   "name": "Screen/Admin Settings — Mod registries (Share CurseForge key)",
   "type": "FRAME",
   "x": 3280,
-  "y": 98609,
+  "y": 100747,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

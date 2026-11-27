@@ -1,0 +1,162 @@
+{
+  "file": "434265728-418",
+  "name": "Screen/Mobile — Theme catalog — no results",
+  "type": "FRAME",
+  "x": 10430,
+  "y": 86925,
+  "width": 390,
+  "height": 630,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "Mobile TopBar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64,
+      "component": "Gameplane/Mobile TopBar",
+      "componentId": "1:1782",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 16, 0, 16],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Settings", "AD"]
+    },
+    {
+      "name": "Body",
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 390,
+      "height": 566,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "name": "Page Header",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 16,
+          "width": 358,
+          "height": 48,
+          "component": "Gameplane/Page Header",
+          "componentId": "1:3282",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "texts": ["Theme catalog", "Browse, preview and install themes for your account."]
+        },
+        {
+          "name": "Source Banner",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 80,
+          "width": 358,
+          "height": 60,
+          "component": "Gameplane/Inline Notice/Warning",
+          "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [12, 16, 12, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "warning/soft"},
+          "texts": ["Source community could not be refreshed: connection timed out after 30s."]
+        },
+        {
+          "name": "Catalog Filters",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 156,
+          "width": 358,
+          "height": 128,
+          "component": "Gameplane/Theme Catalog Filters/Mobile",
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 10,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "texts": ["neon cyberpunk", "community", "All tags", "Dark", "Light", "Minimal", "High contrast", "Retro"]
+        },
+        {
+          "name": "Gameplane/Empty State",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 300,
+          "width": 358,
+          "height": 250,
+          "component": "Gameplane/Empty State",
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 12,
+            "padding": [48, 24, 48, 24],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "texts": [
+            "No themes match your filters",
+            "Try a different search term, another tag, or all sources.",
+            "Clear filters"
+          ]
+        },
+        {
+          "name": "Tag fade",
+          "type": "RECTANGLE",
+          "x": 326,
+          "y": 248,
+          "width": 48,
+          "height": 36,
+          "fills": [{"type": "GRADIENT_LINEAR", "color": "#000000", "stops": [[0, "#1C1A2000"], [1, "#1C1A20"]]}],
+          "absolute": true
+        }
+      ]
+    }
+  ]
+}
