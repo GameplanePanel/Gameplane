@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Settings · Game configuration (Password will be removed)",
   "type": "FRAME",
   "x": 6560,
-  "y": 43159,
+  "y": 45433,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
