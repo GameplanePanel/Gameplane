@@ -161,8 +161,8 @@ type GitSourceSpec struct {
 	// +kubebuilder:validation:MinLength=1
 	URL string `json:"url"`
 
-	// Ref is the branch or tag to index. Defaults to main.
-	// +kubebuilder:default=main
+	// Ref is the branch or tag to index. Defaults to master.
+	// +kubebuilder:default=master
 	// +optional
 	Ref string `json:"ref,omitempty"`
 

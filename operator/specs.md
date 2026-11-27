@@ -677,6 +677,7 @@ until cancellation or replacement because it may have partially cleared data.
 - **Key functions:**
   - Refresh on interval (spec.refreshInterval, default 1 hour, minimum 1 minute).
   - Fetch module metadata (module.yaml) from source (OCI, git, HTTP, local dir).
+  - A git source with no `spec.git.ref` (or an empty one) indexes `master` (CRD default and `newGit` fallback).
   - Report status.modules[] with name, version, digest, description.
   - Resolve `spec.oci.pullSecretRef` (dockerconfigjson), `spec.git.secretRef` or `spec.http.secretRef` in the module credential namespace. A Git or HTTP Secret must carry `gameplane.local/git-source-url` or `gameplane.local/http-source-url` respectively, matching the exact source URL. HTTP archive redirects proceed without credentials. Authenticated Git requires the final repository URL.
   - Fetchers and signature verification reject `kubernetes.io/service-account-token` Secrets before using any of their data.

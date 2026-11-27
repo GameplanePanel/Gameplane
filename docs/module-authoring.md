@@ -321,7 +321,7 @@ spec:
   type: git                  # oci | git | http | local | upload
   git:
     url: https://github.com/example/gameplane-modules
-    ref: main                # branch or tag; the resolved commit is the digest
+    ref: master              # branch or tag; the resolved commit is the digest
     subPath: modules         # optional scan root inside the repo
     secretRef: { name: gh-creds }   # optional, in operator.moduleNamespace
   allow: ["minecraft-*"]     # optional name filter (all types)
