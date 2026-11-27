@@ -85,7 +85,7 @@ func themeSrcAssertNoCredential(t *testing.T, body string) {
 	// Error texts may name the credential ("credential for an oci source must
 	// be ..."); only a JSON field carrying it, or its Secret reference, is a leak.
 	lower := strings.ToLower(body)
-	for _, key := range []string{`"credential"`, `"credentialref"`, `"credential_ref"`} {
+	for _, key := range []string{`"credential"`, `"credentialref"`, `"credential_ref"`, `"secret"`, `"secretref"`, `"secretname"`, `"secret_ref"`} {
 		if strings.Contains(lower, key) {
 			t.Fatalf("response carries a credential field (%s): %s", key, body)
 		}
@@ -290,6 +290,12 @@ func TestThemeSourceOfficialIsBuiltIn(t *testing.T) {
 		t.Fatalf("put official without verify: status %d body %s", rr.Code, rr.Body.String())
 	} else if !strings.Contains(rr.Body.String(), "BEGIN PUBLIC KEY") {
 		t.Fatalf("put official without verify dropped the chart key: %s", rr.Body.String())
+	}
+	// The stored row keeps the key too, not only the response.
+	for _, it := range themeSrcItems(t, admin) {
+		if it.Name == themes.OfficialSourceName && !strings.Contains(string(it.Verify), "BEGIN PUBLIC KEY") {
+			t.Fatalf("stored official verify lost the chart key: %s", it.Verify)
+		}
 	}
 
 	// Disabling it is allowed; the response marks it built in.
