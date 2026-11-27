@@ -1,0 +1,165 @@
+# Theme packages for the spec 043 e2e tests (TestAPI_ThemeMarketplaceLifecycle,
+# TestStandalone_ThemeSourceInstall), pushed to the in-cluster test registry
+# (oci-registry.yaml) under gameplane-test-registry.gameplane-system.svc:5000/e2e-themes.
+# The layout follows contracts/theme-package.md and `gp-module theme package`:
+# artifact type application/vnd.gameplane.theme.v1+json, one layer per file,
+# titled with its package path (theme.yaml, previews/dark.png). Each theme has
+# dark tokens only, so a dark preview is the one required image. The preview is
+# themepkg/testdata/good/previews/dark.png (a 2x2 PNG).
+#
+# A ConfigMap key cannot hold a "/", so each push Job mounts the keys it needs
+# with items that place the preview at previews/dark.png.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-theme-bundles
+  namespace: gameplane-system
+  labels:
+    app.kubernetes.io/component: e2e-fixture
+data:
+  signed-0.1.0.yaml: |
+    apiVersion: gameplane.local/theme/v1
+    name: e2e-theme-signed
+    version: 0.1.0
+    displayName: E2E Signed Theme
+    author: Gameplane E2E
+    description: Theme package pushed by the spec 043 e2e tests.
+    tags: [e2e, dark]
+    license: MIT
+    changelog: |
+      0.1.0: first release
+    tokens:
+      dark:
+        background: "#0b1220"
+        foreground: "#e6edf7"
+        surface: "#111a2e"
+        surface-secondary: "#16213a"
+        surface-tertiary: "#1c2946"
+        overlay: "#0f172a"
+        accent: "#38bdf8"
+        accent-foreground: "#04121d"
+        accent-soft: "#0c2a3d"
+        accent-soft-foreground: "#a5e3ff"
+        muted: "#8a9bb8"
+        border: "#24324f"
+        focus: "#38bdf8"
+        link: "#7dd3fc"
+  signed-0.2.0.yaml: |
+    apiVersion: gameplane.local/theme/v1
+    name: e2e-theme-signed
+    version: 0.2.0
+    displayName: E2E Signed Theme
+    author: Gameplane E2E
+    description: Theme package pushed by the spec 043 e2e tests.
+    tags: [e2e, dark]
+    license: MIT
+    changelog: |
+      0.2.0: brighter accent
+    tokens:
+      dark:
+        background: "#0b1220"
+        foreground: "#e6edf7"
+        surface: "#111a2e"
+        surface-secondary: "#16213a"
+        surface-tertiary: "#1c2946"
+        overlay: "#0f172a"
+        accent: "#22d3ee"
+        accent-foreground: "#04121d"
+        accent-soft: "#0c2a3d"
+        accent-soft-foreground: "#a5e3ff"
+        muted: "#8a9bb8"
+        border: "#24324f"
+        focus: "#22d3ee"
+        link: "#7dd3fc"
+  unsigned-0.1.0.yaml: |
+    apiVersion: gameplane.local/theme/v1
+    name: e2e-theme-unsigned
+    version: 0.1.0
+    displayName: E2E Unsigned Theme
+    author: Gameplane E2E
+    description: Theme package pushed by the spec 043 e2e tests.
+    tags: [e2e, dark]
+    license: MIT
+    changelog: |
+      0.1.0: first release
+    tokens:
+      dark:
+        background: "#0b1220"
+        foreground: "#e6edf7"
+        surface: "#111a2e"
+        surface-secondary: "#16213a"
+        surface-tertiary: "#1c2946"
+        overlay: "#0f172a"
+        accent: "#38bdf8"
+        accent-foreground: "#04121d"
+        accent-soft: "#0c2a3d"
+        accent-soft-foreground: "#a5e3ff"
+        muted: "#8a9bb8"
+        border: "#24324f"
+        focus: "#38bdf8"
+        link: "#7dd3fc"
+binaryData:
+  dark.png: iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAG0lEQVR4nGLiFlKw2PuDQVBK79nb74AAAAD//xqpBVBH+2I1AAAAAElFTkSuQmCC
+---
+# Pushes e2e-theme-signed:0.1.0 (init container) and e2e-theme-unsigned:0.1.0.
+# The test signs only the first (theme-cosign-sign-job.yaml).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: e2e-theme-oras-push
+  namespace: gameplane-system
+  labels:
+    app.kubernetes.io/component: e2e-fixture
+spec:
+  backoffLimit: 4
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: e2e-fixture
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: push-signed
+          image: ghcr.io/oras-project/oras:v1.3.3
+          command: ["oras"]
+          args:
+            - push
+            - --plain-http
+            - --artifact-type=application/vnd.gameplane.theme.v1+json
+            - gameplane-test-registry.gameplane-system.svc:5000/e2e-themes/e2e-theme-signed:0.1.0
+            - theme.yaml:application/vnd.gameplane.theme.metadata.v1+yaml
+            - previews/dark.png:image/png
+          workingDir: /workspace
+          volumeMounts:
+            - { name: signed-010, mountPath: /workspace }
+            - { name: tmp, mountPath: /tmp }
+      containers:
+        - name: push-unsigned
+          image: ghcr.io/oras-project/oras:v1.3.3
+          command: ["oras"]
+          args:
+            - push
+            - --plain-http
+            - --artifact-type=application/vnd.gameplane.theme.v1+json
+            - gameplane-test-registry.gameplane-system.svc:5000/e2e-themes/e2e-theme-unsigned:0.1.0
+            - theme.yaml:application/vnd.gameplane.theme.metadata.v1+yaml
+            - previews/dark.png:image/png
+          workingDir: /workspace
+          volumeMounts:
+            - { name: unsigned-010, mountPath: /workspace }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: signed-010
+          configMap:
+            name: e2e-theme-bundles
+            items:
+              - { key: signed-0.1.0.yaml, path: theme.yaml }
+              - { key: dark.png, path: previews/dark.png }
+        - name: unsigned-010
+          configMap:
+            name: e2e-theme-bundles
+            items:
+              - { key: unsigned-0.1.0.yaml, path: theme.yaml }
+              - { key: dark.png, path: previews/dark.png }
+        - name: tmp
+          emptyDir: {}

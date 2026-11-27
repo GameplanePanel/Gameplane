@@ -90,6 +90,7 @@ import { ModuleSourcesPanel } from "@/components/modules/ModuleSourcesPanel";
 import { defineMessages, type IntlShape } from "react-intl";
 import { useFormat, useOptionalIntl, type FormatApi } from "@/lib/i18n/format";
 import { listedLanguages } from "@/lib/i18n/languages";
+import { THEMES_MANAGE_PERM } from "@/lib/themePermissions";
 
 type Section =
   | "general" | "auth" | "backups" | "modules" | "modRegistries" | "notifications"
@@ -110,6 +111,7 @@ function initialSection(): Section {
 }
 
 export function AdminSettingsPage() {
+  const { data: me } = useMe();
   const intl = useOptionalIntl();
   const [section, setSection] = useState<Section>(initialSection);
   const cfg = useConfig();
@@ -135,7 +137,12 @@ export function AdminSettingsPage() {
 
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
         {/* /admin is gated on config:manage, so every section is reachable. */}
-        <SettingsNav active={section === "backups" ? undefined : section} onSelect={selectSection} showAdminSections />
+        <SettingsNav
+          active={section === "backups" ? undefined : section}
+          onSelect={selectSection}
+          showAdminSections
+          showThemeSources={can(me, THEMES_MANAGE_PERM)}
+        />
 
         <div className="space-y-6">
           {cfg.isLoading && (

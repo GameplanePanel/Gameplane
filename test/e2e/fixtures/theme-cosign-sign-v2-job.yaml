@@ -1,0 +1,43 @@
+# Signs e2e-theme-signed:0.2.0 with the key pair theme-cosign-sign-job.yaml
+# generated (Secret gameplane-system/e2e-theme-sign-keypair), for the update
+# step of TestAPI_ThemeMarketplaceLifecycle. Uses that file's ServiceAccount.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: e2e-theme-cosign-sign-v2
+  namespace: gameplane-system
+  labels:
+    app.kubernetes.io/component: e2e-fixture
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: e2e-fixture
+    spec:
+      restartPolicy: Never
+      serviceAccountName: e2e-theme-cosign-signer
+      containers:
+        - name: sign
+          image: ghcr.io/sigstore/cosign/cosign:v3.1.2
+          args:
+            - sign
+            - --key=k8s://gameplane-system/e2e-theme-sign-keypair
+            # Same flags as cosign-sign-job.yaml (classic .sig, no tlog, plain
+            # HTTP registry); see that file for why each one is needed.
+            - --new-bundle-format=false
+            - --use-signing-config=false
+            - --tlog-upload=false
+            - --allow-http-registry
+            - --allow-insecure-registry
+            - --yes
+            - gameplane-test-registry.gameplane-system.svc:5000/e2e-themes/e2e-theme-signed:0.2.0
+          env:
+            - { name: COSIGN_PASSWORD, value: "e2e-pass" }
+            - { name: COSIGN_YES, value: "true" }
+            - { name: HOME, value: /tmp }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: {}

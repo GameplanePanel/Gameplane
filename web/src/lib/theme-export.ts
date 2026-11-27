@@ -10,6 +10,7 @@ import type {
   AppearanceMode,
   CustomColorConfig,
   ThemeExport,
+  ThemeExportInstalled,
   ThemePresetId,
   ThemeType,
   UserThemePreferences,
@@ -102,11 +103,21 @@ const MESSAGES = defineMessages({
     defaultMessage: "invalid theme export: preferences.customCss exceeds the maximum length of {max} characters",
     description: "Theme import error: the imported custom CSS is longer than the limit; {max} is the maximum number of characters",
   },
+  installed_object: {
+    id: "web.lib.theme_export.installed_object",
+    defaultMessage: "invalid theme export: preferences.installed must be an object with source, name and version strings",
+    description: "Theme import error: an installed theme export lacks its source, name or version",
+  },
+  installed_fallback: {
+    id: "web.lib.theme_export.installed_fallback",
+    defaultMessage: "This export used the installed theme {name} {version} from {source}, which is not installed here. Modern Pink is used instead.",
+    description: "Theme import notice: the exported installed theme is missing on this instance, so Modern Pink is applied; {name} is the theme name, {version} its version, {source} the theme source name",
+  },
 });
 
 const HEX_RE = /^#([0-9a-fA-F]{6})$/;
 
-const THEME_TYPES: readonly ThemeType[] = ["preset", "custom_colors"];
+const THEME_TYPES: readonly ThemeType[] = ["preset", "custom_colors", "installed"];
 const PRESET_IDS: readonly ThemePresetId[] = ["pink", "legacy"];
 const APPEARANCE_MODES: readonly AppearanceMode[] = ["light", "dark", "system"];
 
@@ -128,18 +139,60 @@ function utf8Len(s: string): number {
 // metadata); retained-but-inactive customs (customColors while on a preset,
 // customCss while the overlay is disabled) are included so a full setup
 // survives the transfer.
-export function buildThemeExport(prefs: UserThemePreferences): ThemeExport {
+// installed is the source, name and version of the installed theme in use. The
+// caller resolves it from the installed list (the prefs carry only ids and
+// tokens, which never leave the instance). Without it, an installed selection
+// exports as the base preset, since the document cannot name the theme.
+export function buildThemeExport(
+  prefs: UserThemePreferences,
+  installed?: ThemeExportInstalled | null,
+): ThemeExport {
+  const exportInstalled = prefs.themeType === "installed" && installed ? installed : null;
+  const themeType: ThemeType =
+    prefs.themeType === "installed" && !exportInstalled ? "preset" : prefs.themeType;
   return {
     format: THEME_EXPORT_FORMAT,
     version: THEME_EXPORT_VERSION,
     preferences: {
-      themeType: prefs.themeType,
+      themeType,
       presetId: prefs.presetId,
       appearanceMode: prefs.appearanceMode,
       customColors: prefs.customColors ?? null,
       customCssEnabled: prefs.customCssEnabled,
       customCss: prefs.customCss ?? null,
+      ...(exportInstalled ? { installed: exportInstalled } : {}),
     },
+  };
+}
+
+// fallbackInstalledImport resolves an imported installed theme against this
+// instance. When isInstalled reports the source+name as installed, the document
+// is returned unchanged. Otherwise it becomes the Modern Pink preset with a
+// notice. Non-installed documents pass through with a null notice.
+export function fallbackInstalledImport(
+  doc: ThemeExport,
+  isInstalled: (ref: ThemeExportInstalled) => boolean,
+  intl: IntlShape = englishIntl,
+): { export: ThemeExport; notice: string | null } {
+  const { installed } = doc.preferences;
+  if (doc.preferences.themeType !== "installed" || !installed || isInstalled(installed)) {
+    return { export: doc, notice: null };
+  }
+  const preferences: ThemeExport["preferences"] = {
+    ...doc.preferences,
+    themeType: "preset",
+    presetId: "pink",
+  };
+  delete preferences.installed;
+  const noticeDescriptor: MessageDescriptor = MESSAGES.installed_fallback;
+  const noticeValues: Record<string, string> = {
+    name: installed.name,
+    version: installed.version,
+    source: installed.source,
+  };
+  return {
+    export: { ...doc, preferences },
+    notice: intl.formatMessage(noticeDescriptor, noticeValues),
   };
 }
 
@@ -187,6 +240,14 @@ export function validateThemeExport(raw: string, intl: IntlShape = englishIntl):
   const prefs = doc.preferences;
 
   const themeType = enumValue(THEME_TYPES, prefs.themeType);
+  let installed: ThemeExportInstalled | undefined;
+  if (themeType === "installed") {
+    const ref = prefs.installed;
+    if (!isRecord(ref) || typeof ref.source !== "string" || typeof ref.name !== "string" || typeof ref.version !== "string") {
+      return fail(MESSAGES.installed_object);
+    }
+    installed = { source: ref.source, name: ref.name, version: ref.version };
+  }
   if (themeType === null) {
     if (prefs.themeType === undefined) {
       return fail(MESSAGES.missing_field, { field: "preferences.themeType" });
@@ -252,6 +313,7 @@ export function validateThemeExport(raw: string, intl: IntlShape = englishIntl):
         customColors,
         customCssEnabled: prefs.customCssEnabled,
         customCss,
+        ...(installed ? { installed } : {}),
       },
     },
   };

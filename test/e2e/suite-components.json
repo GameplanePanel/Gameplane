@@ -22,6 +22,8 @@
     { "tests": "^(TestPanel_OfflineRecovery|TestAPIClient_DoContextResponseBody|TestAPIClient_ExtractIntField)$", "components": ["operator", "api", "agent"],
       "paths": ["test/e2e/testdata/recovery/"] },
     { "tests": "^TestStandalone_HelmPanelLifecycle$", "components": ["operator", "api", "agent"] },
+    { "tests": "^TestStandalone_ThemeSourceInstall$", "components": ["api", "bundlefetch", "themepkg", "netguard"],
+      "paths": ["test/e2e/fixtures/theme-oras-push-job.yaml"] },
 
     { "tests": "^TestNetworkIsolation_", "components": ["operator", "api", "agent", "tunnel"],
       "paths": ["test/e2e/fixtures/frps.yaml"] },
@@ -51,6 +53,8 @@
       "components": ["agent", "gameaction"] },
     { "tests": "^TestAPI_I18n_", "components": ["i18n"] },
     { "tests": "^TestAPI_ThemePreferences$", "components": ["themepkg"] },
+    { "tests": "^TestAPI_ThemeMarketplaceLifecycle$", "components": ["bundlefetch", "themepkg", "netguard"],
+      "paths": ["test/e2e/fixtures/theme-oras-push-job.yaml", "test/e2e/fixtures/theme-oras-push-v2-job.yaml", "test/e2e/fixtures/theme-cosign-sign-job.yaml", "test/e2e/fixtures/theme-cosign-sign-v2-job.yaml"] },
     { "tests": "^TestAPI_I18n_ModuleLocales$", "components": ["modules"] },
     { "tests": "^TestAPI_ModuleUpload_ExtractionStaysWithinBudget$", "components": ["gp-module", "modules"] },
     { "tests": "^TestGameServer_.*(Bot_|_Persistence$|_RCON$|_Workshop$|_Mods$)",

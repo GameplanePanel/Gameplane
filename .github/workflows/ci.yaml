@@ -1940,8 +1940,8 @@ jobs:
         # wide; the api buckets stay within the login limiter's budget).
         # The arm64 job below uses the same steps/settings except for the
         # wake-hostport, network-isolation, management-placement,
-        # backup-preparation, backup-archives, monitoring, recovery and standalone drills, which run once on amd64.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads, wake-hostport, network-isolation, management-placement, backup-preparation, backup-archives, monitoring, recovery, standalone, sftp]
+        # backup-preparation, backup-archives, monitoring, recovery and standalone drills and the sftp and themes buckets, which run once on amd64.
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads, wake-hostport, network-isolation, management-placement, backup-preparation, backup-archives, monitoring, recovery, standalone, sftp, themes]
         arch: [amd64]
         include:
           - bucket: monitoring
@@ -2007,8 +2007,8 @@ jobs:
             job_timeout: 60 # Boots kind, loads images and installs the chart before the bounded recovery drill.
           - bucket: standalone
             parallel: 1
-            test_timeout: 20m # panel-only Helm release, remote registration, kubeconfig swap, restart and removal
-            job_timeout: 60 # Boots kind, loads images and installs the chart before the standalone panel drill.
+            test_timeout: 30m # panel-only Helm release, remote registration, kubeconfig swap, restart and removal; then a second panel-only release for theme sources (spec 043)
+            job_timeout: 75 # Boots kind, loads images and installs the chart before the standalone panel drills.
           - bucket: restricted-workloads
             parallel: 1
             test_timeout: 25m # Includes real projected-token rotation and node capture cleanup.
@@ -2016,6 +2016,10 @@ jobs:
           - bucket: sftp
             parallel: 1
             test_timeout: 20m # chart enable, SFTP login, 32 MiB round trip, stopped-server and revocation checks
+            job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: themes
+            parallel: 1
+            test_timeout: 20m # theme pushes and cosign signing, source verify, install, update, disable and delete (spec 043)
             job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
     env:
       CLUSTER: gameplane-e2e
@@ -2089,7 +2093,7 @@ jobs:
         uses: ./.github/actions/dump-cluster-state
         with:
           context: ${{ env.CTX }}
-          namespaces: "${{ matrix.bucket == 'monitoring' && 'gameplane-system,gameplane-games,monitoring' || matrix.bucket == 'standalone' && 'gameplane-system,gameplane-games,e2e-standalone-panel' || 'gameplane-system,gameplane-games' }}"
+          namespaces: "${{ matrix.bucket == 'monitoring' && 'gameplane-system,gameplane-games,monitoring' || matrix.bucket == 'standalone' && 'gameplane-system,gameplane-games,e2e-standalone-panel,e2e-standalone-themes' || 'gameplane-system,gameplane-games' }}"
           include-previous-logs: "true"
 
   e2e-go-arm64:
@@ -2950,7 +2954,7 @@ jobs:
               'go-e2e-unit': (n) => n === 'go (test/e2e)',
               'api-postgres': (n) => n === 'api (postgres)',
               'e2e-buckets': (n) => n === 'e2e bucket coverage',
-              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|backup-archives|monitoring|recovery|standalone|sftp) \//.test(n) && n.includes('/ amd64 '),
+              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|backup-archives|monitoring|recovery|standalone|sftp|themes) \//.test(n) && n.includes('/ amd64 '),
               'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads) \//.test(n) && n.includes('/ arm64 '),
               'e2e-multicluster': (n) => n.startsWith('e2e multicluster /') && n.includes('/ amd64 '),
               'e2e-multicluster-arm64': (n) => n.startsWith('e2e multicluster /') && n.includes('/ arm64 '),
@@ -3103,8 +3107,8 @@ jobs:
             const bucketSet = new Set();
             for (const j of apiJobs) {
               const n = j.name || '';
-              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|backup-archives|monitoring|recovery|standalone|sftp) \//);
-              const executionGated = m && ['wake-hostport', 'recovery', 'standalone'].includes(m[1]);
+              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|backup-archives|monitoring|recovery|standalone|sftp|themes) \//);
+              const executionGated = m && ['wake-hostport', 'recovery', 'standalone', 'themes'].includes(m[1]);
               if (m && !executionGated) bucketSet.add(m[1]);
               // Partial selection can complete these legs without running
               // their drills. Count completed execution, including failure.

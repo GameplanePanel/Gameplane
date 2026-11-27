@@ -40,6 +40,7 @@ import {
   type McpTokenLifetimeDays,
 } from "@/lib/api";
 import { can, useMe } from "@/lib/auth";
+import { THEMES_MANAGE_PERM } from "@/lib/themePermissions";
 import { errorTextIntl } from "@/lib/errors";
 import { useFormat, useOptionalIntl } from "@/lib/i18n/format";
 import { cn, formatRelative } from "@/lib/utils";
@@ -215,6 +216,7 @@ export function McpTokensPage() {
         <SettingsNav
           active="mcp"
           showAdminSections={can(me, "config:manage")}
+          showThemeSources={can(me, THEMES_MANAGE_PERM)}
           onSelect={(key) => void navigate({ to: "/admin", search: { section: key } })}
         />
 
