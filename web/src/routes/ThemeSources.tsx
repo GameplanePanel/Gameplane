@@ -23,6 +23,15 @@ import { formatRelative } from "@/lib/utils";
 import type { ThemeSource, ThemeSourceInput, ThemeSourceType } from "@/types";
 
 const SOURCES_KEY = "theme-sources";
+const REFRESH_POLL_MS = 2000;
+const REFRESH_POLL_LIMIT_MS = 60_000;
+
+// The sync result a refreshed source showed when Refresh was pressed.
+interface SyncWait {
+  name: string;
+  lastSyncAt: string | null;
+  lastError: string | null;
+}
 
 const TYPE_LABEL: Record<ThemeSourceType, string> = { oci: "OCI", git: "GIT", http: "HTTP", local: "LOCAL" };
 
@@ -55,11 +64,21 @@ export function ThemeSourcesPage() {
   const [dialogError, setDialogError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ThemeSource | null>(null);
 
+  // Refresh answers 202 before the index runs, so the list is polled until
+  // the refreshed row reports a new sync result (or for a minute at most).
+  const [awaitingSync, setAwaitingSync] = useState<SyncWait | null>(null);
   const sourcesQuery = useQuery({
     queryKey: [SOURCES_KEY],
     queryFn: () => ThemeSourcesApi.list(),
+    refetchInterval: awaitingSync ? REFRESH_POLL_MS : false,
   });
   const sources = sourcesQuery.data ?? [];
+  if (awaitingSync) {
+    const row = sources.find((s) => s.name === awaitingSync.name);
+    if (!row || row.lastSyncAt !== awaitingSync.lastSyncAt || row.lastError !== awaitingSync.lastError) {
+      setAwaitingSync(null);
+    }
+  }
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: [SOURCES_KEY] });
 
@@ -86,8 +105,11 @@ export function ThemeSourcesPage() {
 
   const refresh = useMutation({
     mutationFn: (s: ThemeSource) => ThemeSourcesApi.refresh(s.name),
-    onSuccess: async () => {
+    onSuccess: async (_data, s) => {
       setPageError(null);
+      const wait: SyncWait = { name: s.name, lastSyncAt: s.lastSyncAt, lastError: s.lastError };
+      setAwaitingSync(wait);
+      window.setTimeout(() => setAwaitingSync((cur) => (cur === wait ? null : cur)), REFRESH_POLL_LIMIT_MS);
       await invalidate();
     },
     onError: (err) => setPageError(themeErrorText(err)),

@@ -30,6 +30,7 @@ import {
   applyThemePreferences,
   DEFAULT_THEME_PREFERENCES,
   isSafeModeActive,
+  markSafeModeActiveInMemory,
   readThemePreferences,
   SAFE_MODE_SESSION_KEY,
   unmountCustomCssOverlay,
@@ -132,7 +133,9 @@ export function AppLayout() {
       try {
         window.sessionStorage.setItem(SAFE_MODE_SESSION_KEY, "1");
       } catch {
-        // sessionStorage blocked — safe mode still applies for this view.
+        // sessionStorage blocked: keep safe mode in memory for this page load,
+        // so the theme renderer and the preview guard see it too.
+        markSafeModeActiveInMemory();
       }
       setSafeMode(true);
     };

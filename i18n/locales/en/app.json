@@ -5027,6 +5027,10 @@
     "defaultMessage": "by {author} · v{version}",
     "description": "Theme card: mono meta line with the author and version"
   },
+  "web.components.themes.theme_card.by_author_update": {
+    "defaultMessage": "by {author} · v{from} → v{to}",
+    "description": "Theme card: mono meta line with the author and the installed and available versions when an update is available"
+  },
   "web.components.themes.theme_card.dark_only": {
     "defaultMessage": "Dark only",
     "description": "Theme preview placeholder: the theme has only a dark mode"
@@ -5066,10 +5070,6 @@
   "web.components.themes.theme_card.update": {
     "defaultMessage": "Update",
     "description": "Theme card and detail: button that updates an installed theme"
-  },
-  "web.components.themes.theme_card.update_version": {
-    "defaultMessage": "v{from} → v{to}",
-    "description": "Theme card: version change shown when an update is available"
   },
   "web.components.themes.theme_card.verified_source": {
     "defaultMessage": "Signature verified",

@@ -57,10 +57,15 @@ export function ThemeCard({ item, busy = false, onPreview, onInstall, onUpdate, 
   const invalid = item.status === "invalid";
   const unverified = item.status === "unverified";
 
-  const versionText =
+  // One "v" per version: the update form names both versions itself.
+  const metaText =
     item.updateAvailable && item.installed
-      ? formatWith(intl, themeCardMessages.updateVersion, { from: item.installed.version, to: item.version })
-      : item.version;
+      ? formatWith(intl, themeCardMessages.byAuthorUpdate, {
+          author: item.author,
+          from: item.installed.version,
+          to: item.version,
+        })
+      : formatWith(intl, themeCardMessages.byAuthor, { author: item.author, version: item.version });
 
   const modeLabels =
     item.modes.length === 1
@@ -88,7 +93,7 @@ export function ThemeCard({ item, busy = false, onPreview, onInstall, onUpdate, 
           <ThemeStatusBadge item={item} />
         </div>
         <p className="font-mono text-xs text-muted">
-          {formatWith(intl, themeCardMessages.byAuthor, { author: item.author, version: versionText })}
+          {metaText}
         </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">

@@ -2,7 +2,7 @@
 // filter them, preview them and install, update or remove them for the signed-in
 // user. Filtering is client-side over one catalog fetch, so the source and tag
 // options stay complete while a filter is active.
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, Input, ListBox, ListBoxItem, Select, ToggleButton } from "@heroui/react";
@@ -86,10 +86,15 @@ export function ThemeCatalogPage() {
     setTag(ALL);
   };
 
+  // Only the latest Preview click may start a preview: a slower response for
+  // an earlier click is dropped.
+  const previewRequest = useRef(0);
   const handlePreview = async (item: ThemeCatalogItem) => {
     setPageError(null);
+    const request = ++previewRequest.current;
     try {
       const detail = await Themes.catalogEntry(item.id);
+      if (request !== previewRequest.current) return;
       // Invalid entries carry no tokens and cannot be previewed.
       if (!detail.tokens) return;
       const installedCopy = findInstalled(actions.installed, detail);
@@ -106,6 +111,7 @@ export function ThemeCatalogPage() {
         setPageError(intl.formatMessage(themePreviewBannerMessages.previewUnavailableSafeMode));
       }
     } catch (err) {
+      if (request !== previewRequest.current) return;
       setPageError(themeErrorText(err));
     }
   };
