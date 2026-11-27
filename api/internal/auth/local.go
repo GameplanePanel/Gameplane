@@ -259,9 +259,3 @@ func setLoginDeviceCookie(w http.ResponseWriter, req *http.Request, username str
 	})
 }
 
-// writePasswordBusy answers 503 with Retry-After when the argon2 queue is
-// full. The response is identical whatever the username, so it leaks nothing.
-func writePasswordBusy(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Retry-After", "5")
-	httperr.WriteMessage(w, req, messages.New("server.generic.503", nil))
-}
