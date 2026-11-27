@@ -163,4 +163,38 @@ describe("ThemeSourcesPage", () => {
 
     await waitFor(() => expect(deleted).toBe(true));
   });
+
+  it("refresh asks the API to re-index that source", async () => {
+    let refreshed = false;
+    server.use(
+      http.get("/themes/sources", () => HttpResponse.json([official, mirror])),
+      http.post("/themes/sources/official/refresh", () => {
+        refreshed = true;
+        return new HttpResponse(null, { status: 202 });
+      }),
+    );
+    renderWithQuery(<ThemeSourcesPage />);
+
+    await screen.findAllByTestId("theme-source-row");
+    await userEvent.click(screen.getByRole("button", { name: "Refresh official" }));
+
+    await waitFor(() => expect(refreshed).toBe(true));
+  });
+
+  it("shows an error card when the list fails, and Retry loads the rows", async () => {
+    let calls = 0;
+    server.use(
+      http.get("/themes/sources", () => {
+        calls += 1;
+        return calls === 1
+          ? new HttpResponse("boom", { status: 500 })
+          : HttpResponse.json([official, mirror]);
+      }),
+    );
+    renderWithQuery(<ThemeSourcesPage />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Retry" }));
+
+    expect(await screen.findAllByTestId("theme-source-row")).toHaveLength(2);
+  });
 });
