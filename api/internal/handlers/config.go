@@ -229,13 +229,17 @@ func (h *configHandler) resetRoleMapping(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	// Parse the auth config. If the row doesn't exist, start with an empty config.
+	// Parse the auth config. A missing row means nothing is stored, so there is nothing to reset.
 	var c authCfg
-	if err == nil {
-		if err := json.Unmarshal([]byte(authJSON), &c); err != nil {
-			httperr.Write(w, req, err)
-			return
-		}
+	if errors.Is(err, sql.ErrNoRows) {
+		// Nothing stored, nothing to reset. Writing a zero authCfg would store
+		// {"providers":null}, which disables every login method on PostgreSQL.
+		writeJSON(w, map[string]any{"section": "auth", "value": nil})
+		return
+	}
+	if err := json.Unmarshal([]byte(authJSON), &c); err != nil {
+		httperr.Write(w, req, err)
+		return
 	}
 
 	// Check if the role had an override before removal (for audit event).

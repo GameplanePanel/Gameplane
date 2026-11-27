@@ -244,7 +244,15 @@ func (h *clusterActions) kubeconfig(w http.ResponseWriter, req *http.Request) {
 // signClientCert creates a CertificateSigningRequest for the kube-apiserver
 // client signer, approves it, and waits briefly for the issued cert.
 func (h *clusterActions) signClientCert(ctx context.Context, username string, csrPEM []byte) ([]byte, error) {
-	name := "gameplane-" + username + "-" + time.Now().UTC().Format("20060102150405")
+	// The username can hold characters that are not valid in an object name
+	// (uppercase, '@', '+', '_'), so the name carries a hash of it instead. The
+	// username stays in the certificate subject.
+	sum := sha256.Sum256([]byte(username))
+	var suffix [4]byte
+	if _, err := rand.Read(suffix[:]); err != nil {
+		return nil, fmt.Errorf("generate CSR name: %w", err)
+	}
+	name := "gameplane-" + hex.EncodeToString(sum[:8]) + "-" + hex.EncodeToString(suffix[:])
 	expSeconds := int32(3600) // 1h short-lived
 	csr := &certv1.CertificateSigningRequest{
 		ObjectMeta: metav1.ObjectMeta{Name: name},

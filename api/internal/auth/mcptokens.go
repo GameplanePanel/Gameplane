@@ -358,13 +358,13 @@ func bearerMCPToken(req *http.Request) (string, bool) {
 // mcpClientIP returns the client IP the same way the rate limiter does.
 func mcpClientIP(req *http.Request) string {
 	if ip := middleware.GetClientIP(req.Context()); ip != "" {
-		return ip
+		return LimiterSourceKey(ip)
 	}
 	host, _, err := net.SplitHostPort(req.RemoteAddr)
 	if err != nil {
-		return req.RemoteAddr
+		return LimiterSourceKey(req.RemoteAddr)
 	}
-	return host
+	return LimiterSourceKey(host)
 }
 
 // serveMCPToken authenticates a bearer MCP token and serves the request

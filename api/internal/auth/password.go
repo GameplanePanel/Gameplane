@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/sync/semaphore"
@@ -42,6 +43,34 @@ var (
 	// operations.
 	argonSem = semaphore.NewWeighted(argonConcurrency)
 )
+
+// maxArgonWaiters bounds how many callers may queue for argonSem. Beyond it a
+// caller fails fast with ErrPasswordBusy instead of waiting out the request
+// timeout behind a flood.
+const maxArgonWaiters = 64
+
+// ErrPasswordBusy reports that too many password operations are already
+// queued; callers answer with 503 and a Retry-After header.
+var ErrPasswordBusy = errors.New("password hashing busy")
+
+var argonWaiters atomic.Int64
+
+// acquireArgon takes the argon slot. A cancelled context returns its error
+// first; a full wait queue returns ErrPasswordBusy.
+func acquireArgon(ctx context.Context) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if argonSem.TryAcquire(1) {
+		return nil
+	}
+	if argonWaiters.Add(1) > maxArgonWaiters {
+		argonWaiters.Add(-1)
+		return ErrPasswordBusy
+	}
+	defer argonWaiters.Add(-1)
+	return argonSem.Acquire(ctx, 1)
+}
 
 // argonConcurrency is the number of argon2 operations allowed to run at once.
 const argonConcurrency = 1
@@ -71,34 +100,50 @@ const MinPasswordLen = 12
 // merely links this package — most notably test binaries that lower the
 // cost via SetFastHashParams — doesn't pay a full-cost 64 MiB hash at
 // startup.
-var dummyHash = sync.OnceValue(func() string {
+var dummyHash = sync.OnceValue(computeDummyHash)
+
+// computeDummyHash builds the hash behind dummyHash.
+func computeDummyHash() string {
 	r := make([]byte, 32)
 	if _, err := rand.Read(r); err != nil {
 		// rand.Read only fails if the OS CSPRNG is broken; in that case
 		// we can't safely serve auth anyway.
 		panic("crypto/rand: " + err.Error())
 	}
-	h, err := HashPassword(context.Background(), string(r))
+	// Bypass the waiter cap: this runs lazily on the first unknown-user
+	// login, which may be during a flood, and a cached panic would break the
+	// deny path for good. Waiting on the slot here is bounded by one hash.
+	if err := argonSem.Acquire(context.Background(), 1); err != nil {
+		panic("init dummy hash: " + err.Error())
+	}
+	defer argonSem.Release(1)
+	h, err := hashLocked(string(r))
 	if err != nil {
 		panic("init dummy hash: " + err.Error())
 	}
 	return h
-})
+}
 
 // VerifyDummy runs an argon2id compare against a hash nobody can match.
 // Use it on login paths where the outcome is already "deny" but you
 // want the time envelope to match a real verify. pw is discarded.
-func VerifyDummy(ctx context.Context, pw string) {
-	_, _ = VerifyPassword(ctx, pw, dummyHash())
+// It returns ErrPasswordBusy (or the context error) when no slot was obtained.
+func VerifyDummy(ctx context.Context, pw string) error {
+	_, err := VerifyPassword(ctx, pw, dummyHash())
+	return err
 }
 
 // HashPassword hashes a password using argon2id.
 func HashPassword(ctx context.Context, pw string) (string, error) {
-	if err := argonSem.Acquire(ctx, 1); err != nil {
+	if err := acquireArgon(ctx); err != nil {
 		return "", fmt.Errorf("hash password: %w", err)
 	}
 	defer argonSem.Release(1)
+	return hashLocked(pw)
+}
 
+// hashLocked hashes pw; the caller must hold the argon2 slot.
+func hashLocked(pw string) (string, error) {
 	salt := make([]byte, argonSaltLen)
 	if _, err := rand.Read(salt); err != nil {
 		return "", err
@@ -115,7 +160,7 @@ func HashPassword(ctx context.Context, pw string) (string, error) {
 // VerifyPassword verifies a password against an argon2id hash.
 func VerifyPassword(ctx context.Context, pw, encoded string) (bool, error) {
 	// Acquire semaphore before parsing to ensure timing parity on all paths.
-	if err := argonSem.Acquire(ctx, 1); err != nil {
+	if err := acquireArgon(ctx); err != nil {
 		return false, fmt.Errorf("verify password: %w", err)
 	}
 	defer argonSem.Release(1)

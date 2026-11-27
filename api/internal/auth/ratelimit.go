@@ -3,6 +3,7 @@ package auth
 import (
 	"net"
 	"net/http"
+	"net/netip"
 	"strconv"
 	"sync"
 	"time"
@@ -106,7 +107,7 @@ func (t *TokenBucket) Middleware(next http.Handler) http.Handler {
 				clientIP = host
 			}
 		}
-		if !t.requestBudget(w, req, clientIP) {
+		if !t.requestBudget(w, req, LimiterSourceKey(clientIP)) {
 			return
 		}
 		next.ServeHTTP(w, req)
@@ -188,3 +189,19 @@ var ShareLimiter = namedBucket("public_share", 20.0/60.0, 20)
 // than the IP (e.g. username). Returns the same bool as Middleware's
 // check but lets callers produce custom 429 responses.
 func (t *TokenBucket) AllowUser(key string) bool { return t.Allow(key) }
+
+// LimiterSourceKey maps a client address to its per-IP limiter key: IPv4
+// addresses are used as is, IPv6 addresses collapse to their /64 so one
+// allocation cannot mint a fresh bucket per address. Only limiter keys use
+// it; audit records keep the full address.
+func LimiterSourceKey(ip string) string {
+	a, err := netip.ParseAddr(ip)
+	if err != nil || a.Is4() || a.Is4In6() {
+		return ip
+	}
+	p, err := a.Prefix(64)
+	if err != nil {
+		return ip
+	}
+	return p.String()
+}

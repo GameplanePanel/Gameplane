@@ -153,11 +153,18 @@ func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerF
 		// is a username-enumeration oracle.
 		u, hash, err := l.fetchUser(req.Context(), body.Username)
 		if err != nil || hash == "" {
-			VerifyDummy(req.Context(), body.Password)
+			if derr := VerifyDummy(req.Context(), body.Password); errors.Is(derr, ErrPasswordBusy) {
+				writePasswordBusy(w, req)
+				return
+			}
 			httperr.WriteMessage(w, req, messages.New("server.auth.invalid_credentials", nil))
 			return
 		}
 		ok, err := VerifyPassword(req.Context(), body.Password, hash)
+		if errors.Is(err, ErrPasswordBusy) {
+			writePasswordBusy(w, req)
+			return
+		}
 		if err != nil || !ok {
 			httperr.WriteMessage(w, req, messages.New("server.auth.invalid_credentials", nil))
 			return
@@ -250,4 +257,11 @@ func setLoginDeviceCookie(w http.ResponseWriter, req *http.Request, username str
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	})
+}
+
+// writePasswordBusy answers 503 with Retry-After when the argon2 queue is
+// full. The response is identical whatever the username, so it leaks nothing.
+func writePasswordBusy(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Retry-After", "5")
+	httperr.WriteMessage(w, req, messages.New("server.generic.503", nil))
 }

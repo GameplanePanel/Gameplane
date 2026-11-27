@@ -1,5 +1,10 @@
 package auth
 
+import (
+	"context"
+	"sync"
+)
+
 // SetFastHashParams drops the argon2id cost parameters to the cheapest
 // sensible values for the duration of a test and restores them via
 // tb.Cleanup. Hashing at production cost is tens of milliseconds plus a
@@ -22,4 +27,27 @@ func SetFastHashParams(tb interface{ Cleanup(func()) }) {
 	tb.Cleanup(func() {
 		argonTime, argonMemory = prevTime, prevMemory
 	})
+}
+
+// SaturateArgonQueue holds the argon2 slot and fills the waiter queue so the
+// next password operation fails fast with ErrPasswordBusy. It is for tests of
+// the busy path in other packages; the returned func (also registered with
+// Cleanup) undoes it. Not safe to call from parallel tests.
+func SaturateArgonQueue(tb interface {
+	Cleanup(func())
+	Fatalf(string, ...any)
+}) func() {
+	if err := argonSem.Acquire(context.Background(), argonConcurrency); err != nil {
+		tb.Fatalf("saturate argon: %v", err)
+	}
+	argonWaiters.Add(maxArgonWaiters)
+	var once sync.Once
+	release := func() {
+		once.Do(func() {
+			argonWaiters.Add(-maxArgonWaiters)
+			argonSem.Release(argonConcurrency)
+		})
+	}
+	tb.Cleanup(release)
+	return release
 }
