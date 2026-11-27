@@ -19,40 +19,43 @@ import (
 
 // themeSourceHandler serves the admin theme source routes (spec 043,
 // contracts/themes-api.md, "Theme sources"). The RBAC table admits them only with
-// themes:manage. Credentials are never returned: the list and write responses
-// carry no credential field, and the stored reference is not part of the item.
+// themes:manage. A source names an admin-made credential Secret by name
+// (credentialSecret, like a ModuleSource secretRef); responses show that name
+// and never the Secret's values.
 type themeSourceHandler struct {
 	store *db.Store
 	svc   *themes.Service
 }
 
 // themeSourceBody is the POST and PUT request. Unknown fields are refused. On PUT
-// the name comes from the path and the body name is ignored. Credential is kept
-// as raw JSON so an absent field (keep, or none on create) and a JSON null (clear,
-// on PUT) can be told apart.
+// the name comes from the path and the body name is ignored. CredentialSecret is
+// kept as raw JSON so an absent field (keep, or none on create) and a JSON null
+// (clear, on PUT) can be told apart.
 type themeSourceBody struct {
-	Name            string          `json:"name"`
-	Type            string          `json:"type"`
-	Spec            json.RawMessage `json:"spec"`
-	Credential      json.RawMessage `json:"credential"`
-	Verify          json.RawMessage `json:"verify"`
-	RefreshInterval *int            `json:"refreshInterval"`
-	Enabled         *bool           `json:"enabled"`
+	Name             string          `json:"name"`
+	Type             string          `json:"type"`
+	Spec             json.RawMessage `json:"spec"`
+	CredentialSecret json.RawMessage `json:"credentialSecret"`
+	Verify           json.RawMessage `json:"verify"`
+	RefreshInterval  *int            `json:"refreshInterval"`
+	Enabled          *bool           `json:"enabled"`
 }
 
 // themeSourceItem is one source as the admin API shows it. Builtin marks the
 // reserved official source, which can be disabled but not deleted.
 type themeSourceItem struct {
-	Name            string          `json:"name"`
-	Type            string          `json:"type"`
-	Spec            json.RawMessage `json:"spec"`
-	Verify          json.RawMessage `json:"verify"`
-	RefreshInterval int             `json:"refreshInterval"`
-	Enabled         bool            `json:"enabled"`
-	Builtin         bool            `json:"builtin"`
-	LastSyncAt      *string         `json:"lastSyncAt"`
-	LastError       *string         `json:"lastError"`
-	ThemeCount      int             `json:"themeCount"`
+	Name   string          `json:"name"`
+	Type   string          `json:"type"`
+	Spec   json.RawMessage `json:"spec"`
+	Verify json.RawMessage `json:"verify"`
+	// CredentialSecret is the name of the credential Secret, or null for none.
+	CredentialSecret *string `json:"credentialSecret"`
+	RefreshInterval  int     `json:"refreshInterval"`
+	Enabled          bool    `json:"enabled"`
+	Builtin          bool    `json:"builtin"`
+	LastSyncAt       *string `json:"lastSyncAt"`
+	LastError        *string `json:"lastError"`
+	ThemeCount       int     `json:"themeCount"`
 }
 
 // settings converts the request body to the service input.
@@ -60,7 +63,7 @@ func (b themeSourceBody) settings() themes.SourceSettings {
 	return themes.SourceSettings{
 		Type:             b.Type,
 		Spec:             b.Spec,
-		Credential:       b.Credential,
+		CredentialSecret: b.CredentialSecret,
 		Verify:           b.Verify,
 		RefreshIntervalS: b.RefreshInterval,
 		Enabled:          b.Enabled,
@@ -68,18 +71,19 @@ func (b themeSourceBody) settings() themes.SourceSettings {
 }
 
 // sourceItemOf renders a stored source. The spec and policy are the canonical
-// JSON the service wrote; no credential reference is included.
+// JSON the service wrote; the credential Secret is shown by name only.
 func sourceItemOf(src db.ThemeSource) themeSourceItem {
 	item := themeSourceItem{
-		Name:            src.Name,
-		Type:            src.Type,
-		Spec:            json.RawMessage(src.Spec),
-		RefreshInterval: src.RefreshIntervalS,
-		Enabled:         src.Enabled,
-		Builtin:         src.Name == themes.OfficialSourceName,
-		LastSyncAt:      src.LastSyncAt,
-		LastError:       src.LastError,
-		ThemeCount:      src.ThemeCount,
+		Name:             src.Name,
+		Type:             src.Type,
+		Spec:             json.RawMessage(src.Spec),
+		CredentialSecret: src.CredentialRef,
+		RefreshInterval:  src.RefreshIntervalS,
+		Enabled:          src.Enabled,
+		Builtin:          src.Name == themes.OfficialSourceName,
+		LastSyncAt:       src.LastSyncAt,
+		LastError:        src.LastError,
+		ThemeCount:       src.ThemeCount,
 	}
 	if src.Verify != nil {
 		item.Verify = json.RawMessage(*src.Verify)

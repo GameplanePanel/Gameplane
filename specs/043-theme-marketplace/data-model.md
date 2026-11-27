@@ -12,7 +12,7 @@ One admin-managed source (FR-001, FR-002). Mirrors `ModuleSourceSpec`.
 | `name` | text, unique | DNS-1123 label, max 63; `official` reserved for the seeded source |
 | `type` | text | `oci` \| `git` \| `http` \| `local` |
 | `spec` | text (JSON) | type-specific settings: `oci {url, themes[], insecure}`, `git {url, ref, path}`, `http {url}`, `local {path}`; plus `allow[]` globs |
-| `credential_ref` | text, nullable | name of a labelled credential Secret (Kubernetes Secret in combined mode, panel-encrypted `management_objects` row in standalone mode, covered by key rotation); the credential itself is never stored in the row or returned by the API (OD-5) |
+| `credential_ref` | text, nullable | name of an admin-made credential Secret in the credentials namespace (Kubernetes Secret in combined mode, panel-encrypted `management_objects` row in standalone mode, covered by key rotation), shown as `credentialSecret`; the panel only reads it, and its values are never stored in the row or returned by the API (OD-5) |
 | `verify` | text (JSON), nullable | `{key: PEM}` or `{keyless: {issuer, identity}}`, `requireTransparencyLog`; only for `oci` |
 | `refresh_interval_s` | integer | default 3600, min 300 |
 | `enabled` | integer (0/1) | default 1 |

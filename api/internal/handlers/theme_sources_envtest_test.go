@@ -127,10 +127,10 @@ func TestThemeSourcesRefuseInvalidSettings(t *testing.T) {
 			`{"http":{"url":"http://example.com/t.tar.gz"}}`, ""), http.StatusUnprocessableEntity},
 		{"unknown spec key", themeSrcBody("typo-key", "oci",
 			`{"oci":{"url":"registry.test/typo","themez":["deep-ocean"]}}`, ""), http.StatusUnprocessableEntity},
-		{"oci credential not docker config", themeSrcBody("cred-shape", "oci", themeSrcSpec("cred-shape"),
-			`,"credential":{"username":"u","password":"p"}`), http.StatusUnprocessableEntity},
-		{"credential on local source", themeSrcBody("cred-local", "local",
-			`{"local":{"path":"themes"}}`, `,"credential":{"token":"t"}`), http.StatusUnprocessableEntity},
+		{"credential secret not a Kubernetes name", themeSrcBody("cred-shape", "oci", themeSrcSpec("cred-shape"),
+			`,"credentialSecret":"Not_A_Name"`), http.StatusUnprocessableEntity},
+		{"credential secret on local source", themeSrcBody("cred-local", "local",
+			`{"local":{"path":"themes"}}`, `,"credentialSecret":"theme-creds"`), http.StatusUnprocessableEntity},
 	}
 	for _, c := range cases {
 		rr := themeInstDo(t, h, http.MethodPost, "/themes/sources", c.body)
