@@ -150,10 +150,10 @@
 
 **Independent test**: a spec 016 export becomes a package, previews locally, validates, pushes to a test registry and installs from the catalog.
 
-- [ ] T051 [US5] `gp-module/internal/theme/` and the `theme` command group in `gp-module/cmd/gp-module/`: `init`, `from-export` (uses `themepkg.Derive`), `validate` (`--json`), `package` (`--out` OCI layout or `--push` with Docker config credentials, artifact and media types from `contracts/theme-package.md`), exit codes per `contracts/gp-module-theme-cli.md`.
-- [ ] T052 [US5] `gp-module theme preview` in `gp-module/internal/theme/preview.go`: embedded static sample page (buttons, navigation, cards, table, form, alerts) served on `--port`, light/dark switch, theme tokens and css applied; validation first.
-- [ ] T053 [P] [US5] Tests `gp-module/internal/theme/*_test.go`: each command, bad fixtures from `themepkg/testdata/bad/`, round trip export → package → validate.
-- [ ] T054 [US5] Update `gp-module/specs.md` and add a "Theme packages" section to `docs/module-authoring.md` or a new `docs/themes.md` linked from it.
+- [X] T051 [US5] `gp-module/internal/theme/` and the `theme` command group in `gp-module/cmd/gp-module/`: `init`, `from-export` (uses `themepkg.Derive`), `validate` (`--json`), `package` (`--out` OCI layout or `--push` with Docker config credentials, artifact and media types from `contracts/theme-package.md`), exit codes per `contracts/gp-module-theme-cli.md`.
+- [X] T052 [US5] `gp-module theme preview` in `gp-module/internal/theme/preview.go`: embedded static sample page (buttons, navigation, cards, table, form, alerts) served on `--port`, light/dark switch, theme tokens and css applied; validation first.
+- [X] T053 [P] [US5] Tests `gp-module/internal/theme/*_test.go`: each command, bad fixtures from `themepkg/testdata/bad/`, round trip export → package → validate.
+- [X] T054 [US5] Update `gp-module/specs.md` and add a "Theme packages" section to `docs/module-authoring.md` or a new `docs/themes.md` linked from it.
 
 ---
 
