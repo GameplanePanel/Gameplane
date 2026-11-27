@@ -102,7 +102,9 @@ const MinPasswordLen = 12
 // startup.
 var dummyHash = sync.OnceValue(computeDummyHash)
 
-// computeDummyHash builds the hash behind dummyHash.
+// computeDummyHash builds the hash behind dummyHash. The caller holds the
+// argon2 slot (VerifyDummy does), so this never queues and never runs a
+// second argon2 operation beside another one.
 func computeDummyHash() string {
 	r := make([]byte, 32)
 	if _, err := rand.Read(r); err != nil {
@@ -110,13 +112,6 @@ func computeDummyHash() string {
 		// we can't safely serve auth anyway.
 		panic("crypto/rand: " + err.Error())
 	}
-	// Bypass the waiter cap: this runs lazily on the first unknown-user
-	// login, which may be during a flood, and a cached panic would break the
-	// deny path for good. Waiting on the slot here is bounded by one hash.
-	if err := argonSem.Acquire(context.Background(), 1); err != nil {
-		panic("init dummy hash: " + err.Error())
-	}
-	defer argonSem.Release(1)
 	h, err := hashLocked(string(r))
 	if err != nil {
 		panic("init dummy hash: " + err.Error())
@@ -128,8 +123,14 @@ func computeDummyHash() string {
 // Use it on login paths where the outcome is already "deny" but you
 // want the time envelope to match a real verify. pw is discarded.
 // It returns ErrPasswordBusy (or the context error) when no slot was obtained.
+// The slot is taken before the lazy dummy hash is built, so a flood fails
+// fast here too instead of piling up behind the first computation.
 func VerifyDummy(ctx context.Context, pw string) error {
-	_, err := VerifyPassword(ctx, pw, dummyHash())
+	if err := acquireArgon(ctx); err != nil {
+		return fmt.Errorf("verify password: %w", err)
+	}
+	defer argonSem.Release(1)
+	_, err := verifyLocked(pw, dummyHash())
 	return err
 }
 
@@ -164,7 +165,11 @@ func VerifyPassword(ctx context.Context, pw, encoded string) (bool, error) {
 		return false, fmt.Errorf("verify password: %w", err)
 	}
 	defer argonSem.Release(1)
+	return verifyLocked(pw, encoded)
+}
 
+// verifyLocked checks pw against encoded; the caller must hold the argon2 slot.
+func verifyLocked(pw, encoded string) (bool, error) {
 	parts := strings.Split(encoded, "$")
 	if len(parts) != 6 || parts[1] != "argon2id" {
 		return false, errors.New("unsupported hash format")

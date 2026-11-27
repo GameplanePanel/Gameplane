@@ -86,40 +86,32 @@ func TestLogin_Busy_IdenticalForKnownAndUnknownUser(t *testing.T) {
 	}
 }
 
-func TestDummyHash_ComputedWhileQueueFull(t *testing.T) {
+func TestVerifyDummy_FailsFastWhileQueueFullThenRecovers(t *testing.T) {
 	SetFastHashParams(t)
-	// Hold the slot and fill the waiter queue, as during a flood, then make
-	// sure the dummy hash still computes once the slot frees and never
-	// panics (a panic would be cached by sync.OnceValue).
+	// Hold the slot and fill the waiter queue, as during a flood. The deny
+	// path must fail fast (not block on the lazy dummy hash), and work again
+	// once the slot frees.
 	if err := argonSem.Acquire(context.Background(), argonConcurrency); err != nil {
 		t.Fatal(err)
 	}
 	argonWaiters.Add(maxArgonWaiters)
-	defer argonWaiters.Add(-maxArgonWaiters)
-	type result struct {
-		hash  string
-		panic any
-	}
-	done := make(chan result, 1)
-	go func() {
-		defer func() {
-			if p := recover(); p != nil {
-				done <- result{panic: p}
-			}
-		}()
-		done <- result{hash: computeDummyHash()}
-	}()
-	argonSem.Release(argonConcurrency)
+	done := make(chan error, 1)
+	go func() { done <- VerifyDummy(context.Background(), "x") }()
 	select {
-	case r := <-done:
-		if r.panic != nil {
-			t.Fatalf("computeDummyHash panicked: %v", r.panic)
+	case err := <-done:
+		if !errors.Is(err, ErrPasswordBusy) {
+			t.Fatalf("err = %v, want ErrPasswordBusy", err)
 		}
-		if r.hash == "" {
-			t.Fatal("empty dummy hash")
-		}
-	case <-time.After(30 * time.Second):
-		t.Fatal("computeDummyHash did not finish")
+	case <-time.After(10 * time.Second):
+		t.Fatal("VerifyDummy blocked while the queue was full")
+	}
+	argonWaiters.Add(-maxArgonWaiters)
+	argonSem.Release(argonConcurrency)
+	if err := VerifyDummy(context.Background(), "x"); err != nil {
+		t.Fatalf("VerifyDummy after release: %v", err)
+	}
+	if h := computeDummyHash(); !strings.HasPrefix(h, "$argon2id$") {
+		t.Fatalf("dummy hash = %q", h)
 	}
 }
 
