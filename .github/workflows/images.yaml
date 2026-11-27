@@ -111,7 +111,7 @@ jobs:
           test "$(oras resolve "${IMAGE}@${DIGEST}")" = "$DIGEST"
       - if: github.event_name != 'pull_request'
         name: install cosign
-        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+        uses: sigstore/cosign-installer@881c63bd87e38389154debd8331404ce7ca8a3ab # v4.1.4
         with:
           cosign-release: 'v3.1.2'
       - if: github.event_name != 'pull_request'
@@ -327,7 +327,7 @@ jobs:
           build-contexts: ${{ steps.base-tag.outputs.build-contexts }}
       - if: github.event_name != 'pull_request'
         name: install cosign
-        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+        uses: sigstore/cosign-installer@881c63bd87e38389154debd8331404ce7ca8a3ab # v4.1.4
         with:
           cosign-release: 'v3.1.2'
       - if: github.event_name != 'pull_request'
