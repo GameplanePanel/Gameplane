@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Card, Chip, Switch } from "@heroui/react";
+import { Button, Card, Chip, Switch, Table } from "@heroui/react";
 import { Pencil, Plus, RefreshCcw, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -171,90 +171,93 @@ export function ThemeSourcesPage() {
             ) : sourcesQuery.isError ? (
               <ErrorCard message={themeErrorText(sourcesQuery.error)} onRetry={() => void sourcesQuery.refetch()} />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="text-xs text-muted">
-                    <tr className="border-b border-border">
-                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colName)}</th>
-                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colType)}</th>
-                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colStatus)}</th>
-                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colLastSync)}</th>
-                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colThemes)}</th>
-                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colEnabled)}</th>
-                      <th className="px-3 py-2 font-normal">{intl.formatMessage(M.colActions)}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sources.map((s) => (
-                      <tr key={s.name} className="border-b border-border last:border-0" data-testid="theme-source-row">
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{s.name}</span>
-                            {s.builtin && (
-                              <Chip color="accent" size="sm" variant="soft" className="font-mono text-[10px] uppercase font-normal">
-                                {intl.formatMessage(M.builtin)}
-                              </Chip>
-                            )}
-                          </div>
-                          <div className="font-mono text-[11px] text-muted">{locationOf(s)}</div>
-                        </td>
-                        <td className="px-3 py-3 font-mono text-xs">{TYPE_LABEL[s.type]}</td>
-                        <td className="px-3 py-3 text-xs">{statusNode(s)}</td>
-                        <td className="px-3 py-3 text-xs text-muted">{lastSyncText(s.lastSyncAt)}</td>
-                        <td className="px-3 py-3">{s.themeCount}</td>
-                        <td className="px-3 py-3">
-                          <Switch
-                            aria-label={formatThemeMessage(intl, M.toggleFor, { name: s.name })}
-                            isSelected={s.enabled}
-                            isDisabled={toggle.isPending}
-                            onChange={() => toggle.mutate(s)}
-                          >
-                            <Switch.Content>
-                              <Switch.Control>
-                                <Switch.Thumb />
-                              </Switch.Control>
-                            </Switch.Content>
-                          </Switch>
-                        </td>
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              aria-label={formatThemeMessage(intl, M.refreshFor, { name: s.name })}
-                              title={intl.formatMessage(M.refreshAction)}
-                              disabled={refresh.isPending}
-                              onClick={() => refresh.mutate(s)}
-                              className="rounded p-1.5 text-muted hover:bg-surface hover:text-fg disabled:opacity-50"
+              <Table.Root>
+                <Table.ScrollContainer>
+                  <Table.Content aria-label={intl.formatMessage(M.cardTitle)} keyboardNavigationBehavior="arrow" className="w-full text-left text-sm">
+                    <Table.Header>
+                      <Table.Column id="name" isRowHeader className="px-3 py-2 text-xs font-normal text-muted">{intl.formatMessage(M.colName)}</Table.Column>
+                      <Table.Column id="type" className="px-3 py-2 text-xs font-normal text-muted">{intl.formatMessage(M.colType)}</Table.Column>
+                      <Table.Column id="status" className="px-3 py-2 text-xs font-normal text-muted">{intl.formatMessage(M.colStatus)}</Table.Column>
+                      <Table.Column id="lastSync" className="px-3 py-2 text-xs font-normal text-muted">{intl.formatMessage(M.colLastSync)}</Table.Column>
+                      <Table.Column id="themes" className="px-3 py-2 text-xs font-normal text-muted">{intl.formatMessage(M.colThemes)}</Table.Column>
+                      <Table.Column id="enabled" className="px-3 py-2 text-xs font-normal text-muted">{intl.formatMessage(M.colEnabled)}</Table.Column>
+                      <Table.Column id="actions" className="px-3 py-2 text-xs font-normal text-muted">{intl.formatMessage(M.colActions)}</Table.Column>
+                    </Table.Header>
+                    <Table.Body>
+                      {sources.map((s) => (
+                        <Table.Row key={s.name} id={s.name} className="border-b border-border last:border-0" data-testid="theme-source-row">
+                          <Table.Cell className="px-3 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{s.name}</span>
+                              {s.builtin && (
+                                <Chip color="accent" size="sm" variant="soft" className="font-mono text-[10px] uppercase font-normal">
+                                  {intl.formatMessage(M.builtin)}
+                                </Chip>
+                              )}
+                            </div>
+                            <div className="font-mono text-[11px] text-muted">{locationOf(s)}</div>
+                          </Table.Cell>
+                          <Table.Cell className="px-3 py-3 font-mono text-xs">{TYPE_LABEL[s.type]}</Table.Cell>
+                          <Table.Cell className="px-3 py-3 text-xs">{statusNode(s)}</Table.Cell>
+                          <Table.Cell className="px-3 py-3 text-xs text-muted">{lastSyncText(s.lastSyncAt)}</Table.Cell>
+                          <Table.Cell className="px-3 py-3">{s.themeCount}</Table.Cell>
+                          <Table.Cell className="px-3 py-3">
+                            <Switch
+                              aria-label={formatThemeMessage(intl, M.toggleFor, { name: s.name })}
+                              isSelected={s.enabled}
+                              isDisabled={toggle.isPending}
+                              onChange={() => toggle.mutate(s)}
                             >
-                              <RefreshCcw className="h-4 w-4" />
-                            </button>
-                            <button
-                              type="button"
-                              aria-label={formatThemeMessage(intl, M.editFor, { name: s.name })}
-                              title={intl.formatMessage(M.editAction)}
-                              onClick={() => openEdit(s)}
-                              className="rounded p-1.5 text-muted hover:bg-surface hover:text-fg"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                            {!s.builtin && (
-                              <button
-                                type="button"
-                                aria-label={formatThemeMessage(intl, M.deleteFor, { name: s.name })}
-                                title={intl.formatMessage(M.deleteAction)}
-                                onClick={() => setPendingDelete(s)}
-                                className="rounded p-1.5 text-danger hover:bg-danger/10"
+                              <Switch.Content>
+                                <Switch.Control>
+                                  <Switch.Thumb />
+                                </Switch.Control>
+                              </Switch.Content>
+                            </Switch>
+                          </Table.Cell>
+                          <Table.Cell className="px-3 py-3">
+                            <div className="flex items-center gap-1">
+                              <Button
+                                isIconOnly
+                                variant="ghost"
+                                size="sm"
+                                aria-label={formatThemeMessage(intl, M.refreshFor, { name: s.name })}
+                                isDisabled={refresh.isPending}
+                                onPress={() => refresh.mutate(s)}
+                                className="text-muted hover:text-fg"
                               >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                                <RefreshCcw className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                isIconOnly
+                                variant="ghost"
+                                size="sm"
+                                aria-label={formatThemeMessage(intl, M.editFor, { name: s.name })}
+                                onPress={() => openEdit(s)}
+                                className="text-muted hover:text-fg"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              {!s.builtin && (
+                                <Button
+                                  isIconOnly
+                                  variant="ghost"
+                                  size="sm"
+                                  aria-label={formatThemeMessage(intl, M.deleteFor, { name: s.name })}
+                                  onPress={() => setPendingDelete(s)}
+                                  className="text-danger hover:bg-danger/10"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table.Content>
+                </Table.ScrollContainer>
+              </Table.Root>
             )}
             <p className="text-xs text-muted">{intl.formatMessage(M.footer)}</p>
           </Card.Content>

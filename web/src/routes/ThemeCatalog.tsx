@@ -5,7 +5,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Button, Input, ListBox, ListBoxItem, Select } from "@heroui/react";
+import { Button, Input, ListBox, ListBoxItem, Select, ToggleButton } from "@heroui/react";
 import { Search } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SettingsNav } from "@/components/ui/SettingsNav";
@@ -258,30 +258,32 @@ export function ThemeCatalogPage() {
 
             {tagOptions.length > 0 ? (
               <div className="flex flex-wrap gap-1 rounded-lg border border-border p-1">
-                <button
-                  type="button"
-                  aria-pressed={tag === ALL}
-                  onClick={() => setTag(ALL)}
+                <ToggleButton
+                  variant="ghost"
+                  size="sm"
+                  isSelected={tag === ALL}
+                  onChange={() => setTag(ALL)}
                   className={cn(
                     "rounded px-3 py-1.5 text-sm text-muted hover:text-foreground",
                     tag === ALL && "bg-primary/15 text-primary",
                   )}
                 >
                   {intl.formatMessage(themeCatalogMessages.allTags)}
-                </button>
+                </ToggleButton>
                 {tagOptions.map(([key, label]) => (
-                  <button
+                  <ToggleButton
                     key={key}
-                    type="button"
-                    aria-pressed={tag === key}
-                    onClick={() => setTag(key)}
+                    variant="ghost"
+                    size="sm"
+                    isSelected={tag === key}
+                    onChange={() => setTag(key)}
                     className={cn(
                       "rounded px-3 py-1.5 text-sm text-muted hover:text-foreground",
                       tag === key && "bg-primary/15 text-primary",
                     )}
                   >
                     {label}
-                  </button>
+                  </ToggleButton>
                 ))}
               </div>
             ) : null}

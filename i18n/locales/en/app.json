@@ -13019,10 +13019,6 @@
     "defaultMessage": "Type",
     "description": "Theme sources table: column header for the source type"
   },
-  "web.routes.theme_sources.delete_action": {
-    "defaultMessage": "Delete",
-    "description": "Theme sources table: icon button label that deletes a source"
-  },
   "web.routes.theme_sources.delete_confirm": {
     "defaultMessage": "Delete source",
     "description": "Theme sources: destructive confirm button for deleting a source"
@@ -13038,10 +13034,6 @@
   "web.routes.theme_sources.delete_title": {
     "defaultMessage": "Delete source “{name}”?",
     "description": "Theme sources: confirm dialog title for deleting a source; name is the source name"
-  },
-  "web.routes.theme_sources.edit_action": {
-    "defaultMessage": "Edit",
-    "description": "Theme sources table: icon button label that edits a source"
   },
   "web.routes.theme_sources.edit_description": {
     "defaultMessage": "Change how the API reaches and verifies this source. The type cannot be changed.",
@@ -13242,10 +13234,6 @@
   "web.routes.theme_sources.ph_themes": {
     "defaultMessage": "aurora-night, paper-light",
     "description": "Theme sources dialog: example theme names in the empty field; not translated"
-  },
-  "web.routes.theme_sources.refresh_action": {
-    "defaultMessage": "Refresh",
-    "description": "Theme sources table: icon button label that refreshes a source now"
   },
   "web.routes.theme_sources.refresh_for": {
     "defaultMessage": "Refresh {name}",
