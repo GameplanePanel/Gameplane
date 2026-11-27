@@ -8,6 +8,7 @@ import {
   Key,
   Link as LinkIcon,
   Palette,
+  Layers,
   RefreshCcw,
   ShieldCheck,
   Activity,
@@ -33,6 +34,7 @@ export type SettingsNavKey =
   | "sftp"
   | "auth"
   | "modules"
+  | "themeSources"
   | "modRegistries"
   | "notifications"
   | "telemetry"
@@ -40,17 +42,19 @@ export type SettingsNavKey =
   | "about";
 
 // Section keys handled by the admin settings page itself (every key except
-// the account routes "theme", "mcp" and "sftp").
-export type SettingsSectionKey = Exclude<SettingsNavKey, "theme" | "mcp" | "sftp">;
+// the routed entries "theme", "mcp", "sftp" and "themeSources").
+export type SettingsSectionKey = Exclude<SettingsNavKey, "theme" | "mcp" | "sftp" | "themeSources">;
 
-// Account entries navigate to their own page instead of an admin section.
-type RoutedKey = "theme" | "mcp" | "sftp";
+// Account and theme-source entries navigate to their own page instead of an admin section.
+type RoutedKey = "theme" | "mcp" | "sftp" | "themeSources";
 const routeByKey: Record<RoutedKey, string> = {
   theme: "/settings/theme",
   mcp: "/settings/mcp-tokens",
   sftp: "/settings/sftp",
+  themeSources: "/settings/theme-sources",
 };
-const isRouted = (key: SettingsNavKey): key is RoutedKey => key === "theme" || key === "mcp" || key === "sftp";
+const isRouted = (key: SettingsNavKey): key is RoutedKey =>
+  key === "theme" || key === "mcp" || key === "sftp" || key === "themeSources";
 
 const navMessages = defineMessages({
   general: { id: "web.components.ui.settings_nav.general", defaultMessage: "General", description: "Settings nav: label of the General settings section" },
@@ -61,6 +65,7 @@ const navMessages = defineMessages({
   sftp: { id: "web.components.ui.settings_nav.sftp", defaultMessage: "SFTP", description: "Settings nav: label of the personal SFTP access page; a protocol name, keep it as is" },
   auth: { id: "web.components.ui.settings_nav.authentication", defaultMessage: "Authentication", description: "Settings nav: label of the Authentication settings section" },
   modules: { id: "web.components.ui.settings_nav.module_sources", defaultMessage: "Module sources", description: "Settings nav: label of the Module sources settings section" },
+  themeSources: { id: "web.components.ui.settings_nav.theme_sources", defaultMessage: "Theme sources", description: "Settings nav: label of the Theme sources settings page (admins with themes:manage)" },
   modRegistries: { id: "web.components.ui.settings_nav.mod_registries", defaultMessage: "Mod registries", description: "Settings nav: label of the Mod registries settings section" },
   notifications: { id: "web.components.ui.settings_nav.notifications", defaultMessage: "Notifications", description: "Settings nav: label of the Notifications settings section" },
   telemetry: { id: "web.components.ui.settings_nav.telemetry", defaultMessage: "Telemetry", description: "Settings nav: label of the Telemetry settings section" },
@@ -80,6 +85,7 @@ const serverItems: NavItem[] = [
   { key: "general",       label: navMessages.general,       icon: Cog },
   { key: "auth",          label: navMessages.auth,          icon: ShieldCheck },
   { key: "modules",       label: navMessages.modules,       icon: Boxes },
+  { key: "themeSources",  label: navMessages.themeSources,  icon: Layers },
   { key: "modRegistries", label: navMessages.modRegistries, icon: Key },
   { key: "notifications", label: navMessages.notifications, icon: Bell },
   { key: "telemetry",     label: navMessages.telemetry,     icon: Activity },
@@ -98,13 +104,20 @@ export function SettingsNav({
   active,
   onSelect,
   showAdminSections,
+  showThemeSources = false,
 }: {
   active?: SettingsNavKey;
   onSelect: (key: SettingsSectionKey) => void;
   /** false hides the Server group (it needs config:manage), leaving only the Account group. */
   showAdminSections: boolean;
+  /** true (themes:manage) lists the Theme sources entry in the Server group, with or without showAdminSections. */
+  showThemeSources?: boolean;
 }) {
   const intl = useOptionalIntl();
+  // Theme sources follows themes:manage only; the other Server entries follow config:manage.
+  const visibleServerItems = serverItems.filter((item) =>
+    item.key === "themeSources" ? showThemeSources : showAdminSections,
+  );
   const renderItem = ({ key, label, icon: Icon }: NavItem) =>
     isRouted(key) ? (
       <Link key={key} to={routeByKey[key]} className={itemClass(active === key)} aria-current={active === key ? "page" : undefined}>
@@ -130,10 +143,10 @@ export function SettingsNav({
         <p id="settings-nav-account" className={groupHeading}>{intl.formatMessage(navMessages.account)}</p>
         {accountItems.map(renderItem)}
       </div>
-      {showAdminSections && (
+      {visibleServerItems.length > 0 && (
         <div role="group" aria-labelledby="settings-nav-server">
           <p id="settings-nav-server" className={groupHeading}>{intl.formatMessage(navMessages.server)}</p>
-          {serverItems.map(renderItem)}
+          {visibleServerItems.map(renderItem)}
         </div>
       )}
     </nav>

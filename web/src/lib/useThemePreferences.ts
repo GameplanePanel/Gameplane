@@ -10,11 +10,18 @@ import { defineMessages } from "react-intl";
 import { APIError } from "@/lib/api";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { Users, type UserPreferencesUpdate } from "@/lib/endpoints";
-import { customThemeTokensToCss, deriveCustomThemeTokens, surfaceAppearance } from "@/lib/theme-derivation";
+import {
+  CUSTOM_THEME_TOKEN_NAMES,
+  customThemeTokensToCss,
+  deriveCustomThemeTokens,
+  surfaceAppearance,
+} from "@/lib/theme-derivation";
 import type {
   AppearanceMode,
   CustomColorConfig,
+  InstalledThemeRender,
   ThemePresetId,
+  ThemeTokens,
   ThemeType,
   User,
   UserThemePreferences,
@@ -24,6 +31,11 @@ export const THEME_PREFS_STORAGE_KEY = "gameplane-theme-prefs";
 export const SAFE_MODE_SESSION_KEY = "gameplane-safe-mode";
 export const CUSTOM_CSS_ELEMENT_ID = "gameplane-custom-css";
 export const CUSTOM_THEME_VARS_ELEMENT_ID = "gameplane-custom-theme-vars";
+// Spec 043: the installed theme's own CSS (sanitized server-side), mounted
+// between the token block and the user overlay.
+export const INSTALLED_THEME_CSS_ELEMENT_ID = "gameplane-installed-theme-css";
+// Same weight as CUSTOM_THEME_VARS_SELECTOR so installed tokens beat every preset block.
+const INSTALLED_THEME_VARS_SELECTOR = 'html[data-theme-type="installed"][data-theme]';
 // Pre-serialized custom-color tokens for the index.html boot script, which
 // cannot run the derivation itself; kept in step with the prefs cache.
 export const THEME_VARS_CSS_STORAGE_KEY = "gameplane-theme-vars-css";
@@ -57,6 +69,15 @@ const HEX_COLOR_RE = /^#([0-9a-fA-F]{6})$/;
 // pre-existing entry point (keyboard shortcut, login-page safe-mode link).
 let urlSafeModeSeen = false;
 
+// Set by the keyboard shortcut when the sessionStorage flag cannot be written
+// (storage blocked), so safe mode still holds for the rest of this page load.
+let memorySafeModeSeen = false;
+
+/** Marks safe mode active for this page load without sessionStorage. */
+export function markSafeModeActiveInMemory(): void {
+  memorySafeModeSeen = true;
+}
+
 const THEME_MESSAGES = defineMessages({
   update_failed: {
     id: "web.lib.use_theme_preferences.update_failed",
@@ -68,6 +89,7 @@ const THEME_MESSAGES = defineMessages({
 /** Test-only: clears the in-memory URL safe-mode latch, simulating a fresh page load. */
 export function resetUrlSafeModeForTests(): void {
   urlSafeModeSeen = false;
+  memorySafeModeSeen = false;
 }
 
 /**
@@ -77,6 +99,26 @@ export function resetUrlSafeModeForTests(): void {
  * `gameplane-safe-mode` sessionStorage flag set by the keyboard shortcut
  * and the login-page safe-mode link.
  */
+// Re-applies an active in-memory theme preview, returning false when there is
+// none. Registered by useThemePreview (which imports this module), so an OS
+// appearance change keeps showing the previewed theme.
+let previewReapplier: (() => boolean) | null = null;
+
+export function setThemePreviewReapplier(fn: (() => boolean) | null): void {
+  previewReapplier = fn;
+}
+
+/**
+ * Applies saved preferences unless a theme preview is active, in which case
+ * the preview is re-applied over them (it reads the saved base, so an
+ * appearance change still shows). Paths that refresh the saved theme use this
+ * so a preview stays on screen until Exit or Keep.
+ */
+export function applySavedThemeOrPreview(prefs: UserThemePreferences | null): void {
+  if (previewReapplier?.()) return;
+  applyThemePreferences(prefs);
+}
+
 export function isSafeModeActive(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -86,13 +128,60 @@ export function isSafeModeActive(): boolean {
   } catch {
     // Malformed query string — treat the URL entry point as inactive.
   }
-  if (urlSafeModeSeen) return true;
+  if (urlSafeModeSeen || memorySafeModeSeen) return true;
   try {
     const flag = window.sessionStorage.getItem(SAFE_MODE_SESSION_KEY);
     return flag === "1" || flag === "true";
   } catch {
     return false;
   }
+}
+
+export type InstalledMode = "light" | "dark";
+
+function isTokenSet(v: unknown): boolean {
+  if (typeof v !== "object" || v === null) return false;
+  const rec = v as Record<string, unknown>;
+  return CUSTOM_THEME_TOKEN_NAMES.every(
+    (name) => typeof rec[name] === "string" && HEX_COLOR_RE.test(rec[name] as string),
+  );
+}
+
+/** Modes an installed theme ships tokens for, light before dark. */
+export function installedThemeModes(render: InstalledThemeRender): InstalledMode[] {
+  const modes: InstalledMode[] = [];
+  if (render.tokens.light) modes.push("light");
+  if (render.tokens.dark) modes.push("dark");
+  return modes;
+}
+
+/**
+ * Tokens for the active mode. A single-mode theme supplies one token set, which
+ * is used for both modes (spec 043 T037); null when the theme has no tokens.
+ */
+export function installedThemeTokens(
+  render: InstalledThemeRender,
+  mode: InstalledMode,
+): ThemeTokens | null {
+  const other: InstalledMode = mode === "light" ? "dark" : "light";
+  return render.tokens[mode] ?? render.tokens[other] ?? null;
+}
+
+// Drops malformed render data so no unvalidated token value reaches the DOM.
+export function normalizeInstalledRender(input: unknown): InstalledThemeRender | null {
+  if (typeof input !== "object" || input === null) return null;
+  const raw = input as Record<string, unknown>;
+  if (typeof raw.version !== "string") return null;
+  if (typeof raw.tokens !== "object" || raw.tokens === null) return null;
+  const tokens = raw.tokens as Record<string, unknown>;
+  const light = isTokenSet(tokens.light) ? (tokens.light as ThemeTokens) : undefined;
+  const dark = isTokenSet(tokens.dark) ? (tokens.dark as ThemeTokens) : undefined;
+  if (!light && !dark) return null;
+  return {
+    tokens: { ...(light ? { light } : {}), ...(dark ? { dark } : {}) },
+    css: typeof raw.css === "string" && raw.css.length > 0 ? raw.css : null,
+    version: raw.version,
+  };
 }
 
 /**
@@ -105,7 +194,16 @@ export function normalizeThemePreferences(input: unknown): UserThemePreferences 
   if (typeof input !== "object" || input === null) return null;
   const raw = input as Record<string, unknown>;
 
-  const themeType: ThemeType = raw.themeType === "custom_colors" ? "custom_colors" : "preset";
+  const installedThemeId =
+    typeof raw.installedThemeId === "number" && Number.isFinite(raw.installedThemeId)
+      ? raw.installedThemeId
+      : null;
+  const themeType: ThemeType =
+    raw.themeType === "custom_colors"
+      ? "custom_colors"
+      : raw.themeType === "installed" && installedThemeId !== null
+        ? "installed"
+        : "preset";
   const presetId: ThemePresetId = raw.presetId === "legacy" ? "legacy" : "pink";
   const appearanceMode: AppearanceMode =
     raw.appearanceMode === "light" || raw.appearanceMode === "dark" ? raw.appearanceMode : "system";
@@ -135,6 +233,11 @@ export function normalizeThemePreferences(input: unknown): UserThemePreferences 
     customCssEnabled: raw.customCssEnabled === true,
     customCss,
     ...(typeof raw.updatedAt === "string" ? { updatedAt: raw.updatedAt } : {}),
+    // Installed-theme fields exist only on installed prefs, so other payloads
+    // keep their exact shape.
+    ...(themeType === "installed"
+      ? { installedThemeId, installedTheme: normalizeInstalledRender(raw.installedTheme) }
+      : {}),
   };
 }
 
@@ -150,7 +253,9 @@ export function themePreferencesEqual(
     a.customCssEnabled === b.customCssEnabled &&
     a.customCss === b.customCss &&
     a.customColors?.accent === b.customColors?.accent &&
-    a.customColors?.surface === b.customColors?.surface
+    a.customColors?.surface === b.customColors?.surface &&
+    (a.installedThemeId ?? null) === (b.installedThemeId ?? null) &&
+    JSON.stringify(a.installedTheme ?? null) === JSON.stringify(b.installedTheme ?? null)
   );
 }
 
@@ -193,6 +298,11 @@ function resolveAppearanceMode(prefs: UserThemePreferences | null): "dark" | "li
   if (prefs?.themeType === "custom_colors" && prefs.customColors) {
     return surfaceAppearance(prefs.customColors.surface);
   }
+  // Spec 043: a single-mode installed theme pins the page to its only mode.
+  if (prefs?.themeType === "installed" && prefs.installedTheme) {
+    const modes = installedThemeModes(prefs.installedTheme);
+    if (modes.length === 1) return modes[0];
+  }
   const mode = prefs?.appearanceMode ?? "system";
   if (mode !== "system") return mode;
   // Mirrors the boot script: an unavailable matchMedia keeps the markup's
@@ -218,26 +328,52 @@ export interface ApplyThemePreferencesOptions {
  * applyThemePreferences re-appends the custom CSS overlay afterwards, so an
  * enabled overlay still wins over these tokens.
  */
-export function applyCustomThemeVars(colors: CustomColorConfig | null | undefined): void {
+// Mounts (or removes, when css is null) the token block in
+// #gameplane-custom-theme-vars. Appending keeps it ahead of the later style elements.
+function mountThemeVarsCss(css: string | null): void {
   if (typeof document === "undefined") return;
   const existing = document.getElementById(CUSTOM_THEME_VARS_ELEMENT_ID);
-  if (!colors) {
+  if (css === null) {
     existing?.remove();
     return;
   }
-  const tokens = deriveCustomThemeTokens(colors.accent, colors.surface);
   const el = existing ?? document.createElement("style");
   el.id = CUSTOM_THEME_VARS_ELEMENT_ID;
-  el.textContent = customThemeTokensToCss(tokens);
+  el.textContent = css;
   document.head.appendChild(el);
+}
+
+// Mounts (or removes) the installed theme's own CSS between the token block and the user overlay.
+function mountInstalledThemeCss(css: string | null): void {
+  if (typeof document === "undefined") return;
+  const existing = document.getElementById(INSTALLED_THEME_CSS_ELEMENT_ID);
+  if (css === null) {
+    existing?.remove();
+    return;
+  }
+  const el = existing ?? document.createElement("style");
+  el.id = INSTALLED_THEME_CSS_ELEMENT_ID;
+  el.textContent = css;
+  document.head.appendChild(el);
+}
+
+export function applyCustomThemeVars(colors: CustomColorConfig | null | undefined): void {
+  if (!colors) {
+    mountThemeVarsCss(null);
+    return;
+  }
+  const tokens = deriveCustomThemeTokens(colors.accent, colors.surface);
+  mountThemeVarsCss(customThemeTokensToCss(tokens));
 }
 
 /**
  * Applies preferences to the DOM: the dark/light class + data-theme,
  * data-theme-preset, data-theme-type, data-custom-css, and the
  * #gameplane-custom-css overlay mounted as the LAST child of document.head
- * (after the preset tokens and #gameplane-custom-theme-vars) so user rules
- * win at equal specificity. Safe mode suspends only the overlay.
+ * (after the preset tokens, #gameplane-custom-theme-vars and
+ * #gameplane-installed-theme-css) so user rules win at equal specificity.
+ * Safe mode suspends the overlay; an installed theme is suspended too and
+ * renders Modern Pink (spec 043 T037).
  */
 export function applyThemePreferences(
   prefs: UserThemePreferences | null,
@@ -245,14 +381,25 @@ export function applyThemePreferences(
 ): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  const resolved = resolveAppearanceMode(prefs);
+  const active: UserThemePreferences | null =
+    prefs?.themeType === "installed" && isSafeModeActive()
+      ? { ...prefs, themeType: "preset", presetId: "pink", installedTheme: null }
+      : prefs;
+  const resolved = resolveAppearanceMode(active);
 
   root.classList.remove("dark", "light");
   root.classList.add(resolved);
   root.dataset.theme = resolved;
-  root.dataset.themePreset = prefs?.presetId ?? "pink";
-  root.dataset.themeType = prefs?.themeType ?? "preset";
-  applyCustomThemeVars(prefs?.themeType === "custom_colors" ? prefs.customColors : null);
+  root.dataset.themePreset = active?.presetId ?? "pink";
+  root.dataset.themeType = active?.themeType ?? "preset";
+  if (active?.themeType === "installed") {
+    const tokens = active.installedTheme ? installedThemeTokens(active.installedTheme, resolved) : null;
+    mountThemeVarsCss(tokens ? customThemeTokensToCss(tokens, INSTALLED_THEME_VARS_SELECTOR) : null);
+    mountInstalledThemeCss(active.installedTheme?.css || null);
+  } else {
+    applyCustomThemeVars(active?.themeType === "custom_colors" ? active.customColors : null);
+    mountInstalledThemeCss(null);
+  }
 
   const css = prefs?.customCssEnabled === true ? prefs.customCss : null;
   const inject =
@@ -288,6 +435,9 @@ function toUpdateBody(prefs: UserThemePreferences): UserPreferencesUpdate {
   };
   if (prefs.customColors) body.customColors = prefs.customColors;
   if (prefs.customCss) body.customCss = prefs.customCss;
+  if (prefs.themeType === "installed" && typeof prefs.installedThemeId === "number") {
+    body.installedThemeId = prefs.installedThemeId;
+  }
   return body;
 }
 
@@ -374,23 +524,22 @@ export function useThemePreferences(
     if (!cached || !themePreferencesEqual(cached, mePreferences)) {
       writeThemePreferences(mePreferences);
     }
-    applyThemePreferences(mePreferences);
+    // An active preview stays on screen over the refreshed saved theme.
+    applySavedThemeOrPreview(mePreferences);
   }, [mePreferences]);
 
   // Re-resolve the base theme when the OS preference flips while in
-  // "system". D4: skip subscribing entirely while a custom-colors theme is
-  // active — resolveAppearanceMode already ignores appearanceMode in that
-  // case, so this is a pure no-op guard against re-render churn, not a
-  // correctness fix (belt-and-suspenders with WP-lib 1e).
+  // "system". This subscribes for custom-colors themes too: a catalog
+  // preview over them still follows the OS mode, and without a preview the
+  // re-apply resolves to the same custom-colors appearance.
   useEffect(() => {
     if (preferences?.appearanceMode !== "system") return;
-    if (preferences?.themeType === "custom_colors" && preferences.customColors) return;
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => applyThemePreferences(readThemePreferences());
+    const handleChange = () => applySavedThemeOrPreview(readThemePreferences());
     mq.addEventListener("change", handleChange);
     return () => mq.removeEventListener("change", handleChange);
-  }, [preferences?.appearanceMode, preferences?.themeType, preferences?.customColors]);
+  }, [preferences?.appearanceMode]);
 
   const reportError = useCallback(
     (message: string) => {
@@ -412,14 +561,14 @@ export function useThemePreferences(
       if (!next) return;
       writeThemePreferences(next);
       setPreferences(next);
-      applyThemePreferences(next);
+      applySavedThemeOrPreview(next);
     },
     onError: (err: unknown, vars) => {
       // Revert the optimistic application.
       setPreferences(vars.previous);
       if (vars.previous) {
         writeThemePreferences(vars.previous);
-        applyThemePreferences(vars.previous);
+        applySavedThemeOrPreview(vars.previous);
       }
       const message =
         err instanceof APIError
@@ -471,7 +620,7 @@ export function useThemePreferences(
       // Optimistic: DOM + cache first…
       setPreferences(next);
       writeThemePreferences(next);
-      applyThemePreferences(next);
+      applySavedThemeOrPreview(next);
       // …then the authoritative PUT.
       mutation.mutate({ body: toUpdateBody(next), previous: current });
     },

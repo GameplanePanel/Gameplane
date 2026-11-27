@@ -16,6 +16,10 @@ import { ClustersPage } from "@/routes/Clusters";
 import { UsersPage } from "@/routes/Users";
 import { AdminSettingsPage } from "@/routes/AdminSettings";
 import { ThemeSettingsPage } from "@/routes/ThemeSettings";
+import { ThemeCatalogPage } from "@/routes/ThemeCatalog";
+import { ThemeDetailPage } from "@/routes/ThemeDetail";
+import { ThemeSourcesPage } from "@/routes/ThemeSources";
+import { THEMES_MANAGE_PERM } from "@/lib/themePermissions";
 import { ProfileSftpPage } from "@/routes/ProfileSftp";
 import { McpTokensPage } from "@/routes/McpTokens";
 import { CreateServerWizard } from "@/routes/CreateServer";
@@ -164,6 +168,30 @@ const themeSettingsRoute = new Route({
   component: ThemeSettingsPage,
 });
 
+// Theme marketplace (spec 043). Catalog and detail are per-user (any signed-in
+// user); theme sources are admin pages gated by themes:manage.
+const themeCatalogRoute = new Route({
+  getParentRoute: () => appLayoutRoute,
+  path: "/settings/theme/catalog",
+  component: ThemeCatalogPage,
+});
+
+const themeDetailRoute = new Route({
+  getParentRoute: () => appLayoutRoute,
+  path: "/settings/theme/catalog/$id",
+  component: ThemeDetailPage,
+});
+
+const themeSourcesRoute = new Route({
+  getParentRoute: () => appLayoutRoute,
+  path: "/settings/theme-sources",
+  component: () => (
+    <RequirePermission perm={THEMES_MANAGE_PERM}>
+      <ThemeSourcesPage />
+    </RequirePermission>
+  ),
+});
+
 // Personal SFTP credentials (spec 040): every signed-in user manages their own
 // keys and password, so no RequirePermission gate, same as /settings/theme.
 const profileSftpRoute = new Route({
@@ -238,6 +266,9 @@ export const routeTree = rootRoute.addChildren([
     usersRoute,
     adminRoute,
     themeSettingsRoute,
+    themeCatalogRoute,
+    themeDetailRoute,
+    themeSourcesRoute,
     profileSftpRoute,
     mcpTokensRoute,
     auditLogRoute,

@@ -81,7 +81,7 @@
 - [X] T023 [P] [US1] Envtest `api/internal/handlers/themes_catalog_envtest_test.go`: fake OCI registry with one valid, one invalid and one unsigned theme; filters; unreachable second source still lists the first (SC-006); preview headers; signed-in non-admin can read.
 - [X] T024 [P] [US1] Unit tests `api/internal/themes/indexer_test.go`: unchanged digest skipped, changed digest re-pulled, per-source failure isolation, refresh interval floor.
 - [ ] T025 [US1] i18n strings for catalog, detail and preview in `i18n/locales/` (English source pack; other packs follow the spec 019 flow).
-- [ ] T026 [US1] Preview state in `web/src/lib/useThemePreview.ts`: apply catalog tokens and css in memory through the same injection path as `useThemePreferences.ts`, restore saved preferences on Exit, route change away from theme pages, or reload; nothing written server-side.
+- [ ] T026 [US1] Preview state in `web/src/lib/useThemePreview.ts`: apply catalog tokens and css in memory through the same injection path as `useThemePreferences.ts`, restore saved preferences on Exit or reload; nothing written server-side. The preview stays on across pages, as in the design (valgul 2026-11-27, card "Should a theme preview stay on while browsing other pages?": "Keep it across pages (design)"); the earlier "route change away from theme pages" restore is dropped.
 - [ ] T027 [P] [US1] Vitest `web/src/lib/useThemePreview.test.ts`: apply, exit restores exactly, reload restores, safe mode blocks preview CSS.
 - [ ] T028 [US1] Routes `/settings/theme/catalog` and `/settings/theme/catalog/$id` registered in `web/src/router/tree.tsx`.
 - [ ] T029 [US1] `web/src/routes/ThemeCatalog.tsx` from the T004 export: grid, search, tag and source filters, badges, unreachable-source banner, empty and loading states.
@@ -161,7 +161,7 @@
 
 - [ ] T055 New bucket `themes` in `test/e2e/buckets.sh` and `test/e2e/api_themes_e2e_test.go` (`t.Parallel()`, unique names, `ociPushMu` around pushes, ≤ 7 logins): push a signed and an unsigned theme to the Kind registry, add a source, catalog lists both with the unsigned one flagged after enabling verify, user A installs and selects, user B unaffected, update, disable source (installed copy keeps working), remove (fallback to Pink).
 - [ ] T056 [P] Standalone case in `test/e2e/standalone_panel_e2e_test.go` (new test function): add a local or OCI theme source and install a theme with no operator (OD-4).
-- [ ] T057 [P] Update `api/specs.md` (themes service, routes, indexer, tables) and `web/specs.md` (catalog, preview, installed render order, safe mode).
+- [X] T057 [P] Update `api/specs.md` (themes service, routes, indexer, tables) and `web/specs.md` (catalog, preview, installed render order, safe mode). Done: `api/specs.md` "Theme marketplace (spec 043)", `web/specs.md` "Theme marketplace (spec 043)".
 - [ ] T058 [P] `changelog/unreleased/<PR>-theme-marketplace.md` per `changelog/unreleased/README.md` (feature, new Helm value `themes.officialSource.enabled`, new permission `themes:manage`).
 - [ ] T059 Run `quickstart.md` sections 1–6 on a dev cluster and a standalone panel (valgul's manual walk); record results in `specs/043-theme-marketplace/quickstart-results.md`.
 
