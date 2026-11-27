@@ -91,3 +91,18 @@ func TestFoldTopSharesNoOther(t *testing.T) {
 		t.Fatalf("got %+v, want only 1.31", got)
 	}
 }
+
+// One install-day can report many versions, so folded shares overlap; the
+// "other" row never claims more than every install-day.
+func TestFoldTopSharesOtherCappedAtOne(t *testing.T) {
+	t.Parallel()
+	var rows []ShareRow
+	for i := range 12 {
+		rows = append(rows, ShareRow{Label: fmt.Sprintf("v1.%02d", i), Share: 1})
+	}
+	out := foldTopShares(rows, 10)
+	last := out[len(out)-1]
+	if last.Label != versionOtherStored || last.Share != 1 {
+		t.Fatalf("last row = %+v, want other capped at 1", last)
+	}
+}

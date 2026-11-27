@@ -673,8 +673,10 @@ func queryDims(ctx context.Context, db *sql.DB, from, to string, extReports int6
 // foldTopShares keeps the topN labels with the largest shares (ties by label)
 // and folds every other row, and any stored "other" row, into one "other" row
 // that comes last. A dimension with more values than the chart can show, such
-// as k8s, cannot flood its panel this way. Rows are returned in no particular
-// order; pass the result to sortedShares.
+// as k8s, cannot flood its panel this way. Named rows come first, largest
+// share first. One install-day can report several values, so the folded rows
+// overlap and their sum can pass 1: "other" is that sum capped at 1, an upper
+// bound on the share of install-days reporting any folded value.
 func foldTopShares(rows []ShareRow, topN int) []ShareRow {
 	var named []ShareRow
 	var other float64
@@ -699,7 +701,7 @@ func foldTopShares(rows []ShareRow, topN int) []ShareRow {
 	}
 	out := append([]ShareRow{}, named...)
 	if other > 0 {
-		out = append(out, ShareRow{Label: versionOtherStored, Share: other})
+		out = append(out, ShareRow{Label: versionOtherStored, Share: min(other, 1)})
 	}
 	return out
 }
