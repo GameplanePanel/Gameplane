@@ -4,6 +4,7 @@ import type { ResourceRequirements } from "@/types";
 import { isValidQuantity } from "@/lib/validation";
 import { cpuQuantityCores, memQuantityBytes } from "@/lib/quantity";
 import { ResourceInput } from "@/components/ui/ResourceInput";
+import { StorageInput } from "@/components/ui/StorageInput";
 import { Field } from "./Field";
 import type { SectionProps } from "./types";
 import { useOptionalIntl } from "@/lib/i18n/format";
@@ -132,12 +133,13 @@ export function ResourcesSection({ draft, onChange }: SectionProps) {
 
   const reserveLessLabel = intl.formatMessage({ id: "web.routes.tabs.settings.resources.reserve_less_than_the_limit", defaultMessage: "Reserve less than the limit", description: "Resources: field label for the switch that lets the CPU and memory reserved for the server (Kubernetes requests) be lower than its limits; the same text is the switch's accessible name" });
   const reservedCpuLabel = intl.formatMessage({ id: "web.routes.tabs.settings.resources.reserved_cpu", defaultMessage: "Reserved CPU", description: "Resources: field label for the CPU reserved for the server (the Kubernetes request), shown when the reservation may be lower than the limit; the same text is the accessible name of its slider; CPU is a technical term, usually left untranslated" });
-  const reservedMemoryLabel = intl.formatMessage({ id: "web.routes.tabs.settings.resources.reserved_memory_gib", defaultMessage: "Reserved memory (GiB)", description: "Resources: field label for the memory in GiB reserved for the server (the Kubernetes request), shown when the reservation may be lower than the limit; the same text is the accessible name of its slider" });
+  const reservedMemoryLabel = intl.formatMessage({ id: "web.routes.tabs.settings.resources.reserved_memory_gib", defaultMessage: "Reserved memory", description: "Resources: field label for the memory reserved for the server (the Kubernetes request), shown when the reservation may be lower than the limit; the same text is the accessible name of its slider" });
+  const storageSizeLabel = intl.formatMessage({ id: "web.routes.tabs.settings.resources.storage_size", defaultMessage: "Storage size", description: "Resources: field label for the size of the server's persistent storage; the accessible name of its box is the same" });
 
   return (
     <div className="space-y-6">
       <Field
-        label={intl.formatMessage({ id: "web.routes.tabs.settings.resources.cpu_cores", defaultMessage: "CPU cores", description: "Resources: field label for the number of CPU cores reserved for the server; CPU is a technical term, usually left untranslated" })}
+        label={intl.formatMessage({ id: "web.routes.tabs.settings.resources.cpu_cores", defaultMessage: "CPU", description: "Resources: field label for the number of CPU cores reserved for the server; CPU is a technical term, usually left untranslated" })}
         hint={
           reserveLess
             ? intl.formatMessage({ id: "web.routes.tabs.settings.resources.limit_the_most_cpu_this_server_can_use", defaultMessage: "Limit: the most CPU this server can use.", description: "Resources: hint under the CPU cores field when the reservation may be lower, saying the value is the limit, the most CPU the server can use; CPU is a technical term" })
@@ -152,7 +154,7 @@ export function ResourcesSection({ draft, onChange }: SectionProps) {
       </Field>
 
       <Field
-        label={intl.formatMessage({ id: "web.routes.tabs.settings.resources.memory_gib", defaultMessage: "Memory (GiB)", description: "Resources: field label for the memory amount in GiB reserved for the server" })}
+        label={intl.formatMessage({ id: "web.routes.tabs.settings.resources.memory_gib", defaultMessage: "Memory", description: "Resources: field label for the memory amount reserved for the server" })}
         hint={
           reserveLess
             ? intl.formatMessage({ id: "web.routes.tabs.settings.resources.limit_the_most_memory_this_server_can_use", defaultMessage: "Limit: the most memory this server can use.", description: "Resources: hint under the memory field when the reservation may be lower, saying the value is the limit, the most memory the server can use" })
@@ -215,11 +217,10 @@ export function ResourcesSection({ draft, onChange }: SectionProps) {
       )}
 
       <Field
-        label={intl.formatMessage({ id: "web.routes.tabs.settings.resources.storage_size", defaultMessage: "Storage size", description: "Resources: field label for the size of the server's persistent storage; the accessible name of its box is the same" })}
+        label={storageSizeLabel}
         hint={
           <>
-            <div>{intl.formatMessage({ id: "web.routes.tabs.settings.resources.k8s_quantity_e_g_10gi_200gi", defaultMessage: "K8s quantity (e.g. 10Gi, 200Gi).", description: "Resources: hint under the storage size field saying the value is a Kubernetes quantity such as 10Gi or 200Gi; Kubernetes is a technical term" })}</div>
-            <div className="pt-1">{intl.formatMessage(
+            <div>{intl.formatMessage(
               { id: "web.routes.tabs.settings.resources.resizing_requires_a_storageclass_with", defaultMessage: "Resizing requires a StorageClass with {setting}.", description: "Resources: hint under the storage size field saying resizing needs a StorageClass that allows volume expansion; {setting} is the allowVolumeExpansion: true field, shown in monospace" },
               { setting: <span className="font-mono">{intl.formatMessage({ id: "web.routes.tabs.settings.resources.allowvolumeexpansion_true", defaultMessage: "allowVolumeExpansion: true", description: "Resources: Kubernetes StorageClass field name shown in the storage size hint" })}</span> },
             )}
@@ -227,13 +228,11 @@ export function ResourcesSection({ draft, onChange }: SectionProps) {
           </>
         }
       >
-        <Input
-          type="text"
+        <StorageInput
+          label={storageSizeLabel}
           value={storage.size ?? ""}
-          onChange={(e) => setStorage({ ...storage, size: e.target.value || undefined })}
-          placeholder={intl.formatMessage({ id: "web.routes.tabs.settings.resources.10gi", defaultMessage: "10Gi", description: "Resources: example placeholder in the storage size box; an example value, not a default" })}
-          className={sizeValid ? "" : "border-danger focus:border-danger focus:ring-danger"}
-          aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.resources.storage_size", defaultMessage: "Storage size", description: "Resources: field label for the size of the server's persistent storage; the accessible name of its box is the same" })}
+          onChange={(q) => setStorage({ ...storage, size: q || undefined })}
+          invalid={!sizeValid}
         />
         {!sizeValid && (
           <div className="pt-1 text-xs text-danger">{intl.formatMessage({ id: "web.routes.tabs.settings.resources.invalid_quantity_e_g_10gi", defaultMessage: "Invalid quantity (e.g. \"10Gi\").", description: "Resources: validation error under the storage size box when the value is not a valid quantity such as 10Gi" })}</div>

@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Notifications",
   "type": "FRAME",
   "x": 0,
-  "y": 93302,
+  "y": 102047,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -516,7 +516,7 @@
                                   "componentId": "1:633",
                                   "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                   "strokeWeight": 1,
-                                  "cornerRadius": 24,
+                                  "cornerRadius": 12,
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 5,
@@ -526,9 +526,12 @@
                                     "sizing": ["HUG", "FIXED"]
                                   },
                                   "variables": {
-                                    "cornerRadius": "radius/3xl",
                                     "paddingRight": "spacing/3",
                                     "paddingLeft": "spacing/3",
+                                    "topLeftRadius": "radius/xl",
+                                    "topRightRadius": "radius/xl",
+                                    "bottomLeftRadius": "radius/xl",
+                                    "bottomRightRadius": "radius/xl",
                                     "strokes/0/color": "border-2"
                                   },
                                   "texts": ["Send test"]
@@ -753,7 +756,7 @@
                                   "componentId": "1:633",
                                   "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                   "strokeWeight": 1,
-                                  "cornerRadius": 24,
+                                  "cornerRadius": 12,
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 5,
@@ -763,9 +766,12 @@
                                     "sizing": ["HUG", "FIXED"]
                                   },
                                   "variables": {
-                                    "cornerRadius": "radius/3xl",
                                     "paddingRight": "spacing/3",
                                     "paddingLeft": "spacing/3",
+                                    "topLeftRadius": "radius/xl",
+                                    "topRightRadius": "radius/xl",
+                                    "bottomLeftRadius": "radius/xl",
+                                    "bottomRightRadius": "radius/xl",
                                     "strokes/0/color": "border-2"
                                   },
                                   "texts": ["Send test"]
@@ -820,7 +826,7 @@
                           "componentId": "1:633",
                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                           "strokeWeight": 1,
-                          "cornerRadius": 24,
+                          "cornerRadius": 12,
                           "layout": {
                             "mode": "HORIZONTAL",
                             "gap": 5,
@@ -830,9 +836,12 @@
                             "sizing": ["HUG", "FIXED"]
                           },
                           "variables": {
-                            "cornerRadius": "radius/3xl",
                             "paddingRight": "spacing/3",
                             "paddingLeft": "spacing/3",
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
                             "strokes/0/color": "border-2"
                           },
                           "texts": ["Add sink"]

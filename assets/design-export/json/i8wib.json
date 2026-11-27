@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Settings · Danger zone",
   "type": "FRAME",
   "x": 0,
-  "y": 58791,
+  "y": 61065,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -143,7 +143,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [16, 24, 16, 24],
+                "padding": [16, 0, 16, 0],
                 "primary": "SPACE_BETWEEN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -176,7 +176,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 0, 24],
+                "padding": [0, 0, 0, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]

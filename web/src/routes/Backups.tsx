@@ -188,7 +188,6 @@ function BackupsTabPanel({ location, onLocationChange, locations }: LocationFilt
         trailing={intl.formatMessage(TRAILING_COUNT.backups, { shown: filtered.length, total: items.length })}
       />
 
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
         <Table.Root>
           <Table.ScrollContainer className="@container">
             <Table.Content aria-label={intl.formatMessage({ id: "web.routes.backups.backups", defaultMessage: "Backups", description: "Backups: page title at the top of the backups screen, also the name of the backups tab and its table; keep it short" })} keyboardNavigationBehavior="arrow">
@@ -226,7 +225,6 @@ function BackupsTabPanel({ location, onLocationChange, locations }: LocationFilt
             </Table.Content>
           </Table.ScrollContainer>
         </Table.Root>
-      </div>
 
       <RestoreDialog
         backup={restoringBackup}
@@ -468,7 +466,6 @@ function SchedulesTabPanel({ location, onLocationChange, locations }: LocationFi
       {toggleSuspend.error && <ErrorBanner err={toggleSuspend.error} />}
       {remove.error && <ErrorBanner err={remove.error} />}
 
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
         <Table.Root>
           <Table.ScrollContainer className="@container">
             <Table.Content aria-label={intl.formatMessage({ id: "web.routes.backups.schedules", defaultMessage: "Schedules", description: "Backups: name of the schedules tab, also its table label and the title of its panel; keep it short" })} keyboardNavigationBehavior="arrow">
@@ -531,7 +528,6 @@ function SchedulesTabPanel({ location, onLocationChange, locations }: LocationFi
             </Table.Content>
           </Table.ScrollContainer>
         </Table.Root>
-      </div>
 
       <ConfirmDialog
         open={deleting !== null}
@@ -605,7 +601,6 @@ function RestoresTabPanel({ location, onLocationChange, locations }: LocationFil
         phases={RESTORE_PHASES}
         trailing={intl.formatMessage(TRAILING_COUNT.restores, { shown: filtered.length, total: items.length })}
       />
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
         <Table.Root>
           <Table.ScrollContainer className="@container">
             <Table.Content aria-label={intl.formatMessage({ id: "web.routes.backups.restores", defaultMessage: "Restores", description: "Backups: name of the restores tab, also its table label; keep it short" })} keyboardNavigationBehavior="arrow">
@@ -652,7 +647,6 @@ function RestoresTabPanel({ location, onLocationChange, locations }: LocationFil
             </Table.Content>
           </Table.ScrollContainer>
         </Table.Root>
-      </div>
     </div>
   );
 }

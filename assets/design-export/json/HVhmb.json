@@ -4,7 +4,7 @@
   "name": "Legacy/Clusters list — Remove registration — Moved",
   "type": "FRAME",
   "x": 8200,
-  "y": 69623,
+  "y": 71897,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -464,7 +464,7 @@
                           "componentId": "1:1794",
                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                           "strokeWeight": 1,
-                          "cornerRadius": 24,
+                          "cornerRadius": 12,
                           "layout": {
                             "mode": "HORIZONTAL",
                             "gap": 8,
@@ -475,9 +475,12 @@
                           },
                           "variables": {
                             "itemSpacing": "spacing/2",
-                            "cornerRadius": "radius/3xl",
                             "paddingRight": "spacing/4",
                             "paddingLeft": "spacing/4",
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
                             "strokes/0/color": "border-2"
                           },
                           "texts": ["View nodes"]
@@ -494,7 +497,7 @@
                           "componentId": "1:1794",
                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                           "strokeWeight": 1,
-                          "cornerRadius": 24,
+                          "cornerRadius": 12,
                           "layout": {
                             "mode": "HORIZONTAL",
                             "gap": 8,
@@ -505,9 +508,12 @@
                           },
                           "variables": {
                             "itemSpacing": "spacing/2",
-                            "cornerRadius": "radius/3xl",
                             "paddingRight": "spacing/4",
                             "paddingLeft": "spacing/4",
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
                             "strokes/0/color": "border-2"
                           },
                           "texts": ["Remove"]
@@ -695,7 +701,7 @@
                           "componentId": "1:1794",
                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                           "strokeWeight": 1,
-                          "cornerRadius": 24,
+                          "cornerRadius": 12,
                           "layout": {
                             "mode": "HORIZONTAL",
                             "gap": 8,
@@ -706,9 +712,12 @@
                           },
                           "variables": {
                             "itemSpacing": "spacing/2",
-                            "cornerRadius": "radius/3xl",
                             "paddingRight": "spacing/4",
                             "paddingLeft": "spacing/4",
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
                             "strokes/0/color": "border-2"
                           },
                           "texts": ["View nodes"]
@@ -725,7 +734,7 @@
                           "componentId": "1:1794",
                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                           "strokeWeight": 1,
-                          "cornerRadius": 24,
+                          "cornerRadius": 12,
                           "layout": {
                             "mode": "HORIZONTAL",
                             "gap": 8,
@@ -736,9 +745,12 @@
                           },
                           "variables": {
                             "itemSpacing": "spacing/2",
-                            "cornerRadius": "radius/3xl",
                             "paddingRight": "spacing/4",
                             "paddingLeft": "spacing/4",
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
                             "strokes/0/color": "border-2"
                           },
                           "texts": ["Remove"]

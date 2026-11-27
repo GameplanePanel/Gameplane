@@ -30,14 +30,14 @@ describe("ResourcesSection", () => {
   it("renders default CPU and memory values when no resources set", () => {
     render(<ResourcesSection draft={makeServer()} onChange={() => {}} />);
     // Defaults are 2 CPU / 4 Gi.
-    expect(screen.getByLabelText("CPU cores value")).toHaveValue(2);
-    expect(screen.getByLabelText("Memory (GiB) value")).toHaveValue(4);
+    expect(screen.getByLabelText("CPU value")).toHaveValue(2);
+    expect(screen.getByLabelText("Memory value")).toHaveValue(4);
   });
 
   it("changing CPU slider updates draft to a quantity", () => {
     const onChange = vi.fn();
     render(<ResourcesSection draft={makeServer()} onChange={onChange} />);
-    const cpuInput = screen.getByLabelText("CPU cores value");
+    const cpuInput = screen.getByLabelText("CPU value");
     fireEvent.change(cpuInput, { target: { value: "4" } });
     fireEvent.blur(cpuInput);
     const lastCall = onChange.mock.calls.at(-1)![0];
@@ -48,7 +48,7 @@ describe("ResourcesSection", () => {
   it("fractional CPU produces a milli-string", () => {
     const onChange = vi.fn();
     render(<ResourcesSection draft={makeServer()} onChange={onChange} />);
-    const cpuInput = screen.getByLabelText("CPU cores value");
+    const cpuInput = screen.getByLabelText("CPU value");
     fireEvent.change(cpuInput, { target: { value: "0.5" } });
     fireEvent.blur(cpuInput);
     const lastCall = onChange.mock.calls.at(-1)![0];
@@ -58,7 +58,7 @@ describe("ResourcesSection", () => {
   it("memory slider sets memory limits", () => {
     const onChange = vi.fn();
     render(<ResourcesSection draft={makeServer()} onChange={onChange} />);
-    const memInput = screen.getByLabelText("Memory (GiB) value");
+    const memInput = screen.getByLabelText("Memory value");
     fireEvent.change(memInput, { target: { value: "8" } });
     fireEvent.blur(memInput);
     const lastCall = onChange.mock.calls.at(-1)![0];
@@ -82,8 +82,9 @@ describe("ResourcesSection", () => {
   it("typing valid storage sets spec.storage.size", () => {
     const onChange = vi.fn();
     render(<ResourcesSection draft={makeServer()} onChange={onChange} />);
-    const sizeInput = screen.getByPlaceholderText("10Gi");
-    fireEvent.change(sizeInput, { target: { value: "20Gi" } });
+    const sizeInput = screen.getByLabelText("Storage size value");
+    fireEvent.change(sizeInput, { target: { value: "20" } });
+    fireEvent.blur(sizeInput);
     const lastCall = onChange.mock.calls.at(-1)![0];
     expect(lastCall.spec.storage.size).toBe("20Gi");
   });
@@ -99,10 +100,54 @@ describe("ResourcesSection", () => {
         onChange={onChange}
       />,
     );
-    const sizeInput = screen.getByPlaceholderText("10Gi");
+    const sizeInput = screen.getByLabelText("Storage size value");
     fireEvent.change(sizeInput, { target: { value: "" } });
+    fireEvent.blur(sizeInput);
     const lastCall = onChange.mock.calls.at(-1)![0];
     expect(lastCall.spec.storage).toBeUndefined();
+  });
+
+  it("shows 1536Mi as 1536 MiB and keeps it unchanged when only focused", () => {
+    const onChange = vi.fn();
+    render(
+      <ResourcesSection
+        draft={{ ...makeServer(), spec: { ...makeServer().spec, storage: { size: "1536Mi" } } }}
+        onChange={onChange}
+      />,
+    );
+    const sizeInput = screen.getByLabelText("Storage size value");
+    expect(sizeInput).toHaveValue(1536);
+    expect((screen.getByLabelText("Storage size unit") as HTMLSelectElement).value).toBe("Mi");
+    fireEvent.focus(sizeInput);
+    fireEvent.blur(sizeInput);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("switching the storage unit does not change the stored size", () => {
+    const onChange = vi.fn();
+    render(
+      <ResourcesSection
+        draft={{ ...makeServer(), spec: { ...makeServer().spec, storage: { size: "1536Mi" } } }}
+        onChange={onChange}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Storage size unit"), { target: { value: "Gi" } });
+    expect(screen.getByLabelText("Storage size value")).toHaveValue(1.5);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("typing a fraction of a GiB emits a whole MiB quantity", () => {
+    const onChange = vi.fn();
+    render(
+      <ResourcesSection
+        draft={{ ...makeServer(), spec: { ...makeServer().spec, storage: { size: "10Gi" } } }}
+        onChange={onChange}
+      />,
+    );
+    const sizeInput = screen.getByLabelText("Storage size value");
+    fireEvent.change(sizeInput, { target: { value: "1.5" } });
+    fireEvent.blur(sizeInput);
+    expect(onChange.mock.calls.at(-1)![0].spec.storage.size).toBe("1536Mi");
   });
 
   it("setting storageClassName", () => {
@@ -162,14 +207,15 @@ describe("ResourcesSection", () => {
         onChange={() => {}}
       />,
     );
-    expect(screen.getByDisplayValue("50Gi")).toBeInTheDocument();
+    expect(screen.getByLabelText("Storage size value")).toHaveValue(50);
+    expect((screen.getByLabelText("Storage size unit") as HTMLSelectElement).value).toBe("Gi");
     expect(screen.getByDisplayValue("fast-ssd")).toBeInTheDocument();
   });
 
   it("CPU slider to 0 clamps to the 100m floor", () => {
     const onChange = vi.fn();
     render(<ResourcesSection draft={makeServer()} onChange={onChange} />);
-    const cpuInput = screen.getByLabelText("CPU cores value");
+    const cpuInput = screen.getByLabelText("CPU value");
     // ResourceInput's CPU_DEFAULTS floors the slider at 0.1 cores (100m) —
     // a raw DOM value of "0" (below the slider's own min) still gets
     // clamped there by emitBase, it never reaches true zero.
@@ -182,7 +228,7 @@ describe("ResourcesSection", () => {
   it("memory slider min value", () => {
     const onChange = vi.fn();
     render(<ResourcesSection draft={makeServer()} onChange={onChange} />);
-    const memInput = screen.getByLabelText("Memory (GiB) value");
+    const memInput = screen.getByLabelText("Memory value");
     fireEvent.change(memInput, { target: { value: "1" } });
     fireEvent.blur(memInput);
     const lastCall = onChange.mock.calls.at(-1)![0];
@@ -203,7 +249,7 @@ describe("ResourcesSection", () => {
         onChange={onChange}
       />,
     );
-    const cpuInput = screen.getByLabelText("CPU cores value");
+    const cpuInput = screen.getByLabelText("CPU value");
     fireEvent.change(cpuInput, { target: { value: "8" } });
     fireEvent.blur(cpuInput);
     const lastCall = onChange.mock.calls.at(-1)![0];
@@ -218,7 +264,7 @@ describe("ResourcesSection", () => {
       render(<ResourcesSection draft={withResources(guaranteed)} onChange={() => {}} />);
       expect(screen.getByRole("switch", switchName)).not.toBeChecked();
       expect(screen.queryByLabelText("Reserved CPU value")).not.toBeInTheDocument();
-      expect(screen.queryByLabelText("Reserved memory (GiB) value")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Reserved memory value")).not.toBeInTheDocument();
     });
 
     it("switching on shows the reserved fields at the limits without changing the draft", async () => {
@@ -227,7 +273,7 @@ describe("ResourcesSection", () => {
       await userEvent.click(screen.getByRole("switch", switchName));
       expect(screen.getByRole("switch", switchName)).toBeChecked();
       expect(screen.getByLabelText("Reserved CPU value")).toHaveValue(2);
-      expect(screen.getByLabelText("Reserved memory (GiB) value")).toHaveValue(4);
+      expect(screen.getByLabelText("Reserved memory value")).toHaveValue(4);
       expect(screen.getByText("Limit: the most CPU this server can use.")).toBeInTheDocument();
       expect(screen.getByText("Limit: the most memory this server can use.")).toBeInTheDocument();
       expect(onChange).not.toHaveBeenCalled();
@@ -248,7 +294,7 @@ describe("ResourcesSection", () => {
       const onChange = vi.fn();
       render(<ResourcesSection draft={withResources(guaranteed)} onChange={onChange} />);
       await userEvent.click(screen.getByRole("switch", switchName));
-      commit("Reserved memory (GiB) value", "0");
+      commit("Reserved memory value", "0");
       expect(onChange.mock.calls.at(-1)![0].spec.resources).toEqual({
         requests: { cpu: "2", memory: "0Gi" },
         limits: { cpu: "2", memory: "4Gi" },
@@ -260,9 +306,9 @@ describe("ResourcesSection", () => {
       expect(screen.getByRole("switch", switchName)).toBeChecked();
       // 500m shows in its natural mCPU unit.
       expect(screen.getByLabelText("Reserved CPU value")).toHaveValue(500);
-      expect(screen.getByLabelText("Reserved memory (GiB) value")).toHaveValue(2);
-      expect(screen.getByLabelText("CPU cores value")).toHaveValue(2);
-      expect(screen.getByLabelText("Memory (GiB) value")).toHaveValue(4);
+      expect(screen.getByLabelText("Reserved memory value")).toHaveValue(2);
+      expect(screen.getByLabelText("CPU value")).toHaveValue(2);
+      expect(screen.getByLabelText("Memory value")).toHaveValue(4);
     });
 
     it("lowering a limit below its reservation lowers the reservation too", () => {
@@ -272,7 +318,7 @@ describe("ResourcesSection", () => {
         limits: { cpu: "4", memory: "4Gi" },
       });
       const { unmount } = render(<ResourcesSection draft={draft} onChange={onChange} />);
-      commit("CPU cores value", "1");
+      commit("CPU value", "1");
       expect(onChange.mock.calls.at(-1)![0].spec.resources).toEqual({
         requests: { cpu: "1", memory: "3Gi" },
         limits: { cpu: "1", memory: "4Gi" },
@@ -280,7 +326,7 @@ describe("ResourcesSection", () => {
       unmount();
 
       render(<ResourcesSection draft={draft} onChange={onChange} />);
-      commit("Memory (GiB) value", "2");
+      commit("Memory value", "2");
       expect(onChange.mock.calls.at(-1)![0].spec.resources).toEqual({
         requests: { cpu: "1500m", memory: "2Gi" },
         limits: { cpu: "4", memory: "2Gi" },
@@ -290,7 +336,7 @@ describe("ResourcesSection", () => {
     it("raising a limit keeps the reservation", () => {
       const onChange = vi.fn();
       const { unmount } = render(<ResourcesSection draft={withResources(burstable)} onChange={onChange} />);
-      commit("CPU cores value", "4");
+      commit("CPU value", "4");
       expect(onChange.mock.calls.at(-1)![0].spec.resources).toEqual({
         requests: { cpu: "500m", memory: "2Gi" },
         limits: { cpu: "4", memory: "4Gi" },
@@ -298,7 +344,7 @@ describe("ResourcesSection", () => {
       unmount();
 
       render(<ResourcesSection draft={withResources(burstable)} onChange={onChange} />);
-      commit("Memory (GiB) value", "8");
+      commit("Memory value", "8");
       expect(onChange.mock.calls.at(-1)![0].spec.resources).toEqual({
         requests: { cpu: "500m", memory: "2Gi" },
         limits: { cpu: "2", memory: "8Gi" },
@@ -332,7 +378,7 @@ describe("ResourcesSection", () => {
     it("editing a reservation never adds a limit the server did not have", () => {
       const onChange = vi.fn();
       render(<ResourcesSection draft={withResources(cpuWithoutLimit)} onChange={onChange} />);
-      commit("Reserved memory (GiB) value", "0.5");
+      commit("Reserved memory value", "0.5");
       expect(onChange.mock.calls.at(-1)![0].spec.resources).toEqual({
         requests: { cpu: "500m", memory: "512Mi" },
         limits: { memory: "2Gi" },

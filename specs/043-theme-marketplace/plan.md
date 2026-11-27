@@ -68,7 +68,7 @@ specs/043-theme-marketplace/
 ### Source Code (repository root)
 
 ```text
-themepkg/                      NEW stdlib-only module: schema, tokens, derivation port, SanitizeCSS, contrast, previews, limits; specs.md
+themepkg/                      NEW module (stdlib + gopkg.in/yaml.v3 for the strict theme.yaml decode): schema, tokens, derivation port, SanitizeCSS, contrast, previews, limits; specs.md
 bundlefetch/                   NEW module (OD-4 A): oci client, git/http/local fetch, cosign verify (moved from operator/internal/{oci,verify} and the fetch half of modsrc); specs.md
 operator/internal/modsrc/      thin adapter over bundlefetch (module.yaml → ModuleEntry); behaviour unchanged
 api/internal/themes/           NEW: source store, indexer (scheduler + on-demand), catalog queries, install/update/remove
@@ -88,10 +88,10 @@ test/e2e/api_themes_e2e_test.go, test/e2e/buckets.sh
 design.fig + assets/design-export/   new screens (local agent)
 docs/themes.md                 NEW how-to (sources, authoring); website docs page via the website refresh
 changelog/unreleased/<PR>-theme-marketplace.md
-GameplanePanel/themes          NEW repo (valgul creates): themes/<name>/, build.sh, release workflow (cosign keyless), seeded from feat/example-theme-gallery overlays
+GameplanePanel/themes          NEW repo (valgul creates): themes/<name>/, build.sh, release workflow (cosign, project key), seeded from feat/example-theme-gallery overlays
 ```
 
-**Structure Decision**: Theme marketplace lives in the API and web (panel data, OD-1 and OD-4 A); validation is a shared stdlib module so CLI and panel agree; fetch/verify is shared with module sources rather than duplicated.
+**Structure Decision**: Theme marketplace lives in the API and web (panel data, OD-1 and OD-4 A); validation is one shared module so CLI and panel agree; fetch/verify is shared with module sources rather than duplicated.
 
 ### Suggested PR order (stacked, one thread = one branch per PR)
 

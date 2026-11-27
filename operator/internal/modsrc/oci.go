@@ -3,23 +3,14 @@ package modsrc
 import (
 	"context"
 	"fmt"
-	"path"
-	"sort"
 
-	"golang.org/x/mod/semver"
-
+	"github.com/GameplanePanel/gameplane/bundlefetch/source"
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // OCIClient is the transport slice of *oci.Client the OCI fetcher
 // needs. An interface so tests can swap in an in-process fake.
-type OCIClient interface {
-	// ListTags returns the semver tags under ref, sorted descending.
-	ListTags(ctx context.Context, ref string) ([]string, error)
-	// Pull fetches the bundle at ref:reference and returns the manifest
-	// digest plus the layer blobs keyed by their title annotation.
-	Pull(ctx context.Context, ref, reference string) (string, map[string][]byte, error)
-}
+type OCIClient = source.OCIClient
 
 // NewOCI builds a Fetcher over one OCI registry prefix. modules is the
 // explicit list from the ModuleSource spec — registries cannot be
@@ -39,7 +30,7 @@ func (f *ociFetcher) Index(ctx context.Context) ([]gameplanev1alpha1.ModuleEntry
 	var warnings []string
 	var firstErr error
 	for _, name := range f.modules {
-		ref := path.Join(f.url, name)
+		ref := source.OCIRef(f.url, name)
 		entry, err := f.indexModule(ctx, name, ref)
 		if err != nil {
 			warnings = append(warnings, fmt.Sprintf("index %s: %v", name, err))
@@ -64,9 +55,9 @@ func (f *ociFetcher) Index(ctx context.Context) ([]gameplanev1alpha1.ModuleEntry
 // indexModule lists tags for a module and probes its latest version to
 // pick up display metadata.
 func (f *ociFetcher) indexModule(ctx context.Context, name, ref string) (gameplanev1alpha1.ModuleEntry, error) {
-	tags, err := f.cli.ListTags(ctx, ref)
+	tags, err := source.ListVersions(ctx, f.cli, ref)
 	if err != nil {
-		return gameplanev1alpha1.ModuleEntry{}, fmt.Errorf("list tags: %w", err)
+		return gameplanev1alpha1.ModuleEntry{}, err
 	}
 	entry := gameplanev1alpha1.ModuleEntry{
 		Name:      name,
@@ -96,16 +87,12 @@ func (f *ociFetcher) indexModule(ctx context.Context, name, ref string) (gamepla
 	// digest comparison is skipped.
 	entry.Digest = bundle.Digest
 	// Stable order on output so unchanged inputs produce no status churn.
-	sort.Strings(entry.Versions)
-	sort.Slice(entry.Versions, func(i, j int) bool {
-		return semver.Compare("v"+entry.Versions[i], "v"+entry.Versions[j]) > 0
-	})
+	source.SortVersionsDesc(entry.Versions)
 	return entry, nil
 }
 
 func (f *ociFetcher) Pull(ctx context.Context, name, version string) (*Bundle, error) {
-	ref := path.Join(f.url, name)
-	digest, files, err := f.cli.Pull(ctx, ref, version)
+	digest, files, err := source.PullFiles(ctx, f.cli, f.url, name, version)
 	if err != nil {
 		return nil, err
 	}

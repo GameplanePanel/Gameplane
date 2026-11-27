@@ -29,8 +29,7 @@
       "y": 3.5,
       "width": 10,
       "height": 10,
-      "component": "lucide/pencil/10x10",
-      "variables": {"fills/0/color": "foreground/muted"}
+      "component": "lucide/pencil/10x10"
     },
     {
       "id": "1:3549",

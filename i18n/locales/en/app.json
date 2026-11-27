@@ -1311,6 +1311,46 @@
     "defaultMessage": "telemetry notice is not pending",
     "description": "API error from the telemetry API (telemetry.go:postNotice)."
   },
+  "server.themes.already_installed": {
+    "defaultMessage": "theme is already installed",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): the user already installed this theme from this source."
+  },
+  "server.themes.entry_not_valid": {
+    "defaultMessage": "theme is not valid and cannot be installed",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): the catalog entry has a status other than valid, or its CSS fails the sanitizer."
+  },
+  "server.themes.install_limit": {
+    "defaultMessage": "you have reached the limit of installed themes",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): install refused because the user already holds the maximum number of installed themes."
+  },
+  "server.themes.no_update": {
+    "defaultMessage": "no newer version of this theme is available",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): update refused because no newer valid version exists from the same source."
+  },
+  "server.themes.not_found": {
+    "defaultMessage": "theme not found",
+    "description": "API error from the theme catalog API (handlers/themes_catalog.go): unknown or hidden catalog entry, bad id, or no preview for the mode."
+  },
+  "server.themes.source_builtin": {
+    "defaultMessage": "the built-in theme source cannot be deleted; disable it instead",
+    "description": "API error from the theme sources API (handlers/theme_sources.go): delete refused for the built-in official source, which can only be disabled."
+  },
+  "server.themes.source_disabled": {
+    "defaultMessage": "the theme source is disabled",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): install or update refused because the theme's source is disabled."
+  },
+  "server.themes.source_exists": {
+    "defaultMessage": "a theme source with this name already exists",
+    "description": "API error from the theme sources API (handlers/theme_sources.go): create refused because the name is taken."
+  },
+  "server.themes.source_not_found": {
+    "defaultMessage": "theme source not found",
+    "description": "API error from the theme sources API (handlers/theme_sources.go): no theme source has the name in the path."
+  },
+  "server.themes.source_removed": {
+    "defaultMessage": "the theme source was removed",
+    "description": "API error from the installed themes API (handlers/themes_installed.go): update refused because the installed copy's source was deleted."
+  },
   "server.tunnel.credentials_in_use": {
     "defaultMessage": "cannot delete tunnel credentials while tunnel is enabled; disable the tunnel first or use PUT to rotate credentials",
     "description": "API error from the tunnel credentials API (tunnelcreds.go:delete)."
@@ -1382,6 +1422,14 @@
   "server.users.custom_surface_invalid": {
     "defaultMessage": "customColors.surface must be a #RRGGBB hex color",
     "description": "API error from the users API (users.go:putPreferences). Quoted words and tokens in the text are API keywords; keep them as written."
+  },
+  "server.users.installed_theme_id_required": {
+    "defaultMessage": "installedThemeId is required when themeType is \"installed\"",
+    "description": "API error from the users API (users.go:putPreferences). Quoted words and tokens in the text are API keywords; keep them as written."
+  },
+  "server.users.installed_theme_not_found": {
+    "defaultMessage": "installedThemeId is not one of your installed themes",
+    "description": "API error from the users API (users.go:putPreferences): the selected installed theme is missing or belongs to another user."
   },
   "server.users.invalid_email": {
     "defaultMessage": "invalid email",
@@ -1490,6 +1538,10 @@
   "web.backups.manage_destinations": {
     "defaultMessage": "Manage destinations",
     "description": "Link from backups to the selected cluster's destination configuration"
+  },
+  "web.backups.volume_size": {
+    "defaultMessage": "volume size",
+    "description": "Label under the size of a backup taken before data size was recorded: the size shown is the volume capacity, not the data stored"
   },
   "web.cluster_configuration.access": {
     "defaultMessage": "Access",
@@ -5140,11 +5192,11 @@
     "description": "Removable chip: accessible name of the remove button; {label} is the chip text, e.g. a group or role name"
   },
   "web.components.ui.resource_input.cpu_cores": {
-    "defaultMessage": "CPU cores",
+    "defaultMessage": "CPU",
     "description": "Resource input: accessible name of the CPU slider and its fields"
   },
   "web.components.ui.resource_input.memory_gib": {
-    "defaultMessage": "Memory (GiB)",
+    "defaultMessage": "Memory",
     "description": "Resource input: accessible name of the memory slider and its fields"
   },
   "web.components.ui.resource_input.unit_cores": {
@@ -5310,6 +5362,14 @@
   "web.components.ui.sidebar.sign_out": {
     "defaultMessage": "Sign out",
     "description": "Sidebar: icon-only button that signs the user out; screen-reader name, not visible on screen; keep it short"
+  },
+  "web.components.ui.storage_input.unit_label": {
+    "defaultMessage": "{name} unit",
+    "description": "Storage input: accessible name of the unit select; {name} is the field name, e.g. Storage size"
+  },
+  "web.components.ui.storage_input.value_label": {
+    "defaultMessage": "{name} value",
+    "description": "Storage input: accessible name of the number field; {name} is the field name, e.g. Storage size"
   },
   "web.components.ui.telemetry_notice.anonymous_usage_metrics_are_on_for_this": {
     "defaultMessage": "Anonymous usage metrics are on for this install.",
@@ -7423,10 +7483,6 @@
     "defaultMessage": "View servers in {name}",
     "description": "Clusters: accessible label of the View servers button; {name} is the cluster display name"
   },
-  "web.routes.create_server.50gi": {
-    "defaultMessage": "50Gi",
-    "description": "Create server: example placeholder in the storage size field showing the size format; an example value, not a default"
-  },
   "web.routes.create_server.add_port_mapping": {
     "defaultMessage": "Add port mapping",
     "description": "Create server: button that adds a new empty tunnel port mapping row to the list; keep it short"
@@ -9311,6 +9367,10 @@
     "defaultMessage": "of {count} total",
     "description": "Servers: sub-label on the Running card; {count} is the total number of servers"
   },
+  "web.routes.servers.overcommitted": {
+    "defaultMessage": "Overcommitted",
+    "description": "Servers: amber badge on the Storage provisioned card when provisioned storage exceeds capacity; keep it short"
+  },
   "web.routes.servers.peak_players": {
     "defaultMessage": "peak {count}",
     "description": "Servers: sub-label on the Players online card with the peak player count; {count} is the peak"
@@ -9402,6 +9462,10 @@
   "web.routes.servers.storage_provisioned": {
     "defaultMessage": "Storage provisioned",
     "description": "Servers: label of the summary card with the total provisioned storage; the line under it says whether it covers returned or all authorized inventory"
+  },
+  "web.routes.servers.unavailable": {
+    "defaultMessage": "Unavailable",
+    "description": "Servers: amber badge on a summary card whose data cannot be read; keep it short"
   },
   "web.routes.servers.vcpus": {
     "defaultMessage": "vCPUs",
@@ -9612,8 +9676,12 @@
     "description": "Backups tab: warning note shown when the server has more than one backup schedule, advising to combine them to avoid duplicate backups"
   },
   "web.routes.tabs.backups.total_size": {
-    "defaultMessage": "Total logical size",
-    "description": "Sum of the logical sizes reported by successful backups"
+    "defaultMessage": "Total data size",
+    "description": "Backups tab: stat card label for the sum of the data sizes recorded by successful backups of this server"
+  },
+  "web.routes.tabs.backups.total_size_coverage": {
+    "defaultMessage": "across {covered} of {total} {total, plural, one {backup} other {backups}}",
+    "description": "Backups tab: line under the Total data size card when some successful backups have no recorded data size and are left out of the total; {covered} backups are counted out of {total} successful ones"
   },
   "web.routes.tabs.backups.unavailable": {
     "defaultMessage": "Unavailable",
@@ -9976,8 +10044,12 @@
     "description": "Logs tab: message shown while the server starts for the first time, saying install output streams here from the container"
   },
   "web.routes.tabs.logs.filter": {
-    "defaultMessage": "filter…",
-    "description": "Logs tab: placeholder in the search box that filters the log lines by the text typed"
+    "defaultMessage": "Filter lines…",
+    "description": "Logs tab: placeholder in the search box that filters the log lines by the text typed; sentence case, like the server search"
+  },
+  "web.routes.tabs.logs.filter_aria": {
+    "defaultMessage": "Filter log lines",
+    "description": "Logs tab: screen-reader name of the search box that filters the log lines; not shown on screen"
   },
   "web.routes.tabs.logs.follow_the_pod_s_setup_game_container": {
     "defaultMessage": "Follow the pod's setup + game container output (install/startup)",
@@ -9997,7 +10069,7 @@
   },
   "web.routes.tabs.logs.level_count": {
     "defaultMessage": "{count}",
-    "description": "Logs: number of lines shown after a log level tab label; {count} is that count"
+    "description": "Logs: number of lines shown in the badge after a log level tab label; {count} is that count"
   },
   "web.routes.tabs.logs.level_debug": {
     "defaultMessage": "Debug",
@@ -11807,10 +11879,6 @@
     "defaultMessage": "Reload",
     "description": "Settings tab: inline button in the footer warning that reloads the latest server settings; keep it short"
   },
-  "web.routes.tabs.settings.resources.10gi": {
-    "defaultMessage": "10Gi",
-    "description": "Resources: example placeholder in the storage size box; an example value, not a default"
-  },
   "web.routes.tabs.settings.resources.allowvolumeexpansion_true": {
     "defaultMessage": "allowVolumeExpansion: true",
     "description": "Resources: Kubernetes StorageClass field name shown in the storage size hint"
@@ -11820,7 +11888,7 @@
     "description": "Resources: hint under the reserved CPU field saying only this amount counts when the server is placed on a node, and that 0 reserves nothing"
   },
   "web.routes.tabs.settings.resources.cpu_cores": {
-    "defaultMessage": "CPU cores",
+    "defaultMessage": "CPU",
     "description": "Resources: field label for the number of CPU cores reserved for the server; CPU is a technical term, usually left untranslated"
   },
   "web.routes.tabs.settings.resources.fast_ssd": {
@@ -11830,10 +11898,6 @@
   "web.routes.tabs.settings.resources.invalid_quantity_e_g_10gi": {
     "defaultMessage": "Invalid quantity (e.g. \"10Gi\").",
     "description": "Resources: validation error under the storage size box when the value is not a valid quantity such as 10Gi"
-  },
-  "web.routes.tabs.settings.resources.k8s_quantity_e_g_10gi_200gi": {
-    "defaultMessage": "K8s quantity (e.g. 10Gi, 200Gi).",
-    "description": "Resources: hint under the storage size field saying the value is a Kubernetes quantity such as 10Gi or 200Gi; Kubernetes is a technical term"
   },
   "web.routes.tabs.settings.resources.leave_blank_to_use_the_cluster_default": {
     "defaultMessage": "Leave blank to use the cluster default.",
@@ -11848,8 +11912,8 @@
     "description": "Resources: hint under the memory field when the reservation may be lower, saying the value is the limit, the most memory the server can use"
   },
   "web.routes.tabs.settings.resources.memory_gib": {
-    "defaultMessage": "Memory (GiB)",
-    "description": "Resources: field label for the memory amount in GiB reserved for the server"
+    "defaultMessage": "Memory",
+    "description": "Resources: field label for the memory amount reserved for the server"
   },
   "web.routes.tabs.settings.resources.off_the_server_reserves_its_full_cpu": {
     "defaultMessage": "Off: the server reserves its full CPU and memory (Guaranteed QoS). On: it reserves less, so more servers fit on a node, and uses more up to its limit when the node has room (Burstable QoS).",
@@ -11864,8 +11928,8 @@
     "description": "Resources: field label for the CPU reserved for the server (the Kubernetes request), shown when the reservation may be lower than the limit; the same text is the accessible name of its slider; CPU is a technical term, usually left untranslated"
   },
   "web.routes.tabs.settings.resources.reserved_memory_gib": {
-    "defaultMessage": "Reserved memory (GiB)",
-    "description": "Resources: field label for the memory in GiB reserved for the server (the Kubernetes request), shown when the reservation may be lower than the limit; the same text is the accessible name of its slider"
+    "defaultMessage": "Reserved memory",
+    "description": "Resources: field label for the memory reserved for the server (the Kubernetes request), shown when the reservation may be lower than the limit; the same text is the accessible name of its slider"
   },
   "web.routes.tabs.settings.resources.resizing_requires_a_storageclass_with": {
     "defaultMessage": "Resizing requires a StorageClass with {setting}.",

@@ -1,7 +1,7 @@
 import { useResourceClient, useResourceTarget } from "@/lib/resourceTarget";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { AlertTriangle, Download, Loader2 } from "lucide-react";
+import { AlertTriangle, Download, Loader2, Search } from "lucide-react";
 import { Button, Input, Tabs, Tab as TabComponent } from "@heroui/react";
 
 
@@ -32,11 +32,20 @@ export function parseLogLevel(line: string): LogLevel | null {
   return "INFO";
 }
 const LEVELS: LogLevel[] = ["INFO", "WARN", "ERROR", "DEBUG"];
+// Level colours are theme tokens (Info blue, Debug slate, Warn amber, Error red);
+// the log lines and the level filter share them (spec 042 FR-022).
 const LEVEL_CLASS: Record<LogLevel, string> = {
-  ERROR: "text-red-400",
-  WARN: "text-amber-400",
-  INFO: "",
-  DEBUG: "text-muted",
+  ERROR: "text-danger",
+  WARN: "text-warning",
+  INFO: "text-level-info",
+  DEBUG: "text-level-debug",
+};
+const LEVEL_BADGE_CLASS: Record<"all" | LogLevel, string> = {
+  all: "bg-default-soft text-default-soft-foreground",
+  ERROR: "bg-danger/15 text-danger",
+  WARN: "bg-warning/15 text-warning",
+  INFO: "bg-level-info/15 text-level-info",
+  DEBUG: "bg-level-debug/15 text-level-debug",
 };
 // Tab labels of the level filter; "all" is the filter that shows every level.
 const LEVEL_TABS: Record<"all" | LogLevel, MessageDescriptor> = defineMessages({
@@ -166,47 +175,57 @@ export function LogsTab({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b border-border px-4 py-2">
-        {logPath ? (
-          <Tabs selectedKey={source} onSelectionChange={(key) => setSource(key as LogSource)} variant="secondary" aria-label={intl.formatMessage({ id: "web.routes.tabs.logs.log_source", defaultMessage: "Log source", description: "Logs tab: accessible label of the tabs that choose between container output and game log; not shown as text" })}>
+      <div className="flex flex-col gap-2 border-b border-border px-4 py-2">
+        <div data-testid="logs-toolbar-source-row" className="flex items-center gap-2">
+          {logPath ? (
+            <Tabs selectedKey={source} onSelectionChange={(key) => setSource(key as LogSource)} variant="secondary" className="w-fit" aria-label={intl.formatMessage({ id: "web.routes.tabs.logs.log_source", defaultMessage: "Log source", description: "Logs tab: accessible label of the tabs that choose between container output and game log; not shown as text" })}>
+              <Tabs.List>
+                <TabComponent id="pod" className="whitespace-nowrap">{intl.formatMessage({ id: "web.routes.tabs.logs.container_output", defaultMessage: "Container output", description: "Logs tab: tab name for the container output of the pod, the setup and startup output; when no log file exists it is shown as plain text" })}</TabComponent>
+                <TabComponent id="file" className="whitespace-nowrap">{intl.formatMessage({ id: "web.routes.tabs.logs.game_log", defaultMessage: "Game log", description: "Logs tab: tab name for the game log file written by the game itself" })}</TabComponent>
+              </Tabs.List>
+            </Tabs>
+          ) : (
+            <span
+              className="text-xs font-medium text-muted"
+              title={intl.formatMessage({ id: "web.routes.tabs.logs.follow_the_pod_s_setup_game_container", defaultMessage: "Follow the pod's setup + game container output (install/startup)", description: "Logs tab: tooltip on the plain container output label explaining it holds the pod setup and game container output for install and startup" })}
+            >{intl.formatMessage({ id: "web.routes.tabs.logs.container_output", defaultMessage: "Container output", description: "Logs tab: tab name for the container output of the pod, the setup and startup output; when no log file exists it is shown as plain text" })}</span>
+          )}
+          <div className="ml-auto">
+            <Button
+              size="sm"
+              variant="outline"
+              onPress={() => {
+                window.location.href = Logs.downloadURL(name, ns);
+              }}
+            >
+              <Download className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.tabs.logs.download", defaultMessage: "Download", description: "Logs tab: button that downloads the log as a file; keep it short" })}</Button>
+          </div>
+        </div>
+        <div data-testid="logs-toolbar-filter-row" className="flex flex-wrap items-center gap-2">
+          <div className="relative w-72 shrink-0">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/60" />
+            <Input
+              placeholder={intl.formatMessage({ id: "web.routes.tabs.logs.filter", defaultMessage: "Filter lines…", description: "Logs tab: placeholder in the search box that filters the log lines by the text typed; sentence case, like the server search" })}
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="w-full pl-9 font-mono text-xs"
+              aria-label={intl.formatMessage({ id: "web.routes.tabs.logs.filter_aria", defaultMessage: "Filter log lines", description: "Logs tab: screen-reader name of the search box that filters the log lines; not shown on screen" })}
+            />
+          </div>
+          <div className="max-w-full overflow-x-auto scrollbar-thin">
+          <Tabs selectedKey={level} onSelectionChange={(key) => setLevel(key as "all" | LogLevel)} variant="secondary" className="w-fit" aria-label={intl.formatMessage({ id: "web.routes.tabs.logs.log_level", defaultMessage: "Log level", description: "Logs tab: accessible label of the tabs that filter log lines by level, with an All option; not shown as text" })}>
             <Tabs.List>
-              <TabComponent id="pod">{intl.formatMessage({ id: "web.routes.tabs.logs.container_output", defaultMessage: "Container output", description: "Logs tab: tab name for the container output of the pod, the setup and startup output; when no log file exists it is shown as plain text" })}</TabComponent>
-              <TabComponent id="file">{intl.formatMessage({ id: "web.routes.tabs.logs.game_log", defaultMessage: "Game log", description: "Logs tab: tab name for the game log file written by the game itself" })}</TabComponent>
+              {(["all", ...LEVELS] as const).map((lv) => (
+                <TabComponent key={lv} id={lv} className="whitespace-nowrap">
+                  <span className={lv === "all" ? undefined : LEVEL_CLASS[lv]}>{intl.formatMessage(LEVEL_TABS[lv])}</span> <span data-testid={`logs-level-count-${lv}`} className={cn("rounded-full px-1.5 py-0.5 text-[11px] font-medium leading-none", LEVEL_BADGE_CLASS[lv])}>
+                    {intl.formatMessage({ id: "web.routes.tabs.logs.level_count", defaultMessage: "{count}", description: "Logs: number of lines shown in the badge after a log level tab label; {count} is that count" }, { count: lv === "all" ? lines.length : counts[lv] })}
+                  </span>
+                </TabComponent>
+              ))}
             </Tabs.List>
           </Tabs>
-        ) : (
-          <span
-            className="text-xs font-medium text-muted"
-            title={intl.formatMessage({ id: "web.routes.tabs.logs.follow_the_pod_s_setup_game_container", defaultMessage: "Follow the pod's setup + game container output (install/startup)", description: "Logs tab: tooltip on the plain container output label explaining it holds the pod setup and game container output for install and startup" })}
-          >{intl.formatMessage({ id: "web.routes.tabs.logs.container_output", defaultMessage: "Container output", description: "Logs tab: tab name for the container output of the pod, the setup and startup output; when no log file exists it is shown as plain text" })}</span>
-        )}
-        <div className="w-64 shrink-0">
-          <Input
-            placeholder={intl.formatMessage({ id: "web.routes.tabs.logs.filter", defaultMessage: "filter…", description: "Logs tab: placeholder in the search box that filters the log lines by the text typed" })}
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="font-mono text-xs"
-          />
-        </div>
-        <Tabs selectedKey={level} onSelectionChange={(key) => setLevel(key as "all" | LogLevel)} variant="secondary" aria-label={intl.formatMessage({ id: "web.routes.tabs.logs.log_level", defaultMessage: "Log level", description: "Logs tab: accessible label of the tabs that filter log lines by level, with an All option; not shown as text" })}>
-          <Tabs.List className="w-fit">
-            {(["all", ...LEVELS] as const).map((lv) => (
-              <TabComponent key={lv} id={lv}>
-                {intl.formatMessage(LEVEL_TABS[lv])}{lv !== "all" && <> {intl.formatMessage({ id: "web.routes.tabs.logs.level_count", defaultMessage: "{count}", description: "Logs: number of lines shown after a log level tab label; {count} is that count" }, { count: counts[lv] })}</>}
-              </TabComponent>
-            ))}
-          </Tabs.List>
-        </Tabs>
-        <span className="text-xs text-muted">{fmt.number(filtered.length)} {intl.formatMessage({ id: "web.routes.tabs.logs.lines", defaultMessage: "lines", description: "Logs tab: word lines after the count shown beside the log; the number is how many lines remain after filtering" })}</span>
-        <div className="ml-auto">
-          <Button
-            size="sm"
-            variant="outline"
-            onPress={() => {
-              window.location.href = Logs.downloadURL(name, ns);
-            }}
-          >
-            <Download className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.tabs.logs.download", defaultMessage: "Download", description: "Logs tab: button that downloads the log as a file; keep it short" })}</Button>
+          </div>
+          <span className="ml-auto text-xs text-muted">{fmt.number(filtered.length)} {intl.formatMessage({ id: "web.routes.tabs.logs.lines", defaultMessage: "lines", description: "Logs tab: word lines after the count shown beside the log; the number is how many lines remain after filtering" })}</span>
         </div>
       </div>
       <LogHistory name={name} ns={ns} source={effectiveSource} />

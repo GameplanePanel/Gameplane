@@ -23,6 +23,7 @@ Commands:
   validate  Offline validation and linting of module manifests
   preview   Dry-run manifest rendering and dynamic config preview
   package   Package module directory into an OCI artifact bundle
+  theme     Theme packages: init, from-export, validate, preview, package
   i18n      Extract and manage module translations
 
 Options:
@@ -59,6 +60,8 @@ func main() {
 		runPackage(args)
 	case "i18n":
 		runI18n(args)
+	case "theme":
+		runTheme(args)
 	default:
 		fmt.Fprintf(os.Stderr, "error: unknown command %q\n\n", cmd)
 		printUsage()

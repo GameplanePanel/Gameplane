@@ -11,6 +11,8 @@ use (
 	./operator
 	./sentinel
 	./telemetryschema
+	./themepkg
+	./bundlefetch
 	./telemetry-receiver
 	./test/e2e
 )

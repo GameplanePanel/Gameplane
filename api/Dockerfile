@@ -1,13 +1,16 @@
 FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 WORKDIR /src
 
-# netguard, gameaction, gp-module, telemetryschema, and i18n are in-repo modules the API depends
-# on via local replaces (../netguard, ../gameaction, ../gp-module, ../telemetryschema, ../i18n);
+# netguard, gameaction, gp-module, telemetryschema, themepkg, bundlefetch and i18n are in-repo
+# modules the API depends on via local replaces (../netguard, ../gameaction, ../gp-module,
+# ../telemetryschema, ../themepkg, ../bundlefetch, ../i18n);
 # copy them first so `go mod download` and the build resolve them.
 COPY netguard/ ./netguard/
 COPY gameaction/ ./gameaction/
 COPY gp-module/ ./gp-module/
 COPY telemetryschema/ ./telemetryschema/
+COPY themepkg/ ./themepkg/
+COPY bundlefetch/ ./bundlefetch/
 COPY i18n/ ./i18n/
 COPY api/go.mod api/go.sum* ./api/
 WORKDIR /src/api

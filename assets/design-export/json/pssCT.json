@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Backups",
   "type": "FRAME",
   "x": 0,
-  "y": 37959,
+  "y": 40233,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -143,7 +143,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [16, 24, 16, 24],
+                "padding": [16, 0, 16, 0],
                 "primary": "SPACE_BETWEEN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -176,7 +176,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 0, 24],
+                "padding": [0, 0, 0, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -225,7 +225,7 @@
                   "x": 0,
                   "y": 0,
                   "width": 1132,
-                  "height": 87,
+                  "height": 111,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 12,
@@ -243,7 +243,7 @@
                       "x": 0,
                       "y": 0,
                       "width": 274,
-                      "height": 87,
+                      "height": 111,
                       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
@@ -254,9 +254,10 @@
                         "padding": [16, 16, 16, 16],
                         "primary": "MIN",
                         "counter": "MIN",
-                        "sizing": ["HUG", "FIXED"]
+                        "sizing": ["FIXED", "FIXED"]
                       },
                       "layoutGrow": 1,
+                      "layoutAlignSelf": "STRETCH",
                       "variables": {
                         "cornerRadius": "radius/xl",
                         "fills/0/color": "surface/surface",
@@ -360,7 +361,7 @@
                       "x": 286,
                       "y": 0,
                       "width": 274,
-                      "height": 87,
+                      "height": 111,
                       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
@@ -371,9 +372,10 @@
                         "padding": [16, 16, 16, 16],
                         "primary": "MIN",
                         "counter": "MIN",
-                        "sizing": ["HUG", "FIXED"]
+                        "sizing": ["FIXED", "FIXED"]
                       },
                       "layoutGrow": 1,
+                      "layoutAlignSelf": "STRETCH",
                       "variables": {
                         "cornerRadius": "radius/xl",
                         "fills/0/color": "surface/surface",
@@ -476,7 +478,7 @@
                       "x": 572,
                       "y": 0,
                       "width": 274,
-                      "height": 87,
+                      "height": 111,
                       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
@@ -487,9 +489,10 @@
                         "padding": [16, 16, 16, 16],
                         "primary": "MIN",
                         "counter": "MIN",
-                        "sizing": ["HUG", "FIXED"]
+                        "sizing": ["FIXED", "FIXED"]
                       },
                       "layoutGrow": 1,
+                      "layoutAlignSelf": "STRETCH",
                       "variables": {
                         "cornerRadius": "radius/xl",
                         "fills/0/color": "surface/surface",
@@ -592,7 +595,7 @@
                       "x": 858,
                       "y": 0,
                       "width": 274,
-                      "height": 87,
+                      "height": 111,
                       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
@@ -603,9 +606,10 @@
                         "padding": [16, 16, 16, 16],
                         "primary": "MIN",
                         "counter": "MIN",
-                        "sizing": ["HUG", "FIXED"]
+                        "sizing": ["FIXED", "FIXED"]
                       },
                       "layoutGrow": 1,
+                      "layoutAlignSelf": "STRETCH",
                       "variables": {
                         "cornerRadius": "radius/xl",
                         "fills/0/color": "surface/surface",
@@ -634,10 +638,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 137,
+                              "width": 112,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-                              "text": "TOTAL LOGICAL SIZE",
+                              "text": "TOTAL DATA SIZE",
                               "font": ["Geist", 600, 12],
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                             },
@@ -673,20 +677,19 @@
                           "width": 73,
                           "height": 31,
                           "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
-                          "text": "1.4 GB",
+                          "text": "1.8 GB",
                           "font": ["Geist", 700, 24],
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                         },
                         {
                           "name": "statSub",
                           "type": "TEXT",
-                          "x": 0,
-                          "y": 0,
-                          "width": 48,
+                          "x": 16,
+                          "y": 79,
+                          "width": 116,
                           "height": 16,
-                          "visible": false,
                           "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-                          "text": "of 1 total",
+                          "text": "across 1 of 1 backups",
                           "font": ["Geist", 400, 12],
                           "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         }
@@ -699,7 +702,7 @@
                   "name": "Schedules Section",
                   "type": "FRAME",
                   "x": 0,
-                  "y": 111,
+                  "y": 135,
                   "width": 1132,
                   "height": 184,
                   "layout": {
@@ -755,7 +758,7 @@
                           "componentId": "1:633",
                           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                           "strokeWeight": 1,
-                          "cornerRadius": 24,
+                          "cornerRadius": 12,
                           "layout": {
                             "mode": "HORIZONTAL",
                             "gap": 5,
@@ -765,9 +768,12 @@
                             "sizing": ["HUG", "FIXED"]
                           },
                           "variables": {
-                            "cornerRadius": "radius/3xl",
                             "paddingRight": "spacing/3",
                             "paddingLeft": "spacing/3",
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
                             "strokes/0/color": "border-2"
                           },
                           "texts": ["New schedule"]
@@ -892,7 +898,7 @@
                               "componentId": "1:633",
                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                               "strokeWeight": 1,
-                              "cornerRadius": 24,
+                              "cornerRadius": 12,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 5,
@@ -902,9 +908,12 @@
                                 "sizing": ["HUG", "FIXED"]
                               },
                               "variables": {
-                                "cornerRadius": "radius/3xl",
                                 "paddingRight": "spacing/3",
                                 "paddingLeft": "spacing/3",
+                                "topLeftRadius": "radius/xl",
+                                "topRightRadius": "radius/xl",
+                                "bottomLeftRadius": "radius/xl",
+                                "bottomRightRadius": "radius/xl",
                                 "strokes/0/color": "border-2"
                               },
                               "texts": ["Edit"]
@@ -920,7 +929,7 @@
                               "componentId": "1:633",
                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                               "strokeWeight": 1,
-                              "cornerRadius": 24,
+                              "cornerRadius": 12,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 5,
@@ -930,9 +939,12 @@
                                 "sizing": ["HUG", "FIXED"]
                               },
                               "variables": {
-                                "cornerRadius": "radius/3xl",
                                 "paddingRight": "spacing/3",
                                 "paddingLeft": "spacing/3",
+                                "topLeftRadius": "radius/xl",
+                                "topRightRadius": "radius/xl",
+                                "bottomLeftRadius": "radius/xl",
+                                "bottomRightRadius": "radius/xl",
                                 "strokes/0/color": "border-2"
                               },
                               "texts": ["Delete"]
@@ -1047,7 +1059,7 @@
                               "componentId": "1:633",
                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                               "strokeWeight": 1,
-                              "cornerRadius": 24,
+                              "cornerRadius": 12,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 5,
@@ -1057,9 +1069,12 @@
                                 "sizing": ["HUG", "FIXED"]
                               },
                               "variables": {
-                                "cornerRadius": "radius/3xl",
                                 "paddingRight": "spacing/3",
                                 "paddingLeft": "spacing/3",
+                                "topLeftRadius": "radius/xl",
+                                "topRightRadius": "radius/xl",
+                                "bottomLeftRadius": "radius/xl",
+                                "bottomRightRadius": "radius/xl",
                                 "strokes/0/color": "border-2"
                               },
                               "texts": ["Managed by server settings"]
@@ -1075,7 +1090,7 @@
                   "name": "Backups Section",
                   "type": "FRAME",
                   "x": 0,
-                  "y": 319,
+                  "y": 343,
                   "width": 1132,
                   "height": 138,
                   "layout": {
@@ -1161,6 +1176,7 @@
                       "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "VERTICAL",
                         "gap": 0,
@@ -1171,7 +1187,13 @@
                       },
                       "layoutAlignSelf": "STRETCH",
                       "clips": true,
-                      "variables": {"strokes/0/color": "border/border"},
+                      "variables": {
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl",
+                        "strokes/0/color": "border/border"
+                      },
                       "children": [
                         {
                           "id": "1:1262",
@@ -1200,7 +1222,7 @@
                               "type": "INSTANCE",
                               "x": 0,
                               "y": 0,
-                              "width": 772,
+                              "width": 672,
                               "height": 36,
                               "component": "Table Column",
                               "componentId": "1:1264",
@@ -1221,9 +1243,9 @@
                               "id": "1:1266",
                               "name": "HC PHASE",
                               "type": "INSTANCE",
-                              "x": 772,
+                              "x": 672,
                               "y": 0,
-                              "width": 120,
+                              "width": 200,
                               "height": 36,
                               "component": "Table Column",
                               "componentId": "1:1264",
@@ -1243,9 +1265,9 @@
                               "id": "1:1267",
                               "name": "HC SIZE",
                               "type": "INSTANCE",
-                              "x": 892,
+                              "x": 872,
                               "y": 0,
-                              "width": 100,
+                              "width": 120,
                               "height": 36,
                               "component": "Table Column",
                               "componentId": "1:1264",
@@ -1327,12 +1349,12 @@
                                   "type": "FRAME",
                                   "x": 0,
                                   "y": 3,
-                                  "width": 720,
+                                  "width": 672,
                                   "height": 48,
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 0,
-                                    "padding": [0, 12, 0, 12],
+                                    "padding": [0, 16, 0, 16],
                                     "primary": "MIN",
                                     "counter": "CENTER",
                                     "sizing": ["FIXED", "FIXED"]
@@ -1343,7 +1365,7 @@
                                       "id": "1:1272",
                                       "name": "Backup name",
                                       "type": "TEXT",
-                                      "x": 12,
+                                      "x": 16,
                                       "y": 15.5,
                                       "width": 125,
                                       "height": 17,
@@ -1358,14 +1380,14 @@
                                   "id": "1:1273",
                                   "name": "Phase",
                                   "type": "FRAME",
-                                  "x": 720,
+                                  "x": 672,
                                   "y": 3,
-                                  "width": 172,
+                                  "width": 200,
                                   "height": 48,
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 0,
-                                    "padding": [0, 12, 0, 12],
+                                    "padding": [0, 16, 0, 16],
                                     "primary": "MIN",
                                     "counter": "CENTER",
                                     "sizing": ["FIXED", "FIXED"]
@@ -1374,39 +1396,38 @@
                                     {
                                       "name": "Phase",
                                       "type": "INSTANCE",
-                                      "x": 12,
-                                      "y": 14.5,
-                                      "width": 137,
-                                      "height": 19,
-                                      "component": "Chip/Soft/Warning/MD",
-                                      "componentId": "1:3907",
+                                      "x": 16,
+                                      "y": 14,
+                                      "width": 159,
+                                      "height": 20,
+                                      "component": "Status=Transition",
                                       "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
-                                      "cornerRadius": 16,
+                                      "cornerRadius": 9999,
                                       "layout": {
                                         "mode": "HORIZONTAL",
-                                        "gap": 2,
+                                        "gap": 6,
                                         "padding": [2, 8, 2, 8],
-                                        "primary": "MIN",
+                                        "primary": "CENTER",
                                         "counter": "CENTER",
                                         "sizing": ["HUG", "HUG"]
                                       },
-                                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "warning/soft"},
+                                      "variables": {"fills/0/color": "warning/soft"},
                                       "texts": ["Awaiting snapshot ID"]
                                     }
                                   ]
                                 },
                                 {
                                   "id": "1:1275",
-                                  "name": "Logical size and packed bytes added",
+                                  "name": "Data size and bytes added",
                                   "type": "FRAME",
-                                  "x": 892,
+                                  "x": 872,
                                   "y": 9.5,
-                                  "width": 100,
+                                  "width": 120,
                                   "height": 35,
                                   "layout": {
                                     "mode": "VERTICAL",
                                     "gap": 2,
-                                    "padding": [0, 12, 0, 12],
+                                    "padding": [0, 16, 0, 16],
                                     "primary": "MIN",
                                     "counter": "MIN",
                                     "sizing": ["HUG", "FIXED"]
@@ -1416,12 +1437,12 @@
                                       "id": "1:1276",
                                       "name": "Logical size",
                                       "type": "TEXT",
-                                      "x": 12,
+                                      "x": 16,
                                       "y": 0,
                                       "width": 47,
                                       "height": 17,
                                       "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
-                                      "text": "1434Mi",
+                                      "text": "1.8 GB",
                                       "font": ["JetBrains Mono", 400, 13],
                                       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                     },
@@ -1429,12 +1450,12 @@
                                       "id": "1:1277",
                                       "name": "Packed bytes added",
                                       "type": "TEXT",
-                                      "x": 12,
+                                      "x": 16,
                                       "y": 19,
-                                      "width": 80,
+                                      "width": 87,
                                       "height": 16,
                                       "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-                                      "text": "14 KB added",
+                                      "text": "120 MB added",
                                       "font": ["JetBrains Mono", 400, 12],
                                       "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                                     }
@@ -1451,7 +1472,7 @@
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 0,
-                                    "padding": [0, 12, 0, 12],
+                                    "padding": [0, 16, 0, 16],
                                     "primary": "MIN",
                                     "counter": "CENTER",
                                     "sizing": ["FIXED", "FIXED"]
@@ -1461,7 +1482,7 @@
                                       "id": "1:1279",
                                       "name": "Completed",
                                       "type": "TEXT",
-                                      "x": 12,
+                                      "x": 16,
                                       "y": 15.5,
                                       "width": 41,
                                       "height": 17,

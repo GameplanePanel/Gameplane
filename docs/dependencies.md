@@ -1,9 +1,9 @@
 # Dependency report
 
 This is a component-by-component inventory of Gameplane's third-party
-dependencies and why each one is there. It covers all 12 Go modules that
-share `go.work` (`netguard`, `gameaction`, `gameproto`, `telemetryschema`,
-`i18n`, `operator`, `api`, `agent`, `telemetry-receiver` [optional], `sentinel` [optional],
+dependencies and why each one is there. It covers all 14 Go modules that
+share `go.work` (`netguard`, `gameaction`, `gameproto`, `telemetryschema`, `themepkg`,
+`bundlefetch`, `i18n`, `operator`, `api`, `agent`, `telemetry-receiver` [optional], `sentinel` [optional],
 `gp-module`, `test/e2e`), the split component submodules `mcp-server` [optional],
 `audit-syslog-bridge` [optional], `tunnel` [optional], `capture-sidecar` [optional] and `sftp` [optional]
 (each the `GameplanePanel/<repo>` submodule, which keeps its own `go.mod` outside `go.work`), the
@@ -40,7 +40,9 @@ were added and verified on **2026-09-26**.
 | `gameaction/` | Go | 0 (stdlib only) | Shared console-injection guard + command-template renderer used by the agent and API |
 | `gameproto/` | Go | 0 (stdlib only) | Shared Minecraft/Terraria handshake classifier used by sentinel |
 | `telemetryschema/` | Go | 0 (stdlib only) | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API reporter and the telemetry receiver |
-| `operator/` | Go | 21 | controller-runtime reconciler for the 9 CRDs (`operator/api/v1alpha1/*_types.go`); module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
+| `themepkg/` | Go | 1 (`gopkg.in/yaml.v3`) | Shared theme package validator (theme.yaml, tokens and contrast, custom CSS sanitizer, previews, size limits) used by the API and `gp-module` (spec 043) |
+| `bundlefetch/` | Go | 11 (oras-go, image-spec, go-digest, x/mod, go-containerregistry, cosign, sigstore-go, go-git, go-billy, x/crypto, go-logr) | Shared OCI client, cosign verifier core and git/HTTP/local/OCI fetch code (no Kubernetes imports) used by the operator's module sources and the API's theme sources (spec 043) |
+| `operator/` | Go | 16 | controller-runtime reconciler for the 9 CRDs (`operator/api/v1alpha1/*_types.go`); module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
 | `api/` | Go | 21 | chi REST + WebSocket gateway: auth (local + OIDC), RBAC, K8s client, SQLite/Postgres persistence, notifications |
 | `agent/` | Go | 6 | In-pod sidecar: RCON/WebRcon console, chi HTTP surface, heartbeat status patch, disk usage stats |
 | `audit-syslog-bridge/` (submodule) | Go | 0 (stdlib only) | Standalone HTTP-JSON → syslog relay for the audit webhook sink |
@@ -66,10 +68,13 @@ flowchart LR
     API --> I18N["i18n"]
     API --> NG["netguard"]
     API --> TS["telemetryschema"]
+    API --> TP["themepkg"]
+    API --> BF
     AG["agent"] --> GA
     AG --> NG
     OP["operator"] --> I18N
-    OP --> NG
+    OP --> BF["bundlefetch"]
+    BF --> NG
     GPM --> I18N
     SE["sentinel"] --> GP["gameproto"]
     TR["telemetry-receiver"] --> TS
@@ -89,7 +94,7 @@ hook, so no client library is needed — just `net` and `syscall` for the
 dial-time hook itself.
 
 **Callers and policies:**
-- **Operator** (`operator/internal/modsrc/`): module-source HTTP/git fetches via `IsAllowed`.
+- **Operator** (`operator/internal/modsrc/`, fetch code in `bundlefetch/source`): module-source HTTP/git fetches via `IsAllowed`.
 - **API gateway** (`api/internal/notify/{notify,deliver}.go` and `api/internal/steam/resolver.go`): admin-configured notification sinks via `IsAllowed`; Steam name resolution via `IsPublic`.
 - **Agent** (`agent/internal/mods/mods.go` and `agent/internal/rcon/websocket.go`): user-supplied mod downloads via `IsPublic`; loopback WebSocket RCON via `IsAllowed`.
 
@@ -143,6 +148,34 @@ Imported by (spec 022):
 
 Both importers use a local `replace` module (`replace github.com/GameplanePanel/gameplane/telemetryschema => ../telemetryschema`); the same Dockerfile `COPY` requirement as netguard applies.
 
+### themepkg
+
+`themepkg/go.mod` requires one library, `gopkg.in/yaml.v3`, for the strict
+`theme.yaml` decode (unknown keys refused, line numbers in problems); everything
+else is the standard library. It is the theme package contract of spec 043: the
+manifest schema, the 14 theme tokens, WCAG contrast checks and the token
+derivation port, the custom CSS sanitizer (moved here from the API's spec 016
+preferences handler), preview header checks and size limits.
+
+Imported by (spec 043):
+- `api/` — the custom CSS sanitizer for user preferences, and later theme indexing and installs.
+- `gp-module/` — `gp-module theme validate` (planned).
+
+Importers use a local `replace` module (`replace github.com/GameplanePanel/gameplane/themepkg => ../themepkg`); the same Dockerfile `COPY` requirement as netguard applies.
+
+### bundlefetch
+
+`bundlefetch/go.mod` (spec 043) holds the shared fetch code that used to live
+in `operator/internal/oci`, `operator/internal/verify` and
+`operator/internal/modsrc`. Packages: `oci/` (OCI client and bundle format),
+`verify/` (cosign verifier core), `source/` (git, HTTP archive, local directory
+and OCI listing fetchers). It must not import Kubernetes packages, because the
+API (including the standalone panel) uses it without a cluster. Its requires are
+listed in the bundlefetch row above; the Kubernetes-facing parts (Secret-based
+credentials, `ModuleSource` handling) stay in the operator.
+
+Importers use a local `replace` module (`replace github.com/GameplanePanel/gameplane/bundlefetch => ../bundlefetch`) and also need `netguard` (replaced in `bundlefetch/go.mod`). The operator Dockerfile copies `bundlefetch/` after `netguard/`.
+
 ## Services
 
 ### operator
@@ -158,13 +191,13 @@ BackupSchedule, Restore, Module, and ModuleSource. Direct deps from
 | `k8s.io/apimachinery` | v0.37.2 | `metav1.ObjectMeta`, `runtime.Scheme`, `types.NamespacedName`, etc. — pervasive across CRD types and controllers | direct-runtime | <!-- doc-versions: dependency -->
 | `k8s.io/client-go` | v0.37.2 | `internal/controller/cluster_controller.go`, `gameserver_stop_attach.go` (pod exec/attach via `kubernetes.Clientset`), `cmd/main.go` scheme/clientset setup | direct-runtime | <!-- doc-versions: dependency -->
 | `github.com/go-git/go-git/v5` | v5.19.3 | `internal/modsrc/git.go` — clones a ModuleSource's git repo/ref (HTTP or SSH) in-memory to discover module directories | direct-runtime |
-| `github.com/go-git/go-billy/v5` | v5.9.2 | `internal/modsrc/git.go` — in-memory filesystem (`memfs`) backing the git clone above, avoiding disk writes for an admin-configured but externally-controlled fetch | direct-runtime |
+| `github.com/go-git/go-billy/v5` | v5.9.2 | (now required via `bundlefetch`) `internal/modsrc/git.go` — in-memory filesystem (`memfs`) backing the git clone above, avoiding disk writes for an admin-configured but externally-controlled fetch | direct-runtime |
 | `golang.org/x/crypto` | v0.59.0 | `internal/modsrc/git.go` — SSH key/host-key handling for git-over-SSH ModuleSource cloning, alongside `go-git`'s SSH transport | direct-runtime | <!-- doc-versions: dependency -->
 | `github.com/google/go-containerregistry` | v0.22.1 | `internal/verify/verify.go` — `name.NewDigest` + `remote.WithAuth/WithContext` resolve and authenticate the image ref being cosign-verified | direct-runtime | <!-- doc-versions: dependency -->
 | `oras.land/oras-go/v2` | v2.7.0 | `internal/oci/client.go` — pulls Module OCI bundle artifacts from the registry (`registry/remote.Repository` + retry transport) | direct-runtime |
-| `github.com/opencontainers/image-spec` | v1.1.1 | `internal/oci/client.go` — `ocispec.Manifest`/`ocispec.Descriptor` types for parsing OCI manifests when pulling module bundles | direct-runtime |
-| `github.com/sigstore/cosign/v3` | v3.1.4 | `internal/verify/verify.go` — `cosign.VerifyImageSignatures`/`CheckOpts` verify Module OCI bundle signatures, keyed (against `cosign.pub`) or keyless (Fulcio/Rekor) | direct-runtime |
-| `github.com/sigstore/sigstore-go` | v1.4.0 | `internal/verify/verify.go` — `pkg/root` and `pkg/tuf` load the Sigstore trusted root for keyless cosign verification (replaces the old `sigstore/pkg/fulcioroots` path) | direct-runtime |
+| `github.com/opencontainers/image-spec` | v1.1.1 | (now via `bundlefetch/oci/client.go`)  — `ocispec.Manifest`/`ocispec.Descriptor` types for parsing OCI manifests when pulling module bundles | direct-runtime |
+| `github.com/sigstore/cosign/v3` | v3.1.4 | (now via `bundlefetch/verify`) `internal/verify/verify.go` — `cosign.VerifyImageSignatures`/`CheckOpts` verify Module OCI bundle signatures, keyed (against `cosign.pub`) or keyless (Fulcio/Rekor) | direct-runtime |
+| `github.com/sigstore/sigstore-go` | v1.4.0 | (now via `bundlefetch/verify`) `internal/verify/verify.go` — `pkg/root` and `pkg/tuf` load the Sigstore trusted root for keyless cosign verification (replaces the old `sigstore/pkg/fulcioroots` path) | direct-runtime |
 | `golang.org/x/mod` | v0.43.0 | `semver.Compare`/`semver.IsValid` in `internal/controller/semver.go`, `module_controller.go`, `internal/modsrc/oci.go`, `internal/oci/client.go` — sorts/validates Module version tags | direct-runtime | <!-- doc-versions: dependency -->
 | `sigs.k8s.io/yaml` | v1.6.0 | `internal/modsrc/bundle.go` parses `module.yaml`; `internal/controller/module_controller.go` parses the bundled `template.yaml` into JSON-tagged Go structs | direct-runtime |
 | `github.com/robfig/cron/v3` | v3.0.1 | `internal/controller/backupschedule_controller.go` — parses a BackupSchedule's cron expression and computes the next run time | direct-runtime |

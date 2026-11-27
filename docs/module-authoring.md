@@ -114,6 +114,15 @@ In the Gameplane web dashboard:
 
 ---
 
+## Theme packages
+
+Themes (colors plus an optional sanitized CSS overlay) are a separate kind of
+package with their own authoring commands, `gp-module theme init`,
+`from-export`, `validate`, `preview` and `package`. See
+[`docs/themes.md`](themes.md).
+
+---
+
 ## Source layout
 
 The official modules live in the standalone **`GameplanePanel/module`** repo, which

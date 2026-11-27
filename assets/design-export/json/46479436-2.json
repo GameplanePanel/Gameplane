@@ -3,7 +3,7 @@
   "name": "Gameplane/Dialog/Back up now (No destinations)",
   "type": "FRAME",
   "x": 0,
-  "y": 101841,
+  "y": 110586,
   "width": 480,
   "height": 279,
   "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
@@ -158,8 +158,7 @@
                   "y": 10,
                   "width": 16,
                   "height": 16,
-                  "component": "lucide/chevron-down/16x16",
-                  "variables": {"fills/0/color": "muted"}
+                  "component": "lucide/chevron-down/16x16"
                 }
               ]
             }

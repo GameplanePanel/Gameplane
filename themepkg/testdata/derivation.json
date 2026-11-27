@@ -1,0 +1,325 @@
+{
+  "comment": "Generated from web/src/lib/theme-derivation.ts deriveCustomThemeTokens (spec 043 T007). themepkg.Derive and the web derivation must both reproduce every case.",
+  "cases": [
+    {
+      "accent": "#ec4899",
+      "surface": "#0f0f12",
+      "tokens": {
+        "background": "#0f0f12",
+        "foreground": "#f5f5f5",
+        "surface": "#0f0f12",
+        "surface-secondary": "#070708",
+        "surface-tertiary": "#020203",
+        "overlay": "#131316",
+        "accent": "#ec4899",
+        "accent-foreground": "#000000",
+        "accent-soft": "#301826",
+        "accent-soft-foreground": "#ec4699",
+        "muted": "#7a7a90",
+        "border": "#25252c",
+        "focus": "#ec4899",
+        "link": "#ef6bad"
+      }
+    },
+    {
+      "accent": "#ec4899",
+      "surface": "#ffffff",
+      "tokens": {
+        "background": "#ffffff",
+        "foreground": "#0f172a",
+        "surface": "#ffffff",
+        "surface-secondary": "#f7f7f7",
+        "surface-tertiary": "#f2f2f2",
+        "overlay": "#ffffff",
+        "accent": "#ec4899",
+        "accent-foreground": "#000000",
+        "accent-soft": "#fce4f0",
+        "accent-soft-foreground": "#cb1570",
+        "muted": "#757575",
+        "border": "#e6e6e6",
+        "focus": "#ec4899",
+        "link": "#e82185"
+      }
+    },
+    {
+      "accent": "#38bdf8",
+      "surface": "#111a2e",
+      "tokens": {
+        "background": "#111a2e",
+        "foreground": "#f5f5f5",
+        "surface": "#111a2e",
+        "surface-secondary": "#0c1322",
+        "surface-tertiary": "#0a0f1a",
+        "overlay": "#131e34",
+        "accent": "#38bdf8",
+        "accent-foreground": "#000000",
+        "accent-soft": "#17324c",
+        "accent-soft-foreground": "#08a1e2",
+        "muted": "#6382c5",
+        "border": "#1e2f52",
+        "focus": "#38bdf8",
+        "link": "#62ccf9"
+      }
+    },
+    {
+      "accent": "#22c55e",
+      "surface": "#f8fafc",
+      "tokens": {
+        "background": "#f8fafc",
+        "foreground": "#0f172a",
+        "surface": "#f8fafc",
+        "surface-secondary": "#edf2f7",
+        "surface-tertiary": "#e6edf4",
+        "overlay": "#f8fafc",
+        "accent": "#22c55e",
+        "accent-foreground": "#000000",
+        "accent-soft": "#d8f2e4",
+        "accent-soft-foreground": "#157a3a",
+        "muted": "#4675a4",
+        "border": "#d4e0ed",
+        "focus": "#22c55e",
+        "link": "#1ba14c"
+      }
+    },
+    {
+      "accent": "#f59e0b",
+      "surface": "#1c1917",
+      "tokens": {
+        "background": "#1c1917",
+        "foreground": "#f5f5f5",
+        "surface": "#1c1917",
+        "surface-secondary": "#141110",
+        "surface-tertiary": "#0e0c0b",
+        "overlay": "#221e1c",
+        "accent": "#f59e0b",
+        "accent-foreground": "#000000",
+        "accent-soft": "#3d2d15",
+        "accent-soft-foreground": "#d38909",
+        "muted": "#8f8076",
+        "border": "#38322e",
+        "focus": "#f59e0b",
+        "link": "#f6ae31"
+      }
+    },
+    {
+      "accent": "#7c3aed",
+      "surface": "#ede9fe",
+      "tokens": {
+        "background": "#ede9fe",
+        "foreground": "#0f172a",
+        "surface": "#ede9fe",
+        "surface-secondary": "#dfd8fd",
+        "surface-tertiary": "#d7cefd",
+        "overlay": "#ede9fe",
+        "accent": "#7c3aed",
+        "accent-foreground": "#ffffff",
+        "accent-soft": "#dccffb",
+        "accent-soft-foreground": "#6d24eb",
+        "muted": "#6646f6",
+        "border": "#c3b6fc",
+        "focus": "#7c3aed",
+        "link": "#6316e9"
+      }
+    },
+    {
+      "accent": "#ef4444",
+      "surface": "#000000",
+      "tokens": {
+        "background": "#000000",
+        "foreground": "#f5f5f5",
+        "surface": "#000000",
+        "surface-secondary": "#000000",
+        "surface-tertiary": "#000000",
+        "overlay": "#050505",
+        "accent": "#ef4444",
+        "accent-foreground": "#000000",
+        "accent-soft": "#240a0a",
+        "accent-soft-foreground": "#ed3131",
+        "muted": "#757575",
+        "border": "#1a1a1a",
+        "focus": "#ef4444",
+        "link": "#f26969"
+      }
+    },
+    {
+      "accent": "#0ea5e9",
+      "surface": "#808080",
+      "tokens": {
+        "background": "#808080",
+        "foreground": "#0f172a",
+        "surface": "#808080",
+        "surface-secondary": "#787878",
+        "surface-tertiary": "#737373",
+        "overlay": "#808080",
+        "accent": "#0ea5e9",
+        "accent-foreground": "#000000",
+        "accent-soft": "#6f8690",
+        "accent-soft-foreground": "#021b27",
+        "muted": "#171717",
+        "border": "#666666",
+        "focus": "#0ea5e9",
+        "link": "#0b87c1"
+      }
+    },
+    {
+      "accent": "#ffffff",
+      "surface": "#ffffff",
+      "tokens": {
+        "background": "#ffffff",
+        "foreground": "#0f172a",
+        "surface": "#ffffff",
+        "surface-secondary": "#f7f7f7",
+        "surface-tertiary": "#f2f2f2",
+        "overlay": "#ffffff",
+        "accent": "#ffffff",
+        "accent-foreground": "#000000",
+        "accent-soft": "#ffffff",
+        "accent-soft-foreground": "#757575",
+        "muted": "#757575",
+        "border": "#e6e6e6",
+        "focus": "#ffffff",
+        "link": "#ebebeb"
+      }
+    },
+    {
+      "accent": "#000000",
+      "surface": "#000000",
+      "tokens": {
+        "background": "#000000",
+        "foreground": "#f5f5f5",
+        "surface": "#000000",
+        "surface-secondary": "#000000",
+        "surface-tertiary": "#000000",
+        "overlay": "#050505",
+        "accent": "#000000",
+        "accent-foreground": "#ffffff",
+        "accent-soft": "#000000",
+        "accent-soft-foreground": "#757575",
+        "muted": "#757575",
+        "border": "#1a1a1a",
+        "focus": "#000000",
+        "link": "#141414"
+      }
+    },
+    {
+      "accent": "#14b8a6",
+      "surface": "#0b1220",
+      "tokens": {
+        "background": "#0b1220",
+        "foreground": "#f5f5f5",
+        "surface": "#0b1220",
+        "surface-secondary": "#070b13",
+        "surface-tertiary": "#04060b",
+        "overlay": "#0d1526",
+        "accent": "#14b8a6",
+        "accent-foreground": "#000000",
+        "accent-soft": "#0c2b34",
+        "accent-soft-foreground": "#12a190",
+        "muted": "#587cc6",
+        "border": "#172644",
+        "focus": "#14b8a6",
+        "link": "#18dcc5"
+      }
+    },
+    {
+      "accent": "#e11d48",
+      "surface": "#fafafa",
+      "tokens": {
+        "background": "#fafafa",
+        "foreground": "#0f172a",
+        "surface": "#fafafa",
+        "surface-secondary": "#f2f2f2",
+        "surface-tertiary": "#ededed",
+        "overlay": "#fafafa",
+        "accent": "#e11d48",
+        "accent-foreground": "#ffffff",
+        "accent-soft": "#f6d9df",
+        "accent-soft-foreground": "#c2193e",
+        "muted": "#737373",
+        "border": "#e0e0e0",
+        "focus": "#e11d48",
+        "link": "#be193c"
+      }
+    },
+    {
+      "accent": "#a3e635",
+      "surface": "#262626",
+      "tokens": {
+        "background": "#262626",
+        "foreground": "#f5f5f5",
+        "surface": "#262626",
+        "surface-secondary": "#1f1f1f",
+        "surface-tertiary": "#1a1a1a",
+        "overlay": "#2b2b2b",
+        "accent": "#a3e635",
+        "accent-foreground": "#000000",
+        "accent-soft": "#394328",
+        "accent-soft-foreground": "#7fbf18",
+        "muted": "#8c8c8c",
+        "border": "#404040",
+        "focus": "#a3e635",
+        "link": "#b2ea57"
+      }
+    },
+    {
+      "accent": "#6366f1",
+      "surface": "#7f7f7f",
+      "tokens": {
+        "background": "#7f7f7f",
+        "foreground": "#0f172a",
+        "surface": "#7f7f7f",
+        "surface-secondary": "#787878",
+        "surface-tertiary": "#737373",
+        "overlay": "#7f7f7f",
+        "accent": "#6366f1",
+        "accent-foreground": "#000000",
+        "accent-soft": "#7b7b90",
+        "accent-soft-foreground": "#060746",
+        "muted": "#141414",
+        "border": "#666666",
+        "focus": "#6366f1",
+        "link": "#3f42ee"
+      }
+    },
+    {
+      "accent": "#FB923C",
+      "surface": "#1E293B",
+      "tokens": {
+        "background": "#1e293b",
+        "foreground": "#f5f5f5",
+        "surface": "#1e293b",
+        "surface-secondary": "#18212f",
+        "surface-tertiary": "#151c29",
+        "overlay": "#202d40",
+        "accent": "#fb923c",
+        "accent-foreground": "#000000",
+        "accent-soft": "#3f393b",
+        "accent-soft-foreground": "#fb8423",
+        "muted": "#7791bb",
+        "border": "#2e405c",
+        "focus": "#fb923c",
+        "link": "#fca864"
+      }
+    },
+    {
+      "accent": "#84cc16",
+      "surface": "#f0fdf4",
+      "tokens": {
+        "background": "#f0fdf4",
+        "foreground": "#0f172a",
+        "surface": "#f0fdf4",
+        "surface-secondary": "#e4fbeb",
+        "surface-tertiary": "#dbfae4",
+        "overlay": "#f0fdf4",
+        "accent": "#84cc16",
+        "accent-foreground": "#000000",
+        "accent-soft": "#e0f6d3",
+        "accent-soft-foreground": "#4d780d",
+        "muted": "#128233",
+        "border": "#c5f7d4",
+        "focus": "#84cc16",
+        "link": "#6ba611"
+      }
+    }
+  ]
+}

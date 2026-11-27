@@ -473,6 +473,9 @@ func TestBackup_PopulatesSnapshotIDFromLogs(t *testing.T) {
 		if got.Status.Size == nil || got.Status.Size.Value() != 1048576 {
 			return false, describeBackupStatus(got)
 		}
+		if got.Status.DataSize == nil || got.Status.DataSize.Value() != 1048576 {
+			return false, describeBackupStatus(got)
+		}
 		return true, ""
 	})
 }

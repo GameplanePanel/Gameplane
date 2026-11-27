@@ -611,6 +611,11 @@ func (in *BackupStatus) DeepCopyInto(out *BackupStatus) {
 		x := (*in).DeepCopy()
 		*out = &x
 	}
+	if in.DataSize != nil {
+		in, out := &in.DataSize, &out.DataSize
+		x := (*in).DeepCopy()
+		*out = &x
+	}
 	if in.Conditions != nil {
 		in, out := &in.Conditions, &out.Conditions
 		*out = make([]v1.Condition, len(*in))

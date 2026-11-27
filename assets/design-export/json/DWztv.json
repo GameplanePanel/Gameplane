@@ -4,7 +4,7 @@
   "name": "Screen/Mobile — Servers (Light)",
   "type": "FRAME",
   "x": 5510,
-  "y": 16264,
+  "y": 18538,
   "width": 390,
   "height": 844,
   "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
@@ -50,7 +50,7 @@
       "x": 0,
       "y": 64,
       "width": 390,
-      "height": 1032,
+      "height": 1030,
       "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
       "layout": {
         "mode": "VERTICAL",
@@ -70,7 +70,7 @@
           "x": 24,
           "y": 24,
           "width": 342,
-          "height": 42,
+          "height": 40,
           "layout": {
             "mode": "HORIZONTAL",
             "gap": 8,
@@ -88,7 +88,7 @@
               "x": 0,
               "y": 0,
               "width": 294,
-              "height": 42,
+              "height": 40,
               "component": "Gameplane/Search Input",
               "componentId": "1:975",
               "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
@@ -117,7 +117,7 @@
               "name": "Filter Button",
               "type": "FRAME",
               "x": 302,
-              "y": 1,
+              "y": 0,
               "width": 40,
               "height": 40,
               "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
@@ -168,7 +168,7 @@
           "name": "Server Card List",
           "type": "FRAME",
           "x": 24,
-          "y": 90,
+          "y": 88,
           "width": 342,
           "height": 918,
           "layout": {
@@ -218,7 +218,7 @@
                   "height": 52,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "MIN",
@@ -232,7 +232,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 250,
+                      "width": 232,
                       "height": 52,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -240,8 +240,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:6832",
@@ -284,7 +285,7 @@
                           "type": "FRAME",
                           "x": 40,
                           "y": 0,
-                          "width": 210,
+                          "width": 192,
                           "height": 52,
                           "layout": {
                             "mode": "VERTICAL",
@@ -294,6 +295,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -302,9 +304,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 78,
+                              "width": 192,
                               "height": 20,
                               "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "mc-survival",
                               "font": ["Geist", 500, 14],
                               "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
@@ -316,9 +319,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 141,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "local / gameplane-games",
                               "font": ["Geist", 400, 12],
                               "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
@@ -330,9 +334,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 36,
-                              "width": 210,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "mc.frp.gameplane.dev:25565",
                               "font": ["JetBrains Mono", 400, 12],
                               "lineHeight": {"value": 133.3299994468689, "unit": "PERCENT"},
@@ -346,23 +351,22 @@
                       "id": "1:6838",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 260,
+                      "x": 232,
                       "y": 0,
-                      "width": 52,
-                      "height": 17,
-                      "component": "Chip/Soft/Success/SM",
-                      "componentId": "1:1790",
+                      "width": 80,
+                      "height": 20,
+                      "component": "Status=Running",
                       "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                      "cornerRadius": 16,
+                      "cornerRadius": 9999,
                       "layout": {
                         "mode": "HORIZONTAL",
-                        "gap": 2,
-                        "padding": [2, 4, 2, 4],
-                        "primary": "MIN",
+                        "gap": 6,
+                        "padding": [2, 8, 2, 8],
+                        "primary": "CENTER",
                         "counter": "CENTER",
                         "sizing": ["HUG", "HUG"]
                       },
-                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                      "variables": {"fills/0/color": "success/soft"},
                       "texts": ["Running"]
                     }
                   ]
@@ -488,7 +492,7 @@
                   "height": 52,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "MIN",
@@ -502,7 +506,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 250,
+                      "width": 247,
                       "height": 52,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -510,8 +514,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:6846",
@@ -554,7 +559,7 @@
                           "type": "FRAME",
                           "x": 40,
                           "y": 0,
-                          "width": 210,
+                          "width": 207,
                           "height": 52,
                           "layout": {
                             "mode": "VERTICAL",
@@ -564,6 +569,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -572,9 +578,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 53,
+                              "width": 207,
                               "height": 20,
                               "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "mc-test",
                               "font": ["Geist", 500, 14],
                               "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
@@ -586,9 +593,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 141,
+                              "width": 207,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "local / gameplane-games",
                               "font": ["Geist", 400, 12],
                               "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
@@ -600,9 +608,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 36,
-                              "width": 210,
+                              "width": 207,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "—",
                               "font": ["JetBrains Mono", 400, 12],
                               "lineHeight": {"value": 133.3299994468689, "unit": "PERCENT"},
@@ -616,23 +625,22 @@
                       "id": "1:6852",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 272,
+                      "x": 247,
                       "y": 0,
-                      "width": 40,
-                      "height": 17,
-                      "component": "Chip/Soft/Danger/SM",
-                      "componentId": "1:760",
+                      "width": 65,
+                      "height": 20,
+                      "component": "Status=Failed",
                       "fills": [{"type": "SOLID", "color": "#FEE2E2"}],
-                      "cornerRadius": 16,
+                      "cornerRadius": 9999,
                       "layout": {
                         "mode": "HORIZONTAL",
-                        "gap": 2,
-                        "padding": [2, 4, 2, 4],
-                        "primary": "MIN",
+                        "gap": 6,
+                        "padding": [2, 8, 2, 8],
+                        "primary": "CENTER",
                         "counter": "CENTER",
                         "sizing": ["HUG", "HUG"]
                       },
-                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                      "variables": {"fills/0/color": "danger/soft"},
                       "texts": ["Failed"]
                     }
                   ]
@@ -758,7 +766,7 @@
                   "height": 52,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "MIN",
@@ -772,7 +780,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 250,
+                      "width": 241,
                       "height": 52,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -780,8 +788,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:6860",
@@ -824,7 +833,7 @@
                           "type": "FRAME",
                           "x": 40,
                           "y": 0,
-                          "width": 210,
+                          "width": 201,
                           "height": 52,
                           "layout": {
                             "mode": "VERTICAL",
@@ -834,6 +843,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -842,9 +852,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 108,
+                              "width": 201,
                               "height": 20,
                               "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "user-server-test",
                               "font": ["Geist", 500, 14],
                               "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
@@ -856,9 +867,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 141,
+                              "width": 201,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "local / gameplane-games",
                               "font": ["Geist", 400, 12],
                               "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
@@ -870,9 +882,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 36,
-                              "width": 210,
+                              "width": 201,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "—",
                               "font": ["JetBrains Mono", 400, 12],
                               "lineHeight": {"value": 133.3299994468689, "unit": "PERCENT"},
@@ -886,23 +899,22 @@
                       "id": "1:6866",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 267,
+                      "x": 241,
                       "y": 0,
-                      "width": 45,
-                      "height": 17,
-                      "component": "Chip/Soft/Default/SM",
-                      "componentId": "1:1002",
+                      "width": 71,
+                      "height": 20,
+                      "component": "Status=Asleep",
                       "fills": [{"type": "SOLID", "color": "#EDE9FE"}],
-                      "cornerRadius": 16,
+                      "cornerRadius": 9999,
                       "layout": {
                         "mode": "HORIZONTAL",
-                        "gap": 2,
-                        "padding": [2, 4, 2, 4],
-                        "primary": "MIN",
+                        "gap": 6,
+                        "padding": [2, 8, 2, 8],
+                        "primary": "CENTER",
                         "counter": "CENTER",
                         "sizing": ["HUG", "HUG"]
                       },
-                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "focus/soft"},
+                      "variables": {"fills/0/color": "focus/soft"},
                       "texts": ["Asleep"]
                     }
                   ]
@@ -1028,7 +1040,7 @@
                   "height": 52,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "MIN",
@@ -1042,7 +1054,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 250,
+                      "width": 232,
                       "height": 52,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -1050,8 +1062,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:6874",
@@ -1094,7 +1107,7 @@
                           "type": "FRAME",
                           "x": 40,
                           "y": 0,
-                          "width": 210,
+                          "width": 192,
                           "height": 52,
                           "layout": {
                             "mode": "VERTICAL",
@@ -1104,6 +1117,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -1112,9 +1126,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 97,
+                              "width": 192,
                               "height": 20,
                               "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "test-server-09",
                               "font": ["Geist", 500, 14],
                               "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
@@ -1126,9 +1141,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 77,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "local / default",
                               "font": ["Geist", 400, 12],
                               "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
@@ -1140,9 +1156,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 36,
-                              "width": 209,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "test-server-09.gameplane-dem…",
                               "font": ["JetBrains Mono", 400, 12],
                               "lineHeight": {"value": 133.3299994468689, "unit": "PERCENT"},
@@ -1156,23 +1173,22 @@
                       "id": "1:6880",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 260,
+                      "x": 232,
                       "y": 0,
-                      "width": 52,
-                      "height": 17,
-                      "component": "Chip/Soft/Success/SM",
-                      "componentId": "1:1790",
+                      "width": 80,
+                      "height": 20,
+                      "component": "Status=Running",
                       "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                      "cornerRadius": 16,
+                      "cornerRadius": 9999,
                       "layout": {
                         "mode": "HORIZONTAL",
-                        "gap": 2,
-                        "padding": [2, 4, 2, 4],
-                        "primary": "MIN",
+                        "gap": 6,
+                        "padding": [2, 8, 2, 8],
+                        "primary": "CENTER",
                         "counter": "CENTER",
                         "sizing": ["HUG", "HUG"]
                       },
-                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                      "variables": {"fills/0/color": "success/soft"},
                       "texts": ["Running"]
                     }
                   ]
@@ -1298,7 +1314,7 @@
                   "height": 52,
                   "layout": {
                     "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "gap": 8,
                     "padding": [0, 0, 0, 0],
                     "primary": "SPACE_BETWEEN",
                     "counter": "MIN",
@@ -1312,7 +1328,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 250,
+                      "width": 232,
                       "height": 52,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -1320,8 +1336,9 @@
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "CENTER",
-                        "sizing": ["HUG", "HUG"]
+                        "sizing": ["FIXED", "HUG"]
                       },
+                      "layoutGrow": 1,
                       "children": [
                         {
                           "id": "1:6888",
@@ -1364,7 +1381,7 @@
                           "type": "FRAME",
                           "x": 40,
                           "y": 0,
-                          "width": 210,
+                          "width": 192,
                           "height": 52,
                           "layout": {
                             "mode": "VERTICAL",
@@ -1374,6 +1391,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
+                          "layoutGrow": 1,
                           "clips": true,
                           "children": [
                             {
@@ -1382,9 +1400,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 78,
+                              "width": 192,
                               "height": 20,
                               "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "mc-survival",
                               "font": ["Geist", 500, 14],
                               "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
@@ -1396,9 +1415,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 20,
-                              "width": 141,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "local / gameplane-games",
                               "font": ["Geist", 400, 12],
                               "lineHeight": {"value": 133.33333730697632, "unit": "PERCENT"},
@@ -1410,9 +1430,10 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 36,
-                              "width": 210,
+                              "width": 192,
                               "height": 16,
                               "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                              "layoutAlignSelf": "STRETCH",
                               "text": "mc.frp.gameplane.dev:25565",
                               "font": ["JetBrains Mono", 400, 12],
                               "lineHeight": {"value": 133.3299994468689, "unit": "PERCENT"},
@@ -1426,23 +1447,22 @@
                       "id": "1:6894",
                       "name": "statusPill",
                       "type": "INSTANCE",
-                      "x": 260,
+                      "x": 232,
                       "y": 0,
-                      "width": 52,
-                      "height": 17,
-                      "component": "Chip/Soft/Success/SM",
-                      "componentId": "1:1790",
+                      "width": 80,
+                      "height": 20,
+                      "component": "Status=Running",
                       "fills": [{"type": "SOLID", "color": "#DCFCE7"}],
-                      "cornerRadius": 16,
+                      "cornerRadius": 9999,
                       "layout": {
                         "mode": "HORIZONTAL",
-                        "gap": 2,
-                        "padding": [2, 4, 2, 4],
-                        "primary": "MIN",
+                        "gap": 6,
+                        "padding": [2, 8, 2, 8],
+                        "primary": "CENTER",
                         "counter": "CENTER",
                         "sizing": ["HUG", "HUG"]
                       },
-                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                      "variables": {"fills/0/color": "success/soft"},
                       "texts": ["Running"]
                     }
                   ]

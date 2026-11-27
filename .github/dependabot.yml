@@ -131,6 +131,34 @@ updates:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "gomod"
+    directory: "/themepkg"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    open-pull-requests-limit: 5
+    groups:
+      themepkg-minor-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "gomod"
+    directory: "/bundlefetch"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    open-pull-requests-limit: 5
+    groups:
+      bundlefetch-minor-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "gomod"
     directory: "/i18n"
     schedule:
       interval: "weekly"

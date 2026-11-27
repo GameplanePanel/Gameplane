@@ -4,7 +4,7 @@
   "name": "Screen/Mobile — Backups filters open",
   "type": "FRAME",
   "x": 4920,
-  "y": 63923,
+  "y": 66197,
   "width": 375,
   "height": 844,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -152,7 +152,7 @@
               "componentId": "1:965",
               "fills": [{"type": "SOLID", "color": "#1D1B22"}],
               "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
@@ -161,7 +161,13 @@
                 "counter": "CENTER",
                 "sizing": ["HUG", "FIXED"]
               },
-              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+              "variables": {
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl",
+                "fills/0/color": "segment"
+              },
               "texts": ["Backups"]
             },
             {
@@ -174,7 +180,7 @@
               "height": 32,
               "component": "Tab/Inactive",
               "componentId": "1:967",
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
@@ -183,7 +189,12 @@
                 "counter": "CENTER",
                 "sizing": ["HUG", "FIXED"]
               },
-              "variables": {"cornerRadius": "radius/3xl"},
+              "variables": {
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl"
+              },
               "texts": ["Schedules"]
             },
             {
@@ -196,7 +207,7 @@
               "height": 32,
               "component": "Tab/Inactive",
               "componentId": "1:967",
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
@@ -205,7 +216,12 @@
                 "counter": "CENTER",
                 "sizing": ["HUG", "FIXED"]
               },
-              "variables": {"cornerRadius": "radius/3xl"},
+              "variables": {
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl"
+              },
               "texts": ["Restores"]
             },
             {
@@ -217,7 +233,7 @@
               "height": 32,
               "component": "Tab/Inactive",
               "componentId": "1:967",
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
@@ -226,7 +242,12 @@
                 "counter": "CENTER",
                 "sizing": ["HUG", "FIXED"]
               },
-              "variables": {"cornerRadius": "radius/3xl"},
+              "variables": {
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl"
+              },
               "texts": ["Destinations"]
             }
           ]
@@ -305,7 +326,7 @@
               "componentId": "1:1794",
               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
               "strokeWeight": 1,
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 8,
@@ -316,9 +337,12 @@
               },
               "variables": {
                 "itemSpacing": "spacing/2",
-                "cornerRadius": "radius/3xl",
                 "paddingRight": "spacing/4",
                 "paddingLeft": "spacing/4",
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl",
                 "strokes/0/color": "border-2"
               },
               "texts": ["Filter"]

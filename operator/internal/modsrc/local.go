@@ -1,13 +1,7 @@
 package modsrc
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"io/fs"
-	"os"
-	"path/filepath"
-	"strings"
+	"github.com/GameplanePanel/gameplane/bundlefetch/source"
 )
 
 // newLocal builds a Fetcher over a directory mounted into the operator
@@ -15,29 +9,9 @@ import (
 // values together with the volume mount); sub is the source's relative
 // spec.local.path under it.
 func newLocal(root, sub string, allow []string) (Fetcher, error) {
-	if root == "" {
-		return nil, errors.New("local sources are disabled: operator started without --module-local-root")
-	}
-	root = filepath.Clean(root)
-	dir := filepath.Clean(filepath.Join(root, filepath.FromSlash(sub)))
-	// CRD validation already rejects absolute paths and "..", but the
-	// flag value is operator-trusted input only after this re-check.
-	if dir != root && !strings.HasPrefix(dir, root+string(os.PathSeparator)) {
-		return nil, fmt.Errorf("path %q escapes the module root", sub)
-	}
-	load := func(context.Context) (fs.FS, string, error) {
-		info, err := os.Stat(dir)
-		if err != nil {
-			return nil, "", fmt.Errorf("module directory: %w", err)
-		}
-		if !info.IsDir() {
-			return nil, "", fmt.Errorf("module path %q is not a directory", dir)
-		}
-		return os.DirFS(dir), "", nil
-	}
-	loc := sub
-	if loc == "" {
-		loc = "."
+	load, loc, err := source.LocalLoader(root, sub)
+	if err != nil {
+		return nil, err
 	}
 	return newFSFetcher(load, "local:"+loc, allow), nil
 }

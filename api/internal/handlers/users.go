@@ -10,9 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/mail"
-	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -22,6 +20,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/messages"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 	"github.com/GameplanePanel/gameplane/i18n/catalog"
+	"github.com/GameplanePanel/gameplane/themepkg"
 )
 
 // languageListed reports whether a language tag is offered by this release.
@@ -230,11 +229,13 @@ func (h *userHandler) me(w http.ResponseWriter, req *http.Request) {
 		httperr.Write(w, req, err)
 		return
 	}
+	prefsDTO := preferencesDTO(prefs)
+	h.attachInstalledTheme(req.Context(), u.ID, prefsDTO, prefs)
 	writeJSON(w, userDTO{
 		ID: u.ID, Username: u.Username, DisplayName: u.DisplayName,
 		Email: u.Email, Role: u.Role, RoleSource: source, Permissions: auth.PermsToJSON(u.Perms),
 		PermissionsByCluster: auth.PermsByClusterToJSON(u.Perms),
-		Preferences:          preferencesDTO(prefs),
+		Preferences:          prefsDTO,
 	})
 }
 
@@ -258,6 +259,36 @@ type userPreferencesDTO struct {
 	// the instance default. It is set through PUT /users/me/language.
 	Language  *string `json:"language"`
 	UpdatedAt string  `json:"updatedAt"`
+	// InstalledThemeID is the selected installed theme (spec 043), null unless
+	// themeType is "installed". InstalledTheme carries that theme's tokens, CSS
+	// and version, so the dashboard renders it without another request.
+	InstalledThemeID *int64                 `json:"installedThemeId"`
+	InstalledTheme   *installedThemeRenders `json:"installedTheme,omitempty"`
+}
+
+// installedThemeRenders is the rendering part of the selected installed theme.
+type installedThemeRenders struct {
+	Tokens  json.RawMessage `json:"tokens"`
+	CSS     *string         `json:"css"`
+	Version string          `json:"version"`
+}
+
+// attachInstalledTheme adds the rendered installed theme to dto when the
+// preferences select one. A missing or unreadable row leaves dto without it.
+func (h *userHandler) attachInstalledTheme(ctx context.Context, userID int64, dto *userPreferencesDTO, p db.UserPreferences) {
+	if p.ThemeType != "installed" || p.InstalledThemeID == nil {
+		return
+	}
+	t, err := h.db.GetInstalledTheme(ctx, userID, *p.InstalledThemeID)
+	if err != nil {
+		slog.Warn("load selected installed theme", "err", err, "user", userID)
+		return
+	}
+	dto.InstalledTheme = &installedThemeRenders{
+		Tokens:  rawJSONOrDefault(t.Tokens, "{}"),
+		CSS:     t.CSS,
+		Version: t.Version,
+	}
 }
 
 func preferencesDTO(p db.UserPreferences) *userPreferencesDTO {
@@ -269,6 +300,7 @@ func preferencesDTO(p db.UserPreferences) *userPreferencesDTO {
 		CustomCSS:        p.CustomCSS,
 		Language:         p.Language,
 		UpdatedAt:        p.UpdatedAt,
+		InstalledThemeID: p.InstalledThemeID,
 	}
 	if p.CustomAccent != nil || p.CustomSurface != nil {
 		out.CustomColors = &customColorsDTO{}
@@ -282,63 +314,17 @@ func preferencesDTO(p db.UserPreferences) *userPreferencesDTO {
 	return out
 }
 
-// FR-013 custom CSS limits (contracts/user-preferences-api.md §1.2). A
-// rejected stylesheet returns 400 with a message naming the offending rule.
-const maxCustomCSSLen = 32768
-
-var (
-	// cssImportRE matches an @import rule anywhere in the stylesheet.
-	cssImportRE = regexp.MustCompile(`(?i)@import\b`)
-	// cssURLRE captures the reference inside each url(...) so it can be
-	// inspected; surrounding quotes are optional and excluded.
-	cssURLRE = regexp.MustCompile(`(?i)url\(\s*["']?([^"')]*)["']?\s*\)`)
-	// cssExternalRefRE finds an absolute or protocol-relative reference
-	// anywhere in the stylesheet, inside or outside url().
-	cssExternalRefRE = regexp.MustCompile(`(?i)(https?:|["'(\s,]//)`)
-	// urlControlStripper removes the characters URL parsing ignores.
-	urlControlStripper = strings.NewReplacer("\t", "", "\n", "", "\r", "")
-)
-
 // sanitizeCustomCSS applies the FR-013 rules to a submitted stylesheet,
 // returning "" when the CSS is acceptable or a caller-safe message naming
 // the offending rule. It rejects oversized payloads, @import rules,
 // external url() references (absolute http(s) or protocol-relative, remote
 // fonts included) while allowing inline data: URIs, unbalanced braces,
 // anything smuggling HTML <style>/<script> delimiters, CSS escapes, and any
-// other absolute or protocol-relative reference (image-set, src()).
+// other absolute or protocol-relative reference (image-set, src()). The
+// rules live in themepkg.SanitizeCSS (shared with theme packages).
 func sanitizeCustomCSS(css string) string {
-	if len(css) > maxCustomCSSLen {
-		return fmt.Sprintf("customCss rejected: exceeds the maximum length of %d characters", maxCustomCSSLen)
-	}
-	if cssImportRE.MatchString(css) {
-		return "customCss rejected: @import rules are not allowed"
-	}
-	for _, m := range cssURLRE.FindAllStringSubmatch(css, -1) {
-		ref := strings.TrimSpace(m[1])
-		lower := strings.ToLower(ref)
-		if strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") || strings.HasPrefix(ref, "//") {
-			return fmt.Sprintf("customCss rejected: external url() reference '%s' is not allowed", ref)
-		}
-	}
-	if strings.Count(css, "{") != strings.Count(css, "}") {
-		return "customCss rejected: unbalanced braces"
-	}
-	lower := strings.ToLower(css)
-	for _, d := range []string{"<style", "</style", "<script", "</script"} {
-		if strings.Contains(lower, d) {
-			return fmt.Sprintf("customCss rejected: HTML delimiter %q is not allowed", d)
-		}
-	}
-	// CSS escapes (\69mport, u\72l(...)) would hide the rules above from a
-	// plain text match, and image-set("https://...") or src("...") load a
-	// resource without the url( token, so refuse both forms outright.
-	if strings.Contains(css, `\`) {
-		return "customCss rejected: CSS escapes (\\) are not allowed"
-	}
-	// URL parsing drops ASCII tab and newline, so "ht\ttps://" still
-	// fetches: check the text with them removed as well.
-	if cssExternalRefRE.MatchString(css) || cssExternalRefRE.MatchString(urlControlStripper.Replace(css)) {
-		return "customCss rejected: external references are not allowed"
+	if p, ok := themepkg.SanitizeCSS(css); !ok {
+		return "customCss rejected: " + p.Detail
 	}
 	return ""
 }
@@ -354,7 +340,9 @@ func (h *userHandler) getPreferences(w http.ResponseWriter, req *http.Request) {
 		httperr.Write(w, req, err)
 		return
 	}
-	writeJSON(w, preferencesDTO(prefs))
+	dto := preferencesDTO(prefs)
+	h.attachInstalledTheme(req.Context(), u.ID, dto, prefs)
+	writeJSON(w, dto)
 }
 
 // updatePreferencesReq carries a PUT merge: nil means "leave unchanged".
@@ -368,6 +356,9 @@ type updatePreferencesReq struct {
 	CustomColors     *customColorsReq `json:"customColors"`
 	CustomCSSEnabled *bool            `json:"customCssEnabled"`
 	CustomCSS        *string          `json:"customCss"`
+	// InstalledThemeID selects one of the caller's installed themes. It is
+	// required with themeType "installed" and ignored otherwise.
+	InstalledThemeID *int64 `json:"installedThemeId"`
 }
 
 type customColorsReq struct {
@@ -390,7 +381,7 @@ func (h *userHandler) putPreferences(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.users.theme_type_required", nil))
 		return
 	}
-	if *body.ThemeType != "preset" && *body.ThemeType != "custom_colors" {
+	if *body.ThemeType != "preset" && *body.ThemeType != "custom_colors" && *body.ThemeType != "installed" {
 		httperr.WriteMessage(w, req, messages.New("server.users.theme_type_invalid", nil))
 		return
 	}
@@ -431,6 +422,11 @@ func (h *userHandler) putPreferences(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	if *body.ThemeType == "installed" && body.InstalledThemeID == nil {
+		httperr.WriteMessage(w, req, messages.New("server.users.installed_theme_id_required", nil))
+		return
+	}
+
 	// FR-012 retention: read the stored row (or defaults), then apply only
 	// the fields present in the body. Omitted customColors/customCss ride
 	// along with their stored values; an ordinary update can never null them.
@@ -443,6 +439,21 @@ func (h *userHandler) putPreferences(w http.ResponseWriter, req *http.Request) {
 	prefs.PresetID = *body.PresetID
 	prefs.AppearanceMode = *body.AppearanceMode
 	prefs.CustomCSSEnabled = *body.CustomCSSEnabled
+	if *body.ThemeType == "installed" {
+		// The selected theme must be one of the caller's own installed themes;
+		// another user's id, or an unknown one, is refused before any write.
+		if _, err := h.db.GetInstalledTheme(req.Context(), u.ID, *body.InstalledThemeID); err != nil {
+			if errors.Is(err, db.ErrThemeNotFound) {
+				httperr.WriteMessage(w, req, messages.New("server.users.installed_theme_not_found", nil))
+				return
+			}
+			httperr.Write(w, req, err)
+			return
+		}
+		prefs.InstalledThemeID = body.InstalledThemeID
+	} else {
+		prefs.InstalledThemeID = nil
+	}
 	if body.CustomColors != nil {
 		if body.CustomColors.Accent != nil {
 			prefs.CustomAccent = body.CustomColors.Accent
@@ -459,7 +470,9 @@ func (h *userHandler) putPreferences(w http.ResponseWriter, req *http.Request) {
 		httperr.Write(w, req, err)
 		return
 	}
-	writeJSON(w, preferencesDTO(saved))
+	savedDTO := preferencesDTO(saved)
+	h.attachInstalledTheme(req.Context(), u.ID, savedDTO, saved)
+	writeJSON(w, savedDTO)
 }
 
 // resetPreferencesReq carries the optional preset/appearance to restore;

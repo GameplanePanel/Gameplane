@@ -4,7 +4,7 @@
   "name": "Screen/Admin — System Logs",
   "type": "FRAME",
   "x": 0,
-  "y": 78723,
+  "y": 80997,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -210,9 +210,9 @@
             {
               "name": "Actions",
               "type": "FRAME",
-              "x": 752,
+              "x": 772,
               "y": 0,
-              "width": 396,
+              "width": 376,
               "height": 64,
               "layout": {
                 "mode": "HORIZONTAL",
@@ -275,8 +275,7 @@
                       "y": 8.5,
                       "width": 16,
                       "height": 16,
-                      "component": "lucide/chevron-down/16x16",
-                      "variables": {"fills/0/color": "muted"}
+                      "component": "lucide/chevron-down/16x16"
                     }
                   ]
                 },
@@ -285,24 +284,24 @@
                   "type": "INSTANCE",
                   "x": 0,
                   "y": 12,
-                  "width": 300,
+                  "width": 280,
                   "height": 40,
                   "component": "SearchField/Primary",
                   "componentId": "1:1928",
                   "layout": {
-                    "mode": "HORIZONTAL",
-                    "gap": 0,
+                    "mode": "VERTICAL",
+                    "gap": 4,
                     "padding": [0, 0, 0, 0],
                     "primary": "MIN",
-                    "counter": "CENTER",
-                    "sizing": ["FIXED", "FIXED"]
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
                   },
                   "texts": ["Search servers…"]
                 },
                 {
                   "name": "Bell Wrap",
                   "type": "FRAME",
-                  "x": 312,
+                  "x": 292,
                   "y": 12,
                   "width": 40,
                   "height": 40,
@@ -324,8 +323,7 @@
                           "y": 8,
                           "width": 20,
                           "height": 20,
-                          "component": "lucide/bell/20x20",
-                          "variables": {"fills/0/color": "foreground/foreground"}
+                          "component": "lucide/bell/20x20"
                         }
                       ]
                     },
@@ -347,7 +345,7 @@
                 {
                   "name": "Avatar",
                   "type": "INSTANCE",
-                  "x": 364,
+                  "x": 344,
                   "y": 16,
                   "width": 32,
                   "height": 32,
@@ -468,7 +466,7 @@
                       "componentId": "1:965",
                       "fills": [{"type": "SOLID", "color": "#1D1B22"}],
                       "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 0,
@@ -477,7 +475,13 @@
                         "counter": "CENTER",
                         "sizing": ["HUG", "FIXED"]
                       },
-                      "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                      "variables": {
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl",
+                        "fills/0/color": "segment"
+                      },
                       "texts": ["API server"]
                     },
                     {
@@ -490,7 +494,7 @@
                       "height": 32,
                       "component": "Tab/Inactive",
                       "componentId": "1:967",
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 0,
@@ -499,7 +503,12 @@
                         "counter": "CENTER",
                         "sizing": ["HUG", "FIXED"]
                       },
-                      "variables": {"cornerRadius": "radius/3xl"},
+                      "variables": {
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl"
+                      },
                       "texts": ["Operator"]
                     }
                   ]

@@ -48,6 +48,7 @@ func (s *Store) DeleteUserTx(ctx context.Context, tx *sql.Tx, userID int64) erro
 		`DELETE FROM sftp_ssh_keys WHERE user_id = ?`,
 		`DELETE FROM sftp_passwords WHERE user_id = ?`,
 		`DELETE FROM sftp_sessions WHERE user_id = ?`,
+		`DELETE FROM user_installed_themes WHERE user_id = ?`,
 	} {
 		if _, err := tx.ExecContext(ctx, stmt, userID); err != nil {
 			return fmt.Errorf("delete user: %s: %w", stmt, err)

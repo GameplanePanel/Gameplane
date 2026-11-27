@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GameplanePanel/gameplane/operator/internal/oci"
+	"github.com/GameplanePanel/gameplane/bundlefetch/oci"
 )
 
 func TestUploadFetcherPullCarriesLocales(t *testing.T) {

@@ -4,7 +4,7 @@
   "name": "Screen/Modules Catalog",
   "type": "FRAME",
   "x": 0,
-  "y": 60091,
+  "y": 62365,
   "width": 1440,
   "height": 1320,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -103,8 +103,7 @@
                       "y": 8,
                       "width": 16,
                       "height": 16,
-                      "component": "lucide/shield-check/16x16",
-                      "variables": {"fills/0/color": "accent/accent"}
+                      "component": "lucide/shield-check/16x16"
                     }
                   ]
                 },
@@ -642,17 +641,17 @@
                 {
                   "name": "logout",
                   "type": "INSTANCE",
-                  "x": 204,
-                  "y": 8,
-                  "width": 24,
-                  "height": 24,
+                  "x": 192,
+                  "y": 2,
+                  "width": 36,
+                  "height": 36,
                   "component": "Button/Ghost/Icon/MD",
                   "componentId": "1:942",
                   "cornerRadius": 24,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
-                    "padding": [10, 0, 10, 0],
+                    "padding": [0, 0, 0, 0],
                     "primary": "CENTER",
                     "counter": "CENTER",
                     "sizing": ["FIXED", "FIXED"]
@@ -875,7 +874,7 @@
                       "componentId": "1:1794",
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 8,
@@ -886,9 +885,12 @@
                       },
                       "variables": {
                         "itemSpacing": "spacing/2",
-                        "cornerRadius": "radius/3xl",
                         "paddingRight": "spacing/4",
                         "paddingLeft": "spacing/4",
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl",
                         "strokes/0/color": "border-2"
                       },
                       "texts": ["Create module"]
@@ -905,7 +907,7 @@
                       "componentId": "1:1794",
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 8,
@@ -916,9 +918,12 @@
                       },
                       "variables": {
                         "itemSpacing": "spacing/2",
-                        "cornerRadius": "radius/3xl",
                         "paddingRight": "spacing/4",
                         "paddingLeft": "spacing/4",
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl",
                         "strokes/0/color": "border-2"
                       },
                       "texts": ["Upload module"]
@@ -935,7 +940,7 @@
                       "componentId": "1:1794",
                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                       "strokeWeight": 1,
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 8,
@@ -946,9 +951,12 @@
                       },
                       "variables": {
                         "itemSpacing": "spacing/2",
-                        "cornerRadius": "radius/3xl",
                         "paddingRight": "spacing/4",
                         "paddingLeft": "spacing/4",
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl",
                         "strokes/0/color": "border-2"
                       },
                       "texts": ["Manage sources"]
@@ -1554,7 +1562,7 @@
                               "componentId": "1:633",
                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                               "strokeWeight": 1,
-                              "cornerRadius": 24,
+                              "cornerRadius": 12,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 5,
@@ -1564,9 +1572,12 @@
                                 "sizing": ["HUG", "FIXED"]
                               },
                               "variables": {
-                                "cornerRadius": "radius/3xl",
                                 "paddingRight": "spacing/3",
                                 "paddingLeft": "spacing/3",
+                                "topLeftRadius": "radius/xl",
+                                "topRightRadius": "radius/xl",
+                                "bottomLeftRadius": "radius/xl",
+                                "bottomRightRadius": "radius/xl",
                                 "strokes/0/color": "border-2"
                               },
                               "texts": ["Deploy"]
@@ -1583,7 +1594,7 @@
                               "componentId": "1:633",
                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                               "strokeWeight": 1,
-                              "cornerRadius": 24,
+                              "cornerRadius": 12,
                               "layout": {
                                 "mode": "HORIZONTAL",
                                 "gap": 5,
@@ -1593,9 +1604,12 @@
                                 "sizing": ["HUG", "FIXED"]
                               },
                               "variables": {
-                                "cornerRadius": "radius/3xl",
                                 "paddingRight": "spacing/3",
                                 "paddingLeft": "spacing/3",
+                                "topLeftRadius": "radius/xl",
+                                "topRightRadius": "radius/xl",
+                                "bottomLeftRadius": "radius/xl",
+                                "bottomRightRadius": "radius/xl",
                                 "strokes/0/color": "border-2"
                               },
                               "texts": ["Uninstall"]

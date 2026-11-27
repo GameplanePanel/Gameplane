@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Mods — Browse (added)",
   "type": "FRAME",
   "x": 3280,
-  "y": 33801,
+  "y": 36075,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -346,7 +346,7 @@
                       "componentId": "1:965",
                       "fills": [{"type": "SOLID", "color": "#1D1B22"}],
                       "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 0,
@@ -355,7 +355,13 @@
                         "counter": "CENTER",
                         "sizing": ["HUG", "FIXED"]
                       },
-                      "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                      "variables": {
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl",
+                        "fills/0/color": "segment"
+                      },
                       "texts": ["Browse registry"]
                     },
                     {
@@ -368,7 +374,7 @@
                       "height": 32,
                       "component": "Tab/Inactive",
                       "componentId": "1:967",
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 0,
@@ -377,7 +383,12 @@
                         "counter": "CENTER",
                         "sizing": ["HUG", "FIXED"]
                       },
-                      "variables": {"cornerRadius": "radius/3xl"},
+                      "variables": {
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl"
+                      },
                       "texts": ["From URL"]
                     },
                     {
@@ -390,7 +401,7 @@
                       "height": 32,
                       "component": "Tab/Inactive",
                       "componentId": "1:967",
-                      "cornerRadius": 24,
+                      "cornerRadius": 12,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 0,
@@ -399,7 +410,12 @@
                         "counter": "CENTER",
                         "sizing": ["HUG", "FIXED"]
                       },
-                      "variables": {"cornerRadius": "radius/3xl"},
+                      "variables": {
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl"
+                      },
                       "texts": ["Upload file"]
                     }
                   ]
@@ -474,7 +490,7 @@
                           "componentId": "1:965",
                           "fills": [{"type": "SOLID", "color": "#1D1B22"}],
                           "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
-                          "cornerRadius": 24,
+                          "cornerRadius": 12,
                           "layout": {
                             "mode": "HORIZONTAL",
                             "gap": 0,
@@ -483,7 +499,13 @@
                             "counter": "CENTER",
                             "sizing": ["HUG", "FIXED"]
                           },
-                          "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                          "variables": {
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
+                            "fills/0/color": "segment"
+                          },
                           "texts": ["Modrinth"]
                         },
                         {
@@ -496,7 +518,7 @@
                           "height": 32,
                           "component": "Tab/Inactive",
                           "componentId": "1:967",
-                          "cornerRadius": 24,
+                          "cornerRadius": 12,
                           "layout": {
                             "mode": "HORIZONTAL",
                             "gap": 0,
@@ -505,7 +527,12 @@
                             "counter": "CENTER",
                             "sizing": ["HUG", "FIXED"]
                           },
-                          "variables": {"cornerRadius": "radius/3xl"},
+                          "variables": {
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl"
+                          },
                           "texts": ["Hangar"]
                         }
                       ]

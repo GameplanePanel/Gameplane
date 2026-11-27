@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Logs (Failed)",
   "type": "FRAME",
   "x": 1640,
-  "y": 31201,
+  "y": 33475,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -197,7 +197,7 @@
                       "type": "FRAME",
                       "x": 0,
                       "y": 0,
-                      "width": 209,
+                      "width": 234,
                       "height": 32,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -224,22 +224,21 @@
                           "name": "statusBadge",
                           "type": "INSTANCE",
                           "x": 169,
-                          "y": 7.5,
-                          "width": 40,
-                          "height": 17,
-                          "component": "Chip/Soft/Danger/SM",
-                          "componentId": "1:760",
+                          "y": 6,
+                          "width": 65,
+                          "height": 20,
+                          "component": "Status=Failed",
                           "fills": [{"type": "SOLID", "color": "#2E1317"}],
-                          "cornerRadius": 16,
+                          "cornerRadius": 9999,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 2,
-                            "padding": [2, 4, 2, 4],
-                            "primary": "MIN",
+                            "gap": 6,
+                            "padding": [2, 8, 2, 8],
+                            "primary": "CENTER",
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                          "variables": {"fills/0/color": "danger/soft"},
                           "texts": ["Failed"]
                         }
                       ]
@@ -430,7 +429,7 @@
                   "componentId": "1:774",
                   "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                   "strokeWeight": 1,
-                  "cornerRadius": 24,
+                  "cornerRadius": 12,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -439,7 +438,13 @@
                     "counter": "CENTER",
                     "sizing": ["FIXED", "FIXED"]
                   },
-                  "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border-2"}
+                  "variables": {
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl",
+                    "strokes/0/color": "border-2"
+                  }
                 }
               ]
             }

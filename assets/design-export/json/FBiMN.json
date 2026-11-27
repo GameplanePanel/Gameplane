@@ -4,7 +4,7 @@
   "name": "Screen/Share Link — Asleep (Start cooldown)",
   "type": "FRAME",
   "x": 3280,
-  "y": 98699,
+  "y": 107444,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -24,9 +24,9 @@
       "name": "shareCard",
       "type": "FRAME",
       "x": 500,
-      "y": 264,
+      "y": 263.5,
       "width": 440,
-      "height": 372,
+      "height": 373,
       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
       "strokeWeight": 1,
@@ -84,8 +84,7 @@
                   "y": 9,
                   "width": 22,
                   "height": 22,
-                  "component": "lucide/shield-check/22x22",
-                  "variables": {"fills/0/color": "accent/accent"}
+                  "component": "lucide/shield-check/22x22"
                 }
               ]
             },
@@ -141,7 +140,7 @@
           "x": 36,
           "y": 160,
           "width": 368,
-          "height": 58,
+          "height": 59,
           "layout": {
             "mode": "VERTICAL",
             "gap": 10,
@@ -169,35 +168,20 @@
               "type": "INSTANCE",
               "x": 0,
               "y": 39,
-              "width": 64,
-              "height": 19,
-              "component": "Chip/Soft/Default/SM",
-              "componentId": "1:1002",
+              "width": 71,
+              "height": 20,
+              "component": "Status=Asleep",
               "fills": [{"type": "SOLID", "color": "#8B5CF633", "opacity": 0.2}],
-              "strokes": [{"type": "SOLID", "color": "#A78BFA99", "opacity": 0.6}],
-              "strokeWeight": 1,
-              "cornerRadius": 16,
+              "cornerRadius": 9999,
               "layout": {
                 "mode": "HORIZONTAL",
-                "gap": 2,
-                "padding": [2, 4, 2, 20],
-                "primary": "MIN",
+                "gap": 6,
+                "padding": [2, 8, 2, 8],
+                "primary": "CENTER",
                 "counter": "CENTER",
                 "sizing": ["HUG", "HUG"]
               },
-              "variables": {"cornerRadius": "radius/2xl"},
               "texts": ["Asleep"]
-            },
-            {
-              "name": "statusDot",
-              "type": "ELLIPSE",
-              "x": 10,
-              "y": 45.5,
-              "width": 6,
-              "height": 6,
-              "fills": [{"type": "SOLID", "color": "#A78BFA"}],
-              "absolute": true,
-              "variables": {"fills/0/color": "focus"}
             }
           ]
         },
@@ -206,7 +190,7 @@
           "name": "asleepBlock",
           "type": "FRAME",
           "x": 36,
-          "y": 242,
+          "y": 243,
           "width": 368,
           "height": 94,
           "layout": {
@@ -291,8 +275,7 @@
               "y": 1,
               "width": 14,
               "height": 14,
-              "component": "lucide/users/14x14",
-              "variables": {"fills/0/color": "muted"}
+              "component": "lucide/users/14x14"
             },
             {
               "name": "text",

@@ -590,6 +590,8 @@ func (r *BackupReconciler) mirrorJobStatus(
 			if summary.TotalBytesProcessed > 0 {
 				q := resource.MustParse(strconv.FormatInt(summary.TotalBytesProcessed, 10))
 				b.Status.Size = &q
+				dq := q.DeepCopy()
+				b.Status.DataSize = &dq
 			}
 			if b.Status.Message != "" {
 				b.Status.Message = "" // clear any transient scrape error

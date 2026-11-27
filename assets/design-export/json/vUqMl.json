@@ -4,7 +4,7 @@
   "name": "Screen/Create Server — Step 3 Configure",
   "type": "FRAME",
   "x": 0,
-  "y": 20454,
+  "y": 22728,
   "width": 1440,
   "height": 2120,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -134,9 +134,9 @@
           "name": "Modal",
           "type": "FRAME",
           "x": 240,
-          "y": 77,
+          "y": 37.5,
           "width": 960,
-          "height": 1966,
+          "height": 2045,
           "fills": [{"type": "SOLID", "color": "#1C1A20"}],
           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
           "strokeWeight": 1,
@@ -304,7 +304,7 @@
               "x": 0,
               "y": 229,
               "width": 960,
-              "height": 1669,
+              "height": 1748,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 12,
@@ -322,7 +322,7 @@
                   "x": 24,
                   "y": 24,
                   "width": 627,
-                  "height": 1621,
+                  "height": 1700,
                   "layout": {
                     "mode": "VERTICAL",
                     "gap": 12,
@@ -382,14 +382,14 @@
                       "x": 0,
                       "y": 205,
                       "width": 627,
-                      "height": 101,
+                      "height": 170,
                       "layout": {
-                        "mode": "HORIZONTAL",
+                        "mode": "VERTICAL",
                         "gap": 16,
                         "padding": [0, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "MIN",
-                        "sizing": ["FIXED", "HUG"]
+                        "sizing": ["HUG", "FIXED"]
                       },
                       "layoutAlignSelf": "STRETCH",
                       "children": [
@@ -399,8 +399,8 @@
                           "type": "FRAME",
                           "x": 0,
                           "y": 0,
-                          "width": 305.5,
-                          "height": 101,
+                          "width": 627,
+                          "height": 77,
                           "layout": {
                             "mode": "VERTICAL",
                             "gap": 4,
@@ -409,7 +409,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
-                          "layoutGrow": 1,
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
                               "id": "1:2127",
@@ -417,40 +417,37 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 25,
-                              "height": 16,
-                              "opacity": 0,
-                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "width": 29,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
                               "text": "CPU",
-                              "font": ["Geist", 400, 12],
-                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                              "font": ["Geist", 500, 14],
+                              "variables": {"fontFamily": "typography/font-sans"}
                             },
                             {
-                              "id": "1:2128",
                               "name": "CtrlRow",
                               "type": "FRAME",
                               "x": 0,
-                              "y": 20,
-                              "width": 305.5,
-                              "height": 62,
+                              "y": 22,
+                              "width": 627,
+                              "height": 36,
                               "layout": {
                                 "mode": "HORIZONTAL",
-                                "gap": 8,
+                                "gap": 12,
                                 "padding": [0, 0, 0, 0],
                                 "primary": "MIN",
                                 "counter": "CENTER",
-                                "sizing": ["FIXED", "HUG"]
+                                "sizing": ["FIXED", "FIXED"]
                               },
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:2129",
                                   "name": "CpuSlider",
                                   "type": "INSTANCE",
                                   "x": 0,
-                                  "y": 10,
-                                  "width": 115.5,
-                                  "height": 42,
+                                  "y": 8,
+                                  "width": 413,
+                                  "height": 20,
                                   "component": "Slider",
                                   "componentId": "1:1440",
                                   "layout": {
@@ -461,39 +458,46 @@
                                     "counter": "MIN",
                                     "sizing": ["HUG", "FIXED"]
                                   },
-                                  "layoutGrow": 1,
-                                  "texts": ["CPU"]
+                                  "layoutGrow": 1
                                 },
                                 {
-                                  "id": "1:2130",
                                   "name": "CpuValue",
                                   "type": "INSTANCE",
-                                  "x": 123.5,
+                                  "x": 425,
                                   "y": 0,
-                                  "width": 64,
-                                  "height": 62,
-                                  "component": "Input/Primary",
-                                  "componentId": "1:1082",
+                                  "width": 80,
+                                  "height": 36,
+                                  "component": "Gameplane/Input",
+                                  "componentId": "1:706",
+                                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
+                                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                  "cornerRadius": 12,
                                   "layout": {
-                                    "mode": "VERTICAL",
-                                    "gap": 4,
-                                    "padding": [0, 0, 0, 0],
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [8, 12, 8, 12],
                                     "primary": "MIN",
-                                    "counter": "MIN",
-                                    "sizing": ["HUG", "FIXED"]
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "FIXED"]
                                   },
-                                  "texts": ["Email", "2", "We'll never share your email."]
+                                  "variables": {
+                                    "cornerRadius": "radius/xl",
+                                    "fills/0/color": "field/background",
+                                    "strokes/0/color": "field/border"
+                                  },
+                                  "texts": ["2000"]
                                 },
                                 {
-                                  "id": "1:2131",
                                   "name": "CpuUnit",
                                   "type": "INSTANCE",
-                                  "x": 195.5,
+                                  "x": 517,
                                   "y": 0,
                                   "width": 110,
-                                  "height": 62,
-                                  "component": "Select/Secondary",
-                                  "componentId": "1:2132",
+                                  "height": 36,
+                                  "component": "Select/Primary",
+                                  "componentId": "1:1449",
                                   "layout": {
                                     "mode": "VERTICAL",
                                     "gap": 4,
@@ -502,7 +506,7 @@
                                     "counter": "MIN",
                                     "sizing": ["HUG", "FIXED"]
                                   },
-                                  "texts": ["Country", "cores", "Choose your country."]
+                                  "texts": ["mCPU"]
                                 }
                               ]
                             },
@@ -511,8 +515,8 @@
                               "name": "Helper",
                               "type": "TEXT",
                               "x": 0,
-                              "y": 86,
-                              "width": 305.5,
+                              "y": 62,
+                              "width": 627,
                               "height": 15,
                               "fills": [{"type": "SOLID", "color": "#9E98A6"}],
                               "layoutAlignSelf": "STRETCH",
@@ -527,10 +531,10 @@
                           "id": "1:2140",
                           "name": "Field",
                           "type": "FRAME",
-                          "x": 321.5,
-                          "y": 0,
-                          "width": 305.5,
-                          "height": 101,
+                          "x": 0,
+                          "y": 93,
+                          "width": 627,
+                          "height": 77,
                           "layout": {
                             "mode": "VERTICAL",
                             "gap": 4,
@@ -539,7 +543,7 @@
                             "counter": "MIN",
                             "sizing": ["HUG", "FIXED"]
                           },
-                          "layoutGrow": 1,
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
                               "id": "1:2141",
@@ -547,40 +551,37 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 45,
-                              "height": 16,
-                              "opacity": 0,
-                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "width": 54,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
                               "text": "Memory",
-                              "font": ["Geist", 400, 12],
-                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                              "font": ["Geist", 500, 14],
+                              "variables": {"fontFamily": "typography/font-sans"}
                             },
                             {
-                              "id": "1:2142",
                               "name": "CtrlRow",
                               "type": "FRAME",
                               "x": 0,
-                              "y": 20,
-                              "width": 305.5,
-                              "height": 62,
+                              "y": 22,
+                              "width": 627,
+                              "height": 36,
                               "layout": {
                                 "mode": "HORIZONTAL",
-                                "gap": 8,
+                                "gap": 12,
                                 "padding": [0, 0, 0, 0],
                                 "primary": "MIN",
                                 "counter": "CENTER",
-                                "sizing": ["FIXED", "HUG"]
+                                "sizing": ["FIXED", "FIXED"]
                               },
                               "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "1:2143",
                                   "name": "MemSlider",
                                   "type": "INSTANCE",
                                   "x": 0,
-                                  "y": 10,
-                                  "width": 115.5,
-                                  "height": 42,
+                                  "y": 8,
+                                  "width": 413,
+                                  "height": 20,
                                   "component": "Slider",
                                   "componentId": "1:1440",
                                   "layout": {
@@ -591,39 +592,46 @@
                                     "counter": "MIN",
                                     "sizing": ["HUG", "FIXED"]
                                   },
-                                  "layoutGrow": 1,
-                                  "texts": ["Memory"]
+                                  "layoutGrow": 1
                                 },
                                 {
-                                  "id": "1:2144",
                                   "name": "MemValue",
                                   "type": "INSTANCE",
-                                  "x": 123.5,
+                                  "x": 425,
                                   "y": 0,
-                                  "width": 64,
-                                  "height": 62,
-                                  "component": "Input/Primary",
-                                  "componentId": "1:1082",
+                                  "width": 80,
+                                  "height": 36,
+                                  "component": "Gameplane/Input",
+                                  "componentId": "1:706",
+                                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
+                                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                  "cornerRadius": 12,
                                   "layout": {
-                                    "mode": "VERTICAL",
-                                    "gap": 4,
-                                    "padding": [0, 0, 0, 0],
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [8, 12, 8, 12],
                                     "primary": "MIN",
-                                    "counter": "MIN",
-                                    "sizing": ["HUG", "FIXED"]
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "FIXED"]
                                   },
-                                  "texts": ["Email", "4", "We'll never share your email."]
+                                  "variables": {
+                                    "cornerRadius": "radius/xl",
+                                    "fills/0/color": "field/background",
+                                    "strokes/0/color": "field/border"
+                                  },
+                                  "texts": ["4"]
                                 },
                                 {
-                                  "id": "1:2145",
                                   "name": "MemUnit",
                                   "type": "INSTANCE",
-                                  "x": 195.5,
+                                  "x": 517,
                                   "y": 0,
                                   "width": 110,
-                                  "height": 62,
-                                  "component": "Select/Secondary",
-                                  "componentId": "1:2132",
+                                  "height": 36,
+                                  "component": "Select/Primary",
+                                  "componentId": "1:1449",
                                   "layout": {
                                     "mode": "VERTICAL",
                                     "gap": 4,
@@ -632,7 +640,7 @@
                                     "counter": "MIN",
                                     "sizing": ["HUG", "FIXED"]
                                   },
-                                  "texts": ["Country", "GiB", "Choose your country."]
+                                  "texts": ["GiB"]
                                 }
                               ]
                             },
@@ -641,8 +649,8 @@
                               "name": "Helper",
                               "type": "TEXT",
                               "x": 0,
-                              "y": 86,
-                              "width": 305.5,
+                              "y": 62,
+                              "width": 627,
                               "height": 15,
                               "fills": [{"type": "SOLID", "color": "#9E98A6"}],
                               "layoutAlignSelf": "STRETCH",
@@ -660,7 +668,7 @@
                       "name": "ReserveLess",
                       "type": "FRAME",
                       "x": 0,
-                      "y": 318,
+                      "y": 387,
                       "width": 627,
                       "height": 56,
                       "layout": {
@@ -742,9 +750,9 @@
                       "name": "StoragePlacementRow",
                       "type": "FRAME",
                       "x": 0,
-                      "y": 386,
+                      "y": 455,
                       "width": 627,
-                      "height": 79,
+                      "height": 77,
                       "layout": {
                         "mode": "HORIZONTAL",
                         "gap": 16,
@@ -756,15 +764,12 @@
                       "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "id": "1:2153",
                           "name": "Field Persistent storage",
-                          "type": "INSTANCE",
+                          "type": "FRAME",
                           "x": 0,
                           "y": 0,
                           "width": 305.5,
-                          "height": 79,
-                          "component": "Input/Secondary",
-                          "componentId": "1:2112",
+                          "height": 77,
                           "layout": {
                             "mode": "VERTICAL",
                             "gap": 4,
@@ -774,7 +779,101 @@
                             "sizing": ["HUG", "FIXED"]
                           },
                           "layoutGrow": 1,
-                          "texts": ["Persistent storage", "20Gi", "Mounted at /data (RWO PVC)."]
+                          "children": [
+                            {
+                              "name": "Label",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 0,
+                              "width": 120,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "Persistent storage",
+                              "font": ["Geist", 500, 14],
+                              "variables": {"fontFamily": "typography/font-sans"}
+                            },
+                            {
+                              "name": "CtrlRow",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 22,
+                              "width": 305.5,
+                              "height": 36,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 12,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "children": [
+                                {
+                                  "name": "StorageValue",
+                                  "type": "INSTANCE",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 80,
+                                  "height": 36,
+                                  "component": "Gameplane/Input",
+                                  "componentId": "1:706",
+                                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                  "strokeWeight": 1,
+                                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                  "cornerRadius": 12,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [8, 12, 8, 12],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "FIXED"]
+                                  },
+                                  "variables": {
+                                    "cornerRadius": "radius/xl",
+                                    "fills/0/color": "field/background",
+                                    "strokes/0/color": "field/border"
+                                  },
+                                  "texts": ["20"]
+                                },
+                                {
+                                  "name": "StorageUnit",
+                                  "type": "INSTANCE",
+                                  "x": 92,
+                                  "y": 0,
+                                  "width": 110,
+                                  "height": 36,
+                                  "component": "Select/Primary",
+                                  "componentId": "1:1449",
+                                  "layout": {
+                                    "mode": "VERTICAL",
+                                    "gap": 4,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "MIN",
+                                    "sizing": ["HUG", "FIXED"]
+                                  },
+                                  "texts": ["GiB"]
+                                }
+                              ]
+                            },
+                            {
+                              "name": "Helper",
+                              "type": "TEXT",
+                              "x": 0,
+                              "y": 62,
+                              "width": 305.5,
+                              "height": 15,
+                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "layoutAlignSelf": "STRETCH",
+                              "text": "Mounted at /data (RWO PVC).",
+                              "font": ["Geist", 400, 11],
+                              "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                            }
+                          ]
                         },
                         {
                           "id": "1:2154",
@@ -783,7 +882,7 @@
                           "x": 321.5,
                           "y": 0,
                           "width": 305.5,
-                          "height": 75,
+                          "height": 77,
                           "layout": {
                             "mode": "VERTICAL",
                             "gap": 4,
@@ -800,20 +899,20 @@
                               "type": "TEXT",
                               "x": 0,
                               "y": 0,
-                              "width": 91,
-                              "height": 16,
-                              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "width": 108,
+                              "height": 18,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
                               "text": "Node placement",
-                              "font": ["Geist", 400, 12],
-                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                              "font": ["Geist", 500, 14],
+                              "variables": {"fontFamily": "typography/font-sans"}
                             },
                             {
                               "id": "1:2156",
                               "name": "Segmented",
                               "type": "FRAME",
                               "x": 0,
-                              "y": 20,
-                              "width": 318,
+                              "y": 22,
+                              "width": 305.5,
                               "height": 36,
                               "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
@@ -825,8 +924,9 @@
                                 "padding": [4, 4, 4, 4],
                                 "primary": "MIN",
                                 "counter": "CENTER",
-                                "sizing": ["HUG", "HUG"]
+                                "sizing": ["FIXED", "HUG"]
                               },
+                              "layoutAlignSelf": "STRETCH",
                               "variables": {"strokes/0/color": "border/border"},
                               "children": [
                                 {
@@ -835,7 +935,7 @@
                                   "type": "FRAME",
                                   "x": 4,
                                   "y": 4,
-                                  "width": 117,
+                                  "width": 96.5,
                                   "height": 28,
                                   "fills": [{"type": "SOLID", "color": "#2C1926"}],
                                   "cornerRadius": 4,
@@ -845,20 +945,21 @@
                                     "padding": [0, 12, 0, 12],
                                     "primary": "CENTER",
                                     "counter": "CENTER",
-                                    "sizing": ["HUG", "FIXED"]
+                                    "sizing": ["FIXED", "FIXED"]
                                   },
+                                  "layoutGrow": 1,
                                   "variables": {"fills/0/color": "accent/soft"},
                                   "children": [
                                     {
                                       "id": "1:2158",
                                       "name": "Label",
                                       "type": "TEXT",
-                                      "x": 12,
+                                      "x": 34.75,
                                       "y": 6,
-                                      "width": 93,
+                                      "width": 27,
                                       "height": 16,
                                       "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
-                                      "text": "Auto (scheduler)",
+                                      "text": "Auto",
                                       "font": ["Geist", 500, 12],
                                       "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                                     }
@@ -868,9 +969,9 @@
                                   "id": "1:2159",
                                   "name": "Seg",
                                   "type": "FRAME",
-                                  "x": 125,
+                                  "x": 104.5,
                                   "y": 4,
-                                  "width": 87,
+                                  "width": 96.5,
                                   "height": 28,
                                   "cornerRadius": 4,
                                   "layout": {
@@ -879,14 +980,15 @@
                                     "padding": [0, 12, 0, 12],
                                     "primary": "CENTER",
                                     "counter": "CENTER",
-                                    "sizing": ["HUG", "FIXED"]
+                                    "sizing": ["FIXED", "FIXED"]
                                   },
+                                  "layoutGrow": 1,
                                   "children": [
                                     {
                                       "id": "1:2160",
                                       "name": "Label",
                                       "type": "TEXT",
-                                      "x": 12,
+                                      "x": 16.75,
                                       "y": 6,
                                       "width": 63,
                                       "height": 16,
@@ -901,9 +1003,9 @@
                                   "id": "1:2161",
                                   "name": "Seg",
                                   "type": "FRAME",
-                                  "x": 216,
+                                  "x": 205,
                                   "y": 4,
-                                  "width": 98,
+                                  "width": 96.5,
                                   "height": 28,
                                   "cornerRadius": 4,
                                   "layout": {
@@ -912,14 +1014,15 @@
                                     "padding": [0, 12, 0, 12],
                                     "primary": "CENTER",
                                     "counter": "CENTER",
-                                    "sizing": ["HUG", "FIXED"]
+                                    "sizing": ["FIXED", "FIXED"]
                                   },
+                                  "layoutGrow": 1,
                                   "children": [
                                     {
                                       "id": "1:2162",
                                       "name": "Label",
                                       "type": "TEXT",
-                                      "x": 12,
+                                      "x": 11.25,
                                       "y": 6,
                                       "width": 74,
                                       "height": 16,
@@ -937,7 +1040,7 @@
                               "name": "Helper",
                               "type": "TEXT",
                               "x": 0,
-                              "y": 60,
+                              "y": 62,
                               "width": 305.5,
                               "height": 15,
                               "fills": [{"type": "SOLID", "color": "#9E98A6"}],
@@ -956,13 +1059,13 @@
                       "name": "TemplateConfigSection",
                       "type": "FRAME",
                       "x": 0,
-                      "y": 477,
+                      "y": 544,
                       "width": 627,
-                      "height": 1013,
+                      "height": 1025,
                       "layout": {
                         "mode": "VERTICAL",
                         "gap": 12,
-                        "padding": [0, 0, 0, 0],
+                        "padding": [12, 0, 0, 0],
                         "primary": "MIN",
                         "counter": "MIN",
                         "sizing": ["HUG", "FIXED"]
@@ -974,7 +1077,7 @@
                           "name": "SectionLabel",
                           "type": "TEXT",
                           "x": 0,
-                          "y": 0,
+                          "y": 12,
                           "width": 146,
                           "height": 14,
                           "fills": [{"type": "SOLID", "color": "#9E98A6"}],
@@ -987,7 +1090,7 @@
                           "name": "Field Difficulty",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 26,
+                          "y": 38,
                           "width": 627,
                           "height": 60,
                           "component": "Select/Secondary",
@@ -1008,7 +1111,7 @@
                           "name": "Field Game mode",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 98,
+                          "y": 110,
                           "width": 627,
                           "height": 60,
                           "component": "Select/Secondary",
@@ -1029,7 +1132,7 @@
                           "name": "Field Max players",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 170,
+                          "y": 182,
                           "width": 627,
                           "height": 60,
                           "component": "Input/Secondary",
@@ -1050,7 +1153,7 @@
                           "name": "Field MOTD",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 242,
+                          "y": 254,
                           "width": 627,
                           "height": 77,
                           "component": "Input/Secondary",
@@ -1071,7 +1174,7 @@
                           "name": "Field World seed",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 331,
+                          "y": 343,
                           "width": 627,
                           "height": 77,
                           "component": "Input/Secondary",
@@ -1092,7 +1195,7 @@
                           "name": "Field Enforce whitelist",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 420,
+                          "y": 432,
                           "width": 627,
                           "height": 60,
                           "component": "Select/Secondary",
@@ -1113,7 +1216,7 @@
                           "name": "Field PvP enabled",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 492,
+                          "y": 504,
                           "width": 627,
                           "height": 60,
                           "component": "Select/Secondary",
@@ -1134,7 +1237,7 @@
                           "name": "Field Hardcore mode",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 564,
+                          "y": 576,
                           "width": 627,
                           "height": 60,
                           "component": "Select/Secondary",
@@ -1155,7 +1258,7 @@
                           "name": "Field Online mode",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 636,
+                          "y": 648,
                           "width": 627,
                           "height": 76,
                           "component": "Select/Secondary",
@@ -1176,7 +1279,7 @@
                           "name": "Field View distance (chunks)",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 724,
+                          "y": 736,
                           "width": 627,
                           "height": 60,
                           "component": "Input/Secondary",
@@ -1197,7 +1300,7 @@
                           "name": "Field JVM max heap",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 796,
+                          "y": 808,
                           "width": 627,
                           "height": 111,
                           "component": "Input/Secondary",
@@ -1222,7 +1325,7 @@
                           "name": "Field JVM initial heap",
                           "type": "INSTANCE",
                           "x": 0,
-                          "y": 919,
+                          "y": 931,
                           "width": 627,
                           "height": 94,
                           "component": "Input/Secondary",
@@ -1248,7 +1351,7 @@
                       "name": "Gameplane/Security Advanced",
                       "type": "INSTANCE",
                       "x": 0,
-                      "y": 1502,
+                      "y": 1581,
                       "width": 627,
                       "height": 119,
                       "component": "Gameplane/Security Advanced",
@@ -1700,7 +1803,7 @@
               "name": "Footer",
               "type": "INSTANCE",
               "x": 0,
-              "y": 1898,
+              "y": 1977,
               "width": 960,
               "height": 68,
               "component": "Gameplane/Wizard Modal Footer",

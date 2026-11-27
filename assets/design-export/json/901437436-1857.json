@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Settings · Security (Held back, stopped)",
   "type": "FRAME",
   "x": 6560,
-  "y": 54439,
+  "y": 56713,
   "width": 1440,
   "height": 1017,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -140,7 +140,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [16, 24, 16, 24],
+                "padding": [16, 0, 16, 0],
                 "primary": "SPACE_BETWEEN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -172,7 +172,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 0, 24],
+                "padding": [0, 0, 0, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]

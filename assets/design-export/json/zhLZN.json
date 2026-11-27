@@ -132,9 +132,7 @@
                   "y": 9,
                   "width": 14,
                   "height": 14,
-                  "opacity": 0,
-                  "component": "lucide/pencil/14x14",
-                  "variables": {"fills/0/color": "foreground/foreground"}
+                  "component": "lucide/pencil/14x14"
                 },
                 {
                   "id": "1:10117",
@@ -729,8 +727,7 @@
                   "y": 9,
                   "width": 14,
                   "height": 14,
-                  "component": "lucide/trash-2/14x14",
-                  "variables": {"fills/0/color": "danger/foreground"}
+                  "component": "lucide/trash-2/14x14"
                 },
                 {
                   "id": "1:10151",
@@ -795,8 +792,7 @@
                   "width": 14,
                   "height": 14,
                   "visible": false,
-                  "component": "lucide/rotate-ccw/14x14",
-                  "variables": {"fills/0/color": "accent/foreground"}
+                  "component": "lucide/rotate-ccw/14x14"
                 },
                 {
                   "id": "1:10153",

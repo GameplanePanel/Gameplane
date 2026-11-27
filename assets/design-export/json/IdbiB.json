@@ -4,7 +4,7 @@
   "name": "Screen/Dialog/Build Module — Step 1 (Preset & Metadata)",
   "type": "FRAME",
   "x": 0,
-  "y": 62541,
+  "y": 64815,
   "width": 800,
   "height": 977,
   "fills": [{"type": "SOLID", "color": "#1C1A20"}],
@@ -1611,7 +1611,7 @@
               "componentId": "1:633",
               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
               "strokeWeight": 1,
-              "cornerRadius": 24,
+              "cornerRadius": 12,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 5,
@@ -1621,9 +1621,12 @@
                 "sizing": ["HUG", "FIXED"]
               },
               "variables": {
-                "cornerRadius": "radius/3xl",
                 "paddingRight": "spacing/3",
                 "paddingLeft": "spacing/3",
+                "topLeftRadius": "radius/xl",
+                "topRightRadius": "radius/xl",
+                "bottomLeftRadius": "radius/xl",
+                "bottomRightRadius": "radius/xl",
                 "strokes/0/color": "border-2"
               },
               "texts": ["Cancel"]

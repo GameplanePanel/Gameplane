@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Settings · Lifecycle",
   "type": "FRAME",
   "x": 0,
-  "y": 48519,
+  "y": 50793,
   "width": 1440,
   "height": 1620,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -143,7 +143,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [16, 24, 16, 24],
+                "padding": [16, 0, 16, 0],
                 "primary": "SPACE_BETWEEN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -176,7 +176,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 0, 24],
+                "padding": [0, 0, 0, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -2279,7 +2279,7 @@
                                               "fills": [{"type": "SOLID", "color": "#121114"}],
                                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                               "strokeWeight": 1,
-                                              "cornerRadius": 24,
+                                              "cornerRadius": 12,
                                               "layout": {
                                                 "mode": "HORIZONTAL",
                                                 "gap": 0,
@@ -2289,7 +2289,10 @@
                                                 "sizing": ["FIXED", "FIXED"]
                                               },
                                               "variables": {
-                                                "cornerRadius": "radius/3xl",
+                                                "topLeftRadius": "radius/xl",
+                                                "topRightRadius": "radius/xl",
+                                                "bottomLeftRadius": "radius/xl",
+                                                "bottomRightRadius": "radius/xl",
                                                 "fills/0/color": "background/background",
                                                 "strokes/0/color": "border/border"
                                               }
@@ -2358,7 +2361,7 @@
                                               "fills": [{"type": "SOLID", "color": "#121114"}],
                                               "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                               "strokeWeight": 1,
-                                              "cornerRadius": 24,
+                                              "cornerRadius": 12,
                                               "layout": {
                                                 "mode": "HORIZONTAL",
                                                 "gap": 0,
@@ -2368,7 +2371,10 @@
                                                 "sizing": ["FIXED", "FIXED"]
                                               },
                                               "variables": {
-                                                "cornerRadius": "radius/3xl",
+                                                "topLeftRadius": "radius/xl",
+                                                "topRightRadius": "radius/xl",
+                                                "bottomLeftRadius": "radius/xl",
+                                                "bottomRightRadius": "radius/xl",
                                                 "fills/0/color": "background/background",
                                                 "strokes/0/color": "border/border"
                                               }

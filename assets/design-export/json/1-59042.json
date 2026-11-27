@@ -1,0 +1,967 @@
+{
+  "file": "1-59042",
+  "id": "1:59042",
+  "name": "Screen/Theme catalog",
+  "type": "FRAME",
+  "x": 0,
+  "y": 86925,
+  "width": 1440,
+  "height": 1224,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "id": "1:59261",
+      "name": "App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 1224,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "id": "1:59293",
+      "name": "Main",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 1224,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "id": "1:59631",
+          "name": "Top Bar",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "children": [
+            {
+              "id": "1:59977",
+              "name": "Breadcrumbs",
+              "type": "FRAME",
+              "x": 32,
+              "y": 23,
+              "width": 309,
+              "height": 18,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "id": "1:60123",
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 72,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "gameplane",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "id": "1:60124",
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 80,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "id": "1:60362",
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60125",
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 102,
+                  "y": 0,
+                  "width": 53,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Settings",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "id": "1:60126",
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 163,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "id": "1:60363",
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60127",
+                  "name": "crumbRoot",
+                  "type": "TEXT",
+                  "x": 185,
+                  "y": 0,
+                  "width": 43,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Theme",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                },
+                {
+                  "id": "1:60128",
+                  "name": "crumbSep",
+                  "type": "FRAME",
+                  "x": 236,
+                  "y": 2,
+                  "width": 14,
+                  "height": 14,
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "id": "1:60364",
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 5.25,
+                      "y": 3.5,
+                      "width": 3.5,
+                      "height": 7,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60129",
+                  "name": "crumbPage",
+                  "type": "TEXT",
+                  "x": 258,
+                  "y": 0,
+                  "width": 51,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Catalog",
+                  "font": ["Geist", 500, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                }
+              ]
+            },
+            {
+              "id": "1:59978",
+              "name": "Actions",
+              "type": "FRAME",
+              "x": 764,
+              "y": 0,
+              "width": 384,
+              "height": 64,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:60130",
+                  "name": "Cluster Pill",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 15.5,
+                  "width": 94,
+                  "height": 33,
+                  "visible": false,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 8,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                  "children": [
+                    {
+                      "id": "1:60365",
+                      "name": "healthDot",
+                      "type": "ELLIPSE",
+                      "x": 12,
+                      "y": 12.5,
+                      "width": 8,
+                      "height": 8,
+                      "fills": [{"type": "SOLID", "color": "#21C45D"}],
+                      "variables": {"fills/0/color": "success/success"}
+                    },
+                    {
+                      "id": "1:60366",
+                      "name": "clusterName",
+                      "type": "TEXT",
+                      "x": 28,
+                      "y": 8,
+                      "width": 30,
+                      "height": 17,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "local",
+                      "font": ["Geist", 500, 13],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "id": "1:60367",
+                      "name": "chevron",
+                      "type": "INSTANCE",
+                      "x": 66,
+                      "y": 8.5,
+                      "width": 16,
+                      "height": 16,
+                      "component": "lucide/chevron-down/16x16"
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60131",
+                  "name": "Search",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 12,
+                  "width": 280,
+                  "height": 40,
+                  "component": "SearchField/Primary",
+                  "componentId": "1:1928",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "texts": ["Search servers…"]
+                },
+                {
+                  "id": "1:60132",
+                  "name": "Bell Wrap",
+                  "type": "FRAME",
+                  "x": 292,
+                  "y": 12,
+                  "width": 40,
+                  "height": 40,
+                  "children": [
+                    {
+                      "id": "1:60368",
+                      "name": "Sdet8",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 36,
+                      "height": 36,
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "id": "1:60579",
+                          "name": "icon",
+                          "type": "INSTANCE",
+                          "x": 8,
+                          "y": 8,
+                          "width": 20,
+                          "height": 20,
+                          "component": "lucide/bell/20x20"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "1:60369",
+                      "name": "UnreadDot",
+                      "type": "ELLIPSE",
+                      "x": 29,
+                      "y": 1,
+                      "width": 8,
+                      "height": 8,
+                      "visible": false,
+                      "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                      "strokes": [{"type": "SOLID", "color": "#121114"}],
+                      "strokeWeight": 1.5,
+                      "variables": {"fills/0/color": "accent/accent", "strokes/0/color": "background/background"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:60133",
+                  "name": "Avatar",
+                  "type": "INSTANCE",
+                  "x": 344,
+                  "y": 12,
+                  "width": 40,
+                  "height": 40,
+                  "component": "Avatar/Text",
+                  "componentId": "1:2407",
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 9999,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "default/default"},
+                  "texts": ["AD"]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1:59632",
+          "name": "Body",
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 1160,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:59979",
+              "name": "Page Header",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "component": "Gameplane/Page Header",
+              "componentId": "1:3282",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "Theme catalog",
+                "Browse themes from your sources, preview them, and install them for your account."
+              ]
+            },
+            {
+              "id": "1:59980",
+              "name": "Settings Layout",
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 1035,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 24,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:60134",
+                  "name": "Settings Nav",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 220,
+                  "height": 530,
+                  "component": "Gameplane/Admin Settings Nav/Theme active",
+                  "componentId": "1:59062",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 2,
+                    "padding": [8, 0, 8, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "texts": [
+                    "ACCOUNT",
+                    "Theme",
+                    "MCP tokens",
+                    "SFTP",
+                    "SERVER",
+                    "General",
+                    "Authentication",
+                    "Module sources",
+                    "Theme sources",
+                    "Mod registries",
+                    "Notifications",
+                    "Telemetry",
+                    "Updates",
+                    "About"
+                  ]
+                },
+                {
+                  "id": "1:60135",
+                  "name": "Content Column",
+                  "type": "FRAME",
+                  "x": 244,
+                  "y": 0,
+                  "width": 888,
+                  "height": 1035,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 16,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "id": "1:60370",
+                      "name": "Catalog Filters",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 888,
+                      "height": 84,
+                      "component": "Gameplane/Theme Catalog Filters",
+                      "componentId": "1:59081",
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 12,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "texts": ["Search themes…", "All sources", "All tags", "Dark", "Light", "Minimal", "High contrast", "Retro"]
+                    },
+                    {
+                      "id": "1:60371",
+                      "name": "Theme Grid",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 100,
+                      "width": 888,
+                      "height": 935,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 16,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "id": "1:60580",
+                          "name": "Grid Row 1",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 888,
+                          "height": 301,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 16,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "id": "1:60763",
+                              "name": "Gameplane/Theme Card/Update available",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
+                              "width": 285,
+                              "height": 301,
+                              "component": "Gameplane/Theme Card/Update available",
+                              "componentId": "1:59080",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 10,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                              "texts": [
+                                "Dark only",
+                                "Aurora Night",
+                                "UPDATE AVAILABLE",
+                                "by Ada Reyes · v1.2.0 → v1.3.0",
+                                "Deep blue surfaces with a cyan accent. Tuned for long sessions.",
+                                "Dark only",
+                                "official",
+                                "Preview",
+                                "Update"
+                              ]
+                            },
+                            {
+                              "id": "1:60764",
+                              "name": "Gameplane/Theme Card/Installed",
+                              "type": "INSTANCE",
+                              "x": 301,
+                              "y": 0,
+                              "width": 285,
+                              "height": 301,
+                              "component": "Gameplane/Theme Card/Installed",
+                              "componentId": "1:59069",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 10,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                              "texts": [
+                                "Paper Light",
+                                "INSTALLED",
+                                "by Mira Okafor · v1.0.3",
+                                "Warm paper tones and high-contrast ink for daytime admin work.",
+                                "Light",
+                                "Dark",
+                                "official",
+                                "Preview",
+                                "Remove"
+                              ]
+                            },
+                            {
+                              "id": "1:60765",
+                              "name": "Gameplane/Theme Card/Available",
+                              "type": "INSTANCE",
+                              "x": 602,
+                              "y": 0,
+                              "width": 285,
+                              "height": 301,
+                              "component": "Gameplane/Theme Card/Available",
+                              "componentId": "1:59068",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 10,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                              "texts": [
+                                "Ember",
+                                "by Jon Vasquez · v1.8.0",
+                                "Charcoal and amber for dashboards that run all day.",
+                                "Light",
+                                "Dark",
+                                "official",
+                                "Preview",
+                                "Install"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:60581",
+                          "name": "Grid Row 2",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 317,
+                          "width": 888,
+                          "height": 301,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 16,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "id": "1:60766",
+                              "name": "Gameplane/Theme Card/Low contrast",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
+                              "width": 285,
+                              "height": 301,
+                              "component": "Gameplane/Theme Card/Low contrast",
+                              "componentId": "1:59071",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 10,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                              "texts": [
+                                "Dark only",
+                                "Moss Terminal",
+                                "LOW CONTRAST",
+                                "by Lena Park · v0.9.1",
+                                "Green-on-black terminal palette. Body text contrast is below AA.",
+                                "Dark only",
+                                "community",
+                                "Preview",
+                                "Install"
+                              ]
+                            },
+                            {
+                              "id": "1:60767",
+                              "name": "Gameplane/Theme Card/Not verified",
+                              "type": "INSTANCE",
+                              "x": 301,
+                              "y": 0,
+                              "width": 285,
+                              "height": 301,
+                              "component": "Gameplane/Theme Card/Not verified",
+                              "componentId": "1:59078",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 10,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                              "texts": [
+                                "Sea Glass",
+                                "NOT VERIFIED",
+                                "by Tomas Berg · v1.1.0",
+                                "Cool teal surfaces with light and dark variants.",
+                                "Light",
+                                "Dark",
+                                "community",
+                                "Preview",
+                                "Install"
+                              ]
+                            },
+                            {
+                              "id": "1:60768",
+                              "name": "Gameplane/Theme Card/Invalid",
+                              "type": "INSTANCE",
+                              "x": 602,
+                              "y": 0,
+                              "width": 285,
+                              "height": 301,
+                              "component": "Gameplane/Theme Card/Invalid",
+                              "componentId": "1:59070",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 10,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                              "texts": [
+                                "Broken Pastel",
+                                "INVALID",
+                                "by Ines Duarte · v0.3.0",
+                                "Pastel accents. Three problems block installation.",
+                                "Light",
+                                "Dark",
+                                "community",
+                                "Install"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "1:60582",
+                          "name": "Grid Row 3",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 634,
+                          "width": 888,
+                          "height": 301,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 16,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "children": [
+                            {
+                              "id": "1:60769",
+                              "name": "Gameplane/Theme Card/Available",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
+                              "width": 285,
+                              "height": 301,
+                              "component": "Gameplane/Theme Card/Available",
+                              "componentId": "1:59068",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 10,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                              "texts": [
+                                "Dark only",
+                                "Solar Dusk",
+                                "by Kai Moreno · v1.0.0",
+                                "Amber sunset gradients on a muted dark surface.",
+                                "Dark only",
+                                "official",
+                                "Preview",
+                                "Install"
+                              ]
+                            },
+                            {
+                              "id": "1:60770",
+                              "name": "Gameplane/Theme Card/Available",
+                              "type": "INSTANCE",
+                              "x": 301,
+                              "y": 0,
+                              "width": 285,
+                              "height": 301,
+                              "component": "Gameplane/Theme Card/Available",
+                              "componentId": "1:59068",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 10,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                              "texts": [
+                                "Mono Print",
+                                "by Rhea Singh · v1.4.2",
+                                "Grayscale only, print-like layout, large type scale.",
+                                "Light",
+                                "Dark",
+                                "official",
+                                "Preview",
+                                "Install"
+                              ]
+                            },
+                            {
+                              "id": "1:60771",
+                              "name": "Gameplane/Theme Card/Installed",
+                              "type": "INSTANCE",
+                              "x": 602,
+                              "y": 0,
+                              "width": 285,
+                              "height": 301,
+                              "component": "Gameplane/Theme Card/Installed",
+                              "componentId": "1:59069",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "cornerRadius": 10,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 12,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+                              "texts": [
+                                "Nordic Frost",
+                                "INSTALLED",
+                                "by Elin Haugen · v2.0.1",
+                                "Cold blues and soft whites inspired by northern winters.",
+                                "Light",
+                                "Dark",
+                                "community",
+                                "Preview",
+                                "Remove"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -228,7 +228,7 @@ export function UsersPage() {
         variant="secondary"
       >
         <div className="flex items-center gap-3">
-          <Tabs.List className="users-rbac-tabs w-fit min-w-0">
+          <Tabs.List className="users-rbac-tabs min-w-0">
             <TabComponent id="users">
               <div className="flex items-center gap-2">
                 <span>{intl.formatMessage({ id: "web.routes.users.users", defaultMessage: "Users", description: "Users: name of the Users tab, followed by a count in brackets; keep it short" })}</span>
@@ -267,7 +267,6 @@ export function UsersPage() {
               </Alert>
             )}
 
-            <Card className="overflow-hidden p-0">
             <Table.Root>
               <Table.ScrollContainer>
                 <Table.Content aria-label={intl.formatMessage({ id: "web.routes.users.users_list", defaultMessage: "Users list", description: "Users: accessible name of the users table" })} keyboardNavigationBehavior="arrow">
@@ -396,7 +395,6 @@ export function UsersPage() {
                 </Table.Content>
               </Table.ScrollContainer>
             </Table.Root>
-            </Card>
           </Tabs.Panel>
 
           <Tabs.Panel id="roles">

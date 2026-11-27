@@ -178,13 +178,29 @@ describe("ResourceInput", () => {
   describe("Accessibility", () => {
     it("passes aria-label to slider", () => {
       render(<ResourceInput kind="cpu" value="1" onChange={() => {}} />);
-      expect(screen.getByRole("slider")).toHaveAttribute("aria-label", "CPU cores");
+      expect(screen.getByRole("slider")).toHaveAttribute("aria-label", "CPU");
     });
 
     it("provides aria-labels for input and select", () => {
       render(<ResourceInput kind="memory" value="4Gi" onChange={() => {}} />);
-      expect(screen.getByLabelText("Memory (GiB) value")).toBeInTheDocument();
-      expect(screen.getByLabelText("Memory (GiB) unit")).toBeInTheDocument();
+      expect(screen.getByLabelText("Memory value")).toBeInTheDocument();
+      expect(screen.getByLabelText("Memory unit")).toBeInTheDocument();
+    });
+
+    it("fills the slider track up to the handle through --fill", () => {
+      const { rerender } = render(<ResourceInput kind="cpu" value="5" onChange={() => {}} min={0} max={10} />);
+      expect(screen.getByRole("slider").style.getPropertyValue("--fill")).toBe("50%");
+      rerender(<ResourceInput kind="memory" value="2Gi" onChange={() => {}} min={0} max={8} />);
+      expect(screen.getByRole("slider").style.getPropertyValue("--fill")).toBe("25%");
+      rerender(<ResourceInput kind="cpu" value="20" onChange={() => {}} min={0} max={10} />);
+      expect(screen.getByRole("slider").style.getPropertyValue("--fill")).toBe("100%");
+    });
+
+    it("uses the shared range class and a number box wide enough for 8000", () => {
+      render(<ResourceInput kind="cpu" value="8000m" onChange={() => {}} />);
+      expect(screen.getByRole("slider")).toHaveClass("range");
+      expect(screen.getByRole("spinbutton")).toHaveClass("w-24");
+      expect(screen.getByRole("spinbutton")).toHaveValue(8000);
     });
 
     it("uses the label prop as the accessible name when given", () => {

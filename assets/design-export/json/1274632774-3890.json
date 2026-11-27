@@ -3,7 +3,7 @@
   "name": "Screen/Mobile — Server Detail — Modpacks",
   "type": "FRAME",
   "x": 18880,
-  "y": 35101,
+  "y": 37375,
   "width": 390,
   "height": 1100,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -183,7 +183,7 @@
               "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
               "text": "All loaders",
               "font": ["Geist", 400, 13],
-              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+              "variables": {"fills/0/color": "foreground/foreground"}
             },
             {
               "name": "All loaders switch",

@@ -29,6 +29,8 @@ on:
       - "gameaction/**"
       - "gameproto/**"
       - "telemetryschema/**"
+      - "themepkg/**"
+      - "bundlefetch/**"
       - "i18n/**"
       - "gp-module/**"
       - "audit-syslog-bridge"

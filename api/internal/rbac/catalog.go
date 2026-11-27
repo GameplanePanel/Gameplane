@@ -45,6 +45,9 @@ var Catalog = []PermGroup{
 		{Key: "modules:read", Label: "View the module catalog and sources", Namespaced: false},
 		{Key: "modules:manage", Label: "Install, upgrade, and uninstall modules and sources", Namespaced: false},
 	}},
+	{Resource: "themes", Label: "Themes", Permissions: []Permission{
+		{Key: "themes:manage", Label: "Manage theme sources", Namespaced: false},
+	}},
 	{Resource: "destinations", Label: "Backup destinations", Permissions: []Permission{
 		{Key: "destinations:read", Label: "View backup destinations", Namespaced: true},
 		{Key: "destinations:manage", Label: "Create, edit, and delete backup destinations", Namespaced: true},

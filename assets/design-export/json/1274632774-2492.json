@@ -3,7 +3,7 @@
   "name": "Screen/Server Detail — Modpacks (Missing files)",
   "type": "FRAME",
   "x": 11480,
-  "y": 35101,
+  "y": 37375,
   "width": 1440,
   "height": 1080,
   "fills": [{"type": "SOLID", "color": "#121114"}],
@@ -110,7 +110,7 @@
           "x": 0,
           "y": 64,
           "width": 1180,
-          "height": 936,
+          "height": 1016,
           "fills": [{"type": "SOLID", "color": "#121114"}],
           "layout": {
             "mode": "VERTICAL",

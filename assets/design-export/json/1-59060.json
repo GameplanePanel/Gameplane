@@ -1,0 +1,674 @@
+{
+  "file": "1-59060",
+  "id": "1:59060",
+  "name": "Screen/Mobile — Theme detail",
+  "type": "FRAME",
+  "x": 3280,
+  "y": 88922,
+  "width": 390,
+  "height": 1272,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "id": "1:59398",
+      "name": "Mobile TopBar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64,
+      "component": "Gameplane/Mobile TopBar",
+      "componentId": "1:1782",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 16, 0, 16],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Settings", "AD"]
+    },
+    {
+      "id": "1:59399",
+      "name": "Body",
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 390,
+      "height": 1190,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "id": "1:59700",
+          "name": "Page Header",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 16,
+          "width": 358,
+          "height": 48,
+          "component": "Gameplane/Page Header",
+          "componentId": "1:3282",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "texts": ["Theme details", "Preview a theme, then install it for your account."]
+        },
+        {
+          "id": "1:59701",
+          "name": "Gameplane/Back Link",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 80,
+          "width": 112,
+          "height": 17,
+          "component": "Gameplane/Back Link",
+          "componentId": "1:59064",
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 4,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
+          "texts": ["Back to catalog"]
+        },
+        {
+          "id": "1:59702",
+          "name": "Theme Header",
+          "type": "FRAME",
+          "x": 16,
+          "y": 113,
+          "width": 358,
+          "height": 154,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:60067",
+              "name": "Title Row",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 247,
+              "height": 29,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 10,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "id": "1:60347",
+                  "name": "detailName",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 133,
+                  "height": 29,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Aurora Night",
+                  "font": ["Geist", 600, 22],
+                  "variables": {"fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "id": "1:60348",
+                  "name": "detailBadge",
+                  "type": "INSTANCE",
+                  "x": 143,
+                  "y": 6,
+                  "width": 104,
+                  "height": 17,
+                  "component": "Chip/Soft/Warning/SM",
+                  "componentId": "1:3082",
+                  "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
+                  "cornerRadius": 16,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 2,
+                    "padding": [2, 4, 2, 4],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "warning/soft"},
+                  "texts": ["UPDATE AVAILABLE"]
+                }
+              ]
+            },
+            {
+              "id": "1:60068",
+              "name": "author",
+              "type": "TEXT",
+              "x": 0,
+              "y": 37,
+              "width": 81,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "by Ada Reyes",
+              "font": ["Geist", 400, 13],
+              "variables": {"fills/0/color": "foreground/muted"}
+            },
+            {
+              "id": "1:60069",
+              "name": "meta Version",
+              "type": "FRAME",
+              "x": 0,
+              "y": 62,
+              "width": 173,
+              "height": 17,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "id": "1:60349",
+                  "name": "metaKey",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 45,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Version",
+                  "font": ["Geist", 400, 13],
+                  "variables": {"fills/0/color": "foreground/muted"}
+                },
+                {
+                  "id": "1:60350",
+                  "name": "metaVal",
+                  "type": "TEXT",
+                  "x": 51,
+                  "y": 0,
+                  "width": 122,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "1.3.0 (installed 1.2.0)",
+                  "font": ["Geist", 500, 13],
+                  "variables": {"fills/0/color": "foreground/foreground"}
+                }
+              ]
+            },
+            {
+              "id": "1:60070",
+              "name": "meta License",
+              "type": "FRAME",
+              "x": 0,
+              "y": 87,
+              "width": 74,
+              "height": 17,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "id": "1:60351",
+                  "name": "metaKey",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 46,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "License",
+                  "font": ["Geist", 400, 13],
+                  "variables": {"fills/0/color": "foreground/muted"}
+                },
+                {
+                  "id": "1:60352",
+                  "name": "metaVal",
+                  "type": "TEXT",
+                  "x": 52,
+                  "y": 0,
+                  "width": 22,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "MIT",
+                  "font": ["Geist", 500, 13],
+                  "variables": {"fills/0/color": "foreground/foreground"}
+                }
+              ]
+            },
+            {
+              "id": "1:60071",
+              "name": "meta Homepage",
+              "type": "FRAME",
+              "x": 0,
+              "y": 112,
+              "width": 305,
+              "height": 17,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "id": "1:60353",
+                  "name": "metaKey",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 65,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Homepage",
+                  "font": ["Geist", 400, 13],
+                  "variables": {"fills/0/color": "foreground/muted"}
+                },
+                {
+                  "id": "1:60354",
+                  "name": "homepageLink",
+                  "type": "TEXT",
+                  "x": 71,
+                  "y": 0,
+                  "width": 216,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#7DB4FF"}],
+                  "text": "github.com/ada-reyes/aurora-night",
+                  "font": ["Geist", 500, 13],
+                  "variables": {"fills/0/color": "foreground/link"}
+                },
+                {
+                  "id": "1:60355",
+                  "name": "icon",
+                  "type": "INSTANCE",
+                  "x": 293,
+                  "y": 2.5,
+                  "width": 12,
+                  "height": 12,
+                  "component": "lucide/external-link/12x12"
+                }
+              ]
+            },
+            {
+              "id": "1:60072",
+              "name": "Tags Row",
+              "type": "FRAME",
+              "x": 0,
+              "y": 137,
+              "width": 159,
+              "height": 17,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "id": "1:60356",
+                  "name": "tag dark",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 32,
+                  "height": 17,
+                  "component": "Chip/Tertiary/Default/SM",
+                  "componentId": "1:1932",
+                  "cornerRadius": 16,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 2,
+                    "padding": [2, 4, 2, 4],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"cornerRadius": "radius/2xl"},
+                  "texts": ["dark"]
+                },
+                {
+                  "id": "1:60357",
+                  "name": "tag blue",
+                  "type": "INSTANCE",
+                  "x": 38,
+                  "y": 0,
+                  "width": 31,
+                  "height": 17,
+                  "component": "Chip/Tertiary/Default/SM",
+                  "componentId": "1:1932",
+                  "cornerRadius": 16,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 2,
+                    "padding": [2, 4, 2, 4],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"cornerRadius": "radius/2xl"},
+                  "texts": ["blue"]
+                },
+                {
+                  "id": "1:60358",
+                  "name": "tag calm",
+                  "type": "INSTANCE",
+                  "x": 75,
+                  "y": 0,
+                  "width": 34,
+                  "height": 17,
+                  "component": "Chip/Tertiary/Default/SM",
+                  "componentId": "1:1932",
+                  "cornerRadius": 16,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 2,
+                    "padding": [2, 4, 2, 4],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"cornerRadius": "radius/2xl"},
+                  "texts": ["calm"]
+                },
+                {
+                  "id": "1:60359",
+                  "name": "source official",
+                  "type": "INSTANCE",
+                  "x": 115,
+                  "y": 0,
+                  "width": 44,
+                  "height": 17,
+                  "component": "Chip/Soft/Default/SM",
+                  "componentId": "1:1002",
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 16,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 2,
+                    "padding": [2, 4, 2, 4],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+                  "texts": ["official"]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1:59703",
+          "name": "Preview light",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 283,
+          "width": 358,
+          "height": 225,
+          "component": "Gameplane/Theme Preview Panel/Mobile",
+          "componentId": "1:59087",
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "texts": ["Light", "Dark only"]
+        },
+        {
+          "id": "1:59704",
+          "name": "Preview dark",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 524,
+          "width": 358,
+          "height": 225,
+          "component": "Gameplane/Theme Preview Panel/Mobile",
+          "componentId": "1:59087",
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "texts": ["Dark"]
+        },
+        {
+          "id": "1:59705",
+          "name": "Actions",
+          "type": "FRAME",
+          "x": 16,
+          "y": 765,
+          "width": 358,
+          "height": 96,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:60073",
+              "name": "Action Row",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 358,
+              "height": 32,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:60360",
+                  "name": "btnPreview",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 175,
+                  "height": 32,
+                  "component": "Button/Outline/SM",
+                  "componentId": "1:633",
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 5,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "paddingRight": "spacing/3",
+                    "paddingLeft": "spacing/3",
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl",
+                    "strokes/0/color": "border-2"
+                  },
+                  "texts": ["Preview"]
+                },
+                {
+                  "id": "1:60361",
+                  "name": "btnRemove",
+                  "type": "INSTANCE",
+                  "x": 183,
+                  "y": 0,
+                  "width": 175,
+                  "height": 32,
+                  "component": "Button/Outline/SM",
+                  "componentId": "1:633",
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 5,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "paddingRight": "spacing/3",
+                    "paddingLeft": "spacing/3",
+                    "topLeftRadius": "radius/xl",
+                    "topRightRadius": "radius/xl",
+                    "bottomLeftRadius": "radius/xl",
+                    "bottomRightRadius": "radius/xl",
+                    "strokes/0/color": "border-2"
+                  },
+                  "texts": ["Remove"]
+                }
+              ]
+            },
+            {
+              "id": "1:60074",
+              "name": "updateNote",
+              "type": "TEXT",
+              "x": 0,
+              "y": 40,
+              "width": 139,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#F7B750"}],
+              "text": "Update from 1.2.0 to 1.3.0",
+              "font": ["Geist", 400, 12],
+              "variables": {"fills/0/color": "warning/soft-foreground"}
+            },
+            {
+              "id": "1:60075",
+              "name": "btnPrimary",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 64,
+              "width": 358,
+              "height": 32,
+              "component": "Button/Primary/SM",
+              "componentId": "1:629",
+              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 5,
+                "padding": [8, 10, 8, 10],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"},
+              "texts": ["Update"]
+            }
+          ]
+        },
+        {
+          "id": "1:59706",
+          "name": "Description Card",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 877,
+          "width": 358,
+          "height": 297,
+          "component": "Gameplane/Theme Description Card/Mobile",
+          "componentId": "1:59084",
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 12,
+            "padding": [16, 16, 16, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+          "texts": [
+            "Description",
+            "Deep blue surfaces with a cyan accent. Tuned for long sessions with low glare. Dark only.",
+            "Changelog",
+            "v1.3.0",
+            "Improved contrast on muted text and added a focus ring color.",
+            "v1.2.0",
+            "Cyan accent refresh and softer card borders.",
+            "v1.0.0",
+            "Initial release."
+          ]
+        }
+      ]
+    }
+  ]
+}
