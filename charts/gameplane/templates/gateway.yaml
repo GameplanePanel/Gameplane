@@ -117,6 +117,31 @@ spec:
               app.kubernetes.io/instance: {{ $.Release.Name }}
       ports:
         - { protocol: TCP, port: 8090 }
+---
+# Backup archive workers (spec 041): the gateway streams downloads from and
+# uploads to them on their mTLS port 9443, nothing else.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $.Release.Name }}-gateway-to-archive-workers
+  namespace: {{ . }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: gameplane.local/archive-worker, operator: In, values: [export, receive] }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $.Release.Namespace }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: gameplane-gateway
+              app.kubernetes.io/instance: {{ $.Release.Name }}
+      ports:
+        - { protocol: TCP, port: 9443 }
 {{- end }}
 {{- end }}
 ---

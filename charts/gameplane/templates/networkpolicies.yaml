@@ -161,6 +161,32 @@ spec:
               app.kubernetes.io/name: gameplane-operator
       ports:
         - { protocol: TCP, port: 8090 }
+{{- if (eq (include "gameplane.apiEnabled" .) "true") }}
+---
+# Backup archive workers (spec 041) stream a download or receive an upload
+# on their mTLS port 9443. Only the API may reach them, only on that port.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-to-archive-workers
+  namespace: {{ $namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: gameplane.local/archive-worker, operator: In, values: [export, receive] }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: gameplane-api
+      ports:
+        - { protocol: TCP, port: 9443 }
+{{- end }}
 {{- $capture := .Values.capture | default dict }}
 {{- if $capture.enabled }}
 ---
@@ -345,6 +371,29 @@ spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/name: gameplane-backup-restore
+  policyTypes: [Egress]
+  egress:
+    - to:
+        {{- range ($backupEgress.toCIDRs | default (list "0.0.0.0/0")) }}
+        - ipBlock: { cidr: {{ . | quote }} }
+        {{- end }}
+      ports:
+        {{- range $backupEgress.ports }}
+        - { protocol: {{ .protocol }}, port: {{ .port }} }
+        {{- end }}
+---
+# Backup export workers (spec 041) read the snapshot from the same restic
+# repositories as backup and restore Jobs, so they get the same egress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-archive-export-egress
+  namespace: {{ $namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      gameplane.local/archive-worker: export
   policyTypes: [Egress]
   egress:
     - to:
