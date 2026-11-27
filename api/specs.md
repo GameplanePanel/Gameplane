@@ -450,6 +450,24 @@ A submitted stylesheet is rejected with 400 and a message naming the offending r
 
 **FR-012 retention invariant:** `custom_accent`, `custom_surface`, and `custom_css` survive preset switches and overlay toggles; only the reset endpoint clears them. Client contract: ordinary updates omit optional custom fields rather than sending explicit nulls.
 
+### Theme marketplace (spec 043)
+
+Package `api/internal/themes` runs the marketplace in both combined and standalone modes: admin theme sources, the indexer that caches their catalogs, and per-user installs. Contract: `specs/043-theme-marketplace/contracts/themes-api.md`.
+
+**Tables (migration `028_theme_marketplace.sql`):** `theme_sources` (one admin-managed `oci`, `git`, `http` or `local` source; `credential_ref` holds only a Secret name), `theme_catalog_entries` (the cached latest version of each theme per source, rebuilt by indexing, preview images in BYTEA) and `user_installed_themes` (one user's snapshot of a theme; `source_id` becomes NULL when the source is deleted).
+
+**Routes:**
+- `/themes/sources` (`themes:manage`): GET list, POST create (409 on a duplicate name), PUT `/{name}` replace, DELETE `/{name}` (204; catalog entries go, installed copies stay), POST `/{name}/refresh` (202; the index runs in the background, so the response comes before `lastSyncAt`, `lastError` and `themeCount` change). The built-in official source can be disabled and edited but not deleted.
+- `/themes/catalog` (any signed-in user): GET list with `q`, `tag` and `source` filters, GET `/{id}` (adds `changelog`, `homepage`, `problems`, and `tokens` and `css` for valid entries), GET `/{id}/preview/{light|dark}` (image bytes, `Cache-Control: private`, `nosniff`).
+- `/users/me/themes` (own rows only; another user's id is 404): GET list, POST install `{catalogId, select?}` (422 `server.themes.entry_not_valid`, 409 `server.themes.already_installed` or `server.themes.source_disabled`), GET `/{id}` render data, POST `/{id}/update` (409 `server.themes.no_update`, `server.themes.source_disabled` or `server.themes.source_removed`), DELETE `/{id}` (204; a selected theme resets preferences to Modern Pink). Error ids travel in problem+json bodies.
+
+**Indexer:** fetches each enabled source through `bundlefetch` (OCI, git, HTTP index or local folder), validates every package with `themepkg`, verifies cosign signatures when the source has a `verify` policy, and stores the result per entry as `valid`, `unverified` or `invalid` with its problems. Source URLs pass `netguard.IsAllowed` at dial time.
+
+**Credential Secrets (`credentialSecret`, OD-5):** a source names an admin-made Secret in the credentials namespace, like a ModuleSource pull secret or secretRef. The panel only reads it, at each pull, and never creates, changes or deletes it.
+- Create: an absent field, a JSON `null` and `""` all mean no credential. Update: an absent field keeps the stored name, and `null` or `""` clears it. A name stays when the source location changes.
+- A name must be a Kubernetes object name (DNS-1123 subdomain). A `local` source takes none (422).
+- An `oci` source needs a pull secret with `.dockerconfigjson`. A `git` or `http` source needs a credentials Secret with `token`, or `username` and `password`. A missing Secret or missing keys fail the source with a `lastError` that names the Secret, never its values.
+
 ### Capture operation auditing
 
 **Scope — which operations are audited** (per T010, specs/done_003-network-capture-sidecar/research.md):

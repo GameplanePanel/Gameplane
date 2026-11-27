@@ -69,6 +69,15 @@ const HEX_COLOR_RE = /^#([0-9a-fA-F]{6})$/;
 // pre-existing entry point (keyboard shortcut, login-page safe-mode link).
 let urlSafeModeSeen = false;
 
+// Set by the keyboard shortcut when the sessionStorage flag cannot be written
+// (storage blocked), so safe mode still holds for the rest of this page load.
+let memorySafeModeSeen = false;
+
+/** Marks safe mode active for this page load without sessionStorage. */
+export function markSafeModeActiveInMemory(): void {
+  memorySafeModeSeen = true;
+}
+
 const THEME_MESSAGES = defineMessages({
   update_failed: {
     id: "web.lib.use_theme_preferences.update_failed",
@@ -80,6 +89,7 @@ const THEME_MESSAGES = defineMessages({
 /** Test-only: clears the in-memory URL safe-mode latch, simulating a fresh page load. */
 export function resetUrlSafeModeForTests(): void {
   urlSafeModeSeen = false;
+  memorySafeModeSeen = false;
 }
 
 /**
@@ -98,6 +108,17 @@ export function setThemePreviewReapplier(fn: (() => boolean) | null): void {
   previewReapplier = fn;
 }
 
+/**
+ * Applies saved preferences unless a theme preview is active, in which case
+ * the preview is re-applied over them (it reads the saved base, so an
+ * appearance change still shows). Paths that refresh the saved theme use this
+ * so a preview stays on screen until Exit or Keep.
+ */
+export function applySavedThemeOrPreview(prefs: UserThemePreferences | null): void {
+  if (previewReapplier?.()) return;
+  applyThemePreferences(prefs);
+}
+
 export function isSafeModeActive(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -107,7 +128,7 @@ export function isSafeModeActive(): boolean {
   } catch {
     // Malformed query string — treat the URL entry point as inactive.
   }
-  if (urlSafeModeSeen) return true;
+  if (urlSafeModeSeen || memorySafeModeSeen) return true;
   try {
     const flag = window.sessionStorage.getItem(SAFE_MODE_SESSION_KEY);
     return flag === "1" || flag === "true";
@@ -504,27 +525,21 @@ export function useThemePreferences(
       writeThemePreferences(mePreferences);
     }
     // An active preview stays on screen over the refreshed saved theme.
-    if (previewReapplier?.()) return;
-    applyThemePreferences(mePreferences);
+    applySavedThemeOrPreview(mePreferences);
   }, [mePreferences]);
 
   // Re-resolve the base theme when the OS preference flips while in
-  // "system". D4: skip subscribing entirely while a custom-colors theme is
-  // active — resolveAppearanceMode already ignores appearanceMode in that
-  // case, so this is a pure no-op guard against re-render churn, not a
-  // correctness fix (belt-and-suspenders with WP-lib 1e).
+  // "system". This subscribes for custom-colors themes too: a catalog
+  // preview over them still follows the OS mode, and without a preview the
+  // re-apply resolves to the same custom-colors appearance.
   useEffect(() => {
     if (preferences?.appearanceMode !== "system") return;
-    if (preferences?.themeType === "custom_colors" && preferences.customColors) return;
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => {
-      if (previewReapplier?.()) return;
-      applyThemePreferences(readThemePreferences());
-    };
+    const handleChange = () => applySavedThemeOrPreview(readThemePreferences());
     mq.addEventListener("change", handleChange);
     return () => mq.removeEventListener("change", handleChange);
-  }, [preferences?.appearanceMode, preferences?.themeType, preferences?.customColors]);
+  }, [preferences?.appearanceMode]);
 
   const reportError = useCallback(
     (message: string) => {
@@ -546,14 +561,14 @@ export function useThemePreferences(
       if (!next) return;
       writeThemePreferences(next);
       setPreferences(next);
-      applyThemePreferences(next);
+      applySavedThemeOrPreview(next);
     },
     onError: (err: unknown, vars) => {
       // Revert the optimistic application.
       setPreferences(vars.previous);
       if (vars.previous) {
         writeThemePreferences(vars.previous);
-        applyThemePreferences(vars.previous);
+        applySavedThemeOrPreview(vars.previous);
       }
       const message =
         err instanceof APIError
@@ -605,7 +620,7 @@ export function useThemePreferences(
       // Optimistic: DOM + cache first…
       setPreferences(next);
       writeThemePreferences(next);
-      applyThemePreferences(next);
+      applySavedThemeOrPreview(next);
       // …then the authoritative PUT.
       mutation.mutate({ body: toUpdateBody(next), previous: current });
     },

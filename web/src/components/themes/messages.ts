@@ -21,7 +21,7 @@ export const themeCatalogMessages = defineMessages({
 
 export const themeCardMessages = defineMessages({
   byAuthor: { id: "web.components.themes.theme_card.by_author", defaultMessage: "by {author} · v{version}", description: "Theme card: mono meta line with the author and version" },
-  updateVersion: { id: "web.components.themes.theme_card.update_version", defaultMessage: "v{from} → v{to}", description: "Theme card: version change shown when an update is available" },
+  byAuthorUpdate: { id: "web.components.themes.theme_card.by_author_update", defaultMessage: "by {author} · v{from} → v{to}", description: "Theme card: mono meta line with the author and the installed and available versions when an update is available" },
   preview: { id: "web.components.themes.theme_card.preview", defaultMessage: "Preview", description: "Theme card and detail: button that previews the theme in place" },
   install: { id: "web.components.themes.theme_card.install", defaultMessage: "Install", description: "Theme card and detail: button that installs the theme for the user" },
   update: { id: "web.components.themes.theme_card.update", defaultMessage: "Update", description: "Theme card and detail: button that updates an installed theme" },

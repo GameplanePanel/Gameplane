@@ -20,7 +20,11 @@ export interface ThemePreviewPanelProps {
 
 export function ThemePreviewPanel({ themeId, mode, modes, className }: ThemePreviewPanelProps) {
   const intl = useOptionalIntl();
-  const [failed, setFailed] = useState(false);
+  // The failure belongs to one image URL, so a panel reused for another theme
+  // or mode loads its own image.
+  const src = Themes.previewUrl(themeId, mode);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const failed = failedSrc === src;
   const missing = !modes.includes(mode);
 
   if (missing || failed) {
@@ -44,10 +48,10 @@ export function ThemePreviewPanel({ themeId, mode, modes, className }: ThemePrev
 
   return (
     <img
-      src={Themes.previewUrl(themeId, mode)}
+      src={src}
       alt=""
       loading="lazy"
-      onError={() => setFailed(true)}
+      onError={() => setFailedSrc(src)}
       className={cn("aspect-[16/10] w-full rounded-md border border-border object-cover", className)}
       data-testid="theme-preview"
     />

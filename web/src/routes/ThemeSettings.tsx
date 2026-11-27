@@ -31,6 +31,7 @@ import { can, useMe } from "@/lib/auth";
 import { THEMES_MANAGE_PERM } from "@/lib/themePermissions";
 import { Themes, Users } from "@/lib/endpoints";
 import {
+  applySavedThemeOrPreview,
   applyThemePreferences,
   DEFAULT_THEME_PREFERENCES,
   normalizeInstalledRender,
@@ -39,6 +40,7 @@ import {
   useThemePreferences,
   writeThemePreferences,
 } from "@/lib/useThemePreferences";
+import { dropThemePreview, getThemePreview } from "@/lib/useThemePreview";
 import {
   contrastRatio,
   deriveCustomThemeTokens,
@@ -246,11 +248,11 @@ export function ThemeSettingsPage() {
     setDraft((d) => (d ? { ...d, ...patch } : d));
   };
 
-  // Leaving without saving restores the last persisted state to the DOM.
+  // Leaving without saving restores the last persisted state to the DOM, or
+  // the catalog preview when one is still active.
   useEffect(() => {
     return () => {
-      const saved = readThemePreferences();
-      applyThemePreferences(saved);
+      applySavedThemeOrPreview(readThemePreferences());
     };
   }, []);
 
@@ -338,12 +340,15 @@ export function ThemeSettingsPage() {
 
   // Updating the installed copy the draft uses refreshes the draft's render,
   // keeping every other unsaved draft field.
+  // The revision is taken before the update starts: a base change while it
+  // runs makes the refresh stale, and it is dropped.
   const updateInstalled = (target: InstalledTheme) => {
+    const revision = baseRevision.current;
     themeActions.update.mutate(target.id, {
       onSuccess: () => {
+        if (baseRevision.current !== revision) return;
         if (draft?.themeType !== "installed" || draft.installedThemeId !== target.id) return;
         void (async () => {
-          const revision = baseRevision.current;
           try {
             const detail = await Themes.installedDetail(target.id);
             if (baseRevision.current !== revision) return;
@@ -413,11 +418,18 @@ export function ThemeSettingsPage() {
   // mounts the custom-color vars and re-appends #gameplane-custom-css last in <head>.
   // A stylesheet the sanitizer rejects is never previewed (FR-013): the last
   // saved overlay stays in place instead, so e.g. an @import is never fetched.
+  // A catalog preview that is still active stays on screen until the draft
+  // changes: the first edit ends the preview (its banner goes away) and the
+  // draft takes over, so the page and the banner never name different themes.
   const savedCss = preferences?.customCss ?? null;
   useEffect(() => {
     if (!draft) return;
+    if (getThemePreview() !== null) {
+      if (!dirty) return;
+      dropThemePreview();
+    }
     applyThemePreferences(cssResult.ok ? draft : { ...draft, customCss: savedCss });
-  }, [draft, cssResult.ok, savedCss]);
+  }, [draft, dirty, cssResult.ok, savedCss]);
 
   // --- Export ----------------------------------------------------------------
 
@@ -503,6 +515,8 @@ export function ThemeSettingsPage() {
 
   const applyImport = () => {
     if (!importPreview) return;
+    // The import replaces the base: an earlier installed pick still loading is dropped.
+    baseRevision.current += 1;
     const p = importPreview.preferences;
     // The PUT names an installed theme by its row id, matched on source and name here.
     const ref = p.themeType === "installed" ? p.installed : undefined;
@@ -539,6 +553,10 @@ export function ThemeSettingsPage() {
       setResetError(null);
       setLastError(null);
       setLastDone(null);
+      // Reset replaces the base: an earlier installed pick still loading is
+      // dropped, and a catalog preview ends so the reset theme shows.
+      baseRevision.current += 1;
+      dropThemePreview();
       writeThemePreferences(result);
       applyThemePreferences(result);
       setDraft({ ...result, customColors: result.customColors ?? null });

@@ -22,12 +22,19 @@ import { themePreviewBannerMessages } from "@/components/themes/messages";
 // installed yet, otherwise select the installed copy (updated first when it is
 // older than the previewed version). Either way the server copy is refetched
 // and becomes the applied theme.
+// Previews whose installed copy Keep already updated: a retry after a failed
+// preference save skips the update (it would now answer 409 no_update).
+const updatedOnKeep = new WeakSet<ThemePreviewTheme>();
+
 async function keepTheme(theme: ThemePreviewTheme): Promise<void> {
   if (theme.installedId === null) {
     await Themes.install({ catalogId: theme.catalogId, select: true });
     return;
   }
-  if (theme.updateOnKeep) await Themes.updateInstalled(theme.installedId);
+  if (theme.updateOnKeep && !updatedOnKeep.has(theme)) {
+    await Themes.updateInstalled(theme.installedId);
+    updatedOnKeep.add(theme);
+  }
   const prefs = readThemePreferences() ?? DEFAULT_THEME_PREFERENCES;
   await Users.updatePreferences({
     themeType: "installed",

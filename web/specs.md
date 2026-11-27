@@ -212,6 +212,47 @@ Spec: `specs/done_016-user-theme-customization/`. Both the non-UI plumbing and t
 
 **Client endpoints:** `Users.updatePreferences` / `Users.resetPreferences` (Layer 2 above); `Users.me()` returns `preferences` embedded (types.ts `User.preferences`)
 
+### Theme marketplace (spec 043)
+
+Spec: `specs/043-theme-marketplace/`.
+
+**Routes:**
+- `/settings/theme/catalog` (`ThemeCatalog.tsx`): search, source and tag filters, and theme cards.
+- `/settings/theme/catalog/$id` (`ThemeDetail.tsx`): light and dark previews, metadata, problems, and the description and changelog rendered as text.
+- `/settings/theme-sources` (`ThemeSources.tsx`): gated by `themes:manage`.
+
+The catalog and detail pages wait for both the catalog query and the installed-themes list. They show a loading card meanwhile, and an error card with Retry when either request fails. The sources page does the same for its list.
+
+**Theme sources:** `ThemeSourceDialog` adds or edits a source; name and type are fixed on edit.
+- The form sends `{name, type, spec, verify, credentialSecret, refreshInterval, enabled}`.
+- An empty secret field sends `null`, which clears a stored name. A `local` source sends no `credentialSecret`.
+- An unchanged edit keeps a stored signature policy, including `requireTransparencyLog`.
+- The interval is shown in `h`, `m` or `s` and must be at least 5 minutes.
+- The API answers Refresh with 202 before indexing ends. The list is then polled every 2 seconds until that row shows a new sync result, for a minute at most.
+
+**Preview (`lib/useThemePreview.ts`, `ThemePreviewBanner.tsx`):** Preview applies a catalog theme in memory through the same DOM path as saved preferences. It never writes localStorage or calls the API. Only the latest Preview click starts a preview.
+
+The banner stays across pages until one of these:
+- Exit, which re-applies the saved theme.
+- Keep, which installs and selects the theme, or selects the installed copy. An older copy is updated first, and a retry after a failed save skips an update that already succeeded.
+- A reload or sign-out.
+
+While a preview is active:
+- Paths that refresh the saved theme re-apply the preview instead: the profile refetch, appearance changes, OS appearance changes, and leaving Theme settings.
+- Theme settings keeps the preview on screen. Editing the draft or resetting ends the preview.
+
+**Installed themes:** Theme settings lists installed copies beside the presets.
+- Selecting one fetches its render data first.
+- Every base change (another pick, a reset, an import, a removal) bumps a revision, so a slow fetch or update for an earlier pick is dropped.
+- Render order: the installed tokens in `#gameplane-custom-theme-vars`, the theme's own sanitized CSS in `#gameplane-installed-theme-css`, then the user's custom CSS overlay `#gameplane-custom-css` last.
+- Exports name the installed theme by source, name and version. An import matches an installed copy by source and name. With no match it falls back to Modern Pink and shows a notice.
+- Export and installed imports wait until the installed list has loaded.
+
+**Safe mode:**
+- It ends any active preview, re-applies the saved preferences, and unmounts the custom CSS overlay. An installed theme then renders Modern Pink, without its CSS.
+- Stored preferences, the stored stylesheet and localStorage are kept.
+- When the keyboard shortcut cannot write the sessionStorage flag, safe mode is kept in memory for the page load, and previews stay unavailable.
+
 ### Test Count Rule (FR-010)
 
 Each rewritten test file must maintain or exceed the original test count:
