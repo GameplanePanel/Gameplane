@@ -21,6 +21,13 @@ func mountHealthRoutes(r chi.Router, store *db.Store) {
 	})
 	pingSlot := make(chan struct{}, 1)
 	ready := func(w http.ResponseWriter, req *http.Request) {
+		// Kubelet probes reach the API directly and never carry proxy headers;
+		// every ingress or proxy hop adds one. Refuse proxied requests so
+		// public traffic cannot take the readiness slot.
+		if req.Header.Get("X-Forwarded-For") != "" || req.Header.Get("Forwarded") != "" {
+			http.NotFound(w, req)
+			return
+		}
 		select {
 		case pingSlot <- struct{}{}:
 			defer func() { <-pingSlot }()

@@ -22,6 +22,50 @@ term_handler() {
 
 trap term_handler SIGTERM SIGINT
 
+# Persistent volume: the GameTemplate mounts the PVC at /server-data.
+DATA="${GP_DATA_DIR:-/server-data}"
+
+# Pinned FXServer artifact (recommended build 38435). Override FXSERVER_URL and
+# FXSERVER_SHA256 together to move to another build; the sha256 is always verified.
+FXSERVER_URL="${FXSERVER_URL:-https://runtime.fivem.net/artifacts/fivem/build_proot_linux/master/38435-5c3065c261fb3ba82032fee6803f247198fec221/fx.tar.xz}"
+FXSERVER_SHA256="${FXSERVER_SHA256:-1b58507f68086ca3578c187f31e7b4a2259b7192d76b0c80cfc1af682fdf2be9}"
+FXSERVER_DIR="${DATA}/fxserver"
+
+# install_fxserver downloads the pinned artifact into the volume, verifies its
+# sha256 and extracts it. Failures are fatal so the pod surfaces them.
+install_fxserver() {
+    local archive="${DATA}/.fx.tar.xz.part"
+    echo "[gameplane-fivem] Downloading FXServer artifact into ${FXSERVER_DIR}..."
+    local staging="${DATA}/.fxserver.tmp"
+    mkdir -p "$DATA"
+    rm -rf "$staging"
+    mkdir -p "$staging"
+    if ! curl -fsSL --retry 3 --retry-delay 5 -o "$archive" "$FXSERVER_URL"; then
+        rm -f "$archive"
+        echo "[gameplane-fivem] ERROR: failed to download FXServer from $FXSERVER_URL" >&2
+        exit 1
+    fi
+    if ! echo "${FXSERVER_SHA256}  ${archive}" | sha256sum -c - >/dev/null 2>&1; then
+        rm -f "$archive"
+        echo "[gameplane-fivem] ERROR: FXServer artifact sha256 mismatch (expected ${FXSERVER_SHA256})" >&2
+        exit 1
+    fi
+    if ! tar -xJf "$archive" -C "$staging"; then
+        rm -rf "$archive" "$staging"
+        echo "[gameplane-fivem] ERROR: failed to extract FXServer artifact" >&2
+        exit 1
+    fi
+    rm -f "$archive"
+    # Publish only a complete extract, so a crash mid-extract never leaves a
+    # truncated tree that looks installed.
+    rm -rf "$FXSERVER_DIR"
+    if ! mv "$staging" "$FXSERVER_DIR"; then
+        rm -rf "$staging"
+        echo "[gameplane-fivem] ERROR: failed to move FXServer into ${FXSERVER_DIR}" >&2
+        exit 1
+    fi
+}
+
 # Resolve CFX license key from possible environment variables
 LICENSE_KEY="${CFX_LICENSE_KEY:-${SV_LICENSEKEY:-${LICENSE_KEY:-}}}"
 
@@ -54,7 +98,7 @@ fi
 
 # FR-012: Supervise embedded MariaDB database if enabled
 if [ "${ENABLE_EMBEDDED_DB:-true}" = "true" ]; then
-    DB_DIR="/server-data/mysql"
+    DB_DIR="${DATA}/mysql"
     if [ ! -d "$DB_DIR" ]; then
         echo "[gameplane-fivem] Initializing embedded MariaDB in $DB_DIR..."
         mkdir -p "$DB_DIR"
@@ -92,34 +136,26 @@ if [ "${ENABLE_EMBEDDED_DB:-true}" = "true" ]; then
 fi
 
 # Ensure txAdmin data directory exists
-mkdir -p /server-data/txData
+mkdir -p "${DATA}/txData"
+
+# Install FXServer into the mounted volume when missing.
+if [ ! -f "${FXSERVER_DIR}/run.sh" ]; then
+    install_fxserver
+fi
+if [ ! -f "${FXSERVER_DIR}/run.sh" ]; then
+    echo "[gameplane-fivem] ERROR: FXServer binary not found at ${FXSERVER_DIR}/run.sh after install" >&2
+    exit 1
+fi
 
 echo "[gameplane-fivem] Starting FiveM dedicated server with txAdmin on port ${TXADMIN_PORT:-40120}..."
 
-# If fxserver binaries are mounted or installed at /opt/cfx-server
-if [ -f "/opt/cfx-server/run.sh" ]; then
-    /opt/cfx-server/run.sh \
-        +set serverProfile default \
-        +set txAdminPort "${TXADMIN_PORT:-40120}" \
-        +set sv_licenseKey "$LICENSE_KEY" \
-        +set net_tcpConnLimit 64 \
-        "$@" &
-    PID_FX=$!
-elif [ -f "/opt/cfx-server/FXServer" ]; then
-    /opt/cfx-server/FXServer \
-        +set serverProfile default \
-        +set txAdminPort "${TXADMIN_PORT:-40120}" \
-        +set sv_licenseKey "$LICENSE_KEY" \
-        "$@" &
-    PID_FX=$!
-else
-    echo "[gameplane-fivem] Note: fxserver binary not found at /opt/cfx-server/run.sh."
-    echo "[gameplane-fivem] Running in managed txAdmin supervisor mode..."
-    # Keep supervisor running and monitoring
-    while true; do
-        sleep 60 &
-        wait $!
-    done
-fi
+bash "${FXSERVER_DIR}/run.sh" \
+    +set serverProfile default \
+    +set txDataPath "${DATA}/txData" \
+    +set txAdminPort "${TXADMIN_PORT:-40120}" \
+    +set sv_licenseKey "$LICENSE_KEY" \
+    +set net_tcpConnLimit 64 \
+    "$@" &
+PID_FX=$!
 
 wait "$PID_FX" 2>/dev/null || true

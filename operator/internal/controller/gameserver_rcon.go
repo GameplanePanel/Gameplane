@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
@@ -35,6 +36,9 @@ type resolvedRCON struct {
 	// into, "" when the template doesn't declare one or when using passwordFile.
 	passwordEnv string
 	port        int32
+	// external is true when the template names its own Secret through
+	// PasswordSecretRef; the operator never adopts, writes or deletes it.
+	external bool
 }
 
 // resolveRCON computes effective RCON configuration and credentials for a game server.
@@ -62,6 +66,7 @@ func resolveRCON(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameT
 	if ref := tmpl.Spec.RCON.PasswordSecretRef; ref != nil {
 		r.secretName = ref.Name
 		r.secretKey = ref.Key
+		r.external = true
 	} else if tmpl.Spec.RCON.PasswordFile != "" {
 		r.passwordFile = tmpl.Spec.RCON.PasswordFile
 		r.passwordEnv = ""
@@ -76,10 +81,54 @@ func resolveRCON(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameT
 	return r
 }
 
+// rconPasswordSourceAnnotation marks a <gs>-rcon Secret whose password came
+// from the GameServer's config rather than being generated, so clearing the
+// config field later rotates it to a fresh generated password.
+const (
+	rconPasswordSourceAnnotation = "gameplane.local/rcon-password-source"
+	rconPasswordSourceConfig     = "config"
+)
+
+// rconConfigPassword returns the password the user set in spec.config for the
+// env-target configSchema field that exports the template's rcon.passwordEnv
+// (for example FS25 ADMIN_PASSWORD), or "" when no such field exists or the
+// user left it empty. Template defaults are ignored on purpose: a default is
+// public in the template, so it never replaces a generated password.
+func rconConfigPassword(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) string {
+	if tmpl.Spec.RCON == nil || tmpl.Spec.RCON.PasswordEnv == "" {
+		return ""
+	}
+	env := tmpl.Spec.RCON.PasswordEnv
+	for _, f := range tmpl.Spec.ConfigSchema {
+		if f.Target == "file" || configEnvName(f) != env {
+			continue
+		}
+		return gs.Spec.Config[f.Name]
+	}
+	return ""
+}
+
+// errRCONSecretNotOwned reports that <gs>-rcon exists but is not controlled by
+// the GameServer, so the operator refuses to use it as the RCON password.
+var errRCONSecretNotOwned = errors.New("secret exists and is not controlled by this GameServer")
+
+// recordRCONSecretForeign emits a Warning event on gs (no Secret contents). It
+// is a no-op without an EventRecorder.
+func (r *GameServerReconciler) recordRCONSecretForeign(gs *gameplanev1alpha1.GameServer, secretName string) {
+	if r.EventRecorder == nil {
+		return
+	}
+	reason := "RCONSecretNotOwned"
+	message := fmt.Sprintf("Secret %q already exists and was not created by this GameServer; the operator will not use it as the RCON password. Delete or rename it so the operator can generate one", secretName)
+	r.EventRecorder.Eventf(gs, nil, corev1.EventTypeWarning, reason, reason, "%s", message)
+}
+
 // reconcileRCONSecret ensures an RCON password exists for the GameServer.
 // When the template declares RCON, doesn't reference an external Secret, and
 // doesn't use a game-managed password file, the operator generates a random
-// password into <gs>-rcon and preserves it across reconciles. Templates that
+// password into <gs>-rcon and preserves it across reconciles, unless the
+// user set the config field that exports rcon.passwordEnv: then that value is
+// stored instead (see rconConfigPassword). Templates that
 // reference their own Secret, use a password file, or expose no RCON, get
 // nothing (the <gs>-rcon Secret is removed when RCON is disabled, same
 // lifecycle as the config Secret).
@@ -90,25 +139,57 @@ func (r *GameServerReconciler) reconcileRCONSecret(
 	sec := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: rconSecretName(gs), Namespace: gs.Namespace},
 	}
+	// A template-referenced Secret belongs to whoever created it, even when
+	// it happens to be named <gs>-rcon: leave it alone.
+	if rc.external && rc.secretName == rconSecretName(gs) {
+		return nil
+	}
 	// Only manage <gs>-rcon ourselves when RCON is enabled, no external
 	// PasswordSecretRef is set, and no game-managed password file is used.
 	if !rc.enabled || rc.secretName != rconSecretName(gs) {
 		return r.deleteIfControlledBy(ctx, gs, sec)
 	}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, sec, func() error {
+		// Never adopt a Secret this GameServer does not control: any user able
+		// to create Secrets (e.g. a backup destination named "<gs>-rcon") could
+		// otherwise choose the server's RCON password. Operator-created Secrets
+		// always carry the controller reference, so they stay reusable.
+		if sec.ResourceVersion != "" && !metav1.IsControlledBy(sec, gs) {
+			return errRCONSecretNotOwned
+		}
 		sec.Type = corev1.SecretTypeOpaque
+		if sec.Data == nil {
+			sec.Data = map[string][]byte{}
+		}
+		if sec.Annotations == nil {
+			sec.Annotations = map[string]string{}
+		}
+		if pw := rconConfigPassword(gs, tmpl); pw != "" {
+			// The user typed the password into the template's config field
+			// for passwordEnv: store it here so the game (which reads this
+			// Secret through rconGameEnv) and the agent agree on it.
+			sec.Data["password"] = []byte(pw)
+			sec.Annotations[rconPasswordSourceAnnotation] = rconPasswordSourceConfig
+			return controllerutil.SetControllerReference(gs, sec, r.Scheme)
+		}
+		if sec.Annotations[rconPasswordSourceAnnotation] == rconPasswordSourceConfig {
+			// The user cleared the field: stop using their old password
+			// and generate a fresh one below.
+			delete(sec.Data, "password")
+			delete(sec.Annotations, rconPasswordSourceAnnotation)
+		}
 		if len(sec.Data["password"]) == 0 {
 			pw, gerr := generatePassword()
 			if gerr != nil {
 				return gerr
 			}
-			if sec.Data == nil {
-				sec.Data = map[string][]byte{}
-			}
 			sec.Data["password"] = []byte(pw)
 		}
 		return controllerutil.SetControllerReference(gs, sec, r.Scheme)
 	})
+	if errors.Is(err, errRCONSecretNotOwned) {
+		r.recordRCONSecretForeign(gs, sec.Name)
+	}
 	if err != nil {
 		return fmt.Errorf("reconcile rcon Secret %s/%s: %w", gs.Namespace, sec.Name, err)
 	}
@@ -150,8 +231,10 @@ func agentVolumeMounts(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1
 
 // rconGameEnv returns the env var that injects the resolved RCON password
 // into the game container, or nil when the template declares no PasswordEnv
-// or uses a game-managed password file. Appended last so it overrides any
-// user-set value, keeping the game and agent in agreement on the password.
+// or uses a game-managed password file. Appended last so it overrides the
+// config field's own env entry; a password the user typed into that field
+// still reaches the game, because reconcileRCONSecret copies it into this
+// Secret. The game and agent therefore always agree on the password.
 func rconGameEnv(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) *corev1.EnvVar {
 	rc := resolveRCON(gs, tmpl)
 	if !rc.enabled || rc.passwordEnv == "" || rc.passwordFile != "" {

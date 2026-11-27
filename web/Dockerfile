@@ -54,6 +54,9 @@ LABEL org.opencontainers.image.version="${VERSION}"
 # /etc/nginx/conf.d/). The chart sets it to the in-cluster API service; this
 # default keeps a bare `docker run` from failing to start.
 ENV API_UPSTREAM=http://gameplane-api.gameplane-system.svc.cluster.local
+# Body-size limit for dashboard file uploads (bytes), rendered into
+# conf.d/files-upload-limit.inc. The chart sets it from files.maxUploadSize.
+ENV FILES_MAX_UPLOAD_BYTES=21474836480
 
 # The base image (last rebuilt 2026-10-19) ships brotli-libs 1.2.0-r1
 # (CVE-2026-111497) and curl/libcurl 8.22.0-r0 (CVE-2026-92392); Trivy fails
@@ -73,6 +76,9 @@ USER 101
 # Replace the base image's default server block with ours.
 RUN rm -f /etc/nginx/conf.d/default.conf
 COPY web/nginx.conf.template /etc/nginx/templates/gameplane.conf.template
+# Rendered by the same envsubst step to conf.d/files-upload-limit.inc (the
+# base image strips ".template"; only *.conf is auto-included by nginx).
+COPY web/files-upload-limit.inc.template /etc/nginx/templates/files-upload-limit.inc.template
 
 # Sourced at start (before envsubst) to export NGINX_RESOLVER from the pod's
 # /etc/resolv.conf — see the file and nginx.conf.template for why. The nginx

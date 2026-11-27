@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sort"
 	"time"
@@ -183,6 +184,11 @@ func (c *Client) Pull(ctx context.Context, ref, reference string) (string, map[s
 		return layers[i].Annotations[AnnotationTitle] < layers[j].Annotations[AnnotationTitle]
 	})
 	var budget LocaleBudget
+	// The per-title caps and MaxBundleSize describe module bundles. Other
+	// artifact types (theme packages) define their own files and are bounded
+	// by WithMaxLayerBytes and WithMaxTotalBytes instead.
+	moduleBundle := c.artifactType == ArtifactType
+	var total int64
 	var totalBytes int64
 	for _, layer := range layers {
 		title := layer.Annotations[AnnotationTitle]
@@ -200,6 +206,24 @@ func (c *Client) Pull(ctx context.Context, ref, reference string) (string, map[s
 			if layer.Size > MaxLocaleLayerSize || !budget.Take(layer.Size) {
 				files[title] = OversizedLocale
 				continue
+			}
+		} else if moduleBundle {
+			// Only the layers the module bundle format defines are read; each
+			// is size-checked before any byte is fetched.
+			limit, known := layerSizeLimit(title)
+			if !known {
+				continue
+			}
+			if layer.Size > limit {
+				return "", nil, fmt.Errorf("layer %s is %d bytes, over the %d-byte limit", title, layer.Size, limit)
+			}
+		}
+		if layer.Size < 0 {
+			return "", nil, fmt.Errorf("layer %s declares a negative size", title)
+		}
+		if moduleBundle {
+			if total += layer.Size; total > MaxBundleSize {
+				return "", nil, fmt.Errorf("bundle layers exceed the %d-byte limit", int64(MaxBundleSize))
 			}
 		}
 		if c.maxLayerBytes > 0 && layer.Size > c.maxLayerBytes {
@@ -228,7 +252,9 @@ func readBlob(ctx context.Context, r *remote.Repository, desc ocispec.Descriptor
 		return nil, err
 	}
 	defer func() { _ = rc.Close() }()
-	data, err := content.ReadAll(rc, desc)
+	// The declared size was bounded by the caller; the LimitReader keeps a
+	// server that sends more than it declared from growing the read.
+	data, err := content.ReadAll(io.LimitReader(rc, desc.Size+1), desc)
 	if err != nil {
 		return nil, fmt.Errorf("check blob %s: %w", desc.Digest, err)
 	}

@@ -325,7 +325,11 @@ Top-level knobs (see `values.yaml` for the full list):
   fit; the agent defaults to 256 MiB per mod file. When upgrading with
   reused values or custom annotations, replace an existing `64m` limit
   with `512m` to permit those uploads. Other ingress controllers need
-  their equivalent body-size setting.
+  their equivalent body-size setting. Dashboard file uploads
+  (`/servers/<name>/files/stream`) follow `files.maxUploadSize` instead: the
+  dashboard nginx and a separate `gameplane-files-stream` Ingress raise the
+  limit for that route only. Other ingress controllers need an equivalent
+  per-route body-size setting.
 - `ingress.shareLinks.disableAccessLog` — default `true`. Share links carry
   their token in the URL path (`/share/<token>`, `/shares/<token>`), so an
   ingress access log would hold working tokens. The chart routes those two

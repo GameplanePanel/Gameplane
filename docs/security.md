@@ -138,7 +138,7 @@ same way a dashboard password reset does.
 ### Client IP extraction from forwarded headers
 
 The API records a client IP for every request. Login rate limiting
-(per-IP caps) and audit records key on it. The IP comes from the TCP peer
+(per-IP caps) and audit records key on it. The per-IP limiter buckets key on the IPv6 /64 prefix (`auth.LimiterSourceKey`) while IPv4 stays per address; audit records keep the full address. The IP comes from the TCP peer
 and, only when that peer is a trusted proxy, from the `X-Forwarded-For`
 header. Trusted proxies are set by `api.trustedProxies` (default:
 loopback and private ranges `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`,
@@ -210,8 +210,8 @@ api:
   trustedProxies: "203.0.113.1/32"
 ```
 
-The client IP is used for login rate limiting (per-IP caps) and audit
-records, so misconfiguring this can either record a proxy instead of the
+The client IP is used for login rate limiting (per-IP caps, grouped by IPv6 /64) and audit
+records (full address), so misconfiguring this can either record a proxy instead of the
 client in audit logs or group legitimate users behind one proxy address
 in a single rate-limit bucket.
 
@@ -296,7 +296,11 @@ transfer, and collaborator list edits. Only the server's owner or an admin (a
 role holding `*` in the server's cluster and namespace) can perform owner-only
 operations. The namespace `servers:write` permission alone does not grant them,
 and a server with no recorded owner (for example one created with kubectl or
-GitOps) can be transferred, wiped or deleted only by an admin. The transfer,
+GitOps) can be transferred, wiped or deleted only by an admin. Generic POST/PUT never take
+`metadata.ownerReferences` or `metadata.finalizers` from the client (POST clears
+them, PUT keeps the stored values), so the owner-only delete rule cannot be
+bypassed by planting a dangling ownerReference that makes the garbage collector
+delete the object, or a finalizer that blocks its deletion. The transfer,
 collaborator-edit and wipe patches are conditional on the server's
 `resourceVersion` as read by the ownership check: if the server changes in
 between (for example its ownership is transferred), the API re-reads it and

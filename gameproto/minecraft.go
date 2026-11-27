@@ -23,7 +23,7 @@ type minecraftClassifyResult struct {
 	ProtocolVersion int32
 
 	// NextState is the requested next protocol state after handshake.
-	// 1 = Status, 2 = Login.
+	// 1 = Status, 2 = Login, 3 = Transfer (1.20.5+).
 	NextState int32
 
 	// ServerAddr is the server address (host:port) the client sent in the handshake.
@@ -95,7 +95,7 @@ func classifyMinecraftHandshake(br *bufio.Reader) (Kind, *minecraftClassifyResul
 	}
 	port := binary.BigEndian.Uint16(portBytes[:])
 
-	// Read next state (VarInt): 1 = Status, 2 = Login.
+	// Read next state (VarInt): 1 = Status, 2 = Login, 3 = Transfer (1.20.5+).
 	nextState, err := readMinecraftVarInt(frameReader)
 	if err != nil {
 		return Unknown, nil, fmt.Errorf("read next state: %w", err)
@@ -111,7 +111,7 @@ func classifyMinecraftHandshake(br *bufio.Reader) (Kind, *minecraftClassifyResul
 	switch nextState {
 	case 1: // Status
 		return Status, result, nil
-	case 2: // Login
+	case 2, 3: // Login, Transfer (1.20.5+): both continue into the login state
 		return Join, result, nil
 	default:
 		return Unknown, result, nil

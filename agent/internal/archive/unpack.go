@@ -462,6 +462,7 @@ func (x *extractor) mkdir(dst string, mode fs.FileMode) error {
 		return err
 	}
 	_ = unix.Close(fd)
+	delete(x.files, dst)
 	x.dirs[dst] = mode
 	return nil
 }
@@ -604,6 +605,9 @@ func (x *extractor) symlink(dst, target string) error {
 	if err != nil {
 		return fmt.Errorf("create symlink: %w", err)
 	}
+	// The name now holds a symlink: a later hard link must not reuse the
+	// regular file recorded earlier under the same name.
+	delete(x.files, dst)
 	return nil
 }
 
@@ -644,6 +648,13 @@ func (x *extractor) hardlink(dst, rawTarget string, lay layout) error {
 	}
 	defer func() { _ = unix.Close(pfd) }()
 	tbase := path.Base(td)
+	var st unix.Stat_t
+	if err := unix.Fstatat(tfd, tbase, &st, unix.AT_SYMLINK_NOFOLLOW); err != nil {
+		return fmt.Errorf("hard link target %q is not a regular file: %w", rawTarget, err)
+	}
+	if st.Mode&unix.S_IFMT != unix.S_IFREG {
+		return fmt.Errorf("hard link target %q is not a regular file", rawTarget)
+	}
 	err = unix.Linkat(tfd, tbase, pfd, base, 0)
 	if errors.Is(err, unix.EEXIST) {
 		if err := unix.Unlinkat(pfd, base, 0); err != nil {
@@ -756,6 +767,22 @@ func (s *tarStream) next() (rawEntry, error) {
 	for {
 		h, err := s.tr.Next()
 		if errors.Is(err, io.EOF) {
+			// Read the gzip stream to its end so the CRC32 and size
+			// trailer are verified, and refuse non-zero trailing data.
+			// The drain is capped: zero runs compress about 1000:1, so an
+			// unbounded drain would let a small upload cost gigabytes of
+			// decompression before extraction even starts.
+			var zc zeroChecker
+			n, derr := io.Copy(&zc, io.LimitReader(s.gz, maxTarTrailerBytes+1))
+			if derr != nil {
+				return rawEntry{}, fmt.Errorf("read archive: %w", derr)
+			}
+			if n > maxTarTrailerBytes {
+				return rawEntry{}, fmt.Errorf("read archive: more than %d bytes after tar end marker", maxTarTrailerBytes)
+			}
+			if zc.dirty {
+				return rawEntry{}, errors.New("read archive: unexpected data after tar end marker")
+			}
 			return rawEntry{}, io.EOF
 		}
 		if err != nil {
@@ -783,6 +810,24 @@ func (s *tarStream) next() (rawEntry, error) {
 		e.kind = entrySpecial
 	}
 	return e, nil
+}
+
+// maxTarTrailerBytes caps the zero padding accepted after the tar end
+// marker. tar writers pad to their record size (10 KiB by default); 1 MiB
+// leaves room for large blocking factors.
+const maxTarTrailerBytes = 1 << 20
+
+// zeroChecker discards writes and records whether any byte was non-zero.
+type zeroChecker struct{ dirty bool }
+
+func (z *zeroChecker) Write(p []byte) (int, error) {
+	for _, b := range p {
+		if b != 0 {
+			z.dirty = true
+			break
+		}
+	}
+	return len(p), nil
 }
 
 func (s *tarStream) body() (io.Reader, error) {

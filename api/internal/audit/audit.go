@@ -22,7 +22,9 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+	"unicode/utf8"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -636,6 +638,65 @@ func MarkRecorded(ctx context.Context) {
 	}
 }
 
+// unroutedKey is the context key for the per-request "no route matched" flag.
+type unroutedKey struct{}
+
+// MarkUnrouted tells Middleware that the router found no route for this
+// request, so no audit row is written for it. It is a no-op on a context that
+// did not pass through Middleware.
+func MarkUnrouted(ctx context.Context) {
+	if f, ok := ctx.Value(unroutedKey{}).(*atomic.Bool); ok {
+		f.Store(true)
+	}
+}
+
+// NotFound is the router's NotFound handler: it answers 404 and marks the
+// request unrouted. Set it with r.NotFound before mounting subrouters, which
+// inherit it.
+func NotFound(w http.ResponseWriter, req *http.Request) {
+	MarkUnrouted(req.Context())
+	http.NotFound(w, req)
+}
+
+// MethodNotAllowed is the router's MethodNotAllowed handler: it answers 405
+// and marks the request unrouted. Set it with r.MethodNotAllowed before
+// mounting subrouters, which inherit it.
+func MethodNotAllowed(w http.ResponseWriter, req *http.Request) {
+	MarkUnrouted(req.Context())
+	// chi's default 405 handler lists the allowed methods; keep that (RFC
+	// 9110 15.5.6) by asking the root router which methods match the path.
+	if rctx := chi.RouteContext(req.Context()); rctx != nil && rctx.Routes != nil {
+		for _, m := range allowCandidates {
+			if rctx.Routes.Match(chi.NewRouteContext(), m, req.URL.Path) {
+				w.Header().Add("Allow", m)
+			}
+		}
+	}
+	w.WriteHeader(http.StatusMethodNotAllowed)
+}
+
+var allowCandidates = []string{
+	http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut,
+	http.MethodPatch, http.MethodDelete, http.MethodOptions,
+}
+
+// Bounds on attacker-influenced strings stored in one middleware audit row.
+const (
+	maxAuditPathBytes   = 512
+	maxAuditTargetBytes = 512
+)
+
+// truncateUTF8 cuts s to at most max bytes without splitting a UTF-8 rune.
+func truncateUTF8(s string, limit int) string {
+	if len(s) <= limit {
+		return s
+	}
+	for limit > 0 && !utf8.RuneStart(s[limit]) {
+		limit--
+	}
+	return s[:limit]
+}
+
 // Middleware logs every mutating request after the handler returns.
 // Reads and health probes are skipped to keep the audit log signal-dense.
 // A request whose handler called MarkRecorded is skipped too: its own
@@ -651,10 +712,22 @@ func Middleware(a *Auditor) func(http.Handler) http.Handler {
 			ctx, holder := auth.WithActorHolder(req.Context())
 			recorded := new(atomic.Bool)
 			ctx = context.WithValue(ctx, recordedKey{}, recorded)
+			unrouted := new(atomic.Bool)
+			ctx = context.WithValue(ctx, unroutedKey{}, unrouted)
 			req = req.WithContext(ctx)
 			rw := &responseRecorder{ResponseWriter: w, status: 200}
 			next.ServeHTTP(rw, req)
 			if !shouldLog(req) || recorded.Load() {
+				return
+			}
+			// Requests the router did not route (404/405 from NotFound or
+			// MethodNotAllowed, at the root or in a mounted subrouter) carry
+			// attacker-chosen paths and no business action; skip them so a
+			// flood of unknown paths cannot fill the audit table. An
+			// unauthenticated request under an authenticated group is
+			// answered 401 by Authenticate before routing and is still
+			// recorded as an anonymous attempt.
+			if unrouted.Load() {
 				return
 			}
 			actor := "anonymous"
@@ -699,7 +772,8 @@ func Middleware(a *Auditor) func(http.Handler) http.Handler {
 
 			// Redact share link tokens from the path for audit logging.
 			// Share tokens are credentials; record the request structure without the token.
-			path := redactShareToken(req.URL.Path)
+			path := truncateUTF8(redactShareToken(req.URL.Path), maxAuditPathBytes)
+			target = truncateUTF8(target, maxAuditTargetBytes)
 
 			// The handler has already run. Keep its audit attempt on client
 			// disconnect, but never extend the request's original deadline.

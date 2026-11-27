@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -111,7 +112,7 @@ func (h *sftpLoginHandler) login(w http.ResponseWriter, req *http.Request) {
 	// long SSO email names that share a 64-rune prefix do not share a budget. The key is capped one rune
 	// past the longest valid name, so an oversized name cannot grow the limiter's keys.
 	auth.SetActor(ctx, actor)
-	if !auth.LoginLimiter.RequestBudget(w, req, sftpSourceKey(body.RemoteAddr, req)) {
+	if !auth.LoginLimiter.RequestBudget(w, req, auth.LimiterSourceKey(sftpSourceKey(body.RemoteAddr, req))) {
 		return
 	}
 	if !auth.LoginUserLimiter.RequestBudget(w, req, truncateRunes(base, sftpUsernameMaxRunes+1)) {
@@ -151,6 +152,12 @@ func (h *sftpLoginHandler) login(w http.ResponseWriter, req *http.Request) {
 	)
 	if body.Password != "" {
 		uid, ep, good, err := h.sessions.VerifySFTPPassword(ctx, base, body.Password)
+		if errors.Is(err, auth.ErrPasswordBusy) {
+			// Queue full: not a failed login, so no audit row.
+			w.Header().Set("Retry-After", "5")
+			httperr.WriteMessage(w, req, messages.New("server.generic.503", nil))
+			return
+		}
 		if err != nil || !good {
 			refuse("credential")
 			return

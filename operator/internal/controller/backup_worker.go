@@ -198,7 +198,7 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 	// Existing Jobs use their original execution protocol. Never replace a
 	// running pre-upgrade Job with a gated worker or claim it was prepared.
 	var job batchv1.Job
-	err := r.backupAPIReader().Get(ctx, client.ObjectKeyFromObject(b), &job)
+	err := r.backupAPIReader().Get(ctx, backupJobKey(b), &job)
 	if err != nil && !apierrors.IsNotFound(err) {
 		return ctrl.Result{}, err
 	}
@@ -307,7 +307,7 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 			return ctrl.Result{}, err
 		}
 		backoff, deadline := resolveJobLimits(r.JobBackoffLimit, r.JobActiveDeadlineSeconds)
-		job = batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: b.Name, Namespace: b.Namespace, Annotations: map[string]string{backupWorkerProtocolAnnotation: "v1"}}, Spec: batchv1.JobSpec{BackoffLimit: &backoff, ActiveDeadlineSeconds: &deadline,
+		job = batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: backupJobName(b.Name), Namespace: b.Namespace, Annotations: map[string]string{backupWorkerProtocolAnnotation: "v1"}}, Spec: batchv1.JobSpec{BackoffLimit: &backoff, ActiveDeadlineSeconds: &deadline,
 			Template: corev1.PodTemplateSpec{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{backupRestoreJobLabel: backupRestoreJobValue, backupUIDLabel: string(b.UID)}}, Spec: r.buildPreparedBackupPodSpec(b, tmpl, source, bound.UID, preparation, appliedFSGroup)}}}
 		job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
 		if source.NodeName == "" {

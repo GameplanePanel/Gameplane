@@ -85,7 +85,7 @@ install.
 
 The environment cards count an install once under each value it reports
 across the clusters its panel manages, so Kubernetes version, distribution
-and architecture shares can add up to more than 100%. "Deployment" shows
+and architecture shares can add up to more than 100%. The Kubernetes version panel shows the ten largest values and folds the rest into "other", and a report may list at most 32 distinct versions. "Deployment" shows
 whether the panel runs on a cluster or standalone; installs on an older
 version that doesn't report it count as other.
 

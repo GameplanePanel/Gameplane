@@ -25,8 +25,8 @@ RUN addgroup -g 1000 gameplane && \
     adduser -u 1000 -G gameplane -h /home/gameplane -s /bin/bash -D gameplane
 
 # Prepare directories
-RUN mkdir -p /opt/cfx-server /server-data && \
-    chown -R gameplane:gameplane /opt/cfx-server /server-data /home/gameplane
+RUN mkdir -p /server-data && \
+    chown -R gameplane:gameplane /server-data /home/gameplane
 
 # Copy entrypoint script
 COPY --chown=gameplane:gameplane entrypoint.sh /entrypoint.sh

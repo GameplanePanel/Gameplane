@@ -93,12 +93,26 @@ func (c *Client) WriteStdinLines(ctx context.Context, ns, pod, container string,
 		Stdout: io.Discard,
 		Tty:    true,
 	})
-	// We end the session deliberately once the write has flushed, so a
-	// context cancel/deadline is the expected success path, not a failure.
-	if err != nil && !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
+	return stdinResult(drained, err, ns, pod)
+}
+
+// stdinResult maps the stream outcome to WriteStdinLines' result. A context
+// cancel/deadline is the deliberate success path only once the stdin buffer
+// has been fully drained; otherwise the attach ended (timeout, cancelled
+// request) before anything was written and must not be reported as sent.
+func stdinResult(drained <-chan struct{}, err error, ns, pod string) error {
+	select {
+	case <-drained:
+		if err != nil && !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
+			return fmt.Errorf("write stdin to pod %s/%s: %w", ns, pod, err)
+		}
+		return nil
+	default:
+		if err == nil {
+			err = errors.New("attach ended before stdin was written")
+		}
 		return fmt.Errorf("write stdin to pod %s/%s: %w", ns, pod, err)
 	}
-	return nil
 }
 
 // notifyOnEOF wraps a reader and closes drained the first time the underlying

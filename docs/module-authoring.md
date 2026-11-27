@@ -1122,6 +1122,13 @@ game container via `passwordEnv`, and mounts the same value for the agent
 — the dashboard's console tab (and every RCON-backed capability) then
 works automatically.
 
+If the template's `configSchema` also has an env field that exports the
+same variable as `passwordEnv` (for example a `RCON_PASSWORD` password
+field), a value the user types there becomes the server's RCON password:
+the operator stores it in the `<server>-rcon` Secret, so the game and the
+agent still agree. The field's `default` is never used for this, and
+clearing the field switches back to a freshly generated password.
+
 #### Password source precedence
 
 When the game image manages its own RCON password file (e.g., Factorio's

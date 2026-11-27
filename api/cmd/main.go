@@ -357,6 +357,10 @@ func main() {
 	r.Use(requestTimeout(60 * time.Second))
 	r.Use(bodyLimit(1 << 20)) // 1 MiB default; upload proxy raises its own ceiling
 	r.Use(audit.Middleware(auditor))
+	// Unrouted requests (unknown paths, wrong methods) are not audited. Set
+	// before any Mount/Route: chi subrouters inherit these handlers.
+	r.NotFound(audit.NotFound)
+	r.MethodNotAllowed(audit.MethodNotAllowed)
 
 	mountHealthRoutes(r, store)
 	// Prometheus metrics are served by the separate metrics listener below,
