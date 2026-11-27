@@ -101,13 +101,13 @@ func GitClone(ctx context.Context, url, ref string, auth transport.AuthMethod) (
 
 // GitLoader returns the Loader for a git repository plus the reference prefix
 // ("git:<url>@<ref>[/<subPath>]") that locates it. The whole catalog tracks one
-// ref (default "main"); every bundle is stamped with the resolved commit as its
+// ref (default "master"); every bundle is stamped with the resolved commit as its
 // digest ("git:<sha>") so content drift on a moving branch is detected even when
 // versions don't change. subPath, when set, scopes the scan to that directory.
 // The caller checks the URL (CheckGitURL) and resolves auth first.
 func GitLoader(repoURL, ref, subPath string, auth transport.AuthMethod, clone GitCloneFunc) (Loader, string) {
 	if ref == "" {
-		ref = "main"
+		ref = "master"
 	}
 	sub := strings.Trim(subPath, "/")
 	load := func(ctx context.Context) (fs.FS, string, error) {

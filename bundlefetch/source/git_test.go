@@ -316,8 +316,8 @@ func TestGitLoader(t *testing.T) {
 		{
 			name:       "default ref whole tree",
 			ref:        "",
-			wantRef:    "main",
-			wantPrefix: "git:" + repo + "@main",
+			wantRef:    "master",
+			wantPrefix: "git:" + repo + "@master",
 			readFile:   "README.md",
 			wantBody:   "root\n",
 		},
@@ -342,8 +342,8 @@ func TestGitLoader(t *testing.T) {
 		{
 			name:       "missing scoped path opens but reads fail",
 			subPath:    "absent",
-			wantRef:    "main",
-			wantPrefix: "git:" + repo + "@main/absent",
+			wantRef:    "master",
+			wantPrefix: "git:" + repo + "@master/absent",
 			readFile:   "module.yaml",
 			wantErr:    "",
 		},
