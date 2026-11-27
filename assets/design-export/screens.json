@@ -2117,7 +2117,7 @@
     "name": "Screen/Theme Settings — Installed themes",
     "width": 1440,
     "height": 2928,
-    "hash": "7bcc0b6456d1fb2d71809da94887872525f73772b1fa2c642eaad781b741066c"
+    "hash": "ae4baae8a9ba62de34ff587790cb1f6ffb070b7a4a15b362c5f688bc827ae8bd"
   },
   {
     "file": "385085606-822",
@@ -2125,7 +2125,7 @@
     "name": "Screen/Theme Settings — Source removed",
     "width": 1440,
     "height": 2928,
-    "hash": "83b95849000291db023f26880f9b00ac6e944d3c4208da4dec929db88ac4aa48"
+    "hash": "2b15585d5b3f652e74ae88318b9b2103bc675697555c761ff569fc21fdab9c8e"
   },
   {
     "file": "623250718-1",
@@ -2133,7 +2133,7 @@
     "name": "Screen/Theme Settings — Theme removed notice",
     "width": 1440,
     "height": 2928,
-    "hash": "f157cc5998e5bcb35d3827293b65debb864d2bfc40430ccb97e36be94fbefbf7"
+    "hash": "081cd0dd19b3ebd6faafb4c4cf0c7a12e961e110e739c942a5f54a416db0805e"
   },
   {
     "file": "906199366-1",
@@ -2141,7 +2141,7 @@
     "name": "Screen/Admin Settings — Theme sources",
     "width": 1440,
     "height": 900,
-    "hash": "2dcff08bbbf403ea403cad7d2af3014661b4e19c1d487342d5bbfd66a58a5b95"
+    "hash": "dae4436229679e488a7d3605097c632d50978d2cea2abc0dcdd82f63ab2c9ec6"
   },
   {
     "file": "906199366-709",
@@ -2149,7 +2149,7 @@
     "name": "Screen/Admin Settings — Theme sources · Add source dialog",
     "width": 1440,
     "height": 1240,
-    "hash": "ed3ae6a7b1cddc2050662c007dc5d8f5ebe2ac8c074ee3775dfa22f8b3cae0d4"
+    "hash": "a2ec60c065f1e43db8f3a9f4d15d84d3594ce9b2f1d1c3edcc9e3093447d6186"
   },
   {
     "file": "906199366-1485",
@@ -2157,7 +2157,7 @@
     "name": "Screen/Admin Settings — Theme sources · Edit source dialog",
     "width": 1440,
     "height": 1240,
-    "hash": "6f7908db2ab8b60b54f9b84d93a923ad1c70e73ed04113740ff772c8ad2f8cb4"
+    "hash": "769ef6c81bb04b5c8eddfec70056e52885511391e5c1efd422b71265fe7a1a99"
   },
   {
     "file": "906199366-2261",
@@ -2165,7 +2165,7 @@
     "name": "Screen/Admin Settings — Theme sources · Delete confirm",
     "width": 1440,
     "height": 900,
-    "hash": "f3034ec6faabef35bfb4ce0ced960845dcb39f91809bfa0786308b40362f9b0b"
+    "hash": "79f06395b751b021ccc5ffb2a5e969966159d264bfa42284d6a91c69e261293f"
   },
   {
     "file": "906199366-2986",
@@ -2173,7 +2173,7 @@
     "name": "Screen/Theme preview — banner",
     "width": 1440,
     "height": 944,
-    "hash": "b6183e0879c76bd70d85a227f63ede7a3b64639f06a4cd72382020c71e1dcd7b"
+    "hash": "dfd062f3770e1edba3ba8a985a30f345d5d63abc96f3c3abefc6739424c207ad"
   },
   {
     "file": "434265728-1",
@@ -2181,7 +2181,7 @@
     "name": "Screen/Mobile — Theme catalog",
     "width": 390,
     "height": 1597,
-    "hash": "eef20968be91cddc50318a38e7c5bce968c6f9462fd7a465395228eead9383fa"
+    "hash": "3861073d9f320e5119e9aace8421294ec63a28a7ab21464a78892afc9dbd79ac"
   },
   {
     "file": "434265728-418",
@@ -2189,7 +2189,7 @@
     "name": "Screen/Mobile — Theme catalog — no results",
     "width": 390,
     "height": 630,
-    "hash": "5a091242a621d7a79ebf3b5f2948b5aae548bbced7cfd2c4321204fc290d45d5"
+    "hash": "636b46b7cc5aee5f8a8dfb1f14a7db227a390c86c67a282cc0d0361f2ac1c1f2"
   },
   {
     "file": "434265728-590",
@@ -2197,6 +2197,6 @@
     "name": "Screen/Mobile — Theme detail",
     "width": 390,
     "height": 1272,
-    "hash": "166c5acd4af983d6530d298f9abf2ac4d9a5c0de51580caaa7df601b336c137b"
+    "hash": "10ba25d4437f853a79bfa706b9ca4a6d07f36fbff636435203dc1f249d3908b1"
   }
 ]

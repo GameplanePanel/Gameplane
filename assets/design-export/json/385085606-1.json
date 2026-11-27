@@ -1608,7 +1608,7 @@
                                   "x": 190,
                                   "y": 12,
                                   "width": 467,
-                                  "height": 34,
+                                  "height": 55,
                                   "layout": {
                                     "mode": "VERTICAL",
                                     "gap": 3,
@@ -1620,11 +1620,63 @@
                                   "layoutGrow": 1,
                                   "children": [
                                     {
+                                      "name": "itrTitle",
+                                      "type": "FRAME",
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 195,
+                                      "height": 18,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 8,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
+                                      "children": [
+                                        {
+                                          "name": "itrName",
+                                          "type": "TEXT",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 83,
+                                          "height": 18,
+                                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                          "text": "Aurora Night",
+                                          "font": ["Geist", 500, 14],
+                                          "variables": {"fills/0/color": "foreground/foreground"}
+                                        },
+                                        {
+                                          "name": "itrBadge",
+                                          "type": "INSTANCE",
+                                          "x": 91,
+                                          "y": 0.5,
+                                          "width": 104,
+                                          "height": 17,
+                                          "component": "Chip/Soft/Warning/SM",
+                                          "componentId": "1:3082",
+                                          "fills": [{"type": "SOLID", "color": "#F7B750", "opacity": 0.15}],
+                                          "cornerRadius": 16,
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 2,
+                                            "padding": [2, 4, 2, 4],
+                                            "primary": "MIN",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "HUG"]
+                                          },
+                                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "warning/soft"},
+                                          "texts": ["UPDATE AVAILABLE"]
+                                        }
+                                      ]
+                                    },
+                                    {
                                       "id": "0:55934",
                                       "name": "itrMeta",
                                       "type": "TEXT",
                                       "x": 0,
-                                      "y": 0,
+                                      "y": 21,
                                       "width": 467,
                                       "height": 15,
                                       "fills": [{"type": "SOLID", "color": "#9E98A6"}],
@@ -1638,7 +1690,7 @@
                                       "name": "itrUpdateNote",
                                       "type": "TEXT",
                                       "x": 0,
-                                      "y": 18,
+                                      "y": 39,
                                       "width": 467,
                                       "height": 16,
                                       "fills": [{"type": "SOLID", "color": "#F7B750"}],
