@@ -1,0 +1,27 @@
+apiVersion: gameplane.local/theme/v2
+name: deep-ocean
+version: 1.2.0
+displayName: Deep Ocean
+author: Jane Doe
+description: Calm blues for long sessions.
+tags: [dark, blue, calm]
+license: MIT
+homepage: https://example.org/deep-ocean
+changelog: |
+  1.2.0: higher contrast borders
+tokens:
+  dark:
+    background: "#0b1220"
+    foreground: "#e6edf7"
+    surface: "#111a2e"
+    surface-secondary: "#16213a"
+    surface-tertiary: "#1c2946"
+    overlay: "#0f172a"
+    accent: "#38bdf8"
+    accent-foreground: "#04121d"
+    accent-soft: "#0c2a3d"
+    accent-soft-foreground: "#a5e3ff"
+    muted: "#8a9bb8"
+    border: "#24324f"
+    focus: "#38bdf8"
+    link: "#7dd3fc"

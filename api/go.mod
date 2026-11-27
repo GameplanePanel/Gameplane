@@ -21,6 +21,10 @@ replace github.com/GameplanePanel/gameplane/gp-module => ../gp-module
 // `go build ./api/...`.
 replace github.com/GameplanePanel/gameplane/telemetryschema => ../telemetryschema
 
+// themepkg is an in-repo module (no published version); resolve it locally
+// both inside the go.work workspace and for standalone `go build ./api/...`.
+replace github.com/GameplanePanel/gameplane/themepkg => ../themepkg
+
 // i18n is an in-repo module (no published version); resolve it locally
 // both inside the go.work workspace and for standalone `go build ./api/...`.
 replace github.com/GameplanePanel/gameplane/i18n => ../i18n
@@ -31,6 +35,7 @@ require (
 	github.com/GameplanePanel/gameplane/i18n v0.0.0
 	github.com/GameplanePanel/gameplane/netguard v0.0.0
 	github.com/GameplanePanel/gameplane/telemetryschema v0.0.0
+	github.com/GameplanePanel/gameplane/themepkg v0.0.0
 	github.com/coder/websocket v1.8.15
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/go-chi/chi/v5 v5.5.0

@@ -10,9 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/mail"
-	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -22,6 +20,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/messages"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 	"github.com/GameplanePanel/gameplane/i18n/catalog"
+	"github.com/GameplanePanel/gameplane/themepkg"
 )
 
 // languageListed reports whether a language tag is offered by this release.
@@ -279,63 +278,17 @@ func preferencesDTO(p db.UserPreferences) *userPreferencesDTO {
 	return out
 }
 
-// FR-013 custom CSS limits (contracts/user-preferences-api.md §1.2). A
-// rejected stylesheet returns 400 with a message naming the offending rule.
-const maxCustomCSSLen = 32768
-
-var (
-	// cssImportRE matches an @import rule anywhere in the stylesheet.
-	cssImportRE = regexp.MustCompile(`(?i)@import\b`)
-	// cssURLRE captures the reference inside each url(...) so it can be
-	// inspected; surrounding quotes are optional and excluded.
-	cssURLRE = regexp.MustCompile(`(?i)url\(\s*["']?([^"')]*)["']?\s*\)`)
-	// cssExternalRefRE finds an absolute or protocol-relative reference
-	// anywhere in the stylesheet, inside or outside url().
-	cssExternalRefRE = regexp.MustCompile(`(?i)(https?:|["'(\s,]//)`)
-	// urlControlStripper removes the characters URL parsing ignores.
-	urlControlStripper = strings.NewReplacer("\t", "", "\n", "", "\r", "")
-)
-
 // sanitizeCustomCSS applies the FR-013 rules to a submitted stylesheet,
 // returning "" when the CSS is acceptable or a caller-safe message naming
 // the offending rule. It rejects oversized payloads, @import rules,
 // external url() references (absolute http(s) or protocol-relative, remote
 // fonts included) while allowing inline data: URIs, unbalanced braces,
 // anything smuggling HTML <style>/<script> delimiters, CSS escapes, and any
-// other absolute or protocol-relative reference (image-set, src()).
+// other absolute or protocol-relative reference (image-set, src()). The
+// rules live in themepkg.SanitizeCSS (shared with theme packages).
 func sanitizeCustomCSS(css string) string {
-	if len(css) > maxCustomCSSLen {
-		return fmt.Sprintf("customCss rejected: exceeds the maximum length of %d characters", maxCustomCSSLen)
-	}
-	if cssImportRE.MatchString(css) {
-		return "customCss rejected: @import rules are not allowed"
-	}
-	for _, m := range cssURLRE.FindAllStringSubmatch(css, -1) {
-		ref := strings.TrimSpace(m[1])
-		lower := strings.ToLower(ref)
-		if strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") || strings.HasPrefix(ref, "//") {
-			return fmt.Sprintf("customCss rejected: external url() reference '%s' is not allowed", ref)
-		}
-	}
-	if strings.Count(css, "{") != strings.Count(css, "}") {
-		return "customCss rejected: unbalanced braces"
-	}
-	lower := strings.ToLower(css)
-	for _, d := range []string{"<style", "</style", "<script", "</script"} {
-		if strings.Contains(lower, d) {
-			return fmt.Sprintf("customCss rejected: HTML delimiter %q is not allowed", d)
-		}
-	}
-	// CSS escapes (\69mport, u\72l(...)) would hide the rules above from a
-	// plain text match, and image-set("https://...") or src("...") load a
-	// resource without the url( token, so refuse both forms outright.
-	if strings.Contains(css, `\`) {
-		return "customCss rejected: CSS escapes (\\) are not allowed"
-	}
-	// URL parsing drops ASCII tab and newline, so "ht\ttps://" still
-	// fetches: check the text with them removed as well.
-	if cssExternalRefRE.MatchString(css) || cssExternalRefRE.MatchString(urlControlStripper.Replace(css)) {
-		return "customCss rejected: external references are not allowed"
+	if p, ok := themepkg.SanitizeCSS(css); !ok {
+		return "customCss rejected: " + p.Detail
 	}
 	return ""
 }

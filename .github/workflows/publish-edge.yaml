@@ -29,6 +29,7 @@ on:
       - "gameaction/**"
       - "gameproto/**"
       - "telemetryschema/**"
+      - "themepkg/**"
       - "i18n/**"
       - "gp-module/**"
       - "audit-syslog-bridge"

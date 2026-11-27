@@ -28,6 +28,7 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | **Audit-Syslog-Bridge** | `audit-syslog-bridge/specs.md` (submodule `GameplanePanel/audit-syslog-bridge`) | Relay forwarding HTTP JSON audit events to external syslog servers. |
 | **Telemetry-Receiver** | `telemetry-receiver/specs.md` | Ingests and processes anonymous usage telemetry from the API. |
 | **Telemetryschema** | `telemetryschema/specs.md` | Shared telemetry report contract (types, enumerations, strict decode, official module catalog, report signing) used by the API and the telemetry-receiver. |
+| **Themepkg** | `themepkg/specs.md` | Shared theme package validator (strict `theme.yaml` decode, the 14 tokens and contrast checks, the custom CSS sanitizer, preview and size limits) used by the API and `gp-module` (spec 043). |
 | **MCP-Server** | `mcp-server/specs.md` (submodule `GameplanePanel/mcp`) | Read-only Model Context Protocol server exposing cluster state to AI tools. |
 | **SFTP** | `sftp/specs.md` (submodule `GameplanePanel/sftp`) | Optional SFTP endpoint for game server files. Every login and file operation goes to the API as the signed-in user ([`docs/sftp.md`](sftp.md)). |
 
