@@ -79,7 +79,8 @@ func themeSrcEntries(t *testing.T, env *themeCatEnv, source string) []db.ThemeCa
 	return entries
 }
 
-// themeSrcAssertNoCredential fails when a response body names a credential.
+// themeSrcAssertNoCredential fails when a response body carries a credential
+// value field. The credentialSecret name is allowed.
 func themeSrcAssertNoCredential(t *testing.T, body string) {
 	t.Helper()
 	// Error texts may name the credential ("credential for an oci source must

@@ -317,3 +317,58 @@ func TestThemeSourceCredentialSecretNeedsStore(t *testing.T) {
 		t.Fatalf("create without a credential store: status %d, want 422; body %s", rr.Code, rr.Body.String())
 	}
 }
+
+func TestThemeSourceCredentialSecretLegacyFieldAndDuplicate(t *testing.T) {
+	env := newThemeCredEnv(t)
+	defer env.svc.WaitIdle()
+	h := env.router("admin")
+
+	// The old credential field carried secret values; it is an unknown field now,
+	// so the body is refused and nothing is stored.
+	legacy := themeCredName()
+	body := themeSrcBody(legacy, "oci", themeSrcSpec(legacy), `,"credential":`+themeCredDockerConfig)
+	rr := themeInstDo(t, h, http.MethodPost, "/themes/sources", body)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("legacy credential field: status %d, want 400; body %s", rr.Code, rr.Body.String())
+	}
+	themeCredAssertHidden(t, rr.Body.String())
+	for _, it := range themeSrcItems(t, h) {
+		if it.Name == legacy {
+			t.Fatalf("source with a legacy credential field was stored")
+		}
+	}
+
+	// A duplicate create is refused and keeps the stored Secret name.
+	name := themeCredName()
+	first := name + "-a"
+	create := themeSrcBody(name, "oci", themeSrcSpec(name), `,"credentialSecret":"`+first+`"`)
+	if rr := themeInstDo(t, h, http.MethodPost, "/themes/sources", create); rr.Code != http.StatusCreated {
+		t.Fatalf("create: status %d body %s", rr.Code, rr.Body.String())
+	}
+	dup := themeSrcBody(name, "oci", themeSrcSpec(name), `,"credentialSecret":"`+name+`-other"`)
+	if rr := themeInstDo(t, h, http.MethodPost, "/themes/sources", dup); rr.Code != http.StatusConflict {
+		t.Fatalf("duplicate create: status %d, want 409; body %s", rr.Code, rr.Body.String())
+	}
+	if ref := themeCredStoredRef(t, env, name); ref == nil || *ref != first {
+		t.Fatalf("credential_ref after duplicate create = %v, want %s", ref, first)
+	}
+	themeCredAssertNoPanelWrites(t, env.cs, 0)
+}
+
+func TestThemeSourceCredentialSecretUpdateNeedsStore(t *testing.T) {
+	env := newThemeCatEnv(t)
+	defer env.svc.WaitIdle()
+	h := env.router("admin")
+	name := themeCredName()
+	if rr := themeInstDo(t, h, http.MethodPost, "/themes/sources", themeSrcBody(name, "oci", themeSrcSpec(name), "")); rr.Code != http.StatusCreated {
+		t.Fatalf("create: status %d body %s", rr.Code, rr.Body.String())
+	}
+	put := themeSrcBody(name, "oci", themeSrcSpec(name), `,"credentialSecret":"theme-creds"`)
+	if rr := themeInstDo(t, h, http.MethodPut, "/themes/sources/"+name, put); rr.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("update without a credential store: status %d, want 422; body %s", rr.Code, rr.Body.String())
+	}
+	src, err := env.store.GetThemeSource(context.Background(), name)
+	if err != nil || src.CredentialRef != nil {
+		t.Fatalf("credential_ref after refused update = %v, %v; want nil", src.CredentialRef, err)
+	}
+}
