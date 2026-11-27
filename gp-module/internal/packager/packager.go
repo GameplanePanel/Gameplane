@@ -298,6 +298,17 @@ func localeLayerArgs(locales map[string][]byte) []string {
 	return args
 }
 
+// RunOras runs the oras CLI in dir with args and streams its output to the
+// terminal. Theme pushes (gp-module/internal/theme) use it too, so every oras
+// invocation in gp-module lives in this file.
+func RunOras(ctx context.Context, dir string, args ...string) error {
+	cmd := exec.CommandContext(ctx, "oras", args...)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 // PushOCI packages and pushes a module directory to an OCI registry using ORAS.
 func PushOCI(opts PackageOptions) ([]PackageWarning, error) {
 	files, err := ReadModuleFiles(opts.ModuleDir)
