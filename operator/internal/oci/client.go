@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sort"
 	"time"
@@ -139,6 +140,7 @@ func (c *Client) Pull(ctx context.Context, ref, reference string) (string, map[s
 		return layers[i].Annotations[AnnotationTitle] < layers[j].Annotations[AnnotationTitle]
 	})
 	var budget LocaleBudget
+	var total int64
 	for _, layer := range layers {
 		title := layer.Annotations[AnnotationTitle]
 		if title == "" {
@@ -156,6 +158,19 @@ func (c *Client) Pull(ctx context.Context, ref, reference string) (string, map[s
 				files[title] = OversizedLocale
 				continue
 			}
+		} else {
+			// Only the layers the bundle format defines are read; each is
+			// size-checked before any byte is fetched.
+			limit, known := layerSizeLimit(title)
+			if !known {
+				continue
+			}
+			if layer.Size < 0 || layer.Size > limit {
+				return "", nil, fmt.Errorf("layer %s is %d bytes, over the %d-byte limit", title, layer.Size, limit)
+			}
+		}
+		if total += layer.Size; total > MaxBundleSize {
+			return "", nil, fmt.Errorf("bundle layers exceed the %d-byte limit", int64(MaxBundleSize))
 		}
 		blob, err := readBlob(ctx, r, layer)
 		if err != nil {
@@ -174,7 +189,9 @@ func readBlob(ctx context.Context, r *remote.Repository, desc ocispec.Descriptor
 		return nil, err
 	}
 	defer func() { _ = rc.Close() }()
-	data, err := content.ReadAll(rc, desc)
+	// The declared size was bounded by the caller; the LimitReader keeps a
+	// server that sends more than it declared from growing the read.
+	data, err := content.ReadAll(io.LimitReader(rc, desc.Size+1), desc)
 	if err != nil {
 		return nil, fmt.Errorf("check blob %s: %w", desc.Digest, err)
 	}

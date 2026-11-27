@@ -36,6 +36,39 @@ const (
 	LayerNameIcon     = "icon.png"
 )
 
+// Per-layer size caps for the non-locale layers. Pull checks the size the
+// manifest declares before it reads a layer, so a hostile registry cannot make
+// the operator allocate an arbitrary amount of memory (the check runs before
+// any signature verification).
+const (
+	MaxMetadataLayerSize = 256 * 1024
+	MaxTemplateLayerSize = 4 * 1024 * 1024
+	MaxReadmeLayerSize   = 1024 * 1024
+	MaxIconLayerSize     = 1024 * 1024
+
+	// MaxBundleSize bounds the declared size of every layer Pull reads, locale
+	// layers included. It is the sum of the per-layer caps plus
+	// MaxLocaleTotalSize, so a bundle within every individual cap and the
+	// locale budget always fits.
+	MaxBundleSize = MaxMetadataLayerSize + MaxTemplateLayerSize + MaxReadmeLayerSize +
+		MaxIconLayerSize + MaxLocaleTotalSize
+)
+
+// layerSizeLimit returns the size cap of a known non-locale layer title.
+func layerSizeLimit(title string) (int64, bool) {
+	switch title {
+	case LayerNameMetadata:
+		return MaxMetadataLayerSize, true
+	case LayerNameTemplate:
+		return MaxTemplateLayerSize, true
+	case LayerNameReadme:
+		return MaxReadmeLayerSize, true
+	case LayerNameIcon:
+		return MaxIconLayerSize, true
+	}
+	return 0, false
+}
+
 // Locale layers carry module translations. Each is titled
 // "locales/<tag>.json" and typed MediaTypeLocale.
 const (

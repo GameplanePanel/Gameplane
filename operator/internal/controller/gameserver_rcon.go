@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
@@ -76,6 +77,21 @@ func resolveRCON(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameT
 	return r
 }
 
+// errRCONSecretNotOwned reports that <gs>-rcon exists but is not controlled by
+// the GameServer, so the operator refuses to use it as the RCON password.
+var errRCONSecretNotOwned = errors.New("secret exists and is not controlled by this GameServer")
+
+// recordRCONSecretForeign emits a Warning event on gs (no Secret contents). It
+// is a no-op without an EventRecorder.
+func (r *GameServerReconciler) recordRCONSecretForeign(gs *gameplanev1alpha1.GameServer, secretName string) {
+	if r.EventRecorder == nil {
+		return
+	}
+	reason := "RCONSecretNotOwned"
+	message := fmt.Sprintf("Secret %q already exists and was not created by this GameServer; the operator will not use it as the RCON password. Delete or rename it so the operator can generate one", secretName)
+	r.EventRecorder.Eventf(gs, nil, corev1.EventTypeWarning, reason, reason, "%s", message)
+}
+
 // reconcileRCONSecret ensures an RCON password exists for the GameServer.
 // When the template declares RCON, doesn't reference an external Secret, and
 // doesn't use a game-managed password file, the operator generates a random
@@ -96,6 +112,13 @@ func (r *GameServerReconciler) reconcileRCONSecret(
 		return r.deleteIfControlledBy(ctx, gs, sec)
 	}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, sec, func() error {
+		// Never adopt a Secret this GameServer does not control: any user able
+		// to create Secrets (e.g. a backup destination named "<gs>-rcon") could
+		// otherwise choose the server's RCON password. Operator-created Secrets
+		// always carry the controller reference, so they stay reusable.
+		if sec.ResourceVersion != "" && !metav1.IsControlledBy(sec, gs) {
+			return errRCONSecretNotOwned
+		}
 		sec.Type = corev1.SecretTypeOpaque
 		if len(sec.Data["password"]) == 0 {
 			pw, gerr := generatePassword()
@@ -109,6 +132,9 @@ func (r *GameServerReconciler) reconcileRCONSecret(
 		}
 		return controllerutil.SetControllerReference(gs, sec, r.Scheme)
 	})
+	if errors.Is(err, errRCONSecretNotOwned) {
+		r.recordRCONSecretForeign(gs, sec.Name)
+	}
 	if err != nil {
 		return fmt.Errorf("reconcile rcon Secret %s/%s: %w", gs.Namespace, sec.Name, err)
 	}

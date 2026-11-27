@@ -285,7 +285,7 @@ func (r *BackupReconciler) clearBackupJob(ctx context.Context, b *gameplanev1alp
 		return false, nil
 	}
 	var job batchv1.Job
-	if err := r.Get(ctx, types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, &job); err != nil {
+	if err := r.Get(ctx, backupJobKey(b), &job); err != nil {
 		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
@@ -412,6 +412,27 @@ func jobFailureMessage(job *batchv1.Job) string {
 		}
 	}
 	return "no failure detail reported"
+}
+
+// maxBackupJobNameLen is the longest Job name whose job-name pod label stays a
+// valid label value.
+const maxBackupJobNameLen = 63
+
+// backupJobName names the copy Job of a Backup: the Backup name itself when it
+// fits in a label value (so Jobs created before this cap are still found), else
+// a truncated name plus a hash of the full name so two long names cannot collide.
+func backupJobName(backupName string) string {
+	if len(backupName) <= maxBackupJobNameLen {
+		return backupName
+	}
+	sum := sha256.Sum256([]byte(backupName))
+	prefix := strings.TrimRight(backupName[:maxBackupJobNameLen-9], "-.")
+	return fmt.Sprintf("%s-%x", prefix, sum[:4])
+}
+
+// backupJobKey is the object key of a Backup's copy Job.
+func backupJobKey(b *gameplanev1alpha1.Backup) types.NamespacedName {
+	return types.NamespacedName{Namespace: b.Namespace, Name: backupJobName(b.Name)}
 }
 
 // forgetJobName names the forget Job for a Backup: "<backup>-forget", or, when

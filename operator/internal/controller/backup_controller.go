@@ -192,7 +192,7 @@ func (r *BackupReconciler) retrySnapshotScrape(
 	ctx context.Context, b *gameplanev1alpha1.Backup,
 ) (ctrl.Result, error) {
 	var job batchv1.Job
-	if err := r.Get(ctx, types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, &job); err != nil {
+	if err := r.Get(ctx, backupJobKey(b), &job); err != nil {
 		if !apierrors.IsNotFound(err) {
 			return ctrl.Result{}, err
 		}
@@ -322,7 +322,7 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 	// trying to acquire exclusive ownership first would deadlock their cleanup.
 	if legacyBackupOwesUnquiesce(&b) && b.Spec.Strategy != "volume-snapshot" {
 		var existing batchv1.Job
-		err := r.backupAPIReader().Get(ctx, client.ObjectKeyFromObject(&b), &existing)
+		err := r.backupAPIReader().Get(ctx, backupJobKey(&b), &existing)
 		if err != nil && !apierrors.IsNotFound(err) {
 			return ctrl.Result{}, err
 		}
@@ -984,7 +984,7 @@ func (r *BackupReconciler) readResticSummary(ctx context.Context, b *gameplanev1
 		}
 		reader = &clientsetLogReader{cs: r.Clientset}
 	}
-	rc, err := reader.BackupLogs(ctx, b.Namespace, b.Name)
+	rc, err := reader.BackupLogs(ctx, b.Namespace, backupJobName(b.Name))
 	if err != nil {
 		return nil, fmt.Errorf("read restic logs: %w", err)
 	}
