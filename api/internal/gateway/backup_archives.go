@@ -11,6 +11,7 @@ import (
 
 	"github.com/GameplanePanel/gameplane/api/internal/gatewayprotocol"
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/workerconn"
 )
 
 // backupExportWorkerPort is the port the backup export worker listens on
@@ -66,12 +67,9 @@ func (h *handler) serveBackupExport(w http.ResponseWriter, req *http.Request, ta
 	}
 	defer transport.CloseIdleConnections()
 	upstreamURL := "https://" + export.Status.ServiceName + "." + target.Namespace + ".svc.cluster.local:" + backupExportWorkerPort + "/export/" + target.ExportUID
-	upstream, err := http.NewRequestWithContext(ctx, http.MethodGet, upstreamURL, nil)
-	if err != nil {
-		http.Error(w, "backup export unavailable", http.StatusBadGateway)
-		return
-	}
-	resp, err := transport.RoundTrip(upstream)
+	resp, err := workerconn.Do(ctx, transport.RoundTrip, func(io.Reader) (*http.Request, error) {
+		return http.NewRequestWithContext(ctx, http.MethodGet, upstreamURL, nil)
+	}, nil)
 	if err != nil {
 		http.Error(w, "backup export worker unavailable", http.StatusBadGateway)
 		return
@@ -211,13 +209,14 @@ func (h *handler) serveRestoreUpload(w http.ResponseWriter, req *http.Request, t
 	}
 	defer transport.CloseIdleConnections()
 	upstreamURL := "https://" + receiver + "." + target.Namespace + ".svc:" + restoreUploadWorkerPort + "/upload/" + target.RestoreUID
-	upstream, err := http.NewRequestWithContext(ctx, http.MethodPut, upstreamURL, req.Body)
-	if err != nil {
-		http.Error(w, "restore upload unavailable", http.StatusBadGateway)
-		return
-	}
-	upstream.ContentLength = req.ContentLength
-	resp, err := transport.RoundTrip(upstream)
+	resp, err := workerconn.Do(ctx, transport.RoundTrip, func(b io.Reader) (*http.Request, error) {
+		upstream, err := http.NewRequestWithContext(ctx, http.MethodPut, upstreamURL, b)
+		if err != nil {
+			return nil, fmt.Errorf("build restore upload request: %w", err)
+		}
+		upstream.ContentLength = req.ContentLength
+		return upstream, nil
+	}, req.Body)
 	if err != nil {
 		http.Error(w, "restore upload worker unavailable; the archive was not confirmed", http.StatusBadGateway)
 		return

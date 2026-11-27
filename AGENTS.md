@@ -31,7 +31,7 @@ operator/            controller-runtime operator
   internal/controller/  reconcilers + envtest suites
   cmd/main.go        entrypoint;  config/{crd,rbac}/ GENERATED
 api/                 REST + WebSocket gateway (chi); cmd/main.go: `serve`, `gateway`, `bootstrap-admin`, `rotate-panel-key`
-  internal/{audit,auth,controlplane,db,gateway,gatewayprotocol,handlers,httperr,kube,kubeconfig,messages,notify,rbac,registry,scope,steam,telemetry,ws}/
+  internal/{audit,auth,controlplane,db,gateway,gatewayprotocol,handlers,httperr,kube,kubeconfig,messages,notify,rbac,registry,scope,steam,telemetry,workerconn,ws}/
 agent/               in-pod sidecar; internal/{a2s,actions,auth,caps,console,files,heartbeat,httpjson,lifecycle,logs,metrics,mods,players,quiesce,rcon,status,target,usage}/
 audit-syslog-bridge/ SUBMODULE GameplanePanel/audit-syslog-bridge (RFC 5424 HTTP→syslog forwarder; own go.mod, not in go.work; image still built here)
 telemetry-receiver/  usage telemetry ingest
