@@ -477,18 +477,43 @@ func (s *Store) GetThemeCatalogPreview(ctx context.Context, id int64, mode strin
 // not in names, after a re-index. An empty names list removes every entry of
 // the source.
 func (s *Store) DeleteThemeCatalogEntriesNotIn(ctx context.Context, sourceID int64, names []string) error {
-	q := `DELETE FROM theme_catalog_entries WHERE source_id = ?`
-	args := []any{sourceID}
-	if len(names) > 0 {
-		marks := make([]string, len(names))
-		for i, name := range names {
-			marks[i] = "?"
-			args = append(args, name)
-		}
-		q += ` AND name NOT IN (` + strings.Join(marks, ", ") + `)`
+	keep := make(map[string]bool, len(names))
+	for _, n := range names {
+		keep[n] = true
 	}
-	if _, err := s.DB.ExecContext(ctx, q, args...); err != nil {
-		return fmt.Errorf("delete theme catalog entries: %w", err)
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("delete theme catalog entries: begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	rows, err := tx.QueryContext(ctx, `SELECT name FROM theme_catalog_entries WHERE source_id = ?`, sourceID)
+	if err != nil {
+		return fmt.Errorf("delete theme catalog entries: list: %w", err)
+	}
+	var stale []string
+	for rows.Next() {
+		var n string
+		if err := rows.Scan(&n); err != nil {
+			_ = rows.Close()
+			return fmt.Errorf("delete theme catalog entries: scan: %w", err)
+		}
+		if !keep[n] {
+			stale = append(stale, n)
+		}
+	}
+	if err := rows.Close(); err != nil {
+		return fmt.Errorf("delete theme catalog entries: close: %w", err)
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("delete theme catalog entries: rows: %w", err)
+	}
+	for _, n := range stale {
+		if _, err := tx.ExecContext(ctx, `DELETE FROM theme_catalog_entries WHERE source_id = ? AND name = ?`, sourceID, n); err != nil {
+			return fmt.Errorf("delete theme catalog entries: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("delete theme catalog entries: commit: %w", err)
 	}
 	return nil
 }
