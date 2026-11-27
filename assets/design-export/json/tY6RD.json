@@ -534,7 +534,7 @@
                       "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
                       "text": "All loaders",
                       "font": ["Geist", 400, 13],
-                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                      "variables": {"fills/0/color": "foreground/foreground"}
                     },
                     {
                       "name": "All loaders switch",

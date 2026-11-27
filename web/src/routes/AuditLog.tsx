@@ -114,7 +114,7 @@ export function AuditLogPage() {
 
       <div className="flex flex-wrap items-center gap-3">
         <Tabs selectedKey={statusClass} onSelectionChange={(key) => setStatusClass(key as StatusClass)} variant="secondary" aria-label={intl.formatMessage({ id: "web.routes.audit_log.status_filter", defaultMessage: "Status filter", description: "Audit log: accessible name of the status tabs that filter the audit events by status" })}>
-          <Tabs.List className="w-fit">
+          <Tabs.List>
             {(["all", "2xx", "4xx", "5xx"] as StatusClass[]).map((s) => (
               <TabComponent key={s} id={s} className="text-xs">
                 {intl.formatMessage({ id: "web.routes.audit_log.status_tab", defaultMessage: "{label} · {count}", description: "Audit log: status filter tab; {label} is the filter name, {count} is the number of events in it" }, { label: labelFor(s, intl), count: totals[s] ?? 0 })}

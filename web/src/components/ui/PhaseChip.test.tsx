@@ -78,12 +78,22 @@ describe("PhaseChip", () => {
     expect(screen.queryByText("Asleep")).not.toBeInTheDocument();
   });
 
-  // Test 11: Size prop is passed to Chip
-  it("applies size prop to Chip", () => {
-    render(<PhaseChip phase="Running" size="lg" />);
+  // Test 11: text-size pill with a leading dot, no size prop (042 FR-004)
+  it("renders a leading dot and no size attribute", () => {
+    render(<PhaseChip phase="Running" />);
     const chip = screen.getByText("Running").closest('[data-slot="chip"]');
     expect(chip).not.toBeNull();
-    expect(chip).toHaveAttribute("data-size", "lg");
+    expect(chip).toHaveClass("phase-chip");
+    expect(chip?.querySelector(".phase-chip__dot")).not.toBeNull();
+    expect(chip).not.toHaveAttribute("data-size");
+  });
+
+  // Test 11b: Asleep keeps the dot (violet via data-asleep, OD-9)
+  it("renders the dot on Asleep chips too", () => {
+    render(<PhaseChip phase="Suspended" asleep={true} />);
+    const chip = screen.getByText("Asleep").closest('[data-slot="chip"]');
+    expect(chip?.querySelector(".phase-chip__dot")).not.toBeNull();
+    expect(chip).toHaveAttribute("data-asleep", "true");
   });
 
   // Test 12: Custom className is applied
@@ -157,6 +167,15 @@ describe("Chip (generic wrapper)", () => {
     expect(chip).not.toBeNull();
     expect(chip).toHaveAttribute("data-color", "default");
     expect(chip).toHaveAttribute("data-size", "sm");
+  });
+
+  it("renders the status-pill dot only when dot is set", () => {
+    const { rerender } = render(<Chip>Plain</Chip>);
+    expect(screen.getByText("Plain").closest('[data-slot="chip"]')?.querySelector(".phase-chip__dot")).toBeNull();
+    rerender(<Chip dot color="success">Dotted</Chip>);
+    const chip = screen.getByText("Dotted").closest('[data-slot="chip"]');
+    expect(chip).toHaveClass("phase-chip");
+    expect(chip?.querySelector(".phase-chip__dot")).not.toBeNull();
   });
 
   // A Succeeded backup without a snapshot ID is not a restore point yet (#961).

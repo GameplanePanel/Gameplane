@@ -1,0 +1,287 @@
+{
+  "file": "1-59058",
+  "id": "1:59058",
+  "name": "Screen/Mobile — Theme catalog",
+  "type": "FRAME",
+  "x": 9840,
+  "y": 86925,
+  "width": 390,
+  "height": 1597,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "id": "1:59391",
+      "name": "Mobile TopBar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64,
+      "component": "Gameplane/Mobile TopBar",
+      "componentId": "1:1782",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 16, 0, 16],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Settings", "AD"]
+    },
+    {
+      "id": "1:59395",
+      "name": "Body",
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 390,
+      "height": 1544,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "id": "1:59665",
+          "name": "Page Header",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 16,
+          "width": 358,
+          "height": 48,
+          "component": "Gameplane/Page Header",
+          "componentId": "1:3282",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "texts": ["Theme catalog", "Browse, preview and install themes for your account."]
+        },
+        {
+          "id": "1:59666",
+          "name": "Catalog Filters",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 80,
+          "width": 358,
+          "height": 128,
+          "component": "Gameplane/Theme Catalog Filters/Mobile",
+          "componentId": "1:59082",
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 10,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "texts": ["Search themes…", "All sources", "All tags", "Dark", "Light", "Minimal", "High contrast", "Retro"]
+        },
+        {
+          "id": "1:59681",
+          "name": "Theme List",
+          "type": "FRAME",
+          "x": 16,
+          "y": 224,
+          "width": 358,
+          "height": 1304,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 12,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:60046",
+              "name": "Gameplane/Theme Card/Mobile/Update available",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 0,
+              "width": 358,
+              "height": 321,
+              "component": "Gameplane/Theme Card/Mobile/Update available",
+              "componentId": "1:59077",
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 10,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [16, 16, 16, 16],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+              "texts": [
+                "Dark only",
+                "Aurora Night",
+                "UPDATE AVAILABLE",
+                "by Ada Reyes · v1.2.0 → v1.3.0",
+                "Deep blue surfaces with a cyan accent. Tuned for long sessions.",
+                "Dark only",
+                "official",
+                "Preview",
+                "Update"
+              ]
+            },
+            {
+              "id": "1:60051",
+              "name": "Gameplane/Theme Card/Mobile/Installed",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 333,
+              "width": 358,
+              "height": 321,
+              "component": "Gameplane/Theme Card/Mobile/Installed",
+              "componentId": "1:59073",
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 10,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [16, 16, 16, 16],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+              "texts": [
+                "Paper Light",
+                "INSTALLED",
+                "by Mira Okafor · v1.0.3",
+                "Warm paper tones and high-contrast ink for daytime admin work.",
+                "Light",
+                "Dark",
+                "official",
+                "Preview",
+                "Remove"
+              ]
+            },
+            {
+              "id": "1:60056",
+              "name": "Gameplane/Theme Card/Mobile/Low contrast",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 666,
+              "width": 358,
+              "height": 321,
+              "component": "Gameplane/Theme Card/Mobile/Low contrast",
+              "componentId": "1:59075",
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 10,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [16, 16, 16, 16],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+              "texts": [
+                "Dark only",
+                "Moss Terminal",
+                "LOW CONTRAST",
+                "by Lena Park · v0.9.1",
+                "Green-on-black terminal palette. Body text contrast is below AA.",
+                "Dark only",
+                "community",
+                "Preview",
+                "Install"
+              ]
+            },
+            {
+              "id": "1:60061",
+              "name": "Gameplane/Theme Card/Mobile/Invalid",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 999,
+              "width": 358,
+              "height": 305,
+              "component": "Gameplane/Theme Card/Mobile/Invalid",
+              "componentId": "1:59074",
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 10,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [16, 16, 16, 16],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+              "texts": [
+                "Broken Pastel",
+                "INVALID",
+                "by Ines Duarte · v0.3.0",
+                "Pastel accents. Three problems block installation.",
+                "Light",
+                "Dark",
+                "community",
+                "Install"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1:59682",
+          "name": "Tag fade",
+          "type": "RECTANGLE",
+          "x": 326,
+          "y": 172,
+          "width": 48,
+          "height": 36,
+          "fills": [{"type": "GRADIENT_LINEAR", "color": "#000000", "stops": [[0, "#1C1A2000"], [1, "#1C1A20"]]}],
+          "absolute": true
+        }
+      ]
+    }
+  ]
+}

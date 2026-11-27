@@ -6,7 +6,10 @@ import { cn } from "@/lib/utils";
 // Composes HeroUI Card with Gameplane brand tokens (accent, success, warning, danger, violet).
 // Icon color is controlled by the accent prop. The "violet" accent renders the
 // dedicated --chart-stat token (OD-9), not the shared --color-violet used by
-// operator-role chips elsewhere in the app.
+// operator-role chips elsewhere in the app. The "info", "teal" and "slate" accents
+// render the Servers card tokens (--stat-players, --stat-storage, --stat-nodes).
+// The warning prop (FR-011) shows an amber badge plus amber sub-text and never
+// changes the icon colour.
 
 const accentClass = {
   primary: "text-accent",
@@ -14,6 +17,9 @@ const accentClass = {
   warning: "text-warning",
   danger: "text-danger",
   violet: "text-chart-stat",
+  info: "text-stat-players",
+  teal: "text-stat-storage",
+  slate: "text-stat-nodes",
 } as const;
 
 export type StatCardAccent = keyof typeof accentClass;
@@ -24,6 +30,7 @@ export function StatCard({
   sub,
   icon,
   accent = "primary",
+  warning,
   className,
 }: {
   label: string;
@@ -31,6 +38,8 @@ export function StatCard({
   sub?: ReactNode;
   icon?: ReactNode;
   accent?: StatCardAccent;
+  /** Badge text; when set the card shows an amber badge and amber sub-text. */
+  warning?: ReactNode;
   className?: string;
 }) {
   return (
@@ -53,8 +62,18 @@ export function StatCard({
       <div className="pt-2 font-sans text-2xl font-bold text-foreground">
         {value}
       </div>
+      {warning && (
+        <div className="pt-2">
+          <span
+            data-slot="stat-card-warning"
+            className="inline-flex items-center rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning"
+          >
+            {warning}
+          </span>
+        </div>
+      )}
       {sub && (
-        <div className="pt-1 text-xs text-muted">
+        <div className={cn("pt-1 text-xs", warning ? "text-warning" : "text-muted")}>
           {sub}
         </div>
       )}

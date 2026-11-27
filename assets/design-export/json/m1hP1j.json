@@ -46,8 +46,7 @@
           "y": 6,
           "width": 20,
           "height": 20,
-          "component": "lucide/activity/20x20",
-          "variables": {"fills/0/color": "danger/foreground"}
+          "component": "lucide/activity/20x20"
         }
       ]
     },

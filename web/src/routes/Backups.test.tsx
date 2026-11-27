@@ -41,6 +41,24 @@ describe("BackupsPage", () => {
     expect(screen.getByText("alpha-2026-05-06")).toBeInTheDocument();
   });
 
+  it("shows data size and the volume-size label for older backups in the table", async () => {
+    server.use(
+      http.get("/backups", () =>
+        HttpResponse.json({
+          items: [
+            makeBackup({ metadata: { name: "alpha-new" }, status: { phase: "Succeeded", size: "200Gi", dataSize: "15032385536" } }),
+            makeBackup({ metadata: { name: "alpha-old" }, spec: { serverRef: { name: "alpha" }, strategy: "volume-snapshot" }, status: { phase: "Succeeded", size: "200Gi" } }),
+          ],
+        }),
+      ),
+    );
+    renderWithQuery(<BackupsPage />);
+    await screen.findByText("alpha-new");
+    expect(screen.getByText("14 GB")).toBeInTheDocument();
+    expect(screen.getByText("200Gi")).toBeInTheDocument();
+    expect(screen.getByText("volume size")).toBeInTheDocument();
+  });
+
   it("switches to the Schedules tab and shows rows", async () => {
     server.use(
       http.get("/schedules", () =>

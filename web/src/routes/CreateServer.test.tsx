@@ -252,10 +252,10 @@ describe("CreateServerWizard", () => {
     });
     await userEvent.click(screen.getByRole("switch", { name: "Reserve less than the limit" }));
 
-    const cpuLimit = screen.getByLabelText("CPU cores value");
+    const cpuLimit = screen.getByLabelText("CPU value");
     fireEvent.change(cpuLimit, { target: { value: "1" } });
     fireEvent.blur(cpuLimit);
-    const memoryLimit = screen.getByLabelText("Memory (GiB) value");
+    const memoryLimit = screen.getByLabelText("Memory value");
     fireEvent.change(memoryLimit, { target: { value: "2" } });
     fireEvent.blur(memoryLimit);
     expect(screen.getByLabelText("Reserved CPU value")).toHaveValue(1);
@@ -270,6 +270,32 @@ describe("CreateServerWizard", () => {
     const body = JSON.parse((postCall[1] as FetchInit).body as string);
     expect(body.spec.resources.requests).toEqual({ cpu: "1", memory: "2Gi" });
     expect(body.spec.resources.limits).toEqual({ cpu: "1", memory: "2Gi" });
+  });
+
+  it("sends a storage size of 1536Mi unchanged", async () => {
+    routeFetch();
+
+    renderWithQuery(<CreateServerWizard />);
+    await pickTemplate(template());
+
+    fireEvent.change(screen.getByPlaceholderText("mc-hardcore"), {
+      target: { value: "mc-test" },
+    });
+    expect(screen.getByLabelText("Persistent storage value")).toHaveValue(20);
+    fireEvent.change(screen.getByLabelText("Persistent storage unit"), { target: { value: "Mi" } });
+    const storage = screen.getByLabelText("Persistent storage value");
+    fireEvent.change(storage, { target: { value: "1536" } });
+    fireEvent.blur(storage);
+
+    fireEvent.click(screen.getByRole("button", { name: /Continue to Network/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Continue to Review/i }));
+    expect(screen.getByText("1536Mi")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Create server/i }));
+
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+    const postCall = fetchMock.mock.calls.find((c) => (c[1] as FetchInit).method === "POST")!;
+    const body = JSON.parse((postCall[1] as FetchInit).body as string);
+    expect(body.spec.storage.size).toBe("1536Mi");
   });
 
   it("keeps the 4-step flow when the template declares no versions", async () => {
