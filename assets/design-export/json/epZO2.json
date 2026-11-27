@@ -84,8 +84,7 @@
                   "y": 9,
                   "width": 22,
                   "height": 22,
-                  "component": "lucide/shield-check/22x22",
-                  "variables": {"fills/0/color": "accent/accent"}
+                  "component": "lucide/shield-check/22x22"
                 }
               ]
             },
@@ -254,8 +253,7 @@
                   "y": 13,
                   "width": 16,
                   "height": 16,
-                  "component": "lucide/copy/16x16",
-                  "variables": {"fills/0/color": "muted"}
+                  "component": "lucide/copy/16x16"
                 }
               ]
             }
@@ -285,8 +283,7 @@
               "y": 1,
               "width": 14,
               "height": 14,
-              "component": "lucide/users/14x14",
-              "variables": {"fills/0/color": "muted"}
+              "component": "lucide/users/14x14"
             },
             {
               "name": "text",

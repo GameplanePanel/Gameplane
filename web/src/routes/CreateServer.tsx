@@ -5,6 +5,7 @@ import { AlertCircle, ArrowLeft, ArrowRight, Check, ExternalLink, Loader2, Megap
 import { Button, Input, Alert, Select, Label, ListBox, ListBoxItem, Switch } from "@heroui/react";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { ResourceInput } from "@/components/ui/ResourceInput";
+import { StorageInput } from "@/components/ui/StorageInput";
 import { PortOverridesEditor } from "@/components/server/PortOverridesEditor";
 import { ConfigFields } from "@/components/server/ConfigFields";
 import { SecurityAdvanced, securityIsValid } from "@/components/SecurityAdvanced";
@@ -795,6 +796,7 @@ function Configure({ state, setState, caps, cluster, canSecurity }: { state: Wiz
   const reserveLessLabel = intl.formatMessage({ id: "web.routes.create_server.reserve_less_than_the_limit", defaultMessage: "Reserve less than the limit", description: "Create server: label next to the switch that lets the CPU and memory reserved for the server (Kubernetes requests) be lower than its limits; the same text is the switch's accessible name" });
   const reservedCpuLabel = intl.formatMessage({ id: "web.routes.create_server.reserved_cpu", defaultMessage: "Reserved CPU", description: "Create server: field label for the CPU reserved for the server (the Kubernetes request), shown when the reserve-less switch is on; the same text is the accessible name of its slider; CPU is a technical term, usually left untranslated" });
   const reservedMemoryLabel = intl.formatMessage({ id: "web.routes.create_server.reserved_memory", defaultMessage: "Reserved memory", description: "Create server: field label for the memory reserved for the server (the Kubernetes request), shown when the reserve-less switch is on; the same text is the accessible name of its slider" });
+  const persistentStorageLabel = intl.formatMessage({ id: "web.routes.create_server.persistent_storage", defaultMessage: "Persistent storage", description: "Create server: field label for the storage size reserved for the server's data" });
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
@@ -902,11 +904,11 @@ function Configure({ state, setState, caps, cluster, canSecurity }: { state: Wiz
       )}
 
       <div className="space-y-1.5">
-        <label className="block text-xs text-muted">{intl.formatMessage({ id: "web.routes.create_server.persistent_storage", defaultMessage: "Persistent storage", description: "Create server: field label for the storage size reserved for the server's data" })}</label>
-        <Input
+        <label className="block text-xs text-muted">{persistentStorageLabel}</label>
+        <StorageInput
+          label={persistentStorageLabel}
           value={state.storageSize}
-          onChange={(e) => setState({ ...state, storageSize: e.target.value })}
-          placeholder={intl.formatMessage({ id: "web.routes.create_server.50gi", defaultMessage: "50Gi", description: "Create server: example placeholder in the storage size field showing the size format; an example value, not a default" })}
+          onChange={(q) => setState({ ...state, storageSize: q })}
         />
         <span className="text-[11px] text-muted">{intl.formatMessage({ id: "web.routes.create_server.mounted_at_data_rwo_pvc", defaultMessage: "Mounted at /data (RWO PVC).", description: "Create server: hint under the storage field saying the storage is mounted at /data as a RWO PVC; PVC is a technical term, usually left untranslated" })}</span>
       </div>

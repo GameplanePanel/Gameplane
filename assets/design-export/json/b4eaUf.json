@@ -143,7 +143,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [16, 24, 16, 24],
+                "padding": [16, 0, 16, 0],
                 "primary": "SPACE_BETWEEN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -176,7 +176,7 @@
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 0,
-                "padding": [0, 0, 0, 24],
+                "padding": [0, 0, 0, 0],
                 "primary": "MIN",
                 "counter": "CENTER",
                 "sizing": ["FIXED", "HUG"]
@@ -1499,7 +1499,7 @@
                                   "x": 140,
                                   "y": 0,
                                   "width": 90,
-                                  "height": 41,
+                                  "height": 44,
                                   "fills": [{"type": "SOLID", "color": "#1C1A20"}],
                                   "strokes": [{"type": "SOLID", "color": "#232227"}],
                                   "strokeWeight": 1,
@@ -1515,25 +1515,24 @@
                                   "children": [
                                     {
                                       "id": "1:4946",
-                                      "name": "Chip/Soft/Danger/SM",
+                                      "name": "Status=Failed",
                                       "type": "INSTANCE",
                                       "x": 16,
                                       "y": 12,
-                                      "width": 40,
-                                      "height": 17,
-                                      "component": "Chip/Soft/Danger/SM",
-                                      "componentId": "1:760",
+                                      "width": 65,
+                                      "height": 20,
+                                      "component": "Status=Failed",
                                       "fills": [{"type": "SOLID", "color": "#2E1317"}],
-                                      "cornerRadius": 16,
+                                      "cornerRadius": 9999,
                                       "layout": {
                                         "mode": "HORIZONTAL",
-                                        "gap": 2,
-                                        "padding": [2, 4, 2, 4],
-                                        "primary": "MIN",
+                                        "gap": 6,
+                                        "padding": [2, 8, 2, 8],
+                                        "primary": "CENTER",
                                         "counter": "CENTER",
                                         "sizing": ["HUG", "HUG"]
                                       },
-                                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                                      "variables": {"fills/0/color": "danger/soft"},
                                       "texts": ["Failed"]
                                     }
                                   ]

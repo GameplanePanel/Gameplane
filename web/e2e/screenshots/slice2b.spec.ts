@@ -149,7 +149,7 @@ test.describe("Slice 2b: Mods/Modpacks/Backups + Settings (Desktop — 1440x900)
     await page.goto("/servers/mc-survival");
     await clickTab(page, "Settings");
     await clickTab(page, "Resources");
-    await expect(page.getByText("Memory (GiB)")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Memory", { exact: true }).first()).toBeVisible({ timeout: 10_000 });
     await page.waitForTimeout(200);
     await capture(page, "VfB0Y");
   });

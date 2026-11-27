@@ -202,6 +202,12 @@ func (r *BackupReconciler) completeVolumeSnapshot(
 			sz := vs.Status.RestoreSize.DeepCopy()
 			b.Status.Size = &sz
 		}
+		var src gameplanev1alpha1.GameServer
+		if err := r.Get(ctx, types.NamespacedName{Namespace: b.Namespace, Name: b.Spec.ServerRef.Name}, &src); err == nil {
+			b.Status.DataSize = agentDataSize(&src, now.Time)
+		} else if !apierrors.IsNotFound(err) {
+			ctrl.LoggerFrom(ctx).V(1).Info("backup data size unavailable", "backup", b.Name, "err", err.Error())
+		}
 		if b.Status.StartTime == nil {
 			if vs.Status.CreationTime != nil {
 				b.Status.StartTime = vs.Status.CreationTime

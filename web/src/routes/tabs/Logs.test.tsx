@@ -1,6 +1,6 @@
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Each call to openWS pushes a new fake socket onto sockets[]; tests
@@ -173,6 +173,58 @@ describe("LogsTab", () => {
         value: original,
       });
     }
+  });
+
+  it("splits the toolbar into a source row and a filter row", () => {
+    render(<LogsTab name="alpha" logPath="/data/logs/latest.log" />);
+    const sourceRow = screen.getByTestId("logs-toolbar-source-row");
+    const filterRow = screen.getByTestId("logs-toolbar-filter-row");
+    expect(within(sourceRow).getByRole("tab", { name: /container output/i })).toBeInTheDocument();
+    expect(within(sourceRow).getByRole("tab", { name: /game log/i })).toBeInTheDocument();
+    expect(within(sourceRow).getByRole("button", { name: /download/i })).toBeInTheDocument();
+    expect(within(sourceRow).queryByPlaceholderText("Filter lines…")).not.toBeInTheDocument();
+    expect(within(filterRow).getByPlaceholderText("Filter lines…")).toBeInTheDocument();
+    expect(within(filterRow).getByRole("tab", { name: /^Error/ })).toBeInTheDocument();
+    expect(within(filterRow).getByText(/0 lines/)).toBeInTheDocument();
+    expect(within(filterRow).queryByRole("button", { name: /download/i })).not.toBeInTheDocument();
+  });
+
+  it("shows the plain container output label in the source row when there is no game log", () => {
+    render(<LogsTab name="alpha" />);
+    const sourceRow = screen.getByTestId("logs-toolbar-source-row");
+    expect(within(sourceRow).getByText("Container output")).toBeInTheDocument();
+    expect(within(sourceRow).queryByRole("tab")).not.toBeInTheDocument();
+  });
+
+  it("colours each level in the filter and shows its count in a badge", async () => {
+    render(<LogsTab name="alpha" />);
+    sockets[0].sendMsg(
+      "[Server thread/INFO]: ok\n[Server thread/INFO]: ok2\n[Server thread/WARN]: hmm\n[Server thread/ERROR]: boom\n[main/DEBUG]: verbose",
+    );
+    await waitFor(() => expect(screen.getByText(/5 lines/)).toBeInTheDocument());
+    expect(screen.getByText("Info")).toHaveClass("text-level-info");
+    expect(screen.getByText("Warn")).toHaveClass("text-warning");
+    expect(screen.getByText("Error")).toHaveClass("text-danger");
+    expect(screen.getByText("Debug")).toHaveClass("text-level-debug");
+    expect(screen.getByText("All")).not.toHaveClass("text-level-info");
+    expect(screen.getByText("All")).not.toHaveClass("text-warning");
+    expect(screen.getByText("All")).not.toHaveClass("text-danger");
+    expect(screen.getByText("All")).not.toHaveClass("text-level-debug");
+    expect(screen.getByTestId("logs-level-count-INFO")).toHaveTextContent("2");
+    expect(screen.getByTestId("logs-level-count-INFO")).toHaveClass("bg-level-info/15");
+    expect(screen.getByTestId("logs-level-count-WARN")).toHaveTextContent("1");
+    expect(screen.getByTestId("logs-level-count-WARN")).toHaveClass("bg-warning/15");
+    expect(screen.getByTestId("logs-level-count-ERROR")).toHaveTextContent("1");
+    expect(screen.getByTestId("logs-level-count-ERROR")).toHaveClass("bg-danger/15");
+    expect(screen.getByTestId("logs-level-count-DEBUG")).toHaveTextContent("1");
+    expect(screen.getByTestId("logs-level-count-DEBUG")).toHaveClass("bg-level-debug/15");
+    expect(screen.getByTestId("logs-level-count-all")).toHaveTextContent("5");
+  });
+
+  it("uses a sentence-case placeholder with a labelled search box", () => {
+    render(<LogsTab name="alpha" />);
+    expect(screen.getByPlaceholderText("Filter lines…")).toBeInTheDocument();
+    expect(screen.getByLabelText("Filter log lines")).toBeInTheDocument();
   });
 
   it("closes the socket on unmount", async () => {

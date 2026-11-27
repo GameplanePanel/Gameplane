@@ -245,7 +245,7 @@ test.describe("Slice 3: Create Server, Modules, Backups (Desktop — 1440x900) @
     const dialog = page.getByRole("dialog", { name: /backup details/i });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("a1b2c3d4e5f6", { exact: true })).toBeVisible();
-    await expect(dialog.getByText("14 KB added", { exact: true }).locator("..")).toContainText("1.4 GiB");
+    await expect(dialog.getByText("14 KB added", { exact: true }).locator("..")).toContainText("1.4 GB");
     await expect(dialog.getByText("Consistency has not been reported.")).toBeVisible();
     await expect(dialog.getByText("Capture-time volume metadata is unavailable.", { exact: false })).toBeVisible();
     await expect(dialog.getByText("14 KB added", { exact: true })).toBeVisible();

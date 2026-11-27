@@ -59,8 +59,7 @@
           "y": 1.5,
           "width": 8,
           "height": 8,
-          "component": "lucide/x/8x8",
-          "variables": {"fills/0/color": "foreground/foreground"}
+          "component": "lucide/x/8x8"
         }
       ]
     }
