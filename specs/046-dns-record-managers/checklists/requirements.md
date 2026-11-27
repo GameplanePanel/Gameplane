@@ -31,5 +31,5 @@
 
 ## Notes
 
-- Repository paths and existing references (issue #1006, `docs/networking.md`, `status.endpoints`, spec 036 and 039) are kept on purpose: they tie the spec to what exists today, per this repo's spec convention.
+- Repository paths and existing references (issue #1006, `docs/networking.md`, `status.endpoints`, spec 036 in `specs/done_036-port-pools/`, spec 039 still on branch `feat/039-per-server-access`) are kept on purpose: they tie the spec to what exists today, per this repo's spec convention.
 - Open decisions must be settled by valgul before `/speckit-plan`.

@@ -6,7 +6,7 @@ Only a decision valgul answers is written here as settled. OD-1 to OD-6 were rai
 
 Today the operator writes the ExternalDNS hostname hint on every Service with a hostname (`docs/networking.md`). Issue #1006 asked for ExternalDNS to keep all DNS writes.
 
-- A. Both stay. The ExternalDNS hint is unchanged; a hostname in a zone connected to Gameplane is published by Gameplane, and for that server the operator stops writing the hint so the two never fight over one name. (Recommended: no change for current ExternalDNS users, no double writers.)
+- A. Both stay. The ExternalDNS hint is unchanged; a hostname in a zone connected to Gameplane is published by Gameplane, and for that server the operator stops writing the hint so the two never fight over one name. (Recommended: no change for current ExternalDNS users, no double writers.) Moving a name that ExternalDNS already published: Gameplane never touches a record it did not create (FR-007), so it publishes the name only once the ExternalDNS record is gone. ExternalDNS removes it itself when the hint disappears if it runs with `--policy=sync`; with `upsert-only` the admin removes it. How Gameplane guides that removal is left to planning.
 - B. Gameplane's DNS layer replaces the hint: the hint is removed for every server once the layer is enabled. Simpler, but breaks setups that rely on ExternalDNS for names outside connected zones.
 - C. Gameplane's layer only does SRV records and leaves address records to ExternalDNS.
 
@@ -18,7 +18,7 @@ Today the operator writes the ExternalDNS hostname hint on every Service with a 
 
 ## OD-3: Who may connect and change DNS zones? (OPEN)
 
-Permission changes are owned by spec 039.
+Permission changes are owned by spec 039 (per-server access, in progress on branch `feat/039-per-server-access`, not yet in `specs/` on `master`). Option A needs nothing from 039; option B adds the permission inside 039's permission model and waits for it to merge.
 
 - A. Admins only, through the existing admin role; no new permission now. (Recommended: no clash with spec 039; a finer permission can come later through 039.)
 - B. A new permission `dns:write`, added together with spec 039.

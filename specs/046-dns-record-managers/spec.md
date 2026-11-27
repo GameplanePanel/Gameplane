@@ -103,11 +103,11 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 
 ### Edge Cases
 
-- Two servers ask for the same hostname: the first owner keeps it; the second shows "Not published: name owned by server X". SRV records under one hostname from two servers are allowed only if they have different service and protocol.
+- Two servers ask for the same hostname: the first owner keeps it; the second shows "Not published: name owned by server X". A second server may add an SRV record under that hostname only if it has a different service and protocol and its own external address is the address the hostname already resolves to; otherwise its SRV record is not published and it shows "Not published: play.example.com points to server X's address".
 - A record with the same name and type already exists at the provider and was not created by Gameplane: Gameplane never overwrites or deletes it; the server shows "Not published: record exists and is not owned by Gameplane".
 - A hostname changes from a name in zone A to a name in zone B: records are created in B and removed from A; if B fails, A's records are still removed and the server shows the B error.
 - A zone is disconnected while servers still use it: Gameplane asks before removing, then removes every record it owns in that zone (or leaves them, if the admin chooses "keep records").
-- Provider rate limits or partial failures: changes are retried with backoff; a change never leaves an SRV record pointing to a port the server no longer uses for longer than the retry window.
+- Provider rate limits or partial failures: changes are retried with backoff. While the provider accepts changes, no SRV record points to a port the server no longer uses for longer than 5 minutes (SC-002). While the provider rejects changes or its manager is unreachable, the old record cannot be changed: the change stays queued (FR-013), the server shows "Pending: provider not accepting changes since <time>" and the zone shows its error, until the change is applied.
 - Several clusters (multi-cluster panel): each cluster's servers publish through the same zones; ownership is tracked per server across clusters so one cluster cannot remove another's records.
 - A sleeping server (wake-on-connect): records stay published while asleep, because the sentinel keeps the port.
 - IPv6: an AAAA record is published when the endpoint has an IPv6 address; both A and AAAA when it has both.
@@ -188,5 +188,5 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 - Provider credentials live in Kubernetes Secrets in the namespace where the managers run, like other Gameplane secrets.
 - The public port for NAT or forwarding edges comes only from mapping sources Gameplane already knows (tunnels, explicit per-server public port settings); gateway route provisioning stays out of scope, as in issue #1006.
 - The feature does not depend on issue #999 or #1001 (spec 036 port pools); it reads whatever port mapping results.
-- Permission changes are owned by spec 039; any new DNS permission is coordinated with it (OD-3).
+- Permission changes are owned by spec 039 (per-server access, in progress on branch `feat/039-per-server-access`, not yet in `specs/` on `master`); any new DNS permission is coordinated with it (OD-3).
 - DNSSEC signing of hosted zones is out of scope for the first release.
