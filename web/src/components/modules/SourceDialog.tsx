@@ -433,9 +433,9 @@ export function SourceDialog({ open, onOpenChange, source, onConfirm, busy }: So
                     id="git-ref"
                     value={f.ref}
                     onChange={(e) => set({ ref: e.target.value })}
-                    placeholder={intl.formatMessage({ id: "web.components.modules.source_dialog.main", defaultMessage: "main", description: "Source dialog: example value shown inside the empty git ref field; the branch name main as a sample" })}
+                    placeholder={intl.formatMessage({ id: "web.components.modules.source_dialog.main", defaultMessage: "master", description: "Source dialog: example value shown inside the empty git ref field; the branch name master as a sample" })}
                   />
-                  <Description className="text-[11px] leading-[14px] text-muted">{intl.formatMessage({ id: "web.components.modules.source_dialog.branch_or_tag_defaults_to_main", defaultMessage: "Branch or tag. Defaults to main.", description: "Source dialog: hint under the git ref field saying the value is a branch or tag and that it defaults to main" })}</Description>
+                  <Description className="text-[11px] leading-[14px] text-muted">{intl.formatMessage({ id: "web.components.modules.source_dialog.branch_or_tag_defaults_to_main", defaultMessage: "Branch or tag. Defaults to master.", description: "Source dialog: hint under the git ref field saying the value is a branch or tag and that it defaults to master" })}</Description>
                 </div>
 
                 <div className="flex flex-col gap-1.5">

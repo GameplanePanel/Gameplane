@@ -94,7 +94,7 @@ func TestCheckGitURL(t *testing.T) {
 
 func TestGitFetcher_IndexStampsCommitDigest(t *testing.T) {
 	stubClone(t, func(_ context.Context, url, ref string, _ transport.AuthMethod) (fs.FS, string, error) {
-		if url != "https://example.com/mods.git" || ref != "main" {
+		if url != "https://example.com/mods.git" || ref != "master" {
 			return nil, "", fmt.Errorf("unexpected clone of %s@%s", url, ref)
 		}
 		return moduleDirFS(map[string]map[string]string{
@@ -118,7 +118,7 @@ func TestGitFetcher_IndexStampsCommitDigest(t *testing.T) {
 	if entries[0].Digest != "git:abc123" {
 		t.Errorf("digest = %q, want git:abc123", entries[0].Digest)
 	}
-	if entries[0].Reference != "git:https://example.com/mods.git@main/modules/mc" {
+	if entries[0].Reference != "git:https://example.com/mods.git@master/modules/mc" {
 		t.Errorf("reference = %q", entries[0].Reference)
 	}
 
