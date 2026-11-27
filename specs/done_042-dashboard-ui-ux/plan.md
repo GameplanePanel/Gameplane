@@ -2,7 +2,7 @@
 
 **Branch**: `spec-042/dashboard-ui-ux` | **Date**: 2026-11-26 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/042-dashboard-ui-ux/spec.md`
+**Input**: Feature specification from `specs/done_042-dashboard-ui-ux/spec.md`
 
 ## Summary
 
@@ -74,7 +74,7 @@ PRs (when valgul says go): stacked, design first, then B+C, then D.
 ### Documentation (this feature)
 
 ```text
-specs/042-dashboard-ui-ux/
+specs/done_042-dashboard-ui-ux/
 ├── spec.md
 ├── OPEN-DECISIONS.md
 ├── plan.md
