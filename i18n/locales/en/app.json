@@ -13031,6 +13031,10 @@
     "defaultMessage": "Allow list",
     "description": "Theme sources dialog: label of the theme name filter field"
   },
+  "web.routes.theme_sources.field_credentials_secret": {
+    "defaultMessage": "Credentials secret",
+    "description": "Theme sources dialog: label of the credentials Secret name field for git and HTTP sources"
+  },
   "web.routes.theme_sources.field_git_url": {
     "defaultMessage": "Repository URL",
     "description": "Theme sources dialog: label of the git repository URL field"
@@ -13071,6 +13075,10 @@
     "defaultMessage": "Public key (PEM)",
     "description": "Theme sources dialog: label of the cosign public key field"
   },
+  "web.routes.theme_sources.field_pull_secret": {
+    "defaultMessage": "Pull secret",
+    "description": "Theme sources dialog: label of the OCI pull secret name field; the Secret holds registry credentials"
+  },
   "web.routes.theme_sources.field_ref": {
     "defaultMessage": "Git ref",
     "description": "Theme sources dialog: label of the optional git branch or tag field"
@@ -13103,6 +13111,14 @@
     "defaultMessage": "Optional theme name filter, exact names or globs, comma-separated.",
     "description": "Theme sources dialog: hint under the allow list field"
   },
+  "web.routes.theme_sources.hint_git_secret": {
+    "defaultMessage": "Secret with token or username+password. Optional.",
+    "description": "Theme sources dialog: hint under the git credentials Secret name field"
+  },
+  "web.routes.theme_sources.hint_http_secret": {
+    "defaultMessage": "Secret with token (Bearer) or username+password. Optional.",
+    "description": "Theme sources dialog: hint under the HTTP credentials Secret name field"
+  },
   "web.routes.theme_sources.hint_identity": {
     "defaultMessage": "Signer identity to match, exact or regexp.",
     "description": "Theme sources dialog: hint under the identity field"
@@ -13122,6 +13138,10 @@
   "web.routes.theme_sources.hint_public_key": {
     "defaultMessage": "Paste the PEM public key that signed the packages.",
     "description": "Theme sources dialog: hint under the public key field"
+  },
+  "web.routes.theme_sources.hint_pull_secret": {
+    "defaultMessage": "Credentials for private registries (optional).",
+    "description": "Theme sources dialog: hint under the OCI pull secret name field"
   },
   "web.routes.theme_sources.hint_themes": {
     "defaultMessage": "Comma-separated theme names (registries can't be enumerated).",

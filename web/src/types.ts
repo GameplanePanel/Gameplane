@@ -1095,6 +1095,9 @@ export interface ThemeSource {
   type: ThemeSourceType;
   spec: ThemeSourceSpec;
   verify: ThemeSourceVerify | null;
+  // Name of the admin-made credential Secret in the credentials namespace,
+  // like a module source's secretRef; never a Secret value.
+  credentialSecret: string | null;
   refreshInterval: number;
   enabled: boolean;
   builtin: boolean;
@@ -1110,6 +1113,8 @@ export interface ThemeSourceInput {
   type: ThemeSourceType;
   spec: ThemeSourceSpec;
   verify?: ThemeSourceVerify | null;
+  // Omitted keeps the stored Secret name on PUT; null clears it.
+  credentialSecret?: string | null;
   refreshInterval?: number;
   enabled?: boolean;
 }

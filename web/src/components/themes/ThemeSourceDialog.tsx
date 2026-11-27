@@ -1,6 +1,7 @@
 // Add / edit dialog for a theme source (spec 043, T049, designs 906199366-709
-// and -1485). The type cannot change on edit. Pull secret is not offered: the
-// API refuses credentials (OD-5). Field validation is minimal and client-side;
+// and -1485). The type cannot change on edit. A private source names an
+// admin-made Secret (pull secret for OCI, credentials secret for git and HTTP,
+// like module sources; OD-5). Field validation is minimal and client-side;
 // the server's plain-English 422 message is shown inline.
 import { useState, type ReactNode } from "react";
 import {
@@ -36,6 +37,7 @@ interface FormState {
   ociUrl: string;
   ociThemes: string;
   ociInsecure: boolean;
+  secretName: string;
   verify: VerifyMode;
   publicKey: string;
   issuer: string;
@@ -89,6 +91,7 @@ function initialForm(source: ThemeSource | null): FormState {
     ociUrl: source?.spec.oci?.url ?? "",
     ociThemes: (source?.spec.oci?.themes ?? []).join(", "),
     ociInsecure: source?.spec.oci?.insecure ?? false,
+    secretName: source?.credentialSecret ?? "",
     verify: mode,
     publicKey: verify?.key ?? "",
     issuer: verify?.keyless?.issuer ?? "",
@@ -147,11 +150,15 @@ export function buildInput(f: FormState, editing: ThemeSource | null): ThemeSour
       spec = { local: { path: f.localPath.trim() } };
       break;
   }
+  // A local source takes no credential Secret. Elsewhere an empty field sends
+  // null, which clears a stored name on edit.
+  const secret = f.secretName.trim();
   return {
     name: editing ? editing.name : f.name.trim(),
     type: f.type,
     spec: allow.length > 0 ? { ...spec, allow } : spec,
     verify,
+    ...(f.type === "local" ? {} : { credentialSecret: secret === "" ? null : secret }),
     refreshInterval: interval,
     enabled: editing ? editing.enabled : true,
   };
@@ -236,6 +243,7 @@ function ThemeSourceForm({ onOpenChange, source, busy, error, onSubmit }: Omit<T
                 <>
                   {field("ts-oci-url", M.fieldRegistryUrl, <Input id="ts-oci-url" value={f.ociUrl} onChange={(e) => set({ ociUrl: e.target.value })} placeholder="ghcr.io/gameplane/themes" />)}
                   {field("ts-oci-themes", M.fieldThemes, <Input id="ts-oci-themes" value={f.ociThemes} onChange={(e) => set({ ociThemes: e.target.value })} placeholder="aurora-night, paper-light" />, M.hintThemes)}
+                  {field("ts-secret", M.fieldPullSecret, <Input id="ts-secret" value={f.secretName} onChange={(e) => set({ secretName: e.target.value })} placeholder="registry-creds" />, M.hintPullSecret)}
                   <Switch isSelected={f.ociInsecure} onChange={(v) => set({ ociInsecure: v })} aria-label={label(M.fieldInsecure)}>
                     <Switch.Content>
                       <span className="text-xs text-muted">{label(M.fieldInsecure)}</span>
@@ -276,10 +284,16 @@ function ThemeSourceForm({ onOpenChange, source, busy, error, onSubmit }: Omit<T
                   {field("ts-git-url", M.fieldGitUrl, <Input id="ts-git-url" value={f.gitUrl} onChange={(e) => set({ gitUrl: e.target.value })} placeholder="github.com/community/gp-themes" />)}
                   {field("ts-git-ref", M.fieldRef, <Input id="ts-git-ref" value={f.gitRef} onChange={(e) => set({ gitRef: e.target.value })} placeholder="main" />)}
                   {field("ts-git-path", M.fieldPath, <Input id="ts-git-path" value={f.gitPath} onChange={(e) => set({ gitPath: e.target.value })} placeholder="themes" />)}
+                  {field("ts-secret", M.fieldCredentialsSecret, <Input id="ts-secret" value={f.secretName} onChange={(e) => set({ secretName: e.target.value })} placeholder="gh-creds" />, M.hintGitSecret)}
                 </>
               )}
 
-              {f.type === "http" && field("ts-http-url", M.fieldHttpUrl, <Input id="ts-http-url" value={f.httpUrl} onChange={(e) => set({ httpUrl: e.target.value })} placeholder="themes.example.org/index.json" />)}
+              {f.type === "http" && (
+                <>
+                  {field("ts-http-url", M.fieldHttpUrl, <Input id="ts-http-url" value={f.httpUrl} onChange={(e) => set({ httpUrl: e.target.value })} placeholder="themes.example.org/index.json" />)}
+                  {field("ts-secret", M.fieldCredentialsSecret, <Input id="ts-secret" value={f.secretName} onChange={(e) => set({ secretName: e.target.value })} placeholder="archive-creds" />, M.hintHttpSecret)}
+                </>
+              )}
 
               {f.type === "local" && field("ts-local-path", M.fieldLocalPath, <Input id="ts-local-path" value={f.localPath} onChange={(e) => set({ localPath: e.target.value })} placeholder="/srv/gameplane/themes" />)}
 

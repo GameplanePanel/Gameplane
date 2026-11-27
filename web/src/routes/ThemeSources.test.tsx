@@ -21,14 +21,14 @@ import { ThemeSourcesPage } from "./ThemeSources";
 const official: ThemeSource = {
   name: "official", type: "oci",
   spec: { oci: { url: "ghcr.io/gameplane/themes", themes: ["aurora-night"], insecure: false } },
-  verify: null, refreshInterval: 3600, enabled: true, builtin: true,
+  verify: null, credentialSecret: null, refreshInterval: 3600, enabled: true, builtin: true,
   lastSyncAt: "2026-11-27T12:00:00Z", lastError: null, themeCount: 8,
 };
 
 const mirror: ThemeSource = {
   name: "mirror", type: "http",
   spec: { http: { url: "themes.example.org/index.json" } },
-  verify: null, refreshInterval: 3600, enabled: false, builtin: false,
+  verify: null, credentialSecret: "archive-creds", refreshInterval: 3600, enabled: false, builtin: false,
   lastSyncAt: null, lastError: "connection refused", themeCount: 0,
 };
 
@@ -81,6 +81,51 @@ describe("ThemeSourcesPage", () => {
       refreshInterval: 3600,
       enabled: true,
     });
+  });
+
+  it("sends the pull secret name, and null when the field is empty", async () => {
+    const bodies: ThemeSourceInput[] = [];
+    server.use(
+      http.get("/themes/sources", () => HttpResponse.json([official, mirror])),
+      http.post("/themes/sources", async ({ request }) => {
+        bodies.push((await request.json()) as ThemeSourceInput);
+        return HttpResponse.json({ ...official, name: "community" }, { status: 201 });
+      }),
+    );
+    renderWithQuery(<ThemeSourcesPage />);
+
+    await screen.findAllByTestId("theme-source-row");
+    await userEvent.click(screen.getByRole("button", { name: "Add source" }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText("Name"), "community");
+    await userEvent.type(within(dialog).getByLabelText("Registry URL"), "ghcr.io/community/themes");
+    await userEvent.type(within(dialog).getByLabelText("Themes"), "aurora-night");
+    await userEvent.type(within(dialog).getByLabelText("Pull secret"), " registry-creds ");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(bodies[0]).toMatchObject({ name: "community", credentialSecret: "registry-creds" });
+  });
+
+  it("edits a source with its stored credentials secret prefilled", async () => {
+    let body: ThemeSourceInput | null = null;
+    server.use(
+      http.get("/themes/sources", () => HttpResponse.json([official, mirror])),
+      http.put("/themes/sources/mirror", async ({ request }) => {
+        body = (await request.json()) as ThemeSourceInput;
+        return HttpResponse.json(mirror);
+      }),
+    );
+    renderWithQuery(<ThemeSourcesPage />);
+
+    await screen.findAllByTestId("theme-source-row");
+    await userEvent.click(screen.getByRole("button", { name: "Edit mirror" }));
+    const dialog = await screen.findByRole("dialog");
+    const secret = within(dialog).getByLabelText("Credentials secret");
+    expect(secret).toHaveValue("archive-creds");
+    await userEvent.clear(secret);
+    await userEvent.click(within(dialog).getByRole("button", { name: "Save changes" }));
+    await waitFor(() => expect(body).not.toBeNull());
+    expect(body).toMatchObject({ name: "mirror", type: "http", credentialSecret: null });
   });
 
   it("toggling the switch sends the source with enabled flipped", async () => {
