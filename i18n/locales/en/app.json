@@ -1311,6 +1311,10 @@
     "defaultMessage": "telemetry notice is not pending",
     "description": "API error from the telemetry API (telemetry.go:postNotice)."
   },
+  "server.themes.not_found": {
+    "defaultMessage": "theme not found",
+    "description": "API error from the theme catalog API (handlers/themes_catalog.go): unknown or hidden catalog entry, bad id, or no preview for the mode."
+  },
   "server.tunnel.credentials_in_use": {
     "defaultMessage": "cannot delete tunnel credentials while tunnel is enabled; disable the tunnel first or use PUT to rotate credentials",
     "description": "API error from the tunnel credentials API (tunnelcreds.go:delete)."

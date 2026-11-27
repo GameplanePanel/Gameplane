@@ -32,6 +32,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 	"github.com/GameplanePanel/gameplane/api/internal/steam"
 	"github.com/GameplanePanel/gameplane/api/internal/telemetry"
+	"github.com/GameplanePanel/gameplane/api/internal/themes"
 	"github.com/GameplanePanel/gameplane/api/internal/ws"
 )
 
@@ -238,6 +239,13 @@ func main() {
 	reg.SetControlPlaneNamespace(moduleConfigMapNS)
 	authRegistry := auth.NewRegistry(store,
 		auth.NewK8sSecretReader(k8s, credentialsNS), oidcAuth, cfg.oidcDisplayName, helmPolicy)
+	// Theme marketplace (spec 043): the reserved official source is seeded
+	// once on first start. Same code path in combined and standalone mode.
+	themeSvc := themes.New(themes.Deps{Store: store, Logger: logger})
+	if err := themeSvc.SeedOfficial(ctx, cfg.themesOfficialSource); err != nil {
+		logger.Error("seed theme sources", "err", err)
+		os.Exit(1)
+	}
 
 	var auditOpts []audit.Option
 	var webhookDone <-chan struct{}
@@ -438,6 +446,7 @@ func main() {
 		handlers.MountShareLinks(p, reg, store)
 		handlers.MountOwnership(p, reg, store)
 		handlers.MountUsers(p, store, sessions, reg)
+		handlers.MountThemes(p, store)
 		handlers.MountSFTPServers(p, fileAccess)
 		handlers.MountRolesWithHelm(p, store, helmPolicy)
 		handlers.MountAudit(p, auditor)
@@ -659,6 +668,7 @@ type config struct {
 	telemetryBundled       bool
 	telemetryInterval      time.Duration
 	officialModuleSource   string
+	themesOfficialSource   bool
 	clusterOps             bool
 	clusterExternalAddress string
 	updateChannel          string
@@ -759,6 +769,9 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	// credential and only comes from the environment (a mounted Secret),
 	// never a flag.
 	c.telemetryAuth = envOr("GAMEPLANE_TELEMETRY_AUTH", "")
+	// Env-only, like GAMEPLANE_TELEMETRY_BUNDLED: the chart sets it from
+	// themes.officialSource.enabled. Anything but "false" seeds the source.
+	c.themesOfficialSource = envOr("GAMEPLANE_THEMES_OFFICIAL_SOURCE", "true") != "false"
 	fs.BoolVar(&c.clusterOps, "cluster-ops", envOr("GAMEPLANE_CLUSTER_OPS", "") == "true", "enable credential-minting cluster ops (Add node, Download kubeconfig)")
 	fs.StringVar(&c.clusterExternalAddress, "cluster-external-address", envOr("GAMEPLANE_CLUSTER_EXTERNAL_ADDRESS", ""),
 		"external (node-routable) API server address, e.g. \"1.2.3.4:6443\" or \"https://k8s.example.com:6443\", used in the join command and downloaded kubeconfig instead of the in-cluster ClusterIP; empty = use the in-cluster address (may be unreachable from outside the cluster)")

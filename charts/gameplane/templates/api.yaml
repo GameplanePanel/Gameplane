@@ -458,6 +458,11 @@ spec:
             - name: GAMEPLANE_CLUSTER_OPS
               value: "true"
             {{- end }}
+            {{- /* Theme marketplace (spec 043): the official source is seeded unless themes.officialSource.enabled is false. */}}
+            {{- $themes := .Values.themes | default dict }}
+            {{- $official := $themes.officialSource | default dict }}
+            - name: GAMEPLANE_THEMES_OFFICIAL_SOURCE
+              value: {{ ne (toString $official.enabled) "false" | ternary "true" "false" | quote }}
             {{- /* Local SFTP endpoint (spec 040): the API seeds this service token so the in-cluster pod can log in. */}}
             {{- if and (.Values.sftp | default dict).enabled (not (.Values.sftp | default dict).apiURL) }}
             - name: GAMEPLANE_SFTP_LOCAL_SERVICE_TOKEN

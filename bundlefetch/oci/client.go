@@ -29,6 +29,30 @@ type Client struct {
 	credentials CredentialFunc
 	insecure    bool
 	httpClient  *http.Client
+	// artifactType is the manifest artifactType Pull accepts. Empty manifests
+	// are always accepted. Defaults to ArtifactType (module bundles).
+	artifactType string
+	// maxLayerBytes caps the size of each non-locale layer Pull reads; zero
+	// means no cap. The cap is checked against the manifest's declared size
+	// before any byte is fetched.
+	maxLayerBytes int64
+}
+
+// WithArtifactType sets the manifest artifactType that Pull accepts and returns
+// c. Theme packages use their own artifact type; module bundles keep the
+// default.
+func (c *Client) WithArtifactType(artifactType string) *Client {
+	c.artifactType = artifactType
+	return c
+}
+
+// WithMaxLayerBytes caps the declared size of each non-locale layer Pull reads
+// and returns c. A layer over the cap makes Pull fail before the blob is read,
+// so a hostile registry cannot make the caller allocate arbitrary memory. Zero
+// (the default) disables the cap.
+func (c *Client) WithMaxLayerBytes(n int64) *Client {
+	c.maxLayerBytes = n
+	return c
 }
 
 // New constructs a Client. credentials may be nil — anonymous pulls are
@@ -39,8 +63,9 @@ type Client struct {
 // TLS verification.
 func New(credentials CredentialFunc, insecure bool) *Client {
 	c := &Client{
-		credentials: credentials,
-		insecure:    insecure,
+		credentials:  credentials,
+		insecure:     insecure,
+		artifactType: ArtifactType,
 	}
 	// Registry dials go through the same guard as the git and http module
 	// sources: cloud-metadata, link-local and other reserved addresses are
@@ -132,9 +157,9 @@ func (c *Client) Pull(ctx context.Context, ref, reference string) (string, map[s
 	if err := json.Unmarshal(manifestBytes, &manifest); err != nil {
 		return "", nil, fmt.Errorf("parse manifest %s@%s: %w", ref, reference, err)
 	}
-	if manifest.ArtifactType != "" && manifest.ArtifactType != ArtifactType {
+	if manifest.ArtifactType != "" && manifest.ArtifactType != c.artifactType {
 		return "", nil, fmt.Errorf("unexpected artifactType %q at %s@%s; want %q",
-			manifest.ArtifactType, ref, reference, ArtifactType)
+			manifest.ArtifactType, ref, reference, c.artifactType)
 	}
 
 	files := map[string][]byte{}
@@ -162,6 +187,9 @@ func (c *Client) Pull(ctx context.Context, ref, reference string) (string, map[s
 				files[title] = OversizedLocale
 				continue
 			}
+		}
+		if c.maxLayerBytes > 0 && layer.Size > c.maxLayerBytes {
+			return "", nil, fmt.Errorf("layer %s is %d bytes; limit is %d", title, layer.Size, c.maxLayerBytes)
 		}
 		blob, err := readBlob(ctx, r, layer)
 		if err != nil {

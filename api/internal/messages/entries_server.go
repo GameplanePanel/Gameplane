@@ -282,6 +282,12 @@ var serverEntries = []Entry{
 		Status:      http.StatusConflict,
 	},
 	{
+		ID:          "server.themes.not_found",
+		English:     "theme not found",
+		Description: "API error from the theme catalog API (handlers/themes_catalog.go): unknown or hidden catalog entry, bad id, or no preview for the mode.",
+		Status:      http.StatusNotFound,
+	},
+	{
 		ID:          "server.tunnel.credentials_in_use",
 		English:     "cannot delete tunnel credentials while tunnel is enabled; disable the tunnel first or use PUT to rotate credentials",
 		Description: "API error from the tunnel credentials API (tunnelcreds.go:delete).",

@@ -276,6 +276,14 @@ var rules = []rule{
 	{method: "DELETE", segment: "users", prefix: "/users/me/sftp/keys/", perm: ""},
 	{method: "POST", segment: "users", suffix: "/users/me/sftp/password", perm: ""},
 	{method: "DELETE", segment: "users", suffix: "/users/me/sftp/password", perm: ""},
+	// Installed themes (spec 043): a user lists, installs, updates and removes
+	// only their own installed theme copies. Every route filters by the caller's
+	// user id, so another user's id returns 404 rather than reaching these rules.
+	{method: "GET", segment: "users", suffix: "/users/me/themes", perm: ""},
+	{method: "POST", segment: "users", suffix: "/users/me/themes", perm: ""},
+	{method: "GET", segment: "users", prefix: "/users/me/themes/", perm: ""},
+	{method: "POST", segment: "users", prefix: "/users/me/themes/", suffix: "/update", perm: ""},
+	{method: "DELETE", segment: "users", prefix: "/users/me/themes/", perm: ""},
 	// Admin SFTP view and revokes of another user's credentials (spec 040 US3): users:manage, not users:read.
 	// These must precede the generic users rules below.
 	{method: "GET", segment: "users", suffix: "/sftp", perm: "users:manage"},
@@ -361,6 +369,13 @@ var rules = []rule{
 	// Module install/upgrade/uninstall + source management are cluster-wide.
 	{method: "GET", segment: "modules", perm: "modules:read"},
 	{segment: "modules", perm: "modules:manage"},
+
+	// Theme catalog (spec 043): any signed-in user browses the cached catalog.
+	// Theme sources (URLs, credentials, refresh) are admin-only, and the
+	// sources rule must precede the catch-all GET below, which would otherwise
+	// let every user read them.
+	{method: "GET", segment: "themes", prefix: "/themes/catalog", perm: ""},
+	{segment: "themes", prefix: "/themes/sources", perm: "themes:manage"},
 
 	// Cluster reads (nodes, version, storage) vs credential-minting ops.
 	{method: "GET", segment: "cluster", perm: "cluster:read"},
