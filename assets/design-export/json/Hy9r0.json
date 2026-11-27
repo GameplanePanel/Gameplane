@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Overview (Idle armed)",
   "type": "FRAME",
   "x": 6560,
-  "y": 26476,
+  "y": 28750,
   "width": 1440,
   "height": 1622,
   "fills": [{"type": "SOLID", "color": "#121114"}],
