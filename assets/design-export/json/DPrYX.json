@@ -534,7 +534,7 @@
                       "type": "INSTANCE",
                       "x": 756,
                       "y": 0,
-                      "width": 288,
+                      "width": 176,
                       "height": 34,
                       "component": "Table Column",
                       "componentId": "1:1264",
@@ -554,9 +554,9 @@
                       "id": "1:2604",
                       "name": "HC ACTIONS",
                       "type": "INSTANCE",
-                      "x": 1044,
+                      "x": 932,
                       "y": 0,
-                      "width": 88,
+                      "width": 200,
                       "height": 34,
                       "component": "Table Column",
                       "componentId": "1:1264",
@@ -815,7 +815,7 @@
                           "type": "FRAME",
                           "x": 756,
                           "y": 3,
-                          "width": 288,
+                          "width": 176,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
@@ -845,13 +845,13 @@
                           "id": "1:2620",
                           "name": "Action",
                           "type": "FRAME",
-                          "x": 1044,
+                          "x": 932,
                           "y": 3,
-                          "width": 88,
+                          "width": 200,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 16, 0, 16],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -1039,7 +1039,7 @@
                           "type": "FRAME",
                           "x": 756,
                           "y": 3,
-                          "width": 288,
+                          "width": 176,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
@@ -1067,13 +1067,13 @@
                         {
                           "name": "Action",
                           "type": "FRAME",
-                          "x": 1044,
+                          "x": 932,
                           "y": 3,
-                          "width": 88,
+                          "width": 200,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 16, 0, 16],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -1091,6 +1091,28 @@
                               "text": "Restore",
                               "font": ["Geist", 400, 13],
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "name": "Download Button",
+                              "type": "INSTANCE",
+                              "x": 71,
+                              "y": 8,
+                              "width": 104,
+                              "height": 32,
+                              "component": "Gameplane/Button/Outline",
+                              "componentId": "1:770",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Download"]
                             }
                           ]
                         }
@@ -1260,7 +1282,7 @@
                           "type": "FRAME",
                           "x": 756,
                           "y": 3,
-                          "width": 288,
+                          "width": 176,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
@@ -1288,13 +1310,13 @@
                         {
                           "name": "Action",
                           "type": "FRAME",
-                          "x": 1044,
+                          "x": 932,
                           "y": 3,
-                          "width": 88,
+                          "width": 200,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 16, 0, 16],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -1312,6 +1334,28 @@
                               "text": "Restore",
                               "font": ["Geist", 400, 13],
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "name": "Download Button",
+                              "type": "INSTANCE",
+                              "x": 71,
+                              "y": 8,
+                              "width": 104,
+                              "height": 32,
+                              "component": "Gameplane/Button/Outline",
+                              "componentId": "1:770",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Download"]
                             }
                           ]
                         }
@@ -1481,7 +1525,7 @@
                           "type": "FRAME",
                           "x": 756,
                           "y": 3,
-                          "width": 288,
+                          "width": 176,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
@@ -1509,13 +1553,13 @@
                         {
                           "name": "Action",
                           "type": "FRAME",
-                          "x": 1044,
+                          "x": 932,
                           "y": 3,
-                          "width": 88,
+                          "width": 200,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 16, 0, 16],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -1533,6 +1577,28 @@
                               "text": "Restore",
                               "font": ["Geist", 400, 13],
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "name": "Download Button",
+                              "type": "INSTANCE",
+                              "x": 71,
+                              "y": 8,
+                              "width": 104,
+                              "height": 32,
+                              "component": "Gameplane/Button/Outline",
+                              "componentId": "1:770",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Download"]
                             }
                           ]
                         }
@@ -1702,7 +1768,7 @@
                           "type": "FRAME",
                           "x": 756,
                           "y": 3,
-                          "width": 288,
+                          "width": 176,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
@@ -1730,13 +1796,13 @@
                         {
                           "name": "Action",
                           "type": "FRAME",
-                          "x": 1044,
+                          "x": 932,
                           "y": 3,
-                          "width": 88,
+                          "width": 200,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 16, 0, 16],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -1754,6 +1820,28 @@
                               "text": "Restore",
                               "font": ["Geist", 400, 13],
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "name": "Download Button",
+                              "type": "INSTANCE",
+                              "x": 71,
+                              "y": 8,
+                              "width": 104,
+                              "height": 32,
+                              "component": "Gameplane/Button/Outline",
+                              "componentId": "1:770",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Download"]
                             }
                           ]
                         }
@@ -1923,7 +2011,7 @@
                           "type": "FRAME",
                           "x": 756,
                           "y": 3,
-                          "width": 288,
+                          "width": 176,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
@@ -1951,13 +2039,13 @@
                         {
                           "name": "Action",
                           "type": "FRAME",
-                          "x": 1044,
+                          "x": 932,
                           "y": 3,
-                          "width": 88,
+                          "width": 200,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 16, 0, 16],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -1975,6 +2063,28 @@
                               "text": "Restore",
                               "font": ["Geist", 400, 13],
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "name": "Download Button",
+                              "type": "INSTANCE",
+                              "x": 71,
+                              "y": 8,
+                              "width": 104,
+                              "height": 32,
+                              "component": "Gameplane/Button/Outline",
+                              "componentId": "1:770",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Download"]
                             }
                           ]
                         }
@@ -2144,7 +2254,7 @@
                           "type": "FRAME",
                           "x": 756,
                           "y": 3,
-                          "width": 288,
+                          "width": 176,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
@@ -2172,13 +2282,13 @@
                         {
                           "name": "Action",
                           "type": "FRAME",
-                          "x": 1044,
+                          "x": 932,
                           "y": 3,
-                          "width": 88,
+                          "width": 200,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 16, 0, 16],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -2196,6 +2306,28 @@
                               "text": "Restore",
                               "font": ["Geist", 400, 13],
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "name": "Download Button",
+                              "type": "INSTANCE",
+                              "x": 71,
+                              "y": 8,
+                              "width": 104,
+                              "height": 32,
+                              "component": "Gameplane/Button/Outline",
+                              "componentId": "1:770",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "strokeWeight": 1,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Download"]
                             }
                           ]
                         }
@@ -2365,7 +2497,7 @@
                           "type": "FRAME",
                           "x": 756,
                           "y": 3,
-                          "width": 288,
+                          "width": 176,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
@@ -2393,13 +2525,13 @@
                         {
                           "name": "Action",
                           "type": "FRAME",
-                          "x": 1044,
+                          "x": 932,
                           "y": 3,
-                          "width": 88,
+                          "width": 200,
                           "height": 48,
                           "layout": {
                             "mode": "HORIZONTAL",
-                            "gap": 0,
+                            "gap": 8,
                             "padding": [0, 16, 0, 16],
                             "primary": "MIN",
                             "counter": "CENTER",
@@ -2415,6 +2547,18 @@
                               "height": 17,
                               "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
                               "text": "Restore",
+                              "font": ["Geist", 400, 13],
+                              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                            },
+                            {
+                              "name": "No download (snapshot)",
+                              "type": "TEXT",
+                              "x": 71,
+                              "y": 15.5,
+                              "width": 12,
+                              "height": 17,
+                              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                              "text": "—",
                               "font": ["Geist", 400, 13],
                               "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                             }

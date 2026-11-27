@@ -21,6 +21,10 @@ const phaseColorMap: Record<string, PhaseColor> = {
   Stopping: "warning",
   Suspending: "warning",
   Resuming: "warning",
+  // Restore upload: the archive is being received (in progress) or the user
+  // has to confirm it (needs attention)
+  Receiving: "success",
+  AwaitingConfirmation: "warning",
   // Stopped/idle states
   Pending: "default",
   Stopped: "default",
@@ -69,6 +73,8 @@ const phaseMessages = defineMessages({
   Suspending: { id: "web.components.ui.phase_chip.suspending", defaultMessage: "Suspending", description: "Phase badge: label for a server that is being suspended" },
   Suspended: { id: "web.components.ui.phase_chip.suspended", defaultMessage: "Suspended", description: "Phase badge: label for a server that is suspended" },
   Resuming: { id: "web.components.ui.phase_chip.resuming", defaultMessage: "Resuming", description: "Phase badge: label for a suspended server that is resuming" },
+  Receiving: { id: "web.components.ui.phase_chip.receiving", defaultMessage: "Receiving", description: "Phase badge: label for a restore that is receiving an uploaded archive" },
+  AwaitingConfirmation: { id: "web.components.ui.phase_chip.awaiting_confirmation", defaultMessage: "Awaiting confirmation", description: "Phase badge: label for an uploaded restore that was checked and waits for the user to confirm it" },
   Failed: { id: "web.components.ui.phase_chip.failed", defaultMessage: "Failed", description: "Phase badge: label for a resource whose last operation failed" },
   Succeeded: { id: "web.components.ui.phase_chip.succeeded", defaultMessage: "Succeeded", description: "Phase badge: label for a backup or restore that finished successfully" },
   Asleep: { id: "web.components.ui.phase_chip.asleep", defaultMessage: "Asleep", description: "Phase badge: label for a suspended server that is asleep (derived display state)" },

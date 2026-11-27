@@ -25,7 +25,7 @@
 ## Phase 2: Foundational
 
 - [X] T004 [P] CRDs: add `operator/api/v1alpha1/backupexport_types.go` and the `Restore` upload fields, phases and status per data-model.md (CEL: exactly one of `backupRef`/`upload`; immutability except `upload.confirmed` false→true); run `make generate && make manifests`; commit deepcopy, `operator/config/{crd,rbac}/`, `charts/gameplane/charts/gameplane-crds/crds/`, `charts/gameplane/crd-manifests/`.
-- [ ] T005 Design pass in `design.fig` through OpenPencil from the T003 prompt; run `hack/design/fig-export.ts`; commit `assets/design-export/` with it; get valgul's sign-off before T020 and T031.
+- [X] T005 Design pass in `design.fig` through OpenPencil from the T003 prompt; run `hack/design/fig-export.ts`; commit `assets/design-export/` with it; get valgul's sign-off before T020 and T031.
 - [X] T006 [P] Agent `archive-worker` subcommand skeleton in `agent/cmd/main.go` and `agent/internal/archive/`: mTLS server (agent CA, cert from mounted Secret), single-route mux keyed on `EXPORT_UID`/`RESTORE_UID`, idle timeout, termination-log writer.
 - [X] T007 [P] `agent/internal/archive/manifest.go`: manifest type, JSON encode/decode, `formatVersion` check, layout mapping (`volumes/<logicalName>`, legacy `data/`) per research R3.
 - [X] T008 [P] Operator shared builders `operator/internal/controller/archive_worker_pods.go`: worker Pod (agent image, restic init-copy into `emptyDir`, spec 030 security context, resource defaults from `--backup-resources`), ClusterIP Service, per-worker server cert Secret signed by the agent CA (reuse `signAgentServerCert`).
@@ -44,9 +44,9 @@
 - [X] T016 [P] [US1] Gateway: `gatewayprotocol` `BackupExportTarget` and `api/internal/gateway/backup_archives.go` forwarding with identity checks like `capture.go`; panel side forwards for remote clusters.
 - [X] T017 [US1] API tests: `backup_archives_envtest_test.go` (permissions via `backups:read`, refusals, audit rows, timeout exemption), gateway tests (wrong identity → 404).
 - [X] T018 [P] [US1] i18n keys for download messages in the shared packs; `make check-i18n` runs in CI.
-- [ ] T019 [P] [US1] `web/src/lib/api.ts` `backupDownloadURL`, types in `web/src/types.ts`.
-- [ ] T020 [US1] `web/src/routes/tabs/Backups.tsx`: Download action with format choice and the "contains every server file" note (FR-019), hidden for volume-snapshot backups and without `backups:read`; tests in a new `Backups_download.test.tsx`. Needs T005 sign-off.
-- [ ] T021 [US1] E2E `test/e2e/backup_archives_e2e_test.go`: download tar.gz and zip, checksum against data; viewer permission; CSI refusal; remote cluster download in the `multicluster` bucket if a remote fixture is needed there. Register bucket `backup-archives` in `test/e2e/buckets.sh`.
+- [X] T019 [P] [US1] `web/src/lib/api.ts` `backupDownloadURL`, types in `web/src/types.ts`.
+- [X] T020 [US1] `web/src/routes/tabs/Backups.tsx`: Download action with format choice and the "contains every server file" note (FR-019), hidden for volume-snapshot backups and without `backups:read`; tests in a new `Backups_download.test.tsx`. Needs T005 sign-off.
+- [X] T021 [US1] E2E `test/e2e/backup_archives_e2e_test.go`: download tar.gz and zip, checksum against data; viewer permission; CSI refusal; remote cluster download in the `multicluster` bucket if a remote fixture is needed there. Register bucket `backup-archives` in `test/e2e/buckets.sh`.
 
 ## Phase 4: User Story 2 - Restore from an uploaded archive (P2)
 
@@ -60,15 +60,16 @@
 - [X] T027 [P] [US2] Gateway forwarding for the upload stream and confirm.
 - [X] T028 [US2] API tests: `backups:restore` required, 411/413, busy server, disconnect cleanup, audit rows.
 - [X] T029 [P] [US2] i18n keys for upload and restore messages.
-- [ ] T030 [P] [US2] `web/src/lib/api.ts` `uploadRestore` (XHR progress), `confirmRestore`; types.
-- [ ] T031 [US2] Backups tab Upload backup flow: file picker, format detect, "not a Gameplane archive" + game select, upload progress, check summary with warnings, overwrite and partial-copy risk confirmation, result; tests in new `Backups_upload.test.tsx`. Needs T005 sign-off.
-- [ ] T032 [US2] E2E in `backup_archives_e2e_test.go`: Gameplane archive restore, wrong game, plain archive, unsafe set, interrupted upload leaves server running and no staging PVC.
+- [X] T030 [P] [US2] `web/src/lib/api.ts` `uploadRestore` (XHR progress), `confirmRestore`; types.
+- [X] T031 [US2] Backups tab Upload backup flow: file picker, format detect, "not a Gameplane archive" + game select, upload progress, check summary with warnings, overwrite and partial-copy risk confirmation, result; tests in new `Backups_upload.test.tsx`. Needs T005 sign-off.
+- [X] T032 [US2] E2E in `backup_archives_e2e_test.go`: Gameplane archive restore, wrong game, plain archive, unsafe set, interrupted upload leaves server running and no staging PVC.
 
 ## Phase 5: Polish
 
-- [ ] T033 [P] Update `operator/specs.md` (BackupExport, Restore upload lifecycle, 10 CRDs), `api` and `agent` `specs.md`, `CLAUDE.md` CRD count, user docs for backups (find the page via `docs/agent-architecture.md`).
-- [ ] T034 [P] `changelog/unreleased/<PR>-backup-archives.md`.
+- [X] T033 [P] Update `operator/specs.md` (BackupExport, Restore upload lifecycle, 10 CRDs), `api` and `agent` `specs.md`, `CLAUDE.md` CRD count, user docs for backups (find the page via `docs/agent-architecture.md`).
+- [X] T034 [P] `changelog/unreleased/<PR>-backup-archives.md`.
 - [ ] T035 Browser smoke test via Chrome MCP at `sonnet` on a dev cluster, parallel with the diff review.
+- [ ] T037 User docs page for backup download and upload on the website (`GameplanePanel/website`, docs collection), then bump the `website` pointer; split from T033, which covered the in-repo docs (`docs/operator-operations.md`).
 - [ ] T036 valgul's quickstart walk (`quickstart.md`), then archive the folder to `specs/done_041-downloadable-backup-archives` (core rule 16).
 
 ## Dependencies

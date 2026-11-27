@@ -198,6 +198,20 @@ not an attachable CSI driver or multi-attach qualification. Unit/envtest regress
 cover stale worker/source identity, persisted budgets, delayed drainage, CSI
 abort/reclamation, retained/replaced content and raw snapshot-source rejection.
 
+### Backup archive acceptance (spec 041)
+
+The `backup-archives` bucket (`backup_archives_e2e_test.go`, amd64 only, default
+Kind profile) uses three API logins: one admin login per test and one viewer-role
+login. `TestBackupArchives_Download` downloads a restic backup as tar.gz and zip
+and checks the manifest and file checksums, a 400 for an unknown format, viewer
+download with a 403 on upload, and the volume-snapshot refusal (Kind has no CSI
+snapshots, so the test sets that Backup's status to Succeeded itself).
+`TestBackupArchives_UploadRestore` checks that wrong-game, plain-without-game,
+plain-for-another-game, unsafe (`../`) and interrupted uploads leave the server's
+pod untouched and no staging claim behind, then restores a Gameplane archive and a
+plain zip through `AwaitingConfirmation` and `:confirm`. Remote-cluster download
+is not covered.
+
 ### Server security override acceptance
 
 Two tests in the `operator` bucket (`test/e2e/buckets.sh`) cover module security

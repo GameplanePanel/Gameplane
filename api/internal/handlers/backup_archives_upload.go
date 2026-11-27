@@ -23,6 +23,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
 	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/workerconn"
 )
 
 // Archive uploads and restore confirmation (spec 041). An upload creates an
@@ -348,12 +349,18 @@ func (h *backupArchiveHandler) sendLocalUpload(req *http.Request, ns, receiver, 
 	if !ok || restoreUID == "" || strings.ContainsAny(restoreUID, "/?#") {
 		return nil, errors.New("restore upload has an invalid receiver address")
 	}
-	upReq, err := http.NewRequestWithContext(req.Context(), http.MethodPut, h.uploadURL(host, restoreUID).String(), body)
-	if err != nil {
-		return nil, fmt.Errorf("build restore upload request: %w", err)
+	target := h.uploadURL(host, restoreUID).String()
+	resp, err := workerconn.Do(req.Context(), h.tlsClient.Do, func(rctx context.Context, b io.Reader) (*http.Request, error) {
+		upReq, err := http.NewRequestWithContext(rctx, http.MethodPut, target, b)
+		if err != nil {
+			return nil, fmt.Errorf("build restore upload request: %w", err)
+		}
+		upReq.ContentLength = size
+		return upReq, nil
+	}, body)
+	if errors.Is(err, workerconn.ErrBuildRequest) {
+		return nil, err
 	}
-	upReq.ContentLength = size
-	resp, err := h.tlsClient.Do(upReq)
 	if err != nil {
 		return nil, fmt.Errorf("restore upload receiver: %w", err)
 	}
