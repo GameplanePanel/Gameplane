@@ -265,7 +265,7 @@ export function ThemeCatalogPage() {
                   onChange={() => setTag(ALL)}
                   className={cn(
                     "rounded px-3 py-1.5 text-sm text-muted hover:text-foreground",
-                    tag === ALL && "bg-primary/15 text-primary",
+                    "data-[selected=true]:bg-primary/15 data-[selected=true]:text-primary",
                   )}
                 >
                   {intl.formatMessage(themeCatalogMessages.allTags)}
@@ -279,7 +279,7 @@ export function ThemeCatalogPage() {
                     onChange={() => setTag(key)}
                     className={cn(
                       "rounded px-3 py-1.5 text-sm text-muted hover:text-foreground",
-                      tag === key && "bg-primary/15 text-primary",
+                      "data-[selected=true]:bg-primary/15 data-[selected=true]:text-primary",
                     )}
                   >
                     {label}
