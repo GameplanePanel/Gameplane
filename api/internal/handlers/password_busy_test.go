@@ -21,7 +21,8 @@ func assertPasswordBusy(t *testing.T, code int, retryAfter string) {
 	}
 }
 
-func busyPost(t *testing.T, url, body string) *http.Response {
+// busyPost posts body and returns the status code and Retry-After header.
+func busyPost(t *testing.T, url, body string) (int, string) {
 	t.Helper()
 	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, url, bytes.NewBufferString(body))
 	if err != nil {
@@ -32,23 +33,23 @@ func busyPost(t *testing.T, url, body string) *http.Response {
 	if err != nil {
 		t.Fatalf("post: %v", err)
 	}
-	t.Cleanup(func() { _ = resp.Body.Close() })
-	return resp
+	defer func() { _ = resp.Body.Close() }()
+	return resp.StatusCode, resp.Header.Get("Retry-After")
 }
 
 func TestUsers_CreatePasswordQueueFullAnswers503(t *testing.T) {
 	srv, _, _ := newUsersServer(t, &auth.User{ID: 1, Role: "admin"})
 	auth.SaturateArgonQueue(t)
-	resp := busyPost(t, srv.URL+"/users", `{"username":"busyuser","password":"longenoughpw1","role":"viewer"}`)
-	assertPasswordBusy(t, resp.StatusCode, resp.Header.Get("Retry-After"))
+	code, retryAfter := busyPost(t, srv.URL+"/users", `{"username":"busyuser","password":"longenoughpw1","role":"viewer"}`)
+	assertPasswordBusy(t, code, retryAfter)
 }
 
 func TestUsers_ResetPasswordQueueFullAnswers503(t *testing.T) {
 	srv, store, _ := newUsersServer(t, &auth.User{ID: 1, Role: "admin"})
 	id := seedUser(t, store, "busyreset", "viewer", "")
 	auth.SaturateArgonQueue(t)
-	resp := busyPost(t, srv.URL+"/users/"+strconv.FormatInt(id, 10)+"/reset-password", `{"password":"longenoughpw1"}`)
-	assertPasswordBusy(t, resp.StatusCode, resp.Header.Get("Retry-After"))
+	code, retryAfter := busyPost(t, srv.URL+"/users/"+strconv.FormatInt(id, 10)+"/reset-password", `{"password":"longenoughpw1"}`)
+	assertPasswordBusy(t, code, retryAfter)
 }
 
 func TestSFTPPassword_GenerateQueueFullAnswers503(t *testing.T) {
