@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-27
 
-**Status**: Ready for planning (OD-1 to OD-6 settled, see `OPEN-DECISIONS.md`). Not v1 scope unless valgul says so.
+**Status**: Ready for planning (OD-1 to OD-6 settled, see `OPEN-DECISIONS.md`). v1 scope (valgul 2026-11-27).
 
 **Input**: User description: "https://github.com/GameplanePanel/Gameplane/issues/1006 since this would need to have multiple connector the idea is a centralised api that receive order from the main app and then send it to a "manager" sidecar this manager sidecar would be capable of communicating to one type of dns to create the record so we would have one for cloudflare, ovh, hetzner, etc... and also support zone transfer with a specific manager that would hold a full zone and be the "main" dns for the zone"
 
@@ -184,7 +184,7 @@ An admin sees, for each zone, whether its manager is reachable, when it last syn
 
 ## Assumptions
 
-- Not v1 scope (project rule: new specs are built after v1 unless valgul says otherwise).
+- v1 scope (valgul 2026-11-27).
 - Default TTL is 300 seconds for records Gameplane creates; admins may change it per zone.
 - Record types needed by Gameplane itself are A, AAAA and SRV; CNAME is not used for server names.
 - Provider credentials live in Kubernetes Secrets in the namespace where the managers run, like other Gameplane secrets.
