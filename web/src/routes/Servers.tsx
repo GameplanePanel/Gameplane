@@ -637,7 +637,8 @@ function ServerCard({
             </div>
           </div>
         </div>
-        <PhaseChip phase={phase} asleep={asleep} className="shrink-0 text-sm" />
+        {/* The pill takes its text size from this wrapper: .phase-chip inherits, and out-ranks a size utility on the chip itself. */}
+        <span className="shrink-0 text-sm"><PhaseChip phase={phase} asleep={asleep} /></span>
       </div>
 
       {/* Row 2: Game label */}
