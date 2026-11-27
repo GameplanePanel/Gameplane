@@ -2,7 +2,7 @@
 
 **Branch**: `spec-046/dns-plan` | **Date**: 2026-11-27 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/046-dns-record-managers/spec.md` (OD-1 to OD-6 settled). Planning raised OD-7 and OD-8 (`OPEN-DECISIONS.md`); this plan is written on their recommended options and is revised if valgul picks another.
+**Input**: Feature specification from `specs/046-dns-record-managers/spec.md` (OD-1 to OD-6 settled). Planning raised OD-7 and OD-8, both settled by valgul 2026-11-27 (managers as their own pods, one hub per game cluster).
 
 ## Summary
 

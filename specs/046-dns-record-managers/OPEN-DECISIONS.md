@@ -1,6 +1,6 @@
 # Open decisions: spec 046 DNS records through provider managers
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-6 were raised on 2026-11-27 with the first spec draft and asked as decision cards. OD-1 to OD-6 are settled. Planning raised OD-7 and OD-8 on 2026-11-27; OD-7 is settled, OD-8 is open (asked as a decision card) and the plan follows its recommended option until valgul answers.
+Only a decision valgul answers is written here as settled. OD-1 to OD-6 were raised on 2026-11-27 with the first spec draft and asked as decision cards. OD-1 to OD-6 are settled. Planning raised OD-7 and OD-8 on 2026-11-27; both are settled. No decision is open.
 
 ## OD-1: How does this live next to ExternalDNS? (SETTLED: own answer, valgul 2026-11-27)
 
@@ -63,9 +63,11 @@ Raised by planning (research.md R5). Spec FR-012 says provider credentials never
 
 **Settled (valgul, decision card 2026-11-27):** A, "Own pod per manager": each enabled manager is its own Deployment with its own ServiceAccount that can read credential Secrets; the hub cannot read any Secret.
 
-## OD-8: One DNS hub per cluster, or one for the whole panel? (OPEN)
+## OD-8: One DNS hub per cluster, or one for the whole panel? (SETTLED: A, valgul 2026-11-27)
 
 Raised by planning (research.md R2). Each cluster runs its own operator today; a standalone panel has no Kubernetes of its own.
 
 - A. One hub per game cluster, installed with that cluster's chart; zones are set per cluster in the dashboard, which can add the same zone to several clusters at once. Ownership markers include the cluster, so clusters never touch each other's records. (Recommended: same model as the operator, works for standalone panels, everything stays Kubernetes resources.)
 - B. One hub next to the panel for all clusters, reading every cluster's record orders through the API. One copy of each credential, but needs new panel storage for standalone panels and writes status across clusters from outside the operator.
+
+**Settled (valgul, decision card 2026-11-27):** A, "One hub per game cluster": each game cluster runs its own hub and managers from its chart; zones are set per cluster, and the dashboard can add one zone to several clusters at once.

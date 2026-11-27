@@ -1,6 +1,6 @@
 # Research: spec 046 DNS records through provider managers
 
-Each entry: Decision, Rationale, Alternatives. Entries marked (OD-n) depend on an open decision in `OPEN-DECISIONS.md` and follow its recommended option until valgul answers.
+Each entry: Decision, Rationale, Alternatives. Entries marked (OD-n) record a decision valgul settled in `OPEN-DECISIONS.md`.
 
 ## R1: Who sends record orders?
 
@@ -10,9 +10,9 @@ Each entry: Decision, Rationale, Alternatives. Entries marked (OD-n) depend on a
 
 **Alternatives**: the API sends orders (rejected: API never bypasses reconciliation, and cannot see allocations first); the hub reads GameServers directly (rejected: duplicates endpoint logic outside the operator).
 
-## R2: One hub per cluster or one for the whole panel? (OD-8)
+## R2: One hub per cluster or one for the whole panel? (OD-8, settled A)
 
-**Decision (recommended)**: One hub per cluster that runs game servers, installed by the chart with `dns.enabled=true`. `DNSZone` is cluster-scoped in that cluster. The dashboard's DNS settings page lists zones per cluster and can copy a zone (with its credentials) to several clusters at once.
+**Decision**: One hub per cluster that runs game servers, installed by the chart with `dns.enabled=true`. `DNSZone` is cluster-scoped in that cluster. The dashboard's DNS settings page lists zones per cluster and can copy a zone (with its credentials) to several clusters at once.
 
 **Rationale**: matches the federation model (`docs/architecture.md`, "Multi-cluster"): each target cluster runs its own operator; standalone panels have no Kubernetes of their own, so a panel-level hub would need a new storage and a reach into every remote cluster's status. Ownership markers carry the cluster ID (R6) so two clusters publishing into the same zone never touch each other's records.
 

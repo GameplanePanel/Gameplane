@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-27
 
-**Status**: Planned (OD-1 to OD-6 settled; planning raised OD-7 and OD-8, open, see `OPEN-DECISIONS.md`). v1 scope (valgul 2026-11-27).
+**Status**: Planned (OD-1 to OD-6 settled; planning raised OD-7 and OD-8, settled; see `OPEN-DECISIONS.md`). v1 scope (valgul 2026-11-27).
 
 **Input**: User description: "https://github.com/GameplanePanel/Gameplane/issues/1006 since this would need to have multiple connector the idea is a centralised api that receive order from the main app and then send it to a "manager" sidecar this manager sidecar would be capable of communicating to one type of dns to create the record so we would have one for cloudflare, ovh, hetzner, etc... and also support zone transfer with a specific manager that would hold a full zone and be the "main" dns for the zone"
 
