@@ -3436,8 +3436,8 @@
     "description": "Source dialog: label above the archive URL field, shown for archive sources, where the archive is downloaded from"
   },
   "web.components.modules.source_dialog.branch_or_tag_defaults_to_main": {
-    "defaultMessage": "Branch or tag. Defaults to main.",
-    "description": "Source dialog: hint under the git ref field saying the value is a branch or tag and that it defaults to main"
+    "defaultMessage": "Branch or tag. Defaults to master.",
+    "description": "Source dialog: hint under the git ref field saying the value is a branch or tag and that it defaults to master"
   },
   "web.components.modules.source_dialog.bundles": {
     "defaultMessage": "bundles",
@@ -3528,8 +3528,8 @@
     "description": "Source dialog: validation error when keyless verification has no issuer or identity"
   },
   "web.components.modules.source_dialog.main": {
-    "defaultMessage": "main",
-    "description": "Source dialog: example value shown inside the empty git ref field; the branch name main as a sample"
+    "defaultMessage": "master",
+    "description": "Source dialog: example value shown inside the empty git ref field; the branch name master as a sample"
   },
   "web.components.modules.source_dialog.minecraft": {
     "defaultMessage": "minecraft-*",
