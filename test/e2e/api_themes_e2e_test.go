@@ -335,10 +335,10 @@ func TestAPI_ThemeMarketplaceLifecycle(t *testing.T) {
 		}
 		return true, ""
 	})
-	body := themeCall(t, a, http.MethodPost, "/users/me/themes",
-		map[string]any{"catalogId": catalog[e2eThemeUnsigned].ID}, http.StatusUnprocessableEntity)
-	if !strings.Contains(string(body), "entry_not_valid") {
-		t.Errorf("install of the unverified theme: body %s, want entry_not_valid", body)
+	// Error ids travel in the problem+json body, so ask for it.
+	if status, id, _ := ssoRulesProblem(t, a, http.MethodPost, "/users/me/themes",
+		map[string]any{"catalogId": catalog[e2eThemeUnsigned].ID}); status != http.StatusUnprocessableEntity || id != "server.themes.entry_not_valid" {
+		t.Errorf("install of the unverified theme: got %d %s, want 422 server.themes.entry_not_valid", status, id)
 	}
 
 	// User A installs and selects the signed theme.
@@ -404,17 +404,15 @@ func TestAPI_ThemeMarketplaceLifecycle(t *testing.T) {
 		t.Fatalf("catalog of the disabled source = %v, want empty", cat)
 	}
 	requireRendersSourceRemoved(t, a, themeID, "0.2.0")
-	body = themeCall(t, a, http.MethodPost, "/users/me/themes/"+themeID+"/update", nil, http.StatusConflict)
-	if !strings.Contains(string(body), "source_disabled") {
-		t.Errorf("update with the source disabled: body %s, want source_disabled", body)
+	if status, id, _ := ssoRulesProblem(t, a, http.MethodPost, "/users/me/themes/"+themeID+"/update", nil); status != http.StatusConflict || id != "server.themes.source_disabled" {
+		t.Errorf("update with the source disabled: got %d %s, want 409 server.themes.source_disabled", status, id)
 	}
 
 	// Delete the source: the installed copy stays, marked sourceRemoved.
 	themeCall(t, admin, http.MethodDelete, "/themes/sources/"+sourceName, nil, http.StatusNoContent)
 	requireRendersSourceRemoved(t, a, themeID, "0.2.0")
-	body = themeCall(t, a, http.MethodPost, "/users/me/themes/"+themeID+"/update", nil, http.StatusConflict)
-	if !strings.Contains(string(body), "source_removed") {
-		t.Errorf("update with the source deleted: body %s, want source_removed", body)
+	if status, id, _ := ssoRulesProblem(t, a, http.MethodPost, "/users/me/themes/"+themeID+"/update", nil); status != http.StatusConflict || id != "server.themes.source_removed" {
+		t.Errorf("update with the source deleted: got %d %s, want 409 server.themes.source_removed", status, id)
 	}
 	if sel := themeSelection(t, a); sel.ThemeType != "installed" {
 		t.Fatalf("user A preferences after source delete = %+v, want the installed theme still selected", sel)
