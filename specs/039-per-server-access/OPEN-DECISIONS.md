@@ -1,6 +1,13 @@
 # Decisions for per-server access
 
-D1 through D6 record the agreed role model, the beta access reset and the view prerequisites. One product decision remains about sharing a GameTemplate permission approval across installations. [Spec](spec.md) · [Implementation plan](plan.md)
+D1 through D6 record the agreed role model, beta access reset and view prerequisites. [Spec](spec.md) · [Implementation plan](plan.md)
+
+## Decisions before implementation
+
+1. **Does one GameTemplate approval cover multiple clusters in the same panel?** If an admin approves **Pause match** on the EU installation, should the identical US installation need a second approval? The existing proposal would share approval only when both installations use the same verified module and the command has the same meaning and effects. [Options and example](#open--sharing-template-approvals-across-installations)
+2. **What should happen when the last full panel admin loses that role?** Someone allowed to manage users can satisfy today’s lockout check, but only a primary panel admin can resolve the beta review, approve template permissions or remove a Block. Decide whether a manual suspension, deletion or demotion needs a second active primary admin. For an OIDC demotion that the existing guard would allow, decide whether to delay it until a replacement is available or apply it and use operator recovery. [Current lockout check](../../api/internal/db/rbac.go) · [Operator recovery](../../docs/security.md)
+3. **Can a panel admin retire or delete one of the four shipped server roles?** Every new cluster or namespace role must select Viewer, Power User, Operator or Administrator. The general retirement rule removes a role from new selections. Decide whether the four must always stay available or whether an admin can remove one from the picker, including what happens to the last available choice. Live edits to role permissions are already agreed. [Role lifecycle and inheritance](spec.md#roles-grants-and-scope) · [Shipped roles](contracts/permission-catalog.md#default-base-server-roles)
+4. **What does blocking Ban mean for someone who can type commands into the game console?** Gameplane can disable the Ban control while the game may still accept a ban command. Decide whether to keep console input and show that remaining ability in the preview, or withhold unrestricted input on that server when the game cannot enforce the Block. Reading console output has its own permission. [Console authority](contracts/permission-catalog.md#operations) · [Block rules](#d6--explicit-exceptions-to-inherited-access)
 
 ## D1 · Editing a base role
 
