@@ -977,17 +977,14 @@
               "componentId": "1:2420",
               "layout": {
                 "mode": "HORIZONTAL",
-                "gap": 12,
+                "gap": 8,
                 "padding": [0, 0, 0, 0],
                 "primary": "MIN",
-                "counter": "CENTER",
+                "counter": "MIN",
                 "sizing": ["FIXED", "HUG"]
               },
               "layoutAlignSelf": "STRETCH",
               "texts": [
-                "All sources",
-                "default",
-                "community",
                 "All categories",
                 "Adventure",
                 "Building",
@@ -1000,7 +997,8 @@
                 "Shooter",
                 "Simulation",
                 "Survival",
-                "Search modules…"
+                "Search modules…",
+                "Filters"
               ]
             },
             {

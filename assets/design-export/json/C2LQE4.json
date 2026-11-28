@@ -24,9 +24,9 @@
       "name": "shareCard",
       "type": "INSTANCE",
       "x": 500,
-      "y": 259,
+      "y": 243.5,
       "width": 440,
-      "height": 382,
+      "height": 413,
       "component": "Gameplane/Share Card",
       "componentId": "1:4507",
       "fills": [{"type": "SOLID", "color": "#1C1A20"}],
@@ -43,12 +43,13 @@
       },
       "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
       "texts": [
-        "gameplane",
+        "Northstar Games",
         "shared server link",
         "mc-survival",
+        "A survival world for our community.",
         "Online",
         "CONNECT AT",
-        "play.gameplane.example:25565",
+        "play.northstar.example:25565",
         "3 players online",
         "English"
       ]

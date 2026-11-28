@@ -280,7 +280,7 @@
                       "type": "FRAME",
                       "x": 20,
                       "y": 191,
-                      "width": 233,
+                      "width": 433,
                       "height": 36,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -293,11 +293,11 @@
                       "children": [
                         {
                           "id": "1:8665",
-                          "name": "Open cluster",
+                          "name": "View Details",
                           "type": "INSTANCE",
                           "x": 0,
                           "y": 0,
-                          "width": 117,
+                          "width": 114,
                           "height": 36,
                           "component": "Button/Primary/MD",
                           "componentId": "1:1094",
@@ -318,15 +318,15 @@
                             "paddingLeft": "spacing/4",
                             "fills/0/color": "accent/accent"
                           },
-                          "texts": ["Open cluster"]
+                          "texts": ["View Details"]
                         },
                         {
                           "id": "1:8666",
-                          "name": "View nodes",
+                          "name": "View Nodes",
                           "type": "INSTANCE",
-                          "x": 125,
+                          "x": 122,
                           "y": 0,
-                          "width": 108,
+                          "width": 110,
                           "height": 36,
                           "component": "Button/Outline/MD",
                           "componentId": "1:1794",
@@ -351,7 +351,71 @@
                             "bottomRightRadius": "radius/xl",
                             "strokes/0/color": "border-2"
                           },
-                          "texts": ["View nodes"]
+                          "texts": ["View Nodes"]
+                        },
+                        {
+                          "name": "View Servers",
+                          "type": "INSTANCE",
+                          "x": 240,
+                          "y": 0,
+                          "width": 118,
+                          "height": 36,
+                          "component": "Button/Outline/MD",
+                          "componentId": "1:1794",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 12,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [8, 16, 8, 16],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {
+                            "itemSpacing": "spacing/2",
+                            "paddingRight": "spacing/4",
+                            "paddingLeft": "spacing/4",
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
+                            "strokes/0/color": "border-2"
+                          },
+                          "texts": ["View Servers"]
+                        },
+                        {
+                          "name": "SFTP",
+                          "type": "INSTANCE",
+                          "x": 366,
+                          "y": 0,
+                          "width": 67,
+                          "height": 36,
+                          "component": "Button/Outline/MD",
+                          "componentId": "1:1794",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 12,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [8, 16, 8, 16],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {
+                            "itemSpacing": "spacing/2",
+                            "paddingRight": "spacing/4",
+                            "paddingLeft": "spacing/4",
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
+                            "strokes/0/color": "border-2"
+                          },
+                          "texts": ["SFTP"]
                         }
                       ]
                     }
@@ -442,7 +506,7 @@
                       "type": "FRAME",
                       "x": 20,
                       "y": 157,
-                      "width": 233,
+                      "width": 433,
                       "height": 36,
                       "layout": {
                         "mode": "HORIZONTAL",
@@ -455,11 +519,11 @@
                       "children": [
                         {
                           "id": "1:8673",
-                          "name": "Open cluster",
+                          "name": "View Details",
                           "type": "INSTANCE",
                           "x": 0,
                           "y": 0,
-                          "width": 117,
+                          "width": 114,
                           "height": 36,
                           "component": "Button/Primary/MD",
                           "componentId": "1:1094",
@@ -480,15 +544,15 @@
                             "paddingLeft": "spacing/4",
                             "fills/0/color": "accent/accent"
                           },
-                          "texts": ["Open cluster"]
+                          "texts": ["View Details"]
                         },
                         {
                           "id": "1:8674",
-                          "name": "View nodes",
+                          "name": "View Nodes",
                           "type": "INSTANCE",
-                          "x": 125,
+                          "x": 122,
                           "y": 0,
-                          "width": 108,
+                          "width": 110,
                           "height": 36,
                           "component": "Button/Outline/MD",
                           "componentId": "1:1794",
@@ -513,7 +577,71 @@
                             "bottomRightRadius": "radius/xl",
                             "strokes/0/color": "border-2"
                           },
-                          "texts": ["View nodes"]
+                          "texts": ["View Nodes"]
+                        },
+                        {
+                          "name": "View Servers",
+                          "type": "INSTANCE",
+                          "x": 240,
+                          "y": 0,
+                          "width": 118,
+                          "height": 36,
+                          "component": "Button/Outline/MD",
+                          "componentId": "1:1794",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 12,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [8, 16, 8, 16],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {
+                            "itemSpacing": "spacing/2",
+                            "paddingRight": "spacing/4",
+                            "paddingLeft": "spacing/4",
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
+                            "strokes/0/color": "border-2"
+                          },
+                          "texts": ["View Servers"]
+                        },
+                        {
+                          "name": "SFTP",
+                          "type": "INSTANCE",
+                          "x": 366,
+                          "y": 0,
+                          "width": 67,
+                          "height": 36,
+                          "component": "Button/Outline/MD",
+                          "componentId": "1:1794",
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "cornerRadius": 12,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [8, 16, 8, 16],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {
+                            "itemSpacing": "spacing/2",
+                            "paddingRight": "spacing/4",
+                            "paddingLeft": "spacing/4",
+                            "topLeftRadius": "radius/xl",
+                            "topRightRadius": "radius/xl",
+                            "bottomLeftRadius": "radius/xl",
+                            "bottomRightRadius": "radius/xl",
+                            "strokes/0/color": "border-2"
+                          },
+                          "texts": ["SFTP"]
                         }
                       ]
                     }
