@@ -218,7 +218,7 @@ it on a genuine connection attempt. Opt-in per server via `spec.idle.wakeOnConne
 - Costs one small pod per sleeping server, which is why it is opt-in.
 
 **Honest limitations:** Only Minecraft and Terraria get real parsing; tModLoader
-also declares the Terraria parser. The other 26 of the 29 catalog modules use the
+also declares the Terraria parser. The other 27 of the 30 catalog modules use the
 `generic` default (they hold no connection to parse), and hostport is asymmetric as described.
 
 #### Read-only MCP server (PR #105) (shipped v0.2.0-beta.6) <!-- doc-versions: historical -->
@@ -333,10 +333,10 @@ the `api.oidc.*` Helm values. The tab's own UI is tracked for v1.1.
 Constitution IV requires a `specs.md` file per game module documenting the
 template's authoring and configuration — the game module itself, not its
 join-protocol wire format. Those specification files belong in the
-`gameplane-module` submodule repo (e.g., `modules/minecraft-java/specs.md`),
+`GameplanePanel/module` submodule repo (e.g., `modules/minecraft-java/specs.md`),
 are tracked there in the module repository rather than in this main repo, and
-are a known incomplete item for v1. As of 2026-10-14, 26 of the 29 modules have
-a `specs.md`; `enshrouded`, `minecraft-java` and `v-rising` do not yet. See the
+are a known incomplete item for v1. As of 2026-11-28, 28 of the 30 modules have
+a `specs.md`; `enshrouded` and `v-rising` do not yet. See the
 module submodule's project board for status.
 
 ---
@@ -359,8 +359,9 @@ canonical per-module status:
   wire-protocol formats, each with a named unblocking artifact (packet capture,
   reverse-engineering session, or anti-cheat analysis). They are candidates for
   future protocol work once documentation becomes available.
-- **2 modules** are permanently out-of-scope-by-design due to architectural
+- **3 modules** are permanently out-of-scope-by-design due to architectural
   constraints (`valheim` routes through Steam Datagram Relay;
-  `dayz` requires BattlEye anti-cheat validation before join completion).
+  `dayz` requires BattlEye anti-cheat validation before join completion;
+  `minecraft-proxy` only forwards logins to a backend server, so it has no join test of its own).
 
-Total: 29 modules.
+Total: 30 modules.

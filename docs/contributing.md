@@ -104,7 +104,7 @@ Reopen the container with one of the named profiles (or `full`) and run the targ
 relevant screen, regenerate the export with `hack/design/fig-export.ts` (see
 `assets/design-export/MANIFEST.md`; it renders only the screens that changed, and the
 `design export` workflow commits it on pull requests from branches of this repository), review with the maintainers, *then*
-translate to React. This keeps the 251 designed screens (`assets/design-export/screens.json`) the source of truth and
+translate to React. This keeps the 314 designed screens (`assets/design-export/screens.json`) the source of truth and
 prevents the dashboard from drifting into code-led redesigns.
 
 Backend/operator/API changes do not need a design pass.
@@ -400,7 +400,7 @@ transparency log. The jobs run in this order:
 
 ```mermaid
 flowchart TD
-    T["Tag v* pushed"] --> IM["images: one leg per component (12)"]
+    T["Tag v* pushed"] --> IM["images: one leg per component (13)"]
     T --> MO["modules: push and sign official bundles"]
     IM --> P["Push image by digest"]
     P --> S["Trivy scan, then cosign sign (keyed)"]

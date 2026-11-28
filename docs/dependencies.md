@@ -42,8 +42,8 @@ were added and verified on **2026-09-26**.
 | `telemetryschema/` | Go | 0 (stdlib only) | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API reporter and the telemetry receiver |
 | `themepkg/` | Go | 1 (`gopkg.in/yaml.v3`) | Shared theme package validator (theme.yaml, tokens and contrast, custom CSS sanitizer, previews, size limits) used by the API and `gp-module` (spec 043) |
 | `bundlefetch/` | Go | 11 (oras-go, image-spec, go-digest, x/mod, go-containerregistry, cosign, sigstore-go, go-git, go-billy, x/crypto, go-logr) | Shared OCI client, cosign verifier core and git/HTTP/local/OCI fetch code (no Kubernetes imports) used by the operator's module sources and the API's theme sources (spec 043) |
-| `operator/` | Go | 16 | controller-runtime reconciler for the 9 CRDs (`operator/api/v1alpha1/*_types.go`); module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
-| `api/` | Go | 21 | chi REST + WebSocket gateway: auth (local + OIDC), RBAC, K8s client, SQLite/Postgres persistence, notifications |
+| `operator/` | Go | 16 | controller-runtime reconciler for the 10 CRDs (`operator/api/v1alpha1/*_types.go`); module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
+| `api/` | Go | 24 | chi REST + WebSocket gateway: auth (local + OIDC), RBAC, K8s client, SQLite/Postgres persistence, notifications |
 | `agent/` | Go | 6 | In-pod sidecar: RCON/WebRcon console, chi HTTP surface, heartbeat status patch, disk usage stats |
 | `audit-syslog-bridge/` (submodule) | Go | 0 (stdlib only) | Standalone HTTP-JSON → syslog relay for the audit webhook sink |
 | `telemetry-receiver/` | Go | 3 | Standalone collector for the API's usage telemetry (daily counts; extended reports add a random install ID and its public key; on by default for new installs; `api.telemetry.enabled=false` turns it off) |
@@ -181,7 +181,7 @@ Importers use a local `replace` module (`replace github.com/GameplanePanel/gamep
 ### operator
 
 controller-runtime operator reconciling GameServer, GameTemplate, Backup,
-BackupSchedule, Restore, Module, and ModuleSource. Direct deps from
+BackupSchedule, BackupExport, Restore, Module, ModuleSource, Cluster and NetworkCapture. Direct deps from
 `operator/go.mod` (excluding the local `netguard` replace, covered above):
 
 | Dependency | Version | Why | Status |
@@ -345,9 +345,9 @@ trade-off). Direct deps from `capture-sidecar/go.mod`:
 
 | Dependency | Version | Why |
 |---|---|---|
-| `github.com/gopacket/gopacket` | v1.7.7 | `internal/capture/writer.go`/`afpacket.go` — `AF_PACKET` socket capture via `gopacket/afpacket`, plus pcap-format frame writing via `pcapgo`/`layers` |
+| `github.com/gopacket/gopacket` | v1.8.0 | `internal/capture/writer.go`/`afpacket.go` — `AF_PACKET` socket capture via `gopacket/afpacket`, plus pcap-format frame writing via `pcapgo`/`layers` |
 | `github.com/packetcap/go-pcap` | v0.0.0-20260731105150-c86974bbfbcd | `internal/capture/filter.go` — compiles the tcpdump-style filter expression to BPF without requiring libpcap at runtime | <!-- doc-versions: dependency -->
-| `golang.org/x/net` | v0.62.0 | `internal/capture/filter.go`/`afpacket.go` — `x/net/bpf`: assembling the classic-BPF program attached to the AF_PACKET socket | <!-- doc-versions: dependency -->
+| `golang.org/x/net` | v0.63.0 | `internal/capture/filter.go`/`afpacket.go` — `x/net/bpf`: assembling the classic-BPF program attached to the AF_PACKET socket | <!-- doc-versions: dependency -->
 
 ### tunnel
 
@@ -393,15 +393,15 @@ React 19 + TypeScript strict + Vite dashboard (`web/package.json` version
 
 **Routing / data fetching**
 - `@tanstack/react-router` `^1.170.46` — file-based route tree; `createRouter`/`RouterProvider` in `src/main.tsx`, tree built in `src/router/tree.tsx`, `Link`/`useNavigate` used across `src/routes/*.tsx`.
-- `@tanstack/react-query` `^5.108.1` — server-state cache; `QueryClient`/`QueryClientProvider` in `src/main.tsx`, `useQuery`/`useMutation` used pervasively across routes and `src/lib/` — the dominant data-fetching layer.
-- `@tanstack/react-virtual` `^3.14.26` — `useVirtualizer` in `src/routes/tabs/Logs.tsx`, virtualizes the log-line list.
+- `@tanstack/react-query` `^5.108.4` — server-state cache; `QueryClient`/`QueryClientProvider` in `src/main.tsx`, `useQuery`/`useMutation` used pervasively across routes and `src/lib/` — the dominant data-fetching layer.
+- `@tanstack/react-virtual` `^3.14.28` — `useVirtualizer` in `src/routes/tabs/Logs.tsx`, virtualizes the log-line list.
 - `@tanstack/router-devtools` (dev) — **no import found anywhere in `src/`**. Installed but apparently unused; flag as a candidate for removal or an intentionally-deferred addition.
 
 **UI primitives (HeroUI v3)**
-- `@heroui/react` `3.2.7` — foundational component library (Button, Input, Select, Modal, Table, etc.); composed and themed in `src/components/ui/` (Gameplane's composition layer over HeroUI).
-- `@heroui/styles` `3.2.7` — companion style package with semantic token infrastructure for light/dark modes and brand customization; `@heroui/styles` is imported in `src/styles/globals.css` for global theme setup.
+- `@heroui/react` `3.2.8` — foundational component library (Button, Input, Select, Modal, Table, etc.); composed and themed in `src/components/ui/` (Gameplane's composition layer over HeroUI).
+- `@heroui/styles` `3.2.8` — companion style package with semantic token infrastructure for light/dark modes and brand customization; `@heroui/styles` is imported in `src/styles/globals.css` for global theme setup.
 - `clsx` `^2.1.1` + `tailwind-merge` `^3.7.1` — combined into the `cn()` helper in `src/lib/utils.ts`, used app-wide for conditional/merged Tailwind classes and with HeroUI's theme tokens.
-- `lucide-react` `^1.76.0` — icon set, imported in roughly 83 files (`AppLayout`, `Dashboard`, `Login`, dialogs, etc.).
+- `lucide-react` `^1.79.0` — icon set, imported in roughly 96 files (`AppLayout`, `Dashboard`, `Login`, dialogs, etc.).
 - `react-aria` — peer dependency of HeroUI, providing accessibility primitives (via `react-aria-components`) used by HeroUI atoms.
 
 **Editors / terminals**
@@ -464,7 +464,7 @@ These aren't code dependencies of any component; they're invoked by
 - **`sigs.k8s.io/controller-runtime/tools/setup-envtest@release-0.24`** — installed by `make envtest-bin`; downloads the K8s 1.36.2 envtest binaries (`kube-apiserver`, `etcd`) that back `operator`'s and `api`'s `-tags=envtest` integration tests.
 - **`golangci-lint` v2.14.0** — pinned in `.github/workflows/ci.yaml`, `.devcontainer/versions.toml` (`golangci_lint`, installed by `.devcontainer/setup.sh`), and the exact-version guard in `test/e2e/lint-gate-verify.sh`. Its `golang.org/x/tools v0.50.0` importer supports the export-data version 5 emitted by Go 1.27.3; v2.13.2's importer does not. CI uses the published binary and the devcontainer builds the same release from source. The CI `lint` matrix gates every selected workspace module with `.golangci.yml`, using `envtest` tags for operator/API and `e2e` tags for test/e2e. Update the verifier's valid fixtures with the pin; unsupported or unpinned versions must still fail. Tests and general lint run only in CI under repository policy. <!-- doc-versions: dependency -->
 - **`oras` CLI ≥ 1.2.0** (pinned `1.2.0` in `.devcontainer/versions.toml`; `oras-project/setup-oras@v2.0.4` action in `release.yaml`) — `modules/build.sh` pushes each `modules/<name>/` directory as an OCI module bundle (`make modules-push`); this is a *different* thing from `operator`'s `oras.land/oras-go/v2` **library** dependency, which is the operator's own pull-side client, not the CLI.
-- **`cosign` CLI v3.1.2** (`sigstore/cosign-installer@v4.1.3`) — used in `publish-edge.yaml`/`release.yaml` to sign published container images, the Helm chart, and module bundles against `COSIGN_PRIVATE_KEY`, recording each signature in the public Rekor transparency log, and to round-trip-verify against the derived public key before publishing. Signatures use the classic format (`--new-bundle-format=false --use-signing-config=false`), which is what keeps them readable by the operator's `sigstore/cosign/v3` library; cosign's newer Rekor v2 flow additionally requires an RFC3161 timestamp authority that keyed signing cannot satisfy. `modules/build.sh` gates the same behaviour behind its own `--tlog-upload` flag so local and air-gapped authoring stays offline. Distinct from `operator`'s `sigstore/cosign/v3` **library** dependency, which only ever *verifies* (never signs) at reconcile time.
+- **`cosign` CLI v3.1.2** (`sigstore/cosign-installer@v4.1.4`) — used in `publish-edge.yaml`/`release.yaml` to sign published container images, the Helm chart, and module bundles against `COSIGN_PRIVATE_KEY`, recording each signature in the public Rekor transparency log, and to round-trip-verify against the derived public key before publishing. Signatures use the classic format (`--new-bundle-format=false --use-signing-config=false`), which is what keeps them readable by the operator's `sigstore/cosign/v3` library; cosign's newer Rekor v2 flow additionally requires an RFC3161 timestamp authority that keyed signing cannot satisfy. `modules/build.sh` gates the same behaviour behind its own `--tlog-upload` flag so local and air-gapped authoring stays offline. Distinct from `operator`'s `sigstore/cosign/v3` **library** dependency, which only ever *verifies* (never signs) at reconcile time.
 - **`kind`** v0.32.0 (pinned in `.devcontainer/versions.toml`) / `helm/kind-action@v1.15.2` (`install_only: true` in CI) — spins up the ephemeral clusters for `make dev-up`, `make test-e2e`, and every `e2e-*` CI job. <!-- doc-versions: dependency -->
 - **`helm`** (`azure/setup-helm@v5.1.0` in CI; `helm` 4.3.1 pinned in `.devcontainer/versions.toml` and installed by the full dev container profile) — chart lint (`helm lint`), chart render sanity-check, `helm template`, and `helm upgrade --install` in `deploy/kind/*.sh`/`Makefile`'s `dev-install`.
 - **`docker buildx bake`** (`containers/docker-bake.hcl`, `docker/bake-action@v7.3.0`) — builds the operator/api/agent e2e images concurrently with a shared GitHub Actions layer cache (`.github/actions/e2e-images`); also builds the `e2e-gameprobe` headless bot image used only by the game-bot CI job.
@@ -505,7 +505,7 @@ The Helm chart itself (`charts/gameplane/Chart.yaml`) declares no chart dependen
 - **Signing has two independent code paths that must be kept in sync.**
   Verification (`operator`'s `sigstore/cosign/v3` **library**, checked at
   Module-reconcile time against `cosign.pub`) and signing (the `cosign` **CLI**
-  v3.1.2, `sigstore/cosign-installer@v4.1.3` in CI) both use classic cosign
+  v3.1.2, `sigstore/cosign-installer@v4.1.4` in CI) both use classic cosign
   signature format (`--new-bundle-format=false --use-signing-config=false`) for
   mutual compatibility. A bump to either side needs to preserve that format
   compatibility and the ability to sign with `--tlog-upload` (Rekor logging).

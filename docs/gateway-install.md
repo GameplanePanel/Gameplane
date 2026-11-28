@@ -15,7 +15,7 @@ cluster. The remote operator/gateway installation below is the same in both case
 
 Use matching API, operator and agent versions. The gateway uses the API image's
 `gateway` subcommand, a dedicated ServiceAccount, and read-only `get` access to
-GameServers, NetworkCaptures and Services in its configured namespaces. It has no database and no
+GameServers, NetworkCaptures, Backups, BackupExports and Services in its configured namespaces. It has no database and no
 user login. Users authenticate to the central API, which retains authorization.
 
 Create these Secrets in the chart release namespace before enabling the gateway:

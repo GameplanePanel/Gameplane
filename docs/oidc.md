@@ -349,7 +349,7 @@ Setting a role by hand and returning a user to SSO control are both written to t
 
 The Authentication page edits the rule list as an ordered list: add, remove, reorder, and pick the role from the existing roles. Saving a rule list in the dashboard replaces the old per-role form for that provider. For the Helm provider, the dashboard override replaces the whole Helm rule list and fallback; **Reset to Helm default** removes the override.
 
-The rule editor, the role-source badge and the Return to SSO control action are part of the dashboard build for this feature. Until that build ships, the API (`PUT /admin/config/auth`, `PATCH /users/{id}` with `roleSource`) and Helm behavior above applies, and the per-role override steps later in this page describe the dashboard as it works today.
+The rule editor, the role-source badge and the Return to SSO control action are in the dashboard. For the Helm provider, the dashboard override replaces the whole Helm rule list and fallback, as the steps below describe.
 
 ### Audit Log Reasons
 
@@ -500,29 +500,25 @@ Once a Gameplane instance is running with Helm-seeded role mappings, admins can 
 
 2. Locate the Helm-configured provider section (displayed as read-only)
 
-3. For each role (`admin`, `operator`, `viewer`), you'll see:
-   - The **Helm-seeded value** (groups configured at install time)
-   - An option to **override** this list
+3. Find the role rule override card under the Helm-seeded provider. Before an override it shows the Helm rules and fallback read-only, with an **Override** button.
 
-4. Click the override button for a role and enter a comma-separated list of group names:
-   - Example: for the admin role, enter `gameplane-admins, infrastructure-team, devops-leads`
-   - An empty list (`[]`) is valid and means "nobody gets this role from a group match"
+4. Click **Override**. The card fills the ordered rule editor and fallback with the Helm values. Add, remove or reorder rules (each rule is a group and a role) and set the fallback.
 
-5. Click **Save**
+5. Click **Save role rules**.
 
 The override takes effect immediately on the very next OIDC login for that role — no API restart, no `helm upgrade`, no redeployment. Users who already hold that role keep it on their current session; users on new logins are assigned roles based on the updated mapping.
 
 ### Reset a Role Back to Its Helm Default
 
-If you've overridden a role's group list and later want to restore the original Helm-seeded value:
+If you've overridden the Helm rules and want to restore the Helm-seeded rules and fallback:
 
 1. Navigate to **Admin Settings → Authentication**
 
-2. For the role you want to reset, click the **reset** button (shown only if the role is currently overridden)
+2. On the override card, click **Reset to Helm default**. This changes only the draft.
 
-3. Confirm the action
+3. Click **Save role rules**.
 
-The role is immediately restored to the Helm-seeded group list. If users are currently logged in with that role, they keep it on their current session; on next login, the role assignment uses the reset mapping.
+The Helm rules and fallback apply from the next sign-in. Users already signed in keep their current role until their next sign-in.
 
 ### Precedence: Most-Privileged Match Wins (Per-Role Form Only)
 

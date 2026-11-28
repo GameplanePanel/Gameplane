@@ -909,7 +909,7 @@ through the Steam Web API (`ISteamUser/GetPlayerSummaries/v2`, batched up to
   moderation: kick, ban and unban key on the Steam ID alone, so a name change
   or a spoofed display name cannot change who is acted on.
 - **Failure mode.** If the key is unset, Steam is unreachable, or a call times
-  out (the lookup has a per-request budget of about 1.5 seconds), the player
+  out (the lookup has a per-request budget of 2 seconds by default, set by `GAMEPLANE_STEAM_TIMEOUT`), the player
   list falls back to raw Steam IDs. The player list is never blocked or failed
   by the lookup.
 
@@ -1034,7 +1034,7 @@ termination is not clean.
 Default timeout budget is ≤30 minutes. Documented exceptions with inline
 justification comments:
 
-- The e2e jobs in ci.yaml run at 45 to 105 minutes: most buckets at 60 or 75 minutes (the `e2e-go` jobs use a
+- The e2e jobs in ci.yaml run at 15 to 105 minutes: most buckets at 60 or 75 minutes (the `e2e-go` jobs use a
   `job_timeout` matrix value), `e2e-upgrade` at 85 and `e2e-postgres` at 105.
   E2E test suites on kind clusters are inherently slow; the budgets are measured
   from prior runs.
@@ -1370,7 +1370,7 @@ deployments.
 
 Secrets Gameplane reads or creates, by convention:
 
-- `gameplane-<gameserver>-rcon` — per-game RCON password, created by operator
+- `<gameserver>-rcon` — per-game RCON password, created by operator
 - `gameplane-agent-ca` — CA bundle the API trusts
 - `gameplane-agent-client` — API's client cert/key
 - `gameplane-oidc` — OIDC client secret (user-supplied)

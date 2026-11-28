@@ -49,7 +49,7 @@ verified.
 ### Row (d): Backup and restore
 
 **Source ID**: G-d  
-**Evidence**: operator/api/v1alpha1/backup_types.go:262; CLAUDE.md architecture section  
+**Evidence**: operator/api/v1alpha1/backup_types.go:269; CLAUDE.md architecture section  
 **Checked on**: 2026-09-02  
 **What was verified**: Backup CRD type defined with support for Restic snapshots to S3-compatible storage; BackupSchedule CRD supports cron-scheduled backups; one-click restore via Restore CRD.  
 **Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/operator/api/v1alpha1
@@ -67,9 +67,9 @@ verified.
 ### Row (f): Game template distribution
 
 **Source ID**: G-f  
-**Evidence**: docs/module-authoring.md § Verifying and pinning bundles (lines 433–515); CLAUDE.md § Repository Map (`modules/`)  
+**Evidence**: docs/module-authoring.md § Verifying and pinning bundles (lines 442–524); CLAUDE.md § Repository Map (`modules/`)  
 **Checked on**: 2026-09-26 (re-verified)  
-**What was verified**: OCI bundles via ModuleSource CRD supporting git/http/oci/local/upload sources; cosign signature verification documented at lines 433–515; 30 ready-to-use templates in gameplane-module repository.  
+**What was verified**: OCI bundles via ModuleSource CRD supporting git/http/oci/local/upload sources; cosign signature verification documented at lines 442–524; 30 ready-to-use templates in gameplane-module repository.  
 **Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/modules
 
 <a id="gameplane-row-g"></a>

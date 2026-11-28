@@ -169,7 +169,7 @@ No external modules.
 
 ## References
 
-- **CRD types:** `operator/api/v1alpha1/gametemplate_types.go` — `ActionParamSpec`, `ActionSpec`
+- **CRD types:** `operator/api/v1alpha1/gametemplate_types.go` — `ActionParamSpec`, `ServerActionSpec`
 - **API usage:** `api/internal/ws/actions.go` — WebSocket action execution
 - **Agent usage:** `agent/internal/actions/actions.go` — RCON action execution
 - **Module authoring:** `docs/module-authoring.md` — defines the `actions` field in `template.yaml`
