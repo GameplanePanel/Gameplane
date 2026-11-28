@@ -30,7 +30,9 @@ import type { IntlShape } from "react-intl";
 // Helm values or `kubectl apply` — the dashboard just writes the CRs.
 export function ModuleSourcesPanel() {
   const intl = useOptionalIntl();
-  return <ModuleTarget loadingMessage={intl.formatMessage({ id: "web.components.modules.module_sources_panel.loading_sources", defaultMessage: "Loading module sources\u2026", description: "Module sources panel: loading message while module sources load" })}>{(cluster, canManage) => <ClusterModuleSources key={cluster} cluster={cluster} canManage={canManage} />}</ModuleTarget>;
+  return <ModuleTarget loadingMessage={intl.formatMessage({ id: "web.components.modules.module_sources_panel.loading_sources", defaultMessage: "Loading module sources\u2026", description: "Module sources panel: loading message while module sources load" })}>
+    {(cluster, canManage, _displayName, selector) => <>{selector}<ClusterModuleSources key={cluster} cluster={cluster} canManage={canManage} /></>}
+  </ModuleTarget>;
 }
 
 export function ClusterModuleSources({ cluster, canManage }: { cluster: string; canManage: boolean }) {

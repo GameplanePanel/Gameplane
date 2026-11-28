@@ -43,6 +43,37 @@ test.describe("modules page", () => {
     await expect(grid.getByText("Valheim", { exact: true })).toBeVisible();
   });
 
+  test("keeps all categories visible and aligns search with Filters", async ({ page, context }) => {
+    await page.addInitScript(() => localStorage.setItem("gameplane-e2e-dataset", "screenshots"));
+    await context.addCookies([{ name: "e2e_modules_variant", value: "design", url: new URL(page.url()).origin }]);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/modules");
+    const categories = page.getByRole("group", { name: "Categories" });
+    const search = page.getByRole("textbox", { name: "Search modules" });
+    const filters = page.getByRole("button", { name: "Filters", exact: true });
+    await expect(categories.getByRole("button", { name: "Adventure" })).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+
+    for (const width of [1440, 375]) {
+      await page.setViewportSize({ width, height: 900 });
+      const [bar, field, trigger] = await Promise.all([categories.boundingBox(), search.boundingBox(), filters.boundingBox()]);
+      expect(bar).not.toBeNull();
+      expect(field).not.toBeNull();
+      expect(trigger).not.toBeNull();
+      expect(await categories.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+      expect(field!.y).toBe(trigger!.y);
+      expect(field!.height).toBe(trigger!.height);
+      expect(field!.x + field!.width).toBeLessThanOrEqual(trigger!.x);
+      expect(trigger!.x + trigger!.width).toBeLessThanOrEqual(width);
+      if (width === 1440) {
+        expect(bar!.y).toBe(field!.y);
+        expect(bar!.height).toBe(field!.height);
+      } else {
+        expect(bar!.y + bar!.height).toBeLessThanOrEqual(field!.y);
+      }
+    }
+  });
+
   test("install dialog submits POST /modules with source/version/name", async ({ page }) => {
     await page.goto("/modules");
     await page.waitForLoadState("domcontentloaded");

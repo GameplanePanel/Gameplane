@@ -9045,11 +9045,15 @@
   },
   "web.routes.modules.all_sources": {
     "defaultMessage": "All sources",
-    "description": "Modules: source filter chip that shows every source"
+    "description": "Modules: source filter option that shows every source"
   },
   "web.routes.modules.catalog_entry_the_entry_can_be_re": {
     "defaultMessage": "catalog entry. The entry can be re-uploaded later.",
     "description": "Modules: end of the remove-upload dialog text saying the catalog entry can be re-uploaded later"
+  },
+  "web.routes.modules.categories": {
+    "defaultMessage": "Categories",
+    "description": "Modules: accessible label for the group of category filters"
   },
   "web.routes.modules.create_module": {
     "defaultMessage": "Create module",
@@ -9070,6 +9074,10 @@
   "web.routes.modules.failed_to_load_module_sources": {
     "defaultMessage": "Failed to load module sources.",
     "description": "Modules: error text shown when the module sources panel fails to load; a retry button sits next to it"
+  },
+  "web.routes.modules.filters": {
+    "defaultMessage": "Filters",
+    "description": "Modules: button and popover for choosing the workload cluster and module source"
   },
   "web.routes.modules.loading_module_catalog": {
     "defaultMessage": "Loading module catalog…",
@@ -9110,6 +9118,10 @@
   "web.routes.modules.search_modules_2": {
     "defaultMessage": "Search modules",
     "description": "Modules: accessible name of the module search field"
+  },
+  "web.routes.modules.source": {
+    "defaultMessage": "Source",
+    "description": "Modules: label for the source selector in the Filters popover"
   },
   "web.routes.modules.uninstall": {
     "defaultMessage": "Uninstall",

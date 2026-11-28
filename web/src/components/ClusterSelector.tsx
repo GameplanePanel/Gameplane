@@ -41,7 +41,6 @@ export function ClusterSelector() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["clusters"],
     queryFn: () => Clusters.list(),
-    refetchInterval: 30_000,
   });
 
   const clusters = data?.items ?? [];

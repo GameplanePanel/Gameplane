@@ -133,11 +133,7 @@ test.describe("live: data screens render real backend data", () => {
   test("modules page renders the real catalog state", async ({ page }) => {
     await page.goto("/modules");
     await expect(page.getByRole("heading", { name: /^modules$/i })).toBeVisible();
-    // The "All sources" filter chip always renders (the source list is
-    // seeded with "all"), so it proves the page reflected the real catalog.
-    // Asserted alone to stay unambiguous: when the catalog is empty the
-    // empty-state text is ALSO present, so a combined locator would match two
-    // elements and trip Playwright's strict mode.
-    await expect(page.getByRole("button", { name: "All sources" })).toBeVisible();
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    await expect(page.getByRole("button", { name: /Source/ })).toHaveText("All sources");
   });
 });

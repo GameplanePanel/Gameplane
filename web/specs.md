@@ -590,9 +590,9 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 ### Modules Catalog Surface
 
 **Modules.tsx (main page):**
-- Single catalog view (no Catalog/Installed/Upload tab switcher): search box, source filter, and category chips over the combined catalog (`matchesAllCategories`); ModuleCard instances for each entry, each carrying its own install/upgrade/uninstall actions
+- Category chips filter the catalog with `matchesAllCategories` and wrap to fit the available width. The search field and its adjacent Filters button stay together on smaller screens. Filters contains the source selector and, on standalone installations, the workload cluster selector. Each selection takes effect immediately. The cluster selector remains available when the catalog cannot load or no registered target is selected.
 - "Create module" button opens the Module Builder; "Upload module" button (shown when an upload-capable source exists) opens `UploadModuleDialog`
-- `ModuleSourcesPanel` (source CRUD) is reached from Admin, not from a tab on this page
+- Manage sources opens the source editor for the current catalog target. Admin also exposes the editor through `ModuleSourcesPanel`.
 
 **ModuleCard.tsx (reusable card):**
 - Game icon (ui/GameIcon); module name, description

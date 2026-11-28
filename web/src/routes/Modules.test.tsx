@@ -301,10 +301,18 @@ describe("ModulesPage", () => {
     await screen.findByText("Minecraft (Java)");
     expect(screen.getByText("Valheim")).toBeInTheDocument();
 
-    // Click the "community" source filter
-    await userEvent.click(screen.getByRole("button", { name: "community" }));
+    const filters = screen.getByRole("button", { name: "Filters" });
+    await userEvent.click(filters);
+    expect(screen.queryByRole("button", { name: "Select cluster" })).not.toBeInTheDocument();
+    const source = screen.getByRole("button", { name: /Source/ });
+    expect(source).toHaveTextContent("All sources");
+    await userEvent.click(source);
+    await userEvent.click(await screen.findByRole("option", { name: "community" }));
     expect(screen.queryByText("Minecraft (Java)")).not.toBeInTheDocument();
     expect(screen.getByText("Valheim")).toBeInTheDocument();
+    await userEvent.click(source);
+    await userEvent.click(await screen.findByRole("option", { name: "All sources" }));
+    expect(screen.getByText("Minecraft (Java)")).toBeInTheDocument();
   });
 
   it("searches modules by display name", async () => {
