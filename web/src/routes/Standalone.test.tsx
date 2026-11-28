@@ -221,19 +221,35 @@ describe("standalone panel", () => {
   });
 
   it("requires a registered selection and scopes module queries to that remote", async () => {
-    standalone([{ name: "east", displayName: "East" }]);
+    standalone([{ name: "east", displayName: "East" }, { name: "west", displayName: "West" }]);
     setCurrentCluster("deleted");
     const paths: string[] = [];
-    server.use(http.get("/modules/catalog", ({ request }) => { paths.push(request.url); return HttpResponse.json({ items: [] }); }),
+    server.use(http.get("/modules/catalog", ({ request }) => {
+      paths.push(request.url);
+      const cluster = new URL(request.url).searchParams.get("cluster");
+      return HttpResponse.json({ items: [makeCatalog({ displayName: `Minecraft on ${cluster}`, sources: [{ name: `${cluster}-modules`, type: "oci" }] })] });
+    }),
       http.get("/modules/sources", ({ request }) => { paths.push(request.url); return HttpResponse.json({ items: [] }); }));
     renderWithQuery(<ModulesPage />);
     expect(await screen.findByText("Select a workload cluster")).toBeInTheDocument();
     expect(paths).toEqual([]);
+    expect(screen.getByRole("textbox", { name: "Search modules" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Filters" }));
+    expect(screen.getByRole("button", { name: /Source/ })).toBeDisabled();
     await userEvent.click(screen.getByRole("button", { name: "Select cluster" }));
     await userEvent.click(await screen.findByRole("menuitem", { name: "East" }));
     expect(await screen.findByRole("heading", { name: "Modules" })).toBeInTheDocument();
     await waitFor(() => expect(paths.length).toBeGreaterThanOrEqual(2));
     expect(paths.every((path) => new URL(path).searchParams.get("cluster") === "east")).toBe(true);
+    await userEvent.click(screen.getByRole("button", { name: "Filters" }));
+    expect(screen.getByRole("button", { name: "Select cluster" })).toHaveTextContent("East");
+    await userEvent.click(screen.getByRole("button", { name: /Source/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "east-modules" }));
+    await userEvent.click(screen.getByRole("button", { name: "Select cluster" }));
+    await userEvent.click(await screen.findByRole("menuitem", { name: "West" }));
+    expect(await screen.findByText("Minecraft on west")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Filters" }));
+    expect(screen.getByRole("button", { name: /Source/ })).toHaveTextContent("All sources");
   });
 
   it("registers a remote from an empty panel and does not synthesize local", async () => {

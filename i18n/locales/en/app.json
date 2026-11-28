@@ -7715,6 +7715,14 @@
     "defaultMessage": "{count, plural, one {{count} cluster} other {{count} clusters}} available · Status reports Kubernetes API connectivity, not game or gateway health.",
     "description": "Clusters: count of registered clusters followed by a note that status reflects Kubernetes API connectivity; {count} is the number of clusters"
   },
+  "web.routes.clusters.card_view_nodes": {
+    "defaultMessage": "View Nodes",
+    "description": "Clusters: button on a cluster card that opens the node inventory for that cluster; shown only when the user can view inventory; keep it short"
+  },
+  "web.routes.clusters.card_view_servers": {
+    "defaultMessage": "View Servers",
+    "description": "Clusters: button on a cluster card that opens the server list for that cluster; keep it short; its screen-reader name also includes the cluster name"
+  },
   "web.routes.clusters.central_cluster": {
     "defaultMessage": "Central cluster",
     "description": "Clusters: note on the cluster card of the built-in local cluster that the panel itself runs in"
@@ -7748,12 +7756,12 @@
     "description": "Clusters: heading of the empty-state card shown when no cluster is registered or visible to the user"
   },
   "web.routes.clusters.open_cluster": {
-    "defaultMessage": "Open cluster",
-    "description": "Open cluster details button"
+    "defaultMessage": "View Details",
+    "description": "Clusters: button on a cluster card that opens its overview"
   },
   "web.routes.clusters.open_cluster_named": {
-    "defaultMessage": "Open cluster {name}",
-    "description": "Accessible cluster details button label"
+    "defaultMessage": "View Details for {name}",
+    "description": "Clusters: accessible label of the View Details button; {name} is the cluster display name"
   },
   "web.routes.clusters.phase_healthy": {
     "defaultMessage": "Healthy",
@@ -7804,16 +7812,16 @@
     "description": "Clusters: button on a cluster card that opens the node inventory for that cluster; shown only when the user can view inventory; keep it short"
   },
   "web.routes.clusters.view_nodes_in": {
-    "defaultMessage": "View nodes in {name}",
-    "description": "Clusters: accessible label of the View nodes button; {name} is the cluster display name"
+    "defaultMessage": "View Nodes in {name}",
+    "description": "Clusters: accessible label of the View Nodes button; {name} is the cluster display name"
   },
   "web.routes.clusters.view_servers": {
     "defaultMessage": "View servers",
     "description": "Clusters: button on a cluster card that opens the server list for that cluster; keep it short; its screen-reader name also includes the cluster name"
   },
   "web.routes.clusters.view_servers_in": {
-    "defaultMessage": "View servers in {name}",
-    "description": "Clusters: accessible label of the View servers button; {name} is the cluster display name"
+    "defaultMessage": "View Servers in {name}",
+    "description": "Clusters: accessible label of the View Servers button; {name} is the cluster display name"
   },
   "web.routes.create_server.add_port_mapping": {
     "defaultMessage": "Add port mapping",
@@ -9037,11 +9045,15 @@
   },
   "web.routes.modules.all_sources": {
     "defaultMessage": "All sources",
-    "description": "Modules: source filter chip that shows every source"
+    "description": "Modules: source filter option that shows every source"
   },
   "web.routes.modules.catalog_entry_the_entry_can_be_re": {
     "defaultMessage": "catalog entry. The entry can be re-uploaded later.",
     "description": "Modules: end of the remove-upload dialog text saying the catalog entry can be re-uploaded later"
+  },
+  "web.routes.modules.categories": {
+    "defaultMessage": "Categories",
+    "description": "Modules: accessible label for the group of category filters"
   },
   "web.routes.modules.create_module": {
     "defaultMessage": "Create module",
@@ -9062,6 +9074,10 @@
   "web.routes.modules.failed_to_load_module_sources": {
     "defaultMessage": "Failed to load module sources.",
     "description": "Modules: error text shown when the module sources panel fails to load; a retry button sits next to it"
+  },
+  "web.routes.modules.filters": {
+    "defaultMessage": "Filters",
+    "description": "Modules: button and popover for choosing the workload cluster and module source"
   },
   "web.routes.modules.loading_module_catalog": {
     "defaultMessage": "Loading module catalog…",
@@ -9102,6 +9118,10 @@
   "web.routes.modules.search_modules_2": {
     "defaultMessage": "Search modules",
     "description": "Modules: accessible name of the module search field"
+  },
+  "web.routes.modules.source": {
+    "defaultMessage": "Source",
+    "description": "Modules: label for the source selector in the Filters popover"
   },
   "web.routes.modules.uninstall": {
     "defaultMessage": "Uninstall",

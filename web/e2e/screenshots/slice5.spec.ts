@@ -301,6 +301,12 @@ test.describe("Slice 5: Share links — Settings surfaces (Desktop — 1440x900)
 });
 
 test.describe("Slice 5: Share links — public page (Desktop — 1440x900) @screenshots", () => {
+  const sharedServer = {
+    serverName: "mc-survival",
+    instanceName: "Northstar Games",
+    description: "A survival world for our community.",
+  };
+
   test.use({
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 2,
@@ -312,9 +318,9 @@ test.describe("Slice 5: Share links — public page (Desktop — 1440x900) @scre
       "shot-up": {
         status: 200,
         body: {
-          serverName: "mc-survival",
+          ...sharedServer,
           status: "Running",
-          address: { host: "play.gameplane.example", port: 25565 },
+          address: { host: "play.northstar.example", port: 25565 },
           playersOnline: 3,
         },
       },
@@ -333,7 +339,7 @@ test.describe("Slice 5: Share links — public page (Desktop — 1440x900) @scre
     await mockShareResolve(page, {
       "shot-asleep-start": {
         status: 200,
-        body: { serverName: "mc-survival", status: "Suspended" },
+        body: { ...sharedServer, status: "Suspended" },
       },
       "shot-asleep-start:start": { status: 202, body: {} },
     });
@@ -361,7 +367,7 @@ test.describe("Slice 5: Share links — public page (Desktop — 1440x900) @scre
     await mockShareResolve(page, {
       "shot-start-cooldown": {
         status: 200,
-        body: { serverName: "mc-survival", status: "Suspended" },
+        body: { ...sharedServer, status: "Suspended" },
       },
       "shot-start-cooldown:start": { status: 429, headers: { "Retry-After": "120" } },
     });
@@ -378,7 +384,7 @@ test.describe("Slice 5: Share links — public page (Desktop — 1440x900) @scre
 
   test("EcoGD: Share page — Starting", async ({ page }) => {
     await mockShareResolve(page, {
-      "shot-starting": { status: 200, body: { serverName: "mc-survival", status: "Starting" } },
+      "shot-starting": { status: 200, body: { ...sharedServer, status: "Starting" } },
     });
     await page.goto("/share/shot-starting");
     await expect(page.getByRole("heading", { name: "mc-survival" })).toBeVisible({

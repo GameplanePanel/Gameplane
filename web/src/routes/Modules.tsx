@@ -1,8 +1,8 @@
 import { ModuleTarget } from "@/components/ModuleTarget";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Settings2, Upload } from "lucide-react";
-import { Button, Input } from "@heroui/react";
+import { Filter, Plus, Search, Settings2, Upload } from "lucide-react";
+import { Button, Input, Label, ListBox, ListBoxItem, Popover, Select } from "@heroui/react";
 
 import { ModuleCard } from "@/components/modules/ModuleCard";
 import { InstallDialog } from "@/components/modules/InstallDialog";
@@ -26,10 +26,67 @@ import { useOptionalIntl } from "@/lib/i18n/format";
 // a Module CR, the operator's Module reconciler pulls the bundle and
 // materializes the GameTemplate.
 export function ModulesPage() {
-  return <ModuleTarget>{(cluster, canManage, clusterDisplayName) => <ModulesCatalog key={cluster} cluster={cluster} clusterDisplayName={clusterDisplayName} canManage={canManage} />}</ModuleTarget>;
+  return <div className="min-w-0 space-y-4 p-4 sm:p-6">
+    <ModuleTarget renderFallback={catalogFallback}>
+      {(cluster, canManage, clusterDisplayName, selector) => (
+        <ModulesCatalog key={cluster} cluster={cluster} clusterDisplayName={clusterDisplayName} canManage={canManage} clusterSelector={selector} />
+      )}
+    </ModuleTarget>
+  </div>;
 }
 
-function ModulesCatalog({ cluster, clusterDisplayName, canManage }: { cluster: string; clusterDisplayName: string; canManage: boolean }) {
+function catalogFallback(state: ReactNode, clusterSelector: ReactNode) {
+  return <>{clusterSelector && <ModuleSearchFilters clusterSelector={clusterSelector} />}{state}</>;
+}
+
+interface CatalogSearch {
+  query: string;
+  onQueryChange: (value: string) => void;
+  sources: string[];
+  source: string;
+  onSourceChange: (value: string) => void;
+}
+
+function ModuleSearchFilters({ clusterSelector, catalog }: { clusterSelector: ReactNode; catalog?: CatalogSearch }) {
+  const intl = useOptionalIntl();
+  const filters = intl.formatMessage({ id: "web.routes.modules.filters", defaultMessage: "Filters", description: "Modules: button and popover for choosing the workload cluster and module source" });
+  const allSources = intl.formatMessage({ id: "web.routes.modules.all_sources", defaultMessage: "All sources", description: "Modules: source filter option that shows every source" });
+  return <div className="ms-auto flex w-full min-w-0 items-center gap-2 sm:w-fit">
+    <div className="relative min-w-0 flex-1 sm:w-48 sm:flex-none">
+      <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+      <Input
+        className="h-9 w-full ps-9"
+        placeholder={intl.formatMessage({ id: "web.routes.modules.search_modules", defaultMessage: "Search modules…", description: "Modules: grey placeholder of the search field that filters the module list by name" })}
+        aria-label={intl.formatMessage({ id: "web.routes.modules.search_modules_2", defaultMessage: "Search modules", description: "Modules: accessible name of the module search field" })}
+        disabled={!catalog}
+        value={catalog?.query ?? ""}
+        onChange={(event) => catalog?.onQueryChange(event.target.value)}
+      />
+    </div>
+    <Popover>
+      <Button variant="outline" className="h-9 shrink-0">
+        <Filter aria-hidden="true" className="size-4" /> {filters}
+      </Button>
+      <Popover.Content placement="bottom end" className="w-64 max-w-[calc(100vw-2rem)]">
+        <Popover.Dialog aria-label={filters} className="space-y-3 p-3">
+          {clusterSelector}
+          <Select className="w-full" isDisabled={!catalog} value={catalog?.source ?? ""} onChange={(value) => catalog?.onSourceChange(String(value ?? ""))}>
+            <Label>{intl.formatMessage({ id: "web.routes.modules.source", defaultMessage: "Source", description: "Modules: label for the source selector in the Filters popover" })}</Label>
+            <Select.Trigger><Select.Value /><Select.Indicator className="ms-auto size-4" /></Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBoxItem id="" textValue={allSources}>{allSources}</ListBoxItem>
+                {catalog?.sources.map((source) => <ListBoxItem key={source} id={source} textValue={source}>{source}</ListBoxItem>)}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+        </Popover.Dialog>
+      </Popover.Content>
+    </Popover>
+  </div>;
+}
+
+function ModulesCatalog({ cluster, clusterDisplayName, canManage, clusterSelector }: { cluster: string; clusterDisplayName: string; canManage: boolean; clusterSelector: ReactNode }) {
   const intl = useOptionalIntl();
   const qc = useQueryClient();
   const { data, isLoading, isError, refetch } = useQuery({
@@ -43,7 +100,7 @@ function ModulesCatalog({ cluster, clusterDisplayName, canManage }: { cluster: s
   });
 
   const [q, setQ] = useState("");
-  const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState("");
   const [catFilter, setCatFilter] = useState<Set<string>>(new Set());
   const [installTarget, setInstallTarget] = useState<CatalogEntry | null>(null);
   const [uninstallTarget, setUninstallTarget] = useState<CatalogEntry | null>(null);
@@ -65,7 +122,7 @@ function ModulesCatalog({ cluster, clusterDisplayName, canManage }: { cluster: s
   const sources = useMemo(() => {
     const out = new Set<string>();
     for (const it of items) for (const s of it.sources) out.add(s.name);
-    return ["all", ...Array.from(out).sort()];
+    return Array.from(out).sort();
   }, [items]);
 
   const catChips = useMemo(
@@ -88,7 +145,7 @@ function ModulesCatalog({ cluster, clusterDisplayName, canManage }: { cluster: s
   };
 
   const visible = items.filter((e) => {
-    if (sourceFilter !== "all" && !e.sources.some((s) => s.name === sourceFilter)) return false;
+    if (sourceFilter && !e.sources.some((s) => s.name === sourceFilter)) return false;
     if (!matchesAllCategories(e.categories, e.game ?? "", catFilter)) return false;
     if (q && !(e.displayName ?? e.name).toLowerCase().includes(q.toLowerCase())) {
       return false;
@@ -138,16 +195,16 @@ function ModulesCatalog({ cluster, clusterDisplayName, canManage }: { cluster: s
     onError: (err: Error) => setPageError(formatErr(err)),
   });
 
-  if (isLoading) return <LoadingCard message={intl.formatMessage({ id: "web.routes.modules.loading_module_catalog", defaultMessage: "Loading module catalog…", description: "Modules: loading text shown in place of the catalog while the module list is fetched" })} />;
-  if (isError && !data) return <ErrorCard message={intl.formatMessage({ id: "web.routes.modules.failed_to_load_module_catalog", defaultMessage: "Failed to load module catalog.", description: "Modules: error text shown when the module catalog fails to load; a retry button sits next to it" })} onRetry={() => void refetch()} />;
+  if (isLoading) return catalogFallback(<LoadingCard message={intl.formatMessage({ id: "web.routes.modules.loading_module_catalog", defaultMessage: "Loading module catalog…", description: "Modules: loading text shown in place of the catalog while the module list is fetched" })} />, clusterSelector);
+  if (isError && !data) return catalogFallback(<ErrorCard message={intl.formatMessage({ id: "web.routes.modules.failed_to_load_module_catalog", defaultMessage: "Failed to load module catalog.", description: "Modules: error text shown when the module catalog fails to load; a retry button sits next to it" })} onRetry={() => void refetch()} />, clusterSelector);
 
   return (
-    <div className="space-y-4 p-6">
+    <div className="min-w-0 space-y-4">
       <PageHeader
         title={intl.formatMessage({ id: "web.routes.modules.modules", defaultMessage: "Modules", description: "Modules: page title at the top of the modules screen; keep it short" })}
         subtitle={intl.formatMessage({ id: "web.routes.modules.pre_packaged_game_server_templates", defaultMessage: "Pre-packaged game-server templates pulled from your configured module sources.", description: "Modules: subtitle under the title: pre-packaged game-server templates pulled from your configured module sources" })}
         actions={
-          <div className="flex items-center gap-2">
+          <>
             <Button variant="outline" isDisabled={!canManage} onClick={() => setBuildOpen(true)}>
               <Plus className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.modules.create_module", defaultMessage: "Create module", description: "Modules: button that opens the dialog to build a new module; keep it short" })}</Button>
             {uploadSources.length > 0 && (
@@ -156,7 +213,7 @@ function ModulesCatalog({ cluster, clusterDisplayName, canManage }: { cluster: s
             )}
             <Button variant="outline" onPress={() => setSourcesOpen((open) => !open)} aria-expanded={sourcesOpen}>
               <Settings2 className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.modules.manage_sources", defaultMessage: "Manage sources", description: "Modules: button that shows or hides the module sources panel; keep it short" })}</Button>
-          </div>
+          </>
         }
       />
 
@@ -164,54 +221,27 @@ function ModulesCatalog({ cluster, clusterDisplayName, canManage }: { cluster: s
       {sourcesOpen ? <ClusterModuleSources cluster={cluster} canManage={canManage} />
         : sourcesError && <ErrorCard message={intl.formatMessage({ id: "web.routes.modules.failed_to_load_module_sources", defaultMessage: "Failed to load module sources.", description: "Modules: error text shown when the module sources panel fails to load; a retry button sits next to it" })} onRetry={() => void refetchSources()} />}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex gap-1 rounded-md border border-border bg-card p-1">
-          {sources.map((s) => (
+      <div className="flex flex-wrap items-start gap-3">
+        <div role="group" aria-label={intl.formatMessage({ id: "web.routes.modules.categories", defaultMessage: "Categories", description: "Modules: accessible label for the group of category filters" })}
+          className="flex min-w-0 flex-1 basis-full flex-wrap gap-1 rounded-md border border-border bg-card p-[3px] sm:basis-80">
+          {catChips.map((c) => (
             <Button
-              key={s}
-              onPress={() => setSourceFilter(s)}
+              key={c}
+              onPress={() => toggleCat(c)}
               variant="ghost"
+              aria-pressed={catActive(c)}
               className={cn(
-                "px-3 py-1.5 text-xs h-auto",
-                sourceFilter === s
+                "h-auto min-h-7 max-w-full px-2 py-0 text-xs whitespace-normal wrap-anywhere",
+                catActive(c)
                   ? "bg-primary/15 text-primary"
                   : "text-muted hover:text-fg",
               )}
             >
-              {s === "all" ? intl.formatMessage({ id: "web.routes.modules.all_sources", defaultMessage: "All sources", description: "Modules: source filter chip that shows every source" }) : s}
+              {c === "all" ? intl.formatMessage({ id: "web.routes.modules.all_categories", defaultMessage: "All categories", description: "Modules: category filter chip that shows every category" }) : categoryLabel(c, intl)}
             </Button>
           ))}
         </div>
-        <div className="relative min-w-0 w-[440px] max-w-full">
-          <div className="flex gap-1 overflow-x-auto rounded-md border border-border bg-card p-1 scrollbar-thin">
-            {catChips.map((c) => (
-              <Button
-                key={c}
-                onPress={() => toggleCat(c)}
-                variant="ghost"
-                className={cn(
-                  "shrink-0 px-3 py-1.5 text-xs h-auto transition-colors",
-                  catActive(c)
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted hover:text-fg",
-                )}
-              >
-                {c === "all" ? intl.formatMessage({ id: "web.routes.modules.all_categories", defaultMessage: "All categories", description: "Modules: category filter chip that shows every category" }) : categoryLabel(c, intl)}
-              </Button>
-            ))}
-          </div>
-          <div className="absolute inset-y-0 right-0 w-14 bg-gradient-to-r from-transparent to-card pointer-events-none rounded-md" />
-        </div>
-        <div className="relative ml-auto w-64">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <Input
-            className="pl-9"
-            placeholder={intl.formatMessage({ id: "web.routes.modules.search_modules", defaultMessage: "Search modules…", description: "Modules: grey placeholder of the search field that filters the module list by name" })}
-            aria-label={intl.formatMessage({ id: "web.routes.modules.search_modules_2", defaultMessage: "Search modules", description: "Modules: accessible name of the module search field" })}
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-        </div>
+        <ModuleSearchFilters clusterSelector={clusterSelector} catalog={{ query: q, onQueryChange: setQ, sources, source: sourceFilter, onSourceChange: setSourceFilter }} />
       </div>
 
       {pageError && (

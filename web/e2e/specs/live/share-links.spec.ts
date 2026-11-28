@@ -108,6 +108,7 @@ test.describe("live: share links", () => {
       // name rather than a specific status chip.
       const nameHeading = anonPage.getByRole("heading", { name: serverName });
       await expect(nameHeading).toBeVisible({ timeout: 20_000 });
+      await expect(anonPage.getByText("Live share-link probe", { exact: true })).toBeVisible();
       await expect(anonPage.getByRole("heading", { name: /link not available/i })).toHaveCount(0);
 
       // Best-effort start action: only meaningful if the server happened
@@ -137,6 +138,7 @@ test.describe("live: share links", () => {
       await expect(
         anonPage.getByText(/this link may be invalid, expired, or revoked/i),
       ).toBeVisible();
+      await expect(anonPage.getByText("Live share-link probe", { exact: true })).toHaveCount(0);
     } finally {
       await anonContext.close();
     }

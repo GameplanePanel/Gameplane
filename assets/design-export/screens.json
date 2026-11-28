@@ -277,7 +277,7 @@
     "name": "Screen/Modules Catalog",
     "width": 1440,
     "height": 1320,
-    "hash": "fdde7681dfd1e8e9c2c337da3700f9dcefa833af504e63830ef43a18d8707d22"
+    "hash": "fab271f68439d0ed54dbdc8ee496a22c9f1b55cf622fbd70e27a029d1044865a"
   },
   {
     "file": "DPrYX",
@@ -533,7 +533,7 @@
     "name": "Screen/Share Link — Up",
     "width": 1440,
     "height": 900,
-    "hash": "0444e28f4d60b240e3a7472291c652c891ddf247efda574c9121cdbc508bee06"
+    "hash": "a68e39c6376b48d86e8847b96877771053a21ed4d5343d327bc49aca7fc7fbfa"
   },
   {
     "file": "q31B6w",
@@ -541,7 +541,7 @@
     "name": "Screen/Share Link — Asleep (can start)",
     "width": 1440,
     "height": 900,
-    "hash": "7bcf84d07219b43a4b47f647681c327488d087bdbf486677db722976e99af61d"
+    "hash": "26d3958649bdc198319e8291800abb95fca3f65d836e90ce802c8946ab4fe813"
   },
   {
     "file": "qFLfB",
@@ -549,7 +549,7 @@
     "name": "Historical/Share Link — Asleep (view only)",
     "width": 1440,
     "height": 900,
-    "hash": "9086f2f0cc0d6678f7b31dafb9695f072ca1f94cc46461fa2546e2810578dea2"
+    "hash": "36bb7006a73be7e2438f2b10889b1e2d83a78b8bdb739ecafc66312dc7ef592a"
   },
   {
     "file": "EcoGD",
@@ -557,7 +557,7 @@
     "name": "Screen/Share Link — Starting",
     "width": 1440,
     "height": 900,
-    "hash": "f0cd0df67b8c3d5c909e28138d760bbe074aefe3ea34a8f522a5ee7616b72cd4"
+    "hash": "713730e87c5adc46577c0fa3eefce21a3e50c0681d0c28188e55bd21e3d04ef1"
   },
   {
     "file": "epZO2",
@@ -573,7 +573,7 @@
     "name": "Screen/Share Link — Stopped by owner",
     "width": 1440,
     "height": 900,
-    "hash": "8918e582ecb0b3a3f9fc47bc0b3a0e2fa61beb8abd92418ea9262be05ec3cf93"
+    "hash": "98c2ecb0ce8f64a52d62e75e4c8c01343a8f17096283e80fd381f2f33f18e1ef"
   },
   {
     "file": "B57dG",
@@ -581,7 +581,7 @@
     "name": "Screen/Share Link — Start timed out",
     "width": 1440,
     "height": 900,
-    "hash": "d1ae20d302b11929e34a8327bc2050a8ffc43e2fc71c36e69695c9e65aed2f51"
+    "hash": "b9ca0f884dedbebec82edf8e1f85ee90aba70249e32d5550cc885584cba4a6a5"
   },
   {
     "file": "Bbnga",
@@ -1053,7 +1053,7 @@
     "name": "Screen/Clusters — Registered clusters",
     "width": 1440,
     "height": 900,
-    "hash": "38dfc31fd15a9edad1c5cb9345a3aaf3b45dcbe90b4ce7ee34b22d617346c813"
+    "hash": "324b409a2152ef8843554fe53051d261c6300e32cac5454d699ee974c8f6e777"
   },
   {
     "file": "oMuyw",
@@ -1109,7 +1109,7 @@
     "name": "Screen/Share Link — Asleep (Start cooldown)",
     "width": 1440,
     "height": 900,
-    "hash": "f97df043fde88dcd0ebf0d6305a532bd9211c479ac8b8deae383822f4e13b6d4"
+    "hash": "93960bb70c0d72304f0ecd4810edbb52362bac29c9e5574d968dab9b294a6299"
   },
   {
     "file": "zj5a3",
@@ -1189,7 +1189,7 @@
     "name": "Screen/Standalone — Clusters (Registered)",
     "width": 1440,
     "height": 900,
-    "hash": "b57ae2e7b17eb104fa91c9cef622d57d5e4778758c8a97a99d73583ba8bd4ef3"
+    "hash": "5924b2269b41073c6e4b1bf061170b73f713b5a10b30e9b9b1fa9e587b35d576"
   },
   {
     "file": "Be7ZW",
@@ -1205,7 +1205,7 @@
     "name": "Screen/Standalone — Modules (No selection)",
     "width": 1440,
     "height": 900,
-    "hash": "3b989eb7fa7834e6f017700eaef196957b521e347b8910e26cc3771112855f3d"
+    "hash": "6802ab90605f3c98dac27a387b52444561bc280fc2f199685a4f648111c5ac75"
   },
   {
     "file": "ZlLf0",
@@ -1213,7 +1213,7 @@
     "name": "Screen/Standalone — Modules (Permission denied)",
     "width": 1440,
     "height": 900,
-    "hash": "d7a300a7bbbaac81d01c5198d30733a0a9d9b014ebf1e815383935847c944764"
+    "hash": "7b96afdd32c3df27398a050d1d44c88270acbd200fc3d124b11c4c662c4fbeee"
   },
   {
     "file": "RpHBg",
@@ -1285,7 +1285,7 @@
     "name": "Screen/Standalone — Modules (East selected)",
     "width": 1440,
     "height": 1900,
-    "hash": "7ff39bd0ccb0de4f05027558ccd5b3a0fa01b70b516d3ec1f3c7cc7d1b363193"
+    "hash": "f2280b4dd8be8df0b37041aaa1e7d4eb5e01319042f359bade0cd01ec754e97b"
   },
   {
     "file": "p8QSPq",
@@ -1293,7 +1293,7 @@
     "name": "Screen/Standalone — Modules (Manage sources)",
     "width": 1440,
     "height": 2050,
-    "hash": "ffb6642c25ec6e918ed744a589cd0b6500b22992bfc915a8cd00ebd624e5a2e9"
+    "hash": "5c14a2b5ca1d4aa1ccf456514505f1ee2ea1de344a630fd611fbf081777d070d"
   },
   {
     "file": "aMU7O",
@@ -1973,7 +1973,7 @@
     "name": "Screen/Clusters — SFTP (remote-lab)",
     "width": 1440,
     "height": 900,
-    "hash": "14ed225a1fe8e4cb60cecbbbb044bec5d43c918f29b303b1c5ca7bcd3981d6dc"
+    "hash": "b4cee0cab5196b8a280b739e862766f1e2c804a0db37bb1195a889d5fcb7a1f1"
   },
   {
     "file": "1-46397",
@@ -1981,7 +1981,7 @@
     "name": "Screen/Clusters — SFTP (remote-lab) — Token created",
     "width": 1440,
     "height": 900,
-    "hash": "5cb22dbef210309e57d5cbbaf1fe5ca7c8c66bc285cc941d4d692477e8fb5875"
+    "hash": "2be1e83f23bb3f98dabde586d53c462ecb06b9b2350c6f3c22738791e95c761c"
   },
   {
     "file": "1-46398",
@@ -1989,7 +1989,7 @@
     "name": "Screen/Clusters — SFTP (remote-lab) — Token limit",
     "width": 1440,
     "height": 900,
-    "hash": "7ddaf46a5e2930b22368cd93568a3e5b408269c6ae6c9d461a18763c3f06468d"
+    "hash": "6316667d8d13c91ff1248e7e58c78e0a88a3601d887ea71cccf9052df1f7cde2"
   },
   {
     "file": "1041846705-1",

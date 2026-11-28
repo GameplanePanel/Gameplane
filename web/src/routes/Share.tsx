@@ -94,6 +94,26 @@ function LanguageCorner() {
   );
 }
 
+function ShareIdentity({ server }: { server?: ShareLinkPublic }) {
+  const intl = useOptionalIntl();
+  const description = server?.description?.trim();
+  return (
+    <div className="text-center [overflow-wrap:anywhere]">
+      <div className="mb-4 flex justify-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+        </div>
+      </div>
+      <div className="mb-2 font-mono text-sm text-muted">
+        <div>{server?.instanceName?.trim() || intl.formatMessage({ id: "web.routes.share.gameplane", defaultMessage: "gameplane", description: "Share: product name above the shared server title on the public share page; a brand name, usually kept as is" })}</div>
+        <div>{intl.formatMessage({ id: "web.routes.share.shared_server_link", defaultMessage: "shared server link", description: "Share: caption under the product name on the public share page, identifying the page as a shared server link" })}</div>
+      </div>
+      {server && <h1 className="font-mono text-2xl font-semibold">{server.serverName}</h1>}
+      {description && <p className="mt-1 whitespace-pre-line text-sm text-muted">{description}</p>}
+    </div>
+  );
+}
+
 export function SharePage() {
   const { token } = useParams({ from: "/share/$token" });
   return <ShareView key={token} token={token} />;
@@ -261,7 +281,8 @@ function ShareView({ token }: { token: string }) {
     }
   };
 
-  const containerClass = "flex h-full w-full items-center justify-center bg-background p-6";
+  const containerClass = "flex min-h-full w-full items-center justify-center bg-background p-6";
+  const serverCardClass = "relative w-full max-w-[440px] p-8";
 
   return (
     <div className={containerClass}>
@@ -275,19 +296,10 @@ function ShareView({ token }: { token: string }) {
       )}
 
       {state === "up" && data && (
-        <Card className="relative max-w-md p-8">
+        <Card className={serverCardClass}>
           <LanguageCorner />
           <div className="mb-6">
-            <div className="mb-4 flex items-center justify-center">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-              </div>
-            </div>
-            <div className="mb-2 text-center">
-              <div className="font-mono text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.gameplane", defaultMessage: "gameplane", description: "Share: product name above the shared server title on the public share page; a brand name, usually kept as is" })}</div>
-              <div className="font-mono text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.shared_server_link", defaultMessage: "shared server link", description: "Share: caption under the product name on the public share page, identifying the page as a shared server link" })}</div>
-            </div>
-            <h1 className="font-mono text-2xl font-semibold">{data.serverName}</h1>
+            <ShareIdentity server={data} />
             <div className="mt-3 flex justify-center">
               <span className="inline-block rounded-full bg-success/20 px-3 py-1 text-sm font-medium text-success">{intl.formatMessage({ id: "web.routes.share.online", defaultMessage: "Online", description: "Share: status badge under the server name on the share page, shown when the server is running; keep it short" })}</span>
             </div>
@@ -298,7 +310,7 @@ function ShareView({ token }: { token: string }) {
               <div className="text-xs text-muted mb-1">{intl.formatMessage({ id: "web.routes.share.connect_at", defaultMessage: "CONNECT AT", description: "Share: small label above the server address on the share page; keep it short" })}</div>
               {address ? (
                 <div className="flex items-center gap-2 rounded-lg bg-surface p-3">
-                  <code className="flex-1 text-sm font-mono">
+                  <code className="min-w-0 flex-1 font-mono text-sm [overflow-wrap:anywhere]">
                     {address}
                   </code>
                   <button
@@ -330,19 +342,10 @@ function ShareView({ token }: { token: string }) {
       )}
 
       {state === "asleep-start" && data && (
-        <Card className="relative max-w-md p-8">
+        <Card className={serverCardClass}>
           <LanguageCorner />
           <div className="mb-6">
-            <div className="mb-4 flex items-center justify-center">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-              </div>
-            </div>
-            <div className="mb-2 text-center">
-              <div className="font-mono text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.gameplane", defaultMessage: "gameplane", description: "Share: product name above the shared server title on the public share page; a brand name, usually kept as is" })}</div>
-              <div className="font-mono text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.shared_server_link", defaultMessage: "shared server link", description: "Share: caption under the product name on the public share page, identifying the page as a shared server link" })}</div>
-            </div>
-            <h1 className="font-mono text-2xl font-semibold">{data.serverName}</h1>
+            <ShareIdentity server={data} />
             <div className="mt-3 flex justify-center">
               <span className="status-focus inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium">
                 <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />{intl.formatMessage({ id: "web.routes.share.asleep", defaultMessage: "Asleep", description: "Share: status badge under the server name when the server is asleep; keep it short" })}</span>
@@ -365,19 +368,10 @@ function ShareView({ token }: { token: string }) {
       )}
 
       {(state === "asleep-viewonly" || state === "stopped" || state === "timed-out") && data && (
-        <Card className="relative max-w-md p-8">
+        <Card className={serverCardClass}>
           <LanguageCorner />
           <div className="mb-6">
-            <div className="mb-4 flex items-center justify-center">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-              </div>
-            </div>
-            <div className="mb-2 text-center">
-              <div className="font-mono text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.gameplane", defaultMessage: "gameplane", description: "Share: product name above the shared server title on the public share page; a brand name, usually kept as is" })}</div>
-              <div className="font-mono text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.shared_server_link", defaultMessage: "shared server link", description: "Share: caption under the product name on the public share page, identifying the page as a shared server link" })}</div>
-            </div>
-            <h1 className="font-mono text-2xl font-semibold">{data.serverName}</h1>
+            <ShareIdentity server={data} />
             <div className="mt-3 flex justify-center">
               <span className="status-focus inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium">
                 <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />{state === "stopped"
@@ -397,19 +391,10 @@ function ShareView({ token }: { token: string }) {
       )}
 
       {state === "starting" && data && (
-        <Card className="relative max-w-md p-8">
+        <Card className={serverCardClass}>
           <LanguageCorner />
           <div className="mb-6">
-            <div className="mb-4 flex items-center justify-center">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-              </div>
-            </div>
-            <div className="mb-2 text-center">
-              <div className="font-mono text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.gameplane", defaultMessage: "gameplane", description: "Share: product name above the shared server title on the public share page; a brand name, usually kept as is" })}</div>
-              <div className="font-mono text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.shared_server_link", defaultMessage: "shared server link", description: "Share: caption under the product name on the public share page, identifying the page as a shared server link" })}</div>
-            </div>
-            <h1 className="font-mono text-2xl font-semibold">{data.serverName}</h1>
+            <ShareIdentity server={data} />
             <div className="mt-3 flex justify-center">
               <div className="inline-flex items-center gap-2 rounded-full border border-warning/50 bg-warning/10 px-3 py-1">
                 <Spinner size="sm" color="warning" />
@@ -426,15 +411,7 @@ function ShareView({ token }: { token: string }) {
         <Card className="relative max-w-md p-8">
           <LanguageCorner />
           <div className="mb-6">
-            <div className="mb-4 flex items-center justify-center">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-              </div>
-            </div>
-            <div className="mb-2 text-center">
-              <div className="font-mono text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.gameplane", defaultMessage: "gameplane", description: "Share: product name above the shared server title on the public share page; a brand name, usually kept as is" })}</div>
-              <div className="font-mono text-sm text-muted">{intl.formatMessage({ id: "web.routes.share.shared_server_link", defaultMessage: "shared server link", description: "Share: caption under the product name on the public share page, identifying the page as a shared server link" })}</div>
-            </div>
+            <ShareIdentity />
           </div>
 
           <div className="text-center">

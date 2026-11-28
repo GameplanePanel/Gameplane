@@ -1853,6 +1853,8 @@ export function buildScreenshotHandlers() {
       // Return public share info
       return HttpResponse.json({
         serverName: "mc-survival",
+        instanceName: "Northstar Games",
+        description: "A survival world for our community.",
         status: "Running",
         address: {
           host: "game.example.com",

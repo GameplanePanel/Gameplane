@@ -15,10 +15,10 @@ standalone panels have no Local entry and can start with no registrations. The
 directory is available to cluster managers and users who can discover a
 registration through their workload, inventory or configuration permissions.
 
-- **Open cluster** opens its Overview, Nodes and Configuration tabs.
-- **View servers** opens the server list filtered to that cluster.
-- **View nodes** opens `/nodes?cluster=<id>` when the user has its inventory
+- **View Details** opens the cluster overview with tabs for Nodes and Configuration.
+- **View Nodes** opens `/nodes?cluster=<id>` when the user has its inventory
   permission. It does not change the remembered infrastructure selection.
+- **View Servers** opens the server list filtered to that cluster.
 - Connection health reports Kubernetes API connectivity. It does not establish
   gateway readiness or game health.
 

@@ -590,9 +590,9 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 ### Modules Catalog Surface
 
 **Modules.tsx (main page):**
-- Single catalog view (no Catalog/Installed/Upload tab switcher): search box, source filter, and category chips over the combined catalog (`matchesAllCategories`); ModuleCard instances for each entry, each carrying its own install/upgrade/uninstall actions
+- Category chips filter the catalog with `matchesAllCategories` and wrap to fit the available width. The search field and its adjacent Filters button stay together on smaller screens. Filters contains the source selector and, on standalone installations, the workload cluster selector. Each selection takes effect immediately. The cluster selector remains available when the catalog cannot load or no registered target is selected.
 - "Create module" button opens the Module Builder; "Upload module" button (shown when an upload-capable source exists) opens `UploadModuleDialog`
-- `ModuleSourcesPanel` (source CRUD) is reached from Admin, not from a tab on this page
+- Manage sources opens the source editor for the current catalog target. Admin also exposes the editor through `ModuleSourcesPanel`.
 
 **ModuleCard.tsx (reusable card):**
 - Game icon (ui/GameIcon); module name, description
@@ -878,7 +878,7 @@ package.json                # @gameplane/web v0.5.0; dev: vite, npm scripts for 
      - **Step 3 (Review & Export)**: Dual-pane view with syntax-editable YAML manifests (`module.yaml`, `template.yaml`, `README.md`), live offline validation diagnostics, memory scaling simulation (`autoFromMemoryLimit`), and action buttons to download a `.tar.gz` archive or install directly into a cluster upload `ModuleSource`.
 
 7. **Clusters** (`/clusters`) → `ClustersPage`; **Nodes** (`/nodes`) → `NodesPage`
-   - Clusters lists authorized registrations and opens `/clusters/$clusterId` with Overview, Nodes and Configuration tabs.
+   - Each cluster card offers **View Details**, **View Nodes** (with inventory permission), then **View Servers**. View Details opens `/clusters/$clusterId` with Overview, Nodes and Configuration tabs.
    - Nodes combines authorized inventory by default with URL cluster, text and status filters, sortable columns and responsive stacked rows. Its compact search and Filter popover match Backups: Cluster/Status choices are drafts until Apply, Clear resets drafts, and the badge counts applied filters without search. Cluster details reuse the same inventory with a fixed target and status-only popover. Incomplete coverage and missing metrics remain visible.
    - Add node requires an explicit target; node join and kubeconfig download remain local-only and capability/permission gated. Configuration owns kubeconfig, read-only storage, target-bound backup destinations and confirmed remote removal.
    - `/cluster` remains a compatibility redirect to Nodes. Navigation and filters never retarget an existing server or pending mutation.
@@ -1010,7 +1010,7 @@ The warning is shown regardless of how many groups are being added (single or mu
 
 13. **Share** (`/share/$token`) → `SharePage` (public route, outside AppLayout)
     - Public, unauthenticated, no sidebar or top bar
-    - Resolves a share link token to its public view (server name, status, address, player count if exposed)
+    - Valid links show the configured instance name above the centered server name, with the optional server description immediately below the name. The online state shows the preferred published hostname and port (or the fallback IP and port) and the player count when available. The copy action uses the displayed address.
     - Rate-limited; invalid links and auth failures show neutral "Link not available" copy per FR-005, without raw error detail
     - Public responses include `manuallyStopped` and effective `canStart` booleans; clients tolerate their absence from older API versions. `Shares.start` propagates rejected requests, including uniform 404 and manually-stopped 409 responses, so only an accepted response begins wake polling. The page never displays raw response details. A manual stop takes precedence over stale observed phases, including Running, and shows Stopped with owner-must-start copy and no public action. A 409 from Start enters the same stopped state. An idle-asleep response with `canStart: false` shows the view-only card; missing fields retain compatibility with older APIs.
     - Starting polls wait at least five seconds after each completed request, with one request in flight. Transient 429/5xx/network failures retain the last public Starting view (or loading spinner during initial resolve) and retry with 10/20/40/60-second bounded backoff; a larger Retry-After (seconds or HTTP date) is honored. Successful polling responses reset the delay. After an accepted wake, stale Stopped/Suspended phases keep the Starting card and continue polling; no second Start is offered. Running, a manual stop, or a neutral invalid response stops polling. Every Starting session has a separate five-minute deadline that stops scheduled polls and aborts an outstanding request even during long Retry-After backoffs, then shows Still unavailable with check-back/owner-help copy. An observed start without a locally accepted wake may return to an asleep card. Token changes/unmount abort requests and ignore stale completions. `Shares.resolve` propagates transient errors with `APIError.retryAfter`, while invalid/expired/revoked 404s remain the same neutral response.

@@ -128,87 +128,120 @@
           "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "1:9301",
-              "name": "Workload cluster selector",
+              "name": "Catalog search and filters",
               "type": "FRAME",
               "x": 24,
               "y": 24,
-              "width": 203,
+              "width": 1132,
               "height": 36,
-              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
-              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
-              "strokeWeight": 1,
-              "cornerRadius": 24,
               "layout": {
                 "mode": "HORIZONTAL",
-                "gap": 6,
-                "padding": [6, 12, 6, 12],
-                "primary": "MIN",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MAX",
                 "counter": "CENTER",
-                "sizing": ["HUG", "FIXED"]
+                "sizing": ["FIXED", "HUG"]
               },
-              "variables": {
-                "cornerRadius": "radius/3xl",
-                "fills/0/color": "surface/surface",
-                "strokes/0/color": "border/border"
-              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:9302",
-                  "name": "API status",
-                  "type": "ELLIPSE",
-                  "x": 12,
-                  "y": 14,
-                  "width": 8,
-                  "height": 8,
-                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-                  "variables": {"fills/0/color": "muted"}
+                  "name": "Search",
+                  "type": "INSTANCE",
+                  "x": 827,
+                  "y": 0,
+                  "width": 200,
+                  "height": 36,
+                  "opacity": 0.5,
+                  "component": "Gameplane/Search Input",
+                  "componentId": "1:975",
+                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 6,
+                    "padding": [0, 12, 0, 12],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "field/background",
+                    "strokes/0/color": "field/border"
+                  },
+                  "texts": ["Search modules…"]
                 },
                 {
-                  "id": "1:9303",
-                  "name": "Selector label",
-                  "type": "TEXT",
-                  "x": 26,
-                  "y": 9,
-                  "width": 50,
-                  "height": 18,
-                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
-                  "text": "Cluster:",
-                  "font": ["Geist", 400, 14],
-                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
-                },
-                {
-                  "id": "1:9304",
-                  "name": "Selected workload cluster",
-                  "type": "TEXT",
-                  "x": 82,
-                  "y": 9,
-                  "width": 89,
-                  "height": 18,
-                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
-                  "text": "Select cluster",
-                  "font": ["Geist", 400, 14],
-                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
-                },
-                {
-                  "id": "1:9305",
-                  "name": "Open cluster choices",
+                  "name": "Filter trigger",
                   "type": "FRAME",
-                  "x": 177,
-                  "y": 11,
-                  "width": 14,
-                  "height": 14,
-                  "variables": {"fills/0/color": "muted"},
+                  "x": 1035,
+                  "y": 0,
+                  "width": 97,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
                   "children": [
                     {
-                      "name": "path",
-                      "type": "VECTOR",
-                      "x": 3.5,
-                      "y": 5.25,
-                      "width": 7,
-                      "height": 3.5,
-                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
-                      "strokeWeight": 1.17
+                      "name": "Filters",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 97,
+                      "height": 36,
+                      "component": "Button/Outline/MD",
+                      "componentId": "1:1794",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "topLeftRadius": "radius/xl",
+                        "topRightRadius": "radius/xl",
+                        "bottomLeftRadius": "radius/xl",
+                        "bottomRightRadius": "radius/xl",
+                        "strokes/0/color": "border-2"
+                      },
+                      "texts": ["Filters"]
+                    },
+                    {
+                      "name": "Filter icon",
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 10,
+                      "width": 16,
+                      "height": 16,
+                      "absolute": true,
+                      "clips": true,
+                      "children": [
+                        {
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "x": 1,
+                          "y": 3,
+                          "width": 14,
+                          "height": 9.5,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}]
+                        }
+                      ]
                     }
                   ]
                 }
@@ -279,6 +312,208 @@
                   "font": ["Geist", 400, 14],
                   "lineHeight": {"value": 150, "unit": "PERCENT"},
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module filters (open)",
+      "type": "FRAME",
+      "x": 1156,
+      "y": 132,
+      "width": 260,
+      "height": 116,
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "effects": [{"type": "DROP_SHADOW", "radius": 12, "visible": true}],
+      "cornerRadius": 24,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 12,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "absolute": true,
+      "variables": {
+        "cornerRadius": "radius/3xl",
+        "fills/0/color": "surface/surface",
+        "strokes/0/color": "border/border"
+      },
+      "children": [
+        {
+          "id": "1:9301",
+          "name": "Workload cluster selector",
+          "type": "FRAME",
+          "x": 16,
+          "y": 16,
+          "width": 228,
+          "height": 36,
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 6,
+            "padding": [6, 12, 6, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {
+            "cornerRadius": "radius/3xl",
+            "fills/0/color": "surface/surface",
+            "strokes/0/color": "border/border"
+          },
+          "children": [
+            {
+              "id": "1:9302",
+              "name": "API status",
+              "type": "ELLIPSE",
+              "x": 12,
+              "y": 14,
+              "width": 8,
+              "height": 8,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "variables": {"fills/0/color": "muted"}
+            },
+            {
+              "id": "1:9303",
+              "name": "Selector label",
+              "type": "TEXT",
+              "x": 26,
+              "y": 9,
+              "width": 50,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Cluster:",
+              "font": ["Geist", 400, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+            },
+            {
+              "id": "1:9304",
+              "name": "Selected workload cluster",
+              "type": "TEXT",
+              "x": 82,
+              "y": 9,
+              "width": 89,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Select cluster",
+              "font": ["Geist", 400, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "id": "1:9305",
+              "name": "Open cluster choices",
+              "type": "FRAME",
+              "x": 177,
+              "y": 11,
+              "width": 14,
+              "height": 14,
+              "variables": {"fills/0/color": "muted"},
+              "children": [
+                {
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 3.5,
+                  "y": 5.25,
+                  "width": 7,
+                  "height": 3.5,
+                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "strokeWeight": 1.17
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Source selector",
+          "type": "FRAME",
+          "x": 16,
+          "y": 64,
+          "width": 228,
+          "height": 36,
+          "opacity": 0.5,
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 6,
+            "padding": [6, 12, 6, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {
+            "cornerRadius": "radius/3xl",
+            "fills/0/color": "surface/surface",
+            "strokes/0/color": "border/border"
+          },
+          "children": [
+            {
+              "name": "API status",
+              "type": "ELLIPSE",
+              "x": 12,
+              "y": 14,
+              "width": 8,
+              "height": 8,
+              "visible": false,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "variables": {"fills/0/color": "muted"}
+            },
+            {
+              "name": "Selector label",
+              "type": "TEXT",
+              "x": 12,
+              "y": 9,
+              "width": 50,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Source:",
+              "font": ["Geist", 400, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+            },
+            {
+              "name": "Selected workload cluster",
+              "type": "TEXT",
+              "x": 68,
+              "y": 9,
+              "width": 71,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "All sources",
+              "font": ["Geist", 400, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "name": "Open cluster choices",
+              "type": "FRAME",
+              "x": 145,
+              "y": 11,
+              "width": 14,
+              "height": 14,
+              "variables": {"fills/0/color": "muted"},
+              "children": [
+                {
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 3.5,
+                  "y": 5.25,
+                  "width": 7,
+                  "height": 3.5,
+                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "strokeWeight": 1.17
                 }
               ]
             }

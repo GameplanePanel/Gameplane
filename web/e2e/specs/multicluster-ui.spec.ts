@@ -97,7 +97,7 @@ test.describe("multicluster administration", () => {
       await expect(page.getByRole("heading", { name: "Clusters", exact: true })).toBeVisible();
       await expect(page.getByRole("button", { name: "Select cluster", exact: true })).toHaveCount(0);
       await expect(page.getByRole("heading", { name: "Remote demo", exact: true })).toBeVisible();
-      await page.getByRole("button", { name: "View nodes in Remote demo", exact: true }).click();
+      await page.getByRole("button", { name: "View Nodes in Remote demo", exact: true }).click();
       await expect(page).toHaveURL(/\/nodes\?cluster=remote-demo$/);
       const nodeFilter = page.getByRole("main").getByRole("button", { name: /^Filter(?:\s*\d+)?$/ });
       await expect(nodeFilter).toHaveAccessibleName(/^Filter\s*1$/);
@@ -118,7 +118,7 @@ test.describe("multicluster administration", () => {
       await page.goto("/clusters/remote-demo?tab=configuration");
       await expect(page.getByRole("button", { name: /Download kubeconfig/i })).toBeDisabled();
       await page.goto("/clusters");
-      await page.getByRole("button", { name: "View servers in Remote demo", exact: true }).click();
+      await page.getByRole("button", { name: "View Servers in Remote demo", exact: true }).click();
       await expect(page).toHaveURL(/\/servers\?cluster=remote-demo$/);
       await expect(page.getByRole("main").getByRole("link", { name: "smoke-same", exact: true })).toHaveCount(1);
       await expect(page.getByRole("button", { name: "Select cluster", exact: true })).toHaveCount(0);

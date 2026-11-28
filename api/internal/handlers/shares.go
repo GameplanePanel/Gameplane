@@ -5,7 +5,9 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/netip"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -13,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/GameplanePanel/gameplane/api/internal/auth"
 	"github.com/GameplanePanel/gameplane/api/internal/db"
@@ -312,6 +315,8 @@ func mutateShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 
 type sharePublicResp struct {
 	ServerName      string     `json:"serverName"`
+	InstanceName    string     `json:"instanceName"`
+	Description     string     `json:"description,omitempty"`
 	Status          string     `json:"status"`
 	ManuallyStopped bool       `json:"manuallyStopped"`
 	CanStart        bool       `json:"canStart"`
@@ -384,6 +389,8 @@ func resolveShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 
 		resp := sharePublicResp{
 			ServerName:      link.ServerName,
+			InstanceName:    installationDisplayName(req.Context(), store),
+			Description:     strings.TrimSpace(obj.GetAnnotations()["gameplane.local/description"]),
 			Status:          status,
 			Address:         address,
 			PlayersOnline:   players,
@@ -547,9 +554,8 @@ func getPlayersOnline(obj *unstructured.Unstructured) *int32 {
 	return nil
 }
 
-// getPublicAddress returns the first publicly reachable (non-private) endpoint
-// that is served by a tunnel provider. If no tunnel endpoint, falls back to the
-// first non-private regular endpoint. Returns nil if no suitable endpoint exists.
+// getPublicAddress picks a published host and its matching port. The operator
+// resolves per-server and template hostnames after the backing Service is ready.
 func getPublicAddress(obj *unstructured.Unstructured) *shareAddr {
 	endpoints, ok, err := unstructured.NestedSlice(obj.Object, "status", "endpoints")
 	if err != nil || !ok || len(endpoints) == 0 {
@@ -557,7 +563,9 @@ func getPublicAddress(obj *unstructured.Unstructured) *shareAddr {
 	}
 
 	expose, _, _ := unstructured.NestedString(obj.Object, "spec", "networking", "expose")
-	var fallback *shareAddr
+	configuredHost, _, _ := unstructured.NestedString(obj.Object, "spec", "networking", "hostname")
+	var best *shareAddr
+	bestRank := 0
 	for _, ep := range endpoints {
 		epMap, ok := ep.(map[string]interface{})
 		if !ok {
@@ -569,26 +577,61 @@ func getPublicAddress(obj *unstructured.Unstructured) *shareAddr {
 		}
 		host, _, _ := unstructured.NestedString(epMap, "host")
 		port := nestedPort(epMap)
-		if host == "" || port == 0 {
+		if host == "" || host == "None" || port == 0 {
 			continue
 		}
 		provider, _, _ := unstructured.NestedString(epMap, "tunnelProvider")
-		if provider != "" {
-			return &shareAddr{Host: host, Port: port}
-		}
+		serviceAddress, _, _ := unstructured.NestedString(epMap, "serviceAddress")
 		// Older operators published the Service ClusterIP as the NodePort
 		// host. A refreshed endpoint records the ClusterIP separately.
-		if expose == "NodePort" {
-			serviceAddress, _, _ := unstructured.NestedString(epMap, "serviceAddress")
-			if serviceAddress == "" || serviceAddress == host {
-				continue
-			}
+		if provider == "" && expose == "NodePort" && (serviceAddress == "" || serviceAddress == host) {
+			continue
 		}
-		if fallback == nil {
-			fallback = &shareAddr{Host: host, Port: port}
+
+		rank := shareAddressRank(host, configuredHost, serviceAddress, provider)
+		if rank > bestRank {
+			best = &shareAddr{Host: host, Port: port}
+			bestRank = rank
 		}
 	}
-	return fallback
+	return best
+}
+
+func shareAddressRank(host, configuredHost, serviceAddress, provider string) int {
+	const (
+		invalid = iota
+		nativeIP
+		tunnelIP
+		nativeDNS
+		tunnelDNS
+		advertisedDNS
+	)
+	// Some providers wrap IPv6 literals in brackets for use with a port.
+	if strings.HasPrefix(host, "[") {
+		addr, err := netip.ParseAddrPort(host + ":0")
+		if err != nil {
+			return invalid
+		}
+		host = addr.Addr().String()
+	}
+	if _, err := netip.ParseAddr(host); err == nil {
+		if provider != "" {
+			return tunnelIP
+		}
+		return nativeIP
+	}
+	if len(validation.IsDNS1123Subdomain(strings.ToLower(strings.TrimSuffix(host, ".")))) != 0 {
+		return invalid
+	}
+	if provider != "" {
+		return tunnelDNS
+	}
+	// The operator may advertise a template default identical to the load
+	// balancer's ingress hostname. Its source is indistinguishable in status.
+	if strings.EqualFold(host, configuredHost) || (configuredHost == "" && serviceAddress != "") {
+		return advertisedDNS
+	}
+	return nativeDNS
 }
 
 // nestedPort extracts the "port" field from an endpoint map as an int32.
