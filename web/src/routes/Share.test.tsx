@@ -82,6 +82,24 @@ describe("SharePage", () => {
     });
   });
 
+  it.each([
+    { status: "Running" },
+    { status: "Suspended", canStart: true },
+    { status: "Suspended", canStart: false },
+    { status: "Stopped", manuallyStopped: true },
+    { status: "Starting" },
+  ])("shows the configured identity and description for %j", async (power) => {
+    const description = "A survival world for our community.";
+    vi.mocked(Shares.resolve).mockResolvedValue({
+      serverName: "mc-survival", instanceName: "Northstar Games", description, ...power,
+    });
+    renderWithRouter("test-token");
+    const heading = await screen.findByRole("heading", { name: "mc-survival" });
+    expect(screen.getByText("Northstar Games")).toBeInTheDocument();
+    expect(heading.nextElementSibling).toBe(screen.getByText(description));
+    expect(screen.queryByText("gameplane")).not.toBeInTheDocument();
+  });
+
   describe("Up state (T182)", () => {
     it("renders server name and Online status", async () => {
       vi.mocked(Shares.resolve).mockResolvedValue({
@@ -96,6 +114,8 @@ describe("SharePage", () => {
       await waitFor(() => {
         expect(screen.getByText("mc-survival")).toBeInTheDocument();
         expect(screen.getByText("Online")).toBeInTheDocument();
+        expect(screen.getByText("gameplane")).toBeInTheDocument();
+        expect(screen.getByRole("heading").nextElementSibling).toBeNull();
       });
     });
 
@@ -525,13 +545,15 @@ describe("SharePage", () => {
     it("uses neutral unavailable copy for a permanent auth failure during polling", async () => {
       vi.useFakeTimers();
       vi.mocked(Shares.resolve)
-        .mockResolvedValueOnce({ serverName: "survival", status: "Starting" })
+        .mockResolvedValueOnce({ serverName: "survival", instanceName: "Northstar Games", description: "Our shared world", status: "Starting" })
         .mockRejectedValue(new APIError(401, "private auth detail"));
       renderWithRouter("test-token");
       await act(async () => {});
       await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
       expect(screen.getByText("Link not available")).toBeInTheDocument();
       expect(screen.queryByText(/private auth detail/)).not.toBeInTheDocument();
+      expect(screen.queryByText("Northstar Games")).not.toBeInTheDocument();
+      expect(screen.queryByText("Our shared world")).not.toBeInTheDocument();
       await act(async () => { await vi.advanceTimersByTimeAsync(60000); });
       expect(Shares.resolve).toHaveBeenCalledTimes(2);
     });

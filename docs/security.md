@@ -345,6 +345,8 @@ still sees the stored values; restrict that with cluster RBAC.
 
 ## Share links
 
+Anyone with a valid link can see the panel’s configured instance name, the server name, and the description entered in the server’s **Settings → General**. When the server is online, the page shows its published connection address and available player count. A configured server or template hostname appears with its game port when the operator publishes it.
+
 The server owner can change an active link's **Can start** permission under **Settings → Share links**. Use the **Link ID** shown at creation to identify its row later. Enabling wake access lets anyone who already has that URL wake the server from idle sleep. Disabling it removes that permission on the next request. The URL and expiry stay the same.
 
 Share links (`api/internal/db/shares.go`, schema in `api/internal/db/migrations/sqlite/006_share_links.sql`, Postgres twin in `migrations/postgres/`) grant unauthenticated, token-bearing access to a single GameServer's status and connection address, optionally with permission to wake it. Because they are unauthenticated, their security rests entirely on the token being both hard to guess and hard to recover if the database or a backup leaks.

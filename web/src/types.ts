@@ -1333,11 +1333,11 @@ export interface ShareAddr {
 
 // ShareLinkPublic mirrors the sharePublicResp response shape from the API
 // (api/internal/handlers/shares.go), returned by GET /shares/{token} without
-// authentication. Contains only the minimal public view: server name, status,
-// address (if exposed), and player count (if exposed). Never reveals cluster,
-// namespace, version, user names, or other internal metadata.
+// authentication. Older APIs omit the instance name and server description.
 export interface ShareLinkPublic {
   serverName: string;
+  instanceName?: string;
+  description?: string;
   status: string; // e.g. "Running", "Asleep", "Failed"
   /** Explicit owner stop; optional for older API versions. */
   manuallyStopped?: boolean;
