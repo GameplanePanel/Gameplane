@@ -953,7 +953,7 @@ A StorageClass is a cluster infrastructure concern, not an authentication concer
 
 **OIDC Role Mapping Overrides (AdminSettings.tsx):**
 
-The `helmOverride` object in the API's `AuthCfg` response (`auth.helmOverride.roleMappings`) allows dashboard users to override the Helm-seeded role mappings **per role**. Each role (admin/operator/viewer) is independently optional:
+This describes the legacy per-role override. The current override card (`RoleRuleOverrideCard`) writes `helmOverride.roleRules`, one ordered rule list that replaces the whole Helm rule list and fallback (see the rule editor section above). The API still reads an older `helmOverride.roleMappings` value saved before the rule editor existed (`api/internal/auth/oidc.go`): it overrides the Helm-seeded role mappings **per role**, and each role (admin/operator/viewer) is independently optional:
 
 - **Key present** (including empty list `[]`): an override exists, stored in the dashboard database, superseding the Helm value
 - **Key absent**: no override; the role uses the Helm-seeded value
