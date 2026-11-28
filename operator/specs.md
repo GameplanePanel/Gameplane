@@ -312,18 +312,18 @@ operator/
 ├── api/v1alpha1/
 │   CRD type definitions (gameserver_types.go, gametemplate_types.go, backup_types.go,
 │   backupschedule_types.go, restore_types.go, module_types.go, modulesource_types.go,
-│   cluster_types.go, networkcapture_types.go) and generated deepcopy helpers (zz_generated.deepcopy.go).
+│   cluster_types.go, networkcapture_types.go, backupexport_types.go) and generated deepcopy helpers (zz_generated.deepcopy.go).
 │   Edited manually; regenerate deepcopy + YAML after any type edit.
 │
 ├── config/
-│   ├── crd/              Generated CRD YAML (9 kinds). Do not hand-edit.
+│   ├── crd/              Generated CRD YAML (10 kinds). Do not hand-edit.
 │   ├── rbac/             Generated ServiceAccount, Role, RoleBinding, ClusterRole,
 │   │                     ClusterRoleBinding. Do not hand-edit.
 │   ├── manager/          Manager deployment, StatefulSet, and RBAC references.
 │   └── samples/          Sample GameServer, GameTemplate, Backup, etc. CRs for testing.
 │
 ├── internal/
-│   ├── controller/       Reconciler implementations (9 controllers + co-located envtest).
+│   ├── controller/       Reconciler implementations (10 controllers + co-located envtest).
 │   │   ├── gameserver_controller.go        Reconciles GameServer → StatefulSet+Service+PVC
 │   │   ├── gameserver_*.go                 Split concerns: config, modcreds, rcon, restart,
 │   │   │                                   wipe, version, stop_attach, node, status, extravolumes
@@ -771,10 +771,10 @@ until cancellation or replacement because it may have partially cleared data.
 ### Sidecar client (operator/internal/agent/sidecar_capture.go)
 
 - **`SidecarCaptureClient interface`** — injected into NetworkCaptureReconciler; abstracts mTLS communication with capture sidecar's `:9091` HTTP control endpoint (testable; tests inject a stub)
-  - `StartCapture(ctx, namespace, serverName, captureID string, filter *string, maxDurationSeconds, maxSizeBytes int64) error` — POST `/captures/{id}/start` on sidecar
-  - `StopCapture(ctx, namespace, serverName, captureID string) error` — POST `/captures/{id}/stop` on sidecar
-  - `GetCaptureStatus(ctx, namespace, serverName, captureID string) (phase string, packetsWritten, bytesWritten int64, message string, err error)` — GET `/captures/{id}/status` on sidecar; polls current state during Running phase
-  - `DeleteCaptureFile(ctx, namespace, serverName, captureID string) error` — added for retention (Phase 6 / US4); removes a capture's backing PCAPNG file once its TTL elapses. Implemented end to end: `DELETE /captures/{id}` on the sidecar (`capture-sidecar/internal/httpserver/handlers.go`), calling `CaptureClient.DeleteCaptureFile` (`operator/internal/agent/sidecar_capture.go`) — success on 204, treated as idempotent on 404 (already gone), a distinguishable error on 409 (still running).
+  - `StartCapture(ctx, namespace, serverName, captureID, serverUID, captureUID string, filter *string, maxDurationSeconds, maxSizeBytes int64) error` — POST `/captures/{id}/start` on sidecar
+  - `StopCapture(ctx, namespace, serverName, captureID, serverUID, captureUID string) error` — POST `/captures/{id}/stop` on sidecar
+  - `GetCaptureStatus(ctx, namespace, serverName, captureID, serverUID, captureUID string) (phase string, packetsWritten, bytesWritten int64, message string, err error)` — GET `/captures/{id}/status` on sidecar; polls current state during Running phase
+  - `DeleteCaptureFile(ctx, namespace, serverName, captureID, serverUID, captureUID string) error` — added for retention (Phase 6 / US4); removes a capture's backing PCAPNG file once its TTL elapses. Implemented end to end: `DELETE /captures/{id}` on the sidecar (`capture-sidecar/internal/httpserver/handlers.go`), calling `CaptureClient.DeleteCaptureFile` (`operator/internal/agent/sidecar_capture.go`) — success on 204, treated as idempotent on 404 (already gone), a distinguishable error on 409 (still running).
 - **`CaptureClient struct`** — production implementation of SidecarCaptureClient
   - `NewCaptureClient(agent *Client) *CaptureClient` — factory; reuses agent's existing mTLS http.Client (same CA cert/client cert/private key material)
   - `Disabled bool` flag — set to true if no mTLS material provided (graceful degradation). `StartCapture`, `StopCapture`, and `DeleteCaptureFile` return `nil` on Disabled=true; `GetCaptureStatus` instead returns `ErrCaptureClientDisabled` so a Pending-phase reconcile can tell "no mTLS configured" apart from a real sidecar answer.
@@ -785,8 +785,8 @@ until cancellation or replacement because it may have partially cleared data.
 
 - **agent_certs.go:** Generate per-GameServer CA-signed mTLS server cert for agent sidecar (operator CA cert/key injected via flags).
 - **agent_rbac.go:** Create per-GameServer ServiceAccount + Role for the agent sidecar (used to verify token).
-- **internal/kube/capture.go:** Kubernetes client helper functions for NetworkCapture CRD operations (API-tier use):
-  - `CreateNetworkCapture(ctx, ns, captureID, serverName string, filter *string, maxDuration *metav1.Duration, maxSize *resource.Quantity, ttlSecondsAfterFinished *int32) (*NetworkCapture, error)` — creates NetworkCapture CR with Pending phase; sets ownerRef for cascade delete
+- **api/internal/kube/capture.go:** Kubernetes client helper methods on `*Client` for NetworkCapture CRD operations (API-tier use):
+  - `(*Client) CreateNetworkCapture(ctx, ns, captureID, serverName string, serverUID types.UID, filter *string, maxDuration *metav1.Duration, maxSize *resource.Quantity, ttlSecondsAfterFinished *int32) (*NetworkCapture, error)` — creates NetworkCapture CR with Pending phase; sets ownerRef for cascade delete
   - `GetNetworkCapture(ctx, ns, name string) (*NetworkCapture, error)` — fetches by namespace/name; returns nil if not found
   - `ListNetworkCaptures(ctx, ns, serverName string) ([]NetworkCapture, error)` — lists all captures in namespace; filters by spec.serverRef.name on client side
   - `DeleteNetworkCapture(ctx, ns, name string) error` — deletes NetworkCapture by namespace/name

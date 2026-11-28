@@ -40,12 +40,12 @@ containers/
     ├── farming-simulator-25/     # standalone base (debian + Wine)
     │   ├── Dockerfile
     │   └── entrypoint.sh
-    └── euro-truck-simulator-2/   # standalone base (debian)
+    └── euro-truck-simulator-2/   # game image built FROM the common-steamcmd base
         ├── Dockerfile
         └── entrypoint.sh
 ```
 
-`fivem`, `beammp`, `farming-simulator-25` and `euro-truck-simulator-2` moved here from the `GameplanePanel/module` repo unchanged. They do not build on the SteamCMD base and run as UID/GID 1000 with `HOME=/home/gameplane`; the `STEAMCMD_BASE_IMAGE` build arg CI passes is unused by them.
+`fivem`, `beammp` and `farming-simulator-25` moved here from the `GameplanePanel/module` repo unchanged. They do not build on the SteamCMD base and run as UID/GID 1000 with `HOME=/home/gameplane`; the `STEAMCMD_BASE_IMAGE` build arg CI passes is unused by them.
 
 ### `common/` — reusable base images
 
@@ -193,7 +193,7 @@ When using `runAsUser`, the `$HOME` environment variable must also be set — ei
 
 ### Data Persistence
 
-Game server data (worlds, configurations, logs) must persist across pod restarts. Set up a PersistentVolumeClaim and mount it at the install directory (e.g., `/data`). The Gameplane chart's `storage.mountPath` field handles this.
+Game server data (worlds, configurations, logs) must persist across pod restarts. Set up a PersistentVolumeClaim and mount it at the install directory (e.g., `/data`). The GameTemplate's `spec.storage.mountPath` field handles this.
 
 ### RCON & Console
 

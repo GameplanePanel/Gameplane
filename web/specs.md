@@ -240,7 +240,7 @@ The old Radix-based `ui/` components that shipped before this rebuild — `butto
 
 ### Screens and Routes
 
-1. **Servers Page** (`web/src/routes/Servers.tsx`, 674 lines)
+1. **Servers Page** (`web/src/routes/Servers.tsx`, 695 lines)
    - List all GameServers in a responsive table (desktop ≥768px) or stacked cards (mobile <768px)
    - Renders server phase, game icon, player count, resource usage, and uptime via StatCard compositions
    - Filter by phase (Running/Stopped/Pending/Failed), game template, and namespace via FilterPopover
@@ -248,7 +248,7 @@ The old Radix-based `ui/` components that shipped before this rebuild — `butto
    - Server count summary via StatCard at the top; search box using HeroUI Input
    - Action menu (clone, transfer, wipe, delete) via ServerActionsMenu composition (uses DropdownMenu)
 
-2. **ServerDetail Page** (`web/src/routes/ServerDetail.tsx`, 407 lines)
+2. **ServerDetail Page** (`web/src/routes/ServerDetail.tsx`, 413 lines)
    - Full server view with header showing phase chip, uptime, player count, and action buttons
    - Both the header and Overview offer Stop during Pending and Starting to users with control access to that server.
    - Tabbed interface (HeroUI Tabs) routing to eleven sub-views: Overview, Events, Console, Logs, Files, Mods, Modpacks, Players, Backups, Capture, Settings
@@ -294,7 +294,7 @@ Six of the nine ServerDetail tabs are rebuilt in this slice:
    - Filter state (all/info/warnings) via HeroUI Button
    - Uses HeroUI Button, Card (line 3)
 
-3. **Console** (`web/src/routes/tabs/Console.tsx`, 175 lines)
+3. **Console** (`web/src/routes/tabs/Console.tsx`, 176 lines)
    - Interactive RCON/PTY terminal (xterm.js, lazy-loaded, NOT rebuilt — uses existing engine)
    - LoadingCard during template resolution (line 28); ErrorCard if no console available (line 35)
    - Uses ui/ LoadingCard, ErrorCard only (lines 4–5); console I/O engine unchanged
@@ -302,14 +302,14 @@ Six of the nine ServerDetail tabs are rebuilt in this slice:
    - RCON text replies normalize LF and CRLF to terminal CRLF, preserving indentation and content so each line starts in column zero. PTY output retains its raw terminal line endings and control sequences.
    - Command bar under the terminal (`ConsoleShell.tsx`): Send or Enter submits; ArrowUp/ArrowDown recall the last 100 commands sent from this tab (consecutive repeats collapsed), and ArrowDown past the newest restores the unsent line. History lives per mount and is not persisted
 
-4. **Logs** (`web/src/routes/tabs/Logs.tsx`, 288 lines)
+4. **Logs** (`web/src/routes/tabs/Logs.tsx`, 307 lines)
    - Pod stdout or configured game log file stream (WebSocket, NOT rebuilt — uses existing engine)
    - Requests last 500 lines of history via `?tail=500` query parameter before streaming new output
    - Search/filter input via HeroUI Input; download button
    - Virtualized log viewer (TanStack Virtual, NOT rebuilt)
    - Uses HeroUI Button, Input only (line 4); log streaming engine unchanged
 
-5. **Files** (`web/src/routes/tabs/Files.tsx`, 657 lines)
+5. **Files** (`web/src/routes/tabs/Files.tsx`, 767 lines)
    - File browser and editor (Monaco, lazy-loaded, NOT rebuilt)
    - Create folder/file dialogs via HeroUI Modal/ModalBackdrop/ModalContainer/ModalDialog/ModalHeader/ModalBody/ModalFooter (lines 9–19)
    - Delete confirmation via ui/ ConfirmDialog (line 35, used at line 408)
@@ -401,13 +401,13 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
    - Rendering strategy differs by game: ARK/Project Zomboid use idList editor; others show file list
    - Uses HeroUI Button, Input, Chip; ui/ ConfirmDialog (for destructive actions)
 
-2. **Modpacks Tab** (`web/src/routes/tabs/Modpacks.tsx`, 175 lines)
+2. **Modpacks Tab** (`web/src/routes/tabs/Modpacks.tsx`, 402 lines)
    - Modpack-capable games render a selector/browser
    - Select active pack, view pack contents, toggle mods within a pack
    - Uses HeroUI Select, Table, Button, Chip
    - "All loaders" switch (spec 035 FR-014, env-mode registries only, off by default): search drops the server's loader and Minecraft version filters, the install picker lists every version a template version entry runs ("Runs on …"), and the confirmation warns when the install switches the server version (sent as `serverVersion`). Change version stays filtered.
 
-3. **Backups Tab** (`web/src/routes/tabs/Backups.tsx`, 290 lines)
+3. **Backups Tab** (`web/src/routes/tabs/Backups.tsx`, 386 lines)
    - Per-server backup list (snapshots created via the /backups page or on-demand)
    - Users with schedule write access can edit or delete standalone schedules here. The **Managed by server settings** action opens the selected server’s **Settings → Scheduled backups**, where users with server write access can edit its inline backup policy.
    - Table columns: backup name, phase (Pending/Succeeded/Failed), size, completion time, actions
@@ -415,7 +415,7 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
    - Open backup detail drawer, trigger restore dialog, delete backup
    - Uses HeroUI Table, Button, Modal (restore trigger), ui/ PhaseChip
 
-4. **Settings Tab** (`web/src/routes/tabs/Settings.tsx`, 396 lines)
+4. **Settings Tab** (`web/src/routes/tabs/Settings.tsx`, 429 lines)
    - Sub-section navigation tabs (11 sections below) via HeroUI Tabs
    - Opening Settings from the tab bar starts in **General**. The managed schedule action passes `initialSection="backups"` to start in **Scheduled backups**.
    - Layout: left sidebar with section buttons, right panel for section content
@@ -441,7 +441,7 @@ All 11 sections render form controls from HeroUI (TextField, Select, Slider, Swi
 6. **Lifecycle** (`web/src/routes/tabs/settings/Lifecycle.tsx`) — Auto-pause threshold, idle sleep settings, quiesce strategy selector via HeroUI Switch/Select/Slider. Inside the idle settings, a "Wake on connect" switch writes `spec.idle.wakeOnConnect`, which arms the wake sentinel. It is disabled when the template advertises no port whose `wakeProtocol` can wake the server (every advertised port is `none`, mirroring the operator's `wakeOnConnectEligible`), unless the server is already armed, so it can still be turned off. Switching idle auto-sleep off and on keeps `wakeOnConnect`.
 7. **Scheduled backups** (`web/src/routes/tabs/settings/Backups.tsx`) — Retention days selector, retention policy dropdown via HeroUI Select/TextField
 8. **Network capture** (`web/src/routes/tabs/settings/NetworkCapture.tsx`) — Capture enabled toggle, BPF filter input, retention policy via HeroUI Switch/TextField/Select; warning banner via ui/ component
-9. **Placement** (`web/src/routes/tabs/settings/Placement.tsx`) — Node affinity rules, pod-node-selector builder via HeroUI form components
+9. **Placement** (`web/src/routes/tabs/settings/Placement.tsx`) — Raw-JSON Monaco editors for `spec.tolerations` and `spec.affinity` (no node-selector builder)
 10. **RBAC & access** (`web/src/routes/tabs/settings/Access.tsx`) — Per-role read/exec/admin permissions toggle matrix via HeroUI Switch grid
 11. **Danger zone** (`web/src/routes/tabs/settings/Danger.tsx`) — Destructive action buttons (Delete server, Wipe world, Transfer ownership to another user) wired to confirmation dialogs via HeroUI Button (danger variant) + ui/ ConfirmDialog
 
@@ -502,7 +502,7 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 
 ### Screens and Routes
 
-1. **Create Server Wizard** (`web/src/routes/CreateServer.tsx`, 99,594 bytes)
+1. **Create Server Wizard** (`web/src/routes/CreateServer.tsx`, 101,809 bytes)
    - Multi-step form guiding server creation through five steps; each step has validation, back/next navigation, and error display
    - Step 1: Server name and template selection (game type pick)
    - Step 2: Version selection (pick released/beta/unstable version per template)
@@ -519,7 +519,7 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
    - Filter by game type or source; search by name
    - InstallDialog, UploadModuleDialog, SourceDialog (add/edit module source) for workflow UI
 
-3. **Backups Management Page** (`web/src/routes/Backups.tsx`, 43,135 bytes)
+3. **Backups Management Page** (`web/src/routes/Backups.tsx`, 45,430 bytes)
    - Tabbed interface with three sub-views: Backups (index), Schedules, Restores
    - All three table empty states use consistent horizontal and vertical padding, centered muted text, and wrapping for longer messages, including filtered and unavailable-data states. Empty messages use the table scroll viewport width and remain visible while wide column headers scroll horizontally.
    - **Backups tab:** List all Backup CRs (manual + scheduled); filter by server/status; view backup metadata (size, created/expires); select row to open detail drawer, or restore — no inline delete action on the row
@@ -663,11 +663,11 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 
 ### Backup-Related Components (`web/src/components/backups/`)
 
-- **BackupRow.tsx** (49 lines) — Single table row rendering one Backup CR; ID, server, phase chip, size, timestamps
+- **BackupRow.tsx** (55 lines) — Single table row rendering one Backup CR; ID, server, phase chip, size, timestamps
 - **BackupDetailDrawer.tsx** (169 lines) — Slide-out detail panel for backup metadata
 - **BackupFilters.tsx** (145 lines) — Filter controls (search box, server picker, phase filter — no date-range filter)
 - **RestoreDialog.tsx** (221 lines) — Modal form for restore workflow (source backup, destination server, confirm)
-- **ScheduleForm.tsx** (184 lines) — Inline (non-modal) form for creating a schedule (cron expression, retention) — no edit mode
+- **ScheduleForm.tsx** (222 lines) — Inline (non-modal) form for creating a schedule (cron expression, retention) — no edit mode
 - **RetentionFields.tsx** (107 lines) — Sub-component with a numeric count input per retention bucket (keep last/hourly/daily/weekly/monthly/yearly)
 - **ErrorBanner.tsx** (15 lines) — Error display for backup/schedule operations
 
@@ -803,24 +803,24 @@ eslint.config.js            # JavaScript, React Hooks and FormatJS rules
 package.json                # @gameplane/web v0.5.0; dev: vite, npm scripts for build/test/lint
 ```
 
-## SSO Role Rules and Role Source (spec 034) — pending dashboard build
+## SSO Role Rules and Role Source (spec 034)
 
-**Status:** pending the dashboard build. The API and Helm parts are in place. The screens below are not built yet, and the design in `design.fig` is not done. Per core rule 1, the design comes first: the rule editor, the role-source badge and the "Return to SSO control" action are designed through the Pencil MCP (on the maintainer's machine, via a local-agent prompt), then exported to `assets/design-export/`, then built. This section will be revised when those screens land.
+**Status:** built. The rule editor is `web/src/components/ui/admin/RoleRulesEditor.tsx` (used by `AdminSettings.tsx`), and `web/src/routes/Users.tsx` shows the role-source badges and the Return to SSO control action.
 
 **Already in place:**
 - `web/src/types.ts`: `UserRoleSource = "sso" | "sso_pending" | "manual"` and `roleSource?: UserRoleSource` on `User` (the API always sends it; optional only for older typed payloads).
 - `web/src/lib/endpoints.ts`: `roleSource?: "sso"` on the `UserUpdate` body type (the "Return to SSO control" request body; the API refuses it together with `role`).
 
-**Rule editor (Authentication, planned):**
-- Replaces the per-role override card (`RoleMappingOverridesCard` in `AdminSettings.tsx`) for dashboard providers and for the Helm provider's override. Rules are one ordered list: each row is a group (exact, case-sensitive text) and a role picked from the existing roles, with add, remove and reorder.
+**Rule editor (Authentication):**
+- Replaces the earlier per-role override card for dashboard providers and for the Helm provider's override (the Helm override now lives in `RoleRuleOverrideCard` in `AdminSettings.tsx`). Rules are one ordered list: each row is a group (exact, case-sensitive text) and a role picked from the existing roles, with add, remove and reorder.
 - The first rule whose group matches wins. The list states this in its helper text, and a later row with a group already used above shows a warning that it can never match.
 - The fallback control offers "viewer" (empty), "deny", and every existing role.
 - Save is refused for a role that does not exist. Deleting a role that a rule or fallback uses shows the API's `server.roles.in_use_by_sso` message, which names the provider.
 - The Helm provider: the override replaces the whole Helm rule list and fallback. "Reset to Helm default" removes the override and is shown only when one exists.
-- The admin-role confirmation (FR-015, `AdminMappingConfirmDialog`) applies to any rule whose role is `admin` and is added or changed.
+- The admin-role confirmation (FR-015, `ConfirmAdminMappingDialog`) applies to any rule whose role is `admin` and is added or changed.
 - A provider with both old `roleMappings` and `roleRules` cannot be saved; the form saves old-form providers in the rule form.
 
-**Users page (planned):**
+**Users page:**
 - For SSO-linked users (`provider` is `oidc` in `GET /users`), show a role-source badge: "From SSO" for `sso`, "From SSO (applies at next sign-in)" for `sso_pending`, "Set by hand" for `manual`. Local users show no badge and no action.
 - "Return to SSO control" is offered on hand-set SSO users, gated by the existing `users:manage` check, and sends `PATCH /users/{id}` with `{ roleSource: "sso" }`. The result shows the `sso_pending` badge at once.
 - Changing a role on this page marks the user "Set by hand" (the API does this on every role change).
@@ -948,7 +948,7 @@ A StorageClass is a cluster infrastructure concern, not an authentication concer
 
 **Permission gating:**  
 - **Route guard (web/src/router/tree.tsx):** The `/admin` route itself is guarded by `config:manage` permission (admin and operator roles only).
-- **AdminSettings.tsx** (OIDC/auth section): The `RoleMappingOverridesCard` component is gated by `config:manage` permission check at render time — since it is an editing surface for role mappings (not read-only display). The route-level and component-level gates are now aligned.
+- **AdminSettings.tsx** (OIDC/auth section): The `RoleRuleOverrideCard` component is gated by `config:manage` permission check at render time — since it is an editing surface for role mappings (not read-only display). The route-level and component-level gates are now aligned.
 - **ClusterConfiguration.tsx** (storage card): Is **not** already admin-only, so it requires an explicit `can(me, "config:read")` permission check on both the query (to avoid 403 errors) and the rendered card (to hide it from viewers lacking permission). Precedent: Dashboard.tsx:51 and Users.tsx:688.
 
 **OIDC Role Mapping Overrides (AdminSettings.tsx):**
@@ -964,7 +964,7 @@ The `helmOverride` object in the API's `AuthCfg` response (`auth.helmOverride.ro
 - If absent and Helm-seeded value exists → "From Helm values"
 - If absent and no Helm-seeded value → "Not configured"
 
-**Per-role UI in RoleMappingOverridesCard (AdminSettings.tsx):**
+**Per-role UI (removed; superseded by the rule editor above):**
 
 For each role (admin/operator/viewer), the card displays:
 1. **Effective mapping:** the list of IdP group names currently mapped (from override if present, else from Helm-seeded)
@@ -983,7 +983,7 @@ When no role mappings exist (neither overridden nor Helm-seeded), the card displ
 Mapping users to the admin role grants full cluster control. The dashboard enforces a two-step confirmation:
 
 - **Read-only Helm-seeded path (HelmOIDCProviderCard):** If Helm-seeded role mappings include admin mappings, show a warning banner (no confirm step; the admin already made this decision at deploy time)
-- **Editable override path (RoleMappingOverridesCard):** When a user tries to **add** an admin role mapping via the overrides editor, show `ConfirmAdminMappingDialog`
+- **Editable override path (RoleRuleOverrideCard):** When a user tries to **add** an admin role mapping via the overrides editor, show `ConfirmAdminMappingDialog`
 
 The confirm dialog displays:
 - A fixed warning banner with exact copy: "Mapping users to the admin role grants full cluster control. Ensure the mapped group contains only authorized personnel. Anyone in these groups gets full admin access from their next login."
@@ -1069,7 +1069,7 @@ The API remains authoritative; no role or server-side authorization rule changes
 
 ## ServerDetail Settings Sub-sections
 
-Settings tab (`SettingsTab`, `web/src/routes/tabs/Settings.tsx`) displays up to 13 sections in a left sidebar (`SECTIONS` array; Version only when the template has versions, Game configuration only when the template declares a `configSchema` or the server carries config keys; Share links is described after the list):
+Settings tab (`SettingsTab`, `web/src/routes/tabs/Settings.tsx`) displays up to 14 sections in a left sidebar (`SECTIONS` array; Version only when the template has versions, Game configuration only when the template declares a `configSchema` or the server carries config keys; Share links is described after the list):
 
 Save fetches the latest server and applies only the changes from the original baseline to the draft (`web/src/lib/settingsMerge.ts`). Untouched spec fields, labels, annotations, status and resourceVersion survive concurrent edits. Nested object keys merge independently; arrays are atomic. Divergent changes to the same field, including deleting a concurrently modified field, show the existing reload prompt before any PUT. Clearing config/label/annotation maps removes baseline keys while preserving concurrently added keys. Save waits for the template and validates the entire draft's game configuration regardless of the selected section; section-reported editor validity is retained across navigation. Discard, reload and successful save reset editor state and validity.
 
@@ -1186,7 +1186,7 @@ Each namespace is an object of typed functions building and fetching URLs:
 - **useThemePreferences.ts** — theme preferences plumbing (feature 016; full behavior documented under "User Theme Customization" above): `useThemePreferences(me?, opts?)` reconciles the backend `preferences` from `/users/me` over the `gameplane-theme-prefs` localStorage cache (backend wins on drift), exposes `preferences` + an optimistic `updatePreferences(patch)` mutation (DOM + cache first, PUT via `Users.updatePreferences`, revert-and-report on failure, replay-on-`online` after connectivity loss), and keeps the DOM attributes (`class`/`data-theme`, `data-theme-preset`, `data-theme-type`, `data-custom-css`) and the `#gameplane-custom-css` overlay (always last in `<head>`; unmounted on logout and on `/login`/`/share/:token`) in sync. Plain helpers exported for routes and the boot script's post-boot path: `isSafeModeActive()` (`?safe-mode=1` or the `gameplane-safe-mode` sessionStorage flag — suspends only the overlay), `readThemePreferences` / `writeThemePreferences`, `normalizeThemePreferences`, `themePreferencesEqual`, `applyThemePreferences`, `unmountCustomCssOverlay`, plus the storage keys/element ids and the `gameplane-theme-error` window event. The inline `theme-boot` script in `index.html` applies the same cache synchronously pre-paint and is the authoritative boot path (never applies cached prefs on `/login` or `/share/:token`).
 - **servers.ts** — `countByState(items)` (running/stopped/pending/failed counts), `phaseGroups(items)` (items grouped by phase)
 - **games.ts** — category helpers: `gameCategory(game)`, `resolveCategories(explicit, game)`, `matchesCategory`, `matchesAllCategories`, `categoryFilters(categories)`
-- **auth.ts** — `useMe()` (current-user query hook), `hasRole(me, allowed)`, `can(me, perm, ns?, cluster?)`
+- **auth.ts** — `useMe()` (current-user query hook), `can(me, perm, ns?, cluster?)`
 - **config.ts** — admin-config hooks: `useConfig()`, `useUpdateConfigSection(section)`, `useResetRoleMapping()`
 - **errors.ts** — `errorText(err, fallback?)`, `errorTextWithStatus(err, fallback?)`
 - **cluster.ts** — `getCurrentCluster()` / `setCurrentCluster()` retain the localStorage-backed infrastructure selection; resource requests use their explicit target instead
@@ -1280,14 +1280,14 @@ openEventStream(opts: EventStreamOptions)
 - `react@19.3.1` — React library
 - `react-dom@19.3.1` — DOM renderer
 - `@tanstack/react-router@1.170.46` — file-based routing (via tree.tsx)
-- `@tanstack/react-query@5.108.1` — data fetching, caching, invalidation
-- `@tanstack/react-virtual@3.14.26` — virtualized lists for large tables
-- `@heroui/react@3.2.7` — component library (Button, Card, Modal, Table, Tabs, etc.); underlies every atom in `web/src/components/ui/`
+- `@tanstack/react-query@5.108.4` — data fetching, caching, invalidation
+- `@tanstack/react-virtual@3.14.28` — virtualized lists for large tables
+- `@heroui/react@3.2.8` — component library (Button, Card, Modal, Table, Tabs, etc.); underlies every atom in `web/src/components/ui/`
 - `@heroui/styles` — HeroUI's semantic token / theme layer, mapped to Gameplane brand tokens (see `specs/done_014-heroui-web-rebuild/contracts/theme-tokens.md`)
 - `clsx@2.1.1` — conditional classNames
 - `tailwind-merge@3.7.1` — Tailwind class conflict resolution
 - `tailwindcss@^4.3.3` — utility-first CSS framework
-- `lucide-react@^1.73.0` — SVG icon library
+- `lucide-react@^1.79.0` — SVG icon library
 - `@monaco-editor/react@^4.7.0` — code editor (lazy-loaded, file/config edit tabs)
 - `@xterm/xterm@^6.0.0` — terminal emulator (Console tab)
 - `@xterm/addon-fit@^0.11.0` — xterm fit-to-container addon
@@ -1301,14 +1301,14 @@ openEventStream(opts: EventStreamOptions)
 - `@testing-library/react@16.3.3` — component test utilities
 - `@testing-library/jest-dom@8.0.0` — DOM matchers
 - `@testing-library/user-event@14.6.13` — user interaction simulation
-- `msw@^3.0.5` — Mock Service Worker for request interception (e2e mock mode)
+- `msw@^3.0.7` — Mock Service Worker for request interception (e2e mock mode)
 - `vitest-websocket-mock@0.8.0` — WebSocket mock for unit tests
-- `@playwright/test@^1.65.0` — browser e2e testing (mock + live modes)
-- `jsdom@^31.0.0` — DOM implementation for unit tests
+- `@playwright/test@^1.65.1` — browser e2e testing (mock + live modes)
+- `jsdom@^31.0.1` — DOM implementation for unit tests
 - `eslint@10.15.0` and `@babel/eslint-parser` — lint JavaScript, TypeScript and TSX
 - `eslint-plugin-react-hooks@7.1.1` — React Hooks and compiler diagnostics
 - `oxlint` and `oxlint-tsgolint` — React rules and type-aware TypeScript linting
-- `tailwindcss@^4.3.3` + `postcss@^8.5.32` + `autoprefixer@^10.6.2` — CSS processing
+- `tailwindcss@^4.3.3` + `postcss@^8.5.33` + `autoprefixer@^10.7.0` — CSS processing
 - `@tanstack/router-devtools@1.167.4` — TanStack Router dev tools (optional, for debugging)
 
 ## Security considerations

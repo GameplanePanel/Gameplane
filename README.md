@@ -181,6 +181,7 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 - **`GameTemplate`**: Reusable blueprint for a game (container image, default ports, environment variables, volume layouts, shutdown hooks, and custom admin actions).
 - **`GameServer`**: An active game server instance created from a `GameTemplate` with customized resources, storage, idle auto-sleep settings, networking, relay tunnels, and backup policies.
 - **`Backup`**: A one-shot restic snapshot job targeting S3-compatible storage.
+- **`BackupExport`**: A download of one restic Backup as a `.tar.gz` or `.zip` archive, created by the API and run by the operator's export worker.
 - **`BackupSchedule`**: A recurring cron backup policy attached to a game server.
 - **`Restore`**: A task that restores a backup snapshot into a server data volume.
 - **`Module`**: An installed game bundle managed by the operator to materialize a `GameTemplate`.

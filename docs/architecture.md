@@ -59,6 +59,7 @@ The operator runs one reconciler per CRD:
 | `ModuleSource` | an index of the bundles in one store |
 | `Cluster` | health of a registered remote cluster |
 | `NetworkCapture` | a capture-sidecar ephemeral container and its PCAPNG output |
+| `BackupExport` | export worker Pod and ClusterIP Service that stream a restic `Backup` out as a `.tar.gz` or `.zip` archive (spec 041) |
 
 
 ## Dashboard component layer

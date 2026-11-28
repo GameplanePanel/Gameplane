@@ -1094,7 +1094,7 @@ The agent automatically selects the appropriate adapter based on game identifier
 #### CLI (Container Stdin / Local Execution)
 
 Console access over the container's stdin/PTY or local process execution.
-Per the resolution recorded in `OPEN-DECISIONS.md` (Option A):
+Per the resolution recorded in `specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md` (Option A):
 - The web dashboard console continues to attach directly via Kubernetes pod-attach / PTY (`consoleMode: pty`).
 - The agent executes lifecycle stop sequences, health checks, and scheduled commands locally via standard input (Unix FIFO pipe or local process execution) without requiring remote TCP networking or an external password secret:
 

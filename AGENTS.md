@@ -34,7 +34,7 @@ operator/            controller-runtime operator
   cmd/main.go        entrypoint;  config/{crd,rbac}/ GENERATED
 api/                 REST + WebSocket gateway (chi); cmd/main.go: `serve`, `gateway`, `bootstrap-admin`, `rotate-panel-key`
   internal/{audit,auth,controlplane,db,gateway,gatewayprotocol,handlers,httperr,kube,kubeconfig,messages,notify,rbac,registry,scope,steam,telemetry,workerconn,ws}/
-agent/               in-pod sidecar; internal/{a2s,actions,auth,caps,console,files,heartbeat,httpjson,lifecycle,logs,metrics,mods,players,quiesce,rcon,status,target,usage}/
+agent/               in-pod sidecar; internal/{a2s,actions,archive,auth,caps,console,files,heartbeat,httpjson,lifecycle,logs,metrics,mods,players,quiesce,rcon,status,target,usage}/
 audit-syslog-bridge/ SUBMODULE GameplanePanel/audit-syslog-bridge (RFC 5424 HTTP→syslog forwarder; own go.mod, not in go.work; image still built here)
 telemetry-receiver/  usage telemetry ingest
 sentinel/            wake-on-connect proxy for sleeping pods
@@ -45,7 +45,7 @@ tunnel/              SUBMODULE GameplanePanel/tunnel (relay client supervisor: f
 web/                 React 19 + strict TS + Vite dashboard; src/{__tests__,api,components,lib,pages,router,routes,styles,test}/ (plus main.tsx and types.ts)
 modules/             SUBMODULE GameplanePanel/module (OCI game templates)
 website/             SUBMODULE GameplanePanel/website (Astro docs/marketing; has its own CLAUDE.md and AGENTS.md)
-charts/gameplane/    Helm chart (crd-manifests/, hooks)
+charts/gameplane/    Helm chart (crd-manifests/, templates/ including the crd-apply pre-upgrade hook)
 deploy/kind/         local Kind scripts
 test/e2e/            Kind E2E suite (//go:build e2e)
 docs/                architecture, security, modules; layout.md (target folder shape per module); archive/ (read-only old designs)
