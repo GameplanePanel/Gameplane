@@ -241,8 +241,16 @@ func TestChangeShareWakePermission(t *testing.T) {
 func TestShareResolveValidToken(t *testing.T) {
 	store := newTestStore(t)
 	ownerID := insertShareTestUser(t, store, "owner-resolve")
+	if _, err := store.DB.ExecContext(t.Context(), `INSERT INTO config(key, value) VALUES ('general', '{"instanceName":"  Northstar Games  ","externalURL":"https://internal.example","defaultNamespace":"internal-games"}')`); err != nil {
+		t.Fatal(err)
+	}
+	server := newShareTestServer("srv-resolve", ownerID)
+	annotations := server.GetAnnotations()
+	annotations["gameplane.local/description"] = "  A survival world for our community.  "
+	annotations["internal.example/note"] = "internal-only note"
+	server.SetAnnotations(annotations)
 	reg := kube.NewRegistry("local")
-	reg.Set("local", fakeKubeClient(newShareTestServer("srv-resolve", ownerID)))
+	reg.Set("local", fakeKubeClient(server))
 	h := mountSharesRouter(reg, store)
 	owner := &auth.User{ID: ownerID, Username: "owner-resolve", Role: "admin"}
 
@@ -269,6 +277,9 @@ func TestShareResolveValidToken(t *testing.T) {
 	}
 	if resp["serverName"] != "srv-resolve" {
 		t.Fatalf("serverName = %v, want srv-resolve; body=%s", resp["serverName"], body)
+	}
+	if resp["instanceName"] != "Northstar Games" || resp["description"] != "A survival world for our community." || bytes.Contains(body, []byte("internal")) {
+		t.Fatalf("unexpected public share identity: %s", body)
 	}
 	if resp["status"] != "Running" {
 		t.Fatalf("status = %v, want Running; body=%s", resp["status"], body)
@@ -319,6 +330,9 @@ func TestShareResolvePrivateEndpointOmitted(t *testing.T) {
 	}
 	if _, ok := resp["address"]; ok {
 		t.Fatalf("address must be omitted for a private-only endpoint, got %v; body=%s", resp["address"], body)
+	}
+	if _, described := resp["description"]; described || resp["instanceName"] != "gameplane" {
+		t.Fatalf("unexpected public share defaults: %s", body)
 	}
 }
 
@@ -516,6 +530,8 @@ func TestSharePublicPayloadSafe(t *testing.T) {
 	// The response should only have the safe fields.
 	expectedKeys := map[string]bool{
 		"serverName":      true,
+		"instanceName":    true,
+		"description":     true,
 		"status":          true,
 		"manuallyStopped": true,
 		"canStart":        true,
@@ -560,6 +576,59 @@ func TestShareNodePortPlayerAddress(t *testing.T) {
 				t.Fatalf("got %+v, want %s port 31234", got, tc.wantHost)
 			}
 		})
+	}
+}
+
+func TestSharePrefersPublishedHostnameAndItsPort(t *testing.T) {
+	t.Parallel()
+	const gameHost = "play.example.com"
+	nativeDNS := map[string]any{"host": gameHost, "port": int64(31042), "serviceAddress": "10.43.0.5"}
+	relayDNS := map[string]any{"host": "relay.example.com", "port": int64(31999), "tunnelProvider": "frp"}
+	relayIP := map[string]any{"host": "2001:db8::2", "port": int64(31999), "tunnelProvider": "frp"}
+	directIP := map[string]any{"host": "192.0.2.10", "port": int64(31042), "serviceAddress": "10.43.0.5"}
+	for _, tc := range []struct {
+		name, configured string
+		endpoints        []any
+		want             shareAddr
+	}{
+		{"configured native name after relay", gameHost, []any{relayDNS, nativeDNS}, shareAddr{gameHost, 31042}},
+		{"inherited native name before relay", "", []any{nativeDNS, relayDNS}, shareAddr{gameHost, 31042}},
+		{"DNS relay over native IP", "", []any{directIP, relayDNS}, shareAddr{"relay.example.com", 31999}},
+		{"configured name awaiting reconciliation", gameHost, []any{relayIP, directIP}, shareAddr{"2001:db8::2", 31999}},
+		{"other published DNS over a relay IP", "pending.example.com", []any{relayIP, nativeDNS}, shareAddr{gameHost, 31042}},
+		{"malformed hosts before a bracketed IPv6 relay", "", []any{
+			map[string]any{"host": "[2001:db8::1", "port": int64(25565), "tunnelProvider": "frp"},
+			map[string]any{"host": "invalid/host", "port": int64(25566), "tunnelProvider": "frp"},
+			map[string]any{"host": "[2001:db8::2]", "port": int64(31999), "tunnelProvider": "frp"},
+		}, shareAddr{"[2001:db8::2]", 31999}},
+		{"configured name on private endpoint", gameHost, []any{
+			map[string]any{"host": gameHost, "port": int64(30123), "private": true},
+			relayIP,
+		}, shareAddr{"2001:db8::2", 31999}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			obj := newShareTestServer("world", 1)
+			obj.Object["spec"] = map[string]any{"networking": map[string]any{"expose": "NodePort", "hostname": tc.configured}}
+			obj.Object["status"].(map[string]any)["endpoints"] = tc.endpoints
+			if got := getPublicAddress(obj); got == nil || *got != tc.want {
+				t.Fatalf("got %+v, want %+v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestSharePrefersLoadBalancerDNSMatchingTemplateHostname(t *testing.T) {
+	t.Parallel()
+	const gameHost = "games.example.com"
+	obj := newShareTestServer("world", 1)
+	obj.Object["spec"] = map[string]any{"networking": map[string]any{"expose": "LoadBalancer"}}
+	obj.Object["status"].(map[string]any)["endpoints"] = []any{
+		map[string]any{"host": "relay.example.com", "port": int64(31999), "tunnelProvider": "frp"},
+		map[string]any{"host": gameHost, "serviceAddress": gameHost, "port": int64(25565)},
+	}
+	want := shareAddr{gameHost, 25565}
+	if got := getPublicAddress(obj); got == nil || *got != want {
+		t.Fatalf("got %+v, want %+v", got, want)
 	}
 }
 

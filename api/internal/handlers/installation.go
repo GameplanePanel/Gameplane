@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -14,25 +15,28 @@ import (
 // MountInstallation exposes capabilities only through the authenticated router.
 func MountInstallation(r chi.Router, store *db.Store, standalone bool, version string) {
 	r.Get("/admin/installation", func(w http.ResponseWriter, req *http.Request) {
-		// The display name is optional: a config failure must not hide the
-		// static capabilities that the rest of the dashboard depends on.
-		name := "gameplane"
-		raw, found, err := store.ConfigValue(req.Context(), "general")
-		if err != nil {
-			slog.Warn("installation name: read general config", "err", err)
-		} else if found {
-			var general generalCfg
-			if err := json.Unmarshal([]byte(raw), &general); err != nil {
-				slog.Warn("installation name: decode general config", "err", err)
-			} else if configuredName := strings.TrimSpace(general.InstanceName); configuredName != "" {
-				name = configuredName
-			}
-		}
 		writeJSON(w, struct {
 			Standalone   bool   `json:"standalone"`
 			LocalCluster bool   `json:"localCluster"`
 			Version      string `json:"version"`
 			InstanceName string `json:"instanceName"`
-		}{Standalone: standalone, LocalCluster: !standalone, Version: version, InstanceName: name})
+		}{Standalone: standalone, LocalCluster: !standalone, Version: version, InstanceName: installationDisplayName(req.Context(), store)})
 	})
+}
+
+// The optional display name is shared by the dashboard and valid public links.
+// A configuration failure must leave both available with the default brand.
+func installationDisplayName(ctx context.Context, store *db.Store) string {
+	raw, found, err := store.ConfigValue(ctx, "general")
+	if err != nil {
+		slog.Warn("installation name: read general config", "err", err)
+	} else if found {
+		var general generalCfg
+		if err := json.Unmarshal([]byte(raw), &general); err != nil {
+			slog.Warn("installation name: decode general config", "err", err)
+		} else if name := strings.TrimSpace(general.InstanceName); name != "" {
+			return name
+		}
+	}
+	return "gameplane"
 }
