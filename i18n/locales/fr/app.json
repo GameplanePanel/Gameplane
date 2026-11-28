@@ -5487,6 +5487,14 @@
     "defaultMessage": "{count, plural, one {{count} cluster disponible} other {{count} clusters disponibles}} · Le statut indique la connectivité à l'API Kubernetes, et non l'état du jeu ou de la passerelle.",
     "description": "Clusters: count of registered clusters followed by a note that status reflects Kubernetes API connectivity; {count} is the number of clusters"
   },
+  "web.routes.clusters.card_view_nodes": {
+    "defaultMessage": "Voir les nœuds",
+    "description": "Clusters: button on a cluster card that opens the node inventory for that cluster; shown only when the user can view inventory; keep it short"
+  },
+  "web.routes.clusters.card_view_servers": {
+    "defaultMessage": "Voir les serveurs",
+    "description": "Clusters: button on a cluster card that opens the server list for that cluster; keep it short; its screen-reader name also includes the cluster name"
+  },
   "web.routes.clusters.central_cluster": {
     "defaultMessage": "Cluster central",
     "description": "Clusters: note on the cluster card of the built-in local cluster that the panel itself runs in"
@@ -5561,7 +5569,7 @@
   },
   "web.routes.clusters.view_nodes_in": {
     "defaultMessage": "Voir les nœuds de {name}",
-    "description": "Clusters: accessible label of the View nodes button; {name} is the cluster display name"
+    "description": "Clusters: accessible label of the View Nodes button; {name} is the cluster display name"
   },
   "web.routes.clusters.view_servers": {
     "defaultMessage": "Voir les serveurs",
@@ -5569,7 +5577,7 @@
   },
   "web.routes.clusters.view_servers_in": {
     "defaultMessage": "Voir les serveurs de {name}",
-    "description": "Clusters: accessible label of the View servers button; {name} is the cluster display name"
+    "description": "Clusters: accessible label of the View Servers button; {name} is the cluster display name"
   },
   "web.routes.create_server.add_port_mapping": {
     "defaultMessage": "Ajouter une correspondance de port",
@@ -10450,7 +10458,7 @@
     "defaultMessage": "Impossible de charger les capacités de l'installation."
   },
   "web.routes.clusters.open_cluster_named": {
-    "defaultMessage": "Ouvrir le cluster {name}"
+    "defaultMessage": "Voir les détails de {name}"
   },
   "web.components.modpack_confirm_dialog.install_desc": {
     "defaultMessage": "{serverName} redémarre pour installer le pack. Il reste sur cette version jusqu’à ce que vous la changiez."
@@ -10582,7 +10590,7 @@
     "defaultMessage": "la clé CurseForge doit être enregistrée dans le panneau avant de pouvoir être partagée avec les serveurs de jeu"
   },
   "web.routes.clusters.open_cluster": {
-    "defaultMessage": "Ouvrir le cluster"
+    "defaultMessage": "Voir les détails"
   },
   "web.logs.history.failed": {
     "defaultMessage": "Impossible de charger l’historique des journaux."

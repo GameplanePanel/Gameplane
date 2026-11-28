@@ -25,9 +25,11 @@ describe("ClustersPage", () => {
     renderWithQuery(<ClustersPage />);
     expect(await screen.findByRole("heading", { name: "East" })).toBeInTheDocument();
     expect(screen.getByText("API: Unhealthy")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "View servers in East" })).toBeEnabled();
-    expect(screen.queryByRole("button", { name: "View nodes in East" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "View nodes in Central" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "View Servers in East" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "View Nodes in East" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "View Nodes in Central" })).toBeEnabled();
+    const centralActions = screen.getAllByRole("button", { name: /^View .+ Central$/ });
+    expect(centralActions.map((button) => button.textContent)).toEqual(["View Details", "View Nodes", "View Servers"]);
     expect(screen.getByText(/Kubernetes API connectivity/)).toBeInTheDocument();
   });
 
@@ -38,7 +40,7 @@ describe("ClustersPage", () => {
     renderWithQuery(<ClustersPage />, { client });
     const key = ["resource", "local", "gameplane-games", "same-name", "local-uid", "server"];
     client.setQueryData(key, { uid: "local-uid" });
-    await userEvent.click(await screen.findByRole("button", { name: "View servers in East" }));
+    await userEvent.click(await screen.findByRole("button", { name: "View Servers in East" }));
     await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/servers", search: { cluster: "east" } }));
     expect(getCurrentCluster()).toBe("local");
     expect(client.getQueryData(key)).toEqual({ uid: "local-uid" });
@@ -47,7 +49,7 @@ describe("ClustersPage", () => {
   it("opens inventory only for an explicitly capable registration", async () => {
     server.use(http.get("/clusters", () => HttpResponse.json({ items: [{ ...registrations[1], canViewInventory: true }] })));
     renderWithQuery(<ClustersPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "View nodes in East" }));
+    await userEvent.click(await screen.findByRole("button", { name: "View Nodes in East" }));
     await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/nodes", search: { cluster: "east" } }));
     expect(getCurrentCluster()).toBe("local");
   });
@@ -55,7 +57,7 @@ describe("ClustersPage", () => {
   it("opens details without changing the infrastructure selection or offering directory removal", async () => {
     server.use(http.get("/clusters", () => HttpResponse.json({ items: registrations })));
     renderWithQuery(<ClustersPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Open cluster East" }));
+    await userEvent.click(await screen.findByRole("button", { name: "View Details for East" }));
     expect(navigate).toHaveBeenCalledWith({ to: "/clusters/$clusterId", params: { clusterId: "east" }, search: { tab: "overview" } });
     expect(getCurrentCluster()).toBe("local");
     expect(screen.queryByRole("button", { name: /Remove cluster/ })).not.toBeInTheDocument();
@@ -64,15 +66,15 @@ describe("ClustersPage", () => {
   it("admits an authorized destination-only registration without exposing node inventory", async () => {
     server.use(http.get("/users/me", () => HttpResponse.json(makeUser({ permissions: {}, permissionsByCluster: { east: { "gameplane-games": ["destinations:read"] } } }))), http.get("/clusters", () => HttpResponse.json({ items: [registrations[1]] })));
     renderWithQuery(<ClustersPage />);
-    expect(await screen.findByRole("button", { name: "Open cluster East" })).toBeEnabled();
-    expect(screen.queryByRole("button", { name: "View nodes in East" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "View Details for East" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "View Nodes in East" })).not.toBeInTheDocument();
   });
 
   it("does not invent a local registration for empty or failed registry responses", async () => {
     server.use(http.get("/clusters", () => HttpResponse.json({ items: [] })));
     const { unmount } = renderWithQuery(<ClustersPage />);
     expect(await screen.findByText("No clusters available")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /View servers/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /View Servers/ })).not.toBeInTheDocument();
     unmount();
     server.use(http.get("/clusters", () => HttpResponse.error()));
     renderWithQuery(<ClustersPage />);

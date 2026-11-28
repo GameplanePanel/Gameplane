@@ -878,7 +878,7 @@ package.json                # @gameplane/web v0.5.0; dev: vite, npm scripts for 
      - **Step 3 (Review & Export)**: Dual-pane view with syntax-editable YAML manifests (`module.yaml`, `template.yaml`, `README.md`), live offline validation diagnostics, memory scaling simulation (`autoFromMemoryLimit`), and action buttons to download a `.tar.gz` archive or install directly into a cluster upload `ModuleSource`.
 
 7. **Clusters** (`/clusters`) → `ClustersPage`; **Nodes** (`/nodes`) → `NodesPage`
-   - Clusters lists authorized registrations and opens `/clusters/$clusterId` with Overview, Nodes and Configuration tabs.
+   - Each cluster card offers **View Details**, **View Nodes** (with inventory permission), then **View Servers**. View Details opens `/clusters/$clusterId` with Overview, Nodes and Configuration tabs.
    - Nodes combines authorized inventory by default with URL cluster, text and status filters, sortable columns and responsive stacked rows. Its compact search and Filter popover match Backups: Cluster/Status choices are drafts until Apply, Clear resets drafts, and the badge counts applied filters without search. Cluster details reuse the same inventory with a fixed target and status-only popover. Incomplete coverage and missing metrics remain visible.
    - Add node requires an explicit target; node join and kubeconfig download remain local-only and capability/permission gated. Configuration owns kubeconfig, read-only storage, target-bound backup destinations and confirmed remote removal.
    - `/cluster` remains a compatibility redirect to Nodes. Navigation and filters never retarget an existing server or pending mutation.
